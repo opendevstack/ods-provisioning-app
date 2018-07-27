@@ -1,0 +1,3 @@
+namespace prov-cd
+selector  app=jenkins
+param-dir ../../../ods-configuration/ods-provisioning-app/ocp-config/prov-cd

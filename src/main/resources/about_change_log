@@ -1,0 +1,34 @@
+{
+  "aboutDataList" : [ 
+	  {
+	    "who" : "clemens",
+	    "when" : "2017-07-21",
+	    "what" : "addition of about change data"
+	  },  
+	  {
+	    "who" : "clemens",
+	    "when" : "2017-07-26",
+	    "what" : "addition of security for provision roles, admin and user"
+	  },
+ 	  {
+ 	    "who" : "torsten.jaeschke",
+ 	    "when" : "2017-08-14",
+ 	    "what" : "addition of session aware cookie jar handling"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2017-09-18",
+ 	    "what" : "addition jira confluence creation checkbox"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2017-09-28",
+ 	    "what" : "change of build dc scaling and endpoint display"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-07-09",
+ 	    "what" : "error handling"
+ 	  }  	  
+  ]
+}

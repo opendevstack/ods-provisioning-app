@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+
+    <div class="starter-template">
+        <h1>Welcome</h1>
+        <h2>1. Visit <a th:href="@{/provision}">the provision page</a> to create or modify projects</h2>
+        <h2>2. Visit <a th:href="@{/history}">the history page</a> to get an overview about created projects</h2>
+    </div>
+
+</div>
+<!-- /.container -->
+
+<div th:replace="fragments/footer :: footer"/>
+
+</body>
+</html>

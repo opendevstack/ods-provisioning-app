@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: prov-app-dev
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: prov-app
+      branch: feature
+      component: prov-app
+      env: dev
+      template: component-template
+    name: prov-app
+  spec:
+    replicas: 1
+    selector:
+      app: prov-app
+      component: prov-app
+      deploymentconfig: prov-app
+      env: dev
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations: {}
+        creationTimestamp: null
+        labels:
+          app: prov-app
+          component: prov-app
+          deploymentconfig: prov-app
+          env: dev
+      spec:
+        containers:
+        - image: prov-app-dev/prov-app:latest
+          imagePullPolicy: IfNotPresent
+          name: prov-app
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 100Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/provision/history
+            name: volume-65x72
+          - mountPath: /test
+            name: volume-ikfik
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: volume-65x72
+          persistentVolumeClaim:
+            claimName: prov-history
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: application.properties
+            name: application.properties
+          name: volume-ikfik
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - prov-app
+        from:
+          kind: ImageStreamTag
+          name: prov-app:latest
+          namespace: prov-dev
+      type: ImageChange

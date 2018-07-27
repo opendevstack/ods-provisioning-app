@@ -1,0 +1,51 @@
+{
+  "id": "https://docs.atlassian.com/jira/REST/schema/project-input#",
+  "title": "Project Input",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "projectTypeKey": {
+      "type": "string"
+    },
+    "projectTemplateKey": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "lead": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "assigneeType": {
+      "type": "string",
+      "enum": [
+        "PROJECT_LEAD",
+        "UNASSIGNED"
+      ]
+    },
+    "avatarId": {
+      "type": "integer"
+    },
+    "issueSecurityScheme": {
+      "type": "integer"
+    },
+    "permissionScheme": {
+      "type": "integer"
+    },
+    "notificationScheme": {
+      "type": "integer"
+    },
+    "categoryId": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}

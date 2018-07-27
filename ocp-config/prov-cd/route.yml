@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: prov-cd
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: jenkins
+      template: cd-jenkins-persistent-template
+    name: jenkins
+  spec:
+    host: ${JENKINS_HOST}
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: jenkins
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- name: JENKINS_HOST
+  required: true

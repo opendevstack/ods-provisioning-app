@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+    <h1>History</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel-group" id="accordion">
+
+                <div class="panel panel-default" th:each="project : ${projectHistory}">
+                    <div class="panel-heading">
+                        <a data-toggle="collapse" th:href="@{'#'+${project.value.key}}">
+                        <h4 class="panel-title">
+                            <span class="glyphicon glyphicon-file">
+                            </span><span th:text="${project.value.name}"></span> <span class="text-right pull-right" th:text="${project.key}">Date</span>
+                        </h4>
+                        </a>
+                    </div>
+                    <div th:id="${project.value.key}" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="row-mx-8">
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Name:</div>
+                                    <div class="col-xs-4 col-sm-6"><span th:text="${project.value.name}"></span></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Key:</div>
+                                    <div class="col-xs-4 col-sm-6"><span th:text="${project.value.key}"></span></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Description:</div>
+                                    <div class="col-xs-4 col-sm-6"><span th:text="${project.value.description}"></span></div>
+                                </div>
+                                <div class="row" th:if="${project.value.jiraconfluencespace} == true">
+                                    <div class="col-xs-8 col-sm-6">JIRA:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.jiraUrl}}" target="_blank"><span th:text="${project.value.jiraUrl}"></span></a></div>
+                                </div>
+                                <div class="row" th:if="${project.value.jiraconfluencespace} == true">
+                                    <div class="col-xs-8 col-sm-6">Confluence:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.confluenceUrl}}" target="_blank"><span th:text="${project.value.confluenceUrl}"></span></a></div>
+                                </div>
+                                <div class="row" th:if="${project.value.jiraconfluencespace} == false">
+                                    <div class="col-xs-8 col-sm-6">Jira / confluence space:</div>
+                                    <div class="col-xs-4 col-sm-6">not created</div>
+                                </div>                                
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Bitbucket:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.bitbucketUrl}}" target="_blank"><span th:text="${project.value.bitbucketUrl}"></span></a></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Jenkins:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.openshiftJenkinsUrl}}" target="_blank"><span th:text="${project.value.openshiftJenkinsUrl}"></span></a></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Openshift / Dev environment project:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.openshiftConsoleDevEnvUrl}}" target="_blank"><span th:text="${project.value.openshiftConsoleDevEnvUrl}"></span></a></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">Openshift / Test environment project:</div>
+                                    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.value.openshiftConsoleTestEnvUrl}}" target="_blank"><span th:text="${project.value.openshiftConsoleTestEnvUrl}"></span></a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"/>
+
+<script type="text/javascript" src="/js/validator.js"></script>
+<script type="text/javascript" src="/js/client.js"></script>
+
+</body>
+</html>

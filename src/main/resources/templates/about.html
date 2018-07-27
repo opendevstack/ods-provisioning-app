@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+  <h1>About</h1>
+  <p>
+   Logged user: <span sec:authentication="name"/><br />
+	 Roles: <span sec:authentication="principal.authorities"/><br/>
+	 <span th:text="${crowdUserGroup}"></span><br/>
+	 <span th:text="${crowdAdminGroup}"></span><br/>
+  </p>
+  <div class="table-responsive" id="aboutChangesTable">
+    <table>
+	        <tr> 
+	            <td>Who</td> 
+	            <td>When</td>
+	            <td>What</td>
+	        </tr>
+		    <div class="row" th:each="singleChange : ${aboutChanges}">
+			    <tr>
+					<td><span th:text="${singleChange.who}"></span></td>
+					<td><span th:text="${singleChange.when}"></span></td>
+					<td><span th:text="${singleChange.what}"></span></td>
+			    </tr>
+		    </div>
+    </table>
+  </div>
+
+  <div class="table-responsive" id="endpointTable">
+  Endpoints used:
+    <table>
+		    <div class="row" th:each="singleEndpoint : ${endpointMap}">
+			    <tr>
+					<td><span th:text="${singleEndpoint.key}"></span></td>
+					<td><span th:text="${singleEndpoint.value}"></span></td>
+			    </tr>
+		    </div>
+    </table>
+  </div>
+
+</div>
+
+<div th:replace="fragments/footer :: footer"/>
+
+<script type="text/javascript" src="/js/validator.js"></script>
+<script type="text/javascript" src="/js/client.js"></script>
+
+</body>
+</html>

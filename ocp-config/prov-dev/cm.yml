@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: prov-app-dev
+objects:
+- kind: ConfigMap
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: prov-app
+    name: application.properties
+  apiVersion: v1
+  data:
+    properties: |
+      #log level
+      logging.level.root=WARN
+      logging.level.org.springframework=INFO
+      logging.level.org.springframework.security=DEBUG
+      logging.level.com.atlassian=INFO
+      logging.level.com.atlassian.crowd=DEBUG
+
+      #log file
+      logging.file=provision.log
+      #logging.path=/var/log
+
+      #server port
+      server.port:8080
+      server.use-forward-headers=true
+
+      #JIRA properties
+      jira.uri=${JIRA_URI}
+      jira.api.path=/rest/api/latest
+
+      #Confluence properties
+      confluence.uri=${CONFLUENCE_URI}
+      confluence.api.path=/rest
+
+      #Bitbucket properties
+      bitbucket.uri=${BITBUCKET_URI}
+      bitbucket.api.path=/rest/api/1.0
+      bitbucket.repository.pattern=%s-%s
+      bitbucket.webhook.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-cd/buildconfigs/%s-%s/webhooks/secret101/generic
+      bitbucket.webhook.rshiny.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-%s/buildconfigs/%s/webhooks/secret101/generic
+      bitbucket.webhook.environments=dev,test
+      bitbucket.default.user.group=${CROWD_USER_GROUP}
+      bitbucket.technical.user=${CD_USER_ID}
+
+      #openshift properties
+      openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
+      openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
+
+      #openshift project name patterns
+      openshift.test.project.name.pattern=%s%s-test
+      openshift.dev.project.name.pattern=%s%s-dev
+      openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
+
+      #Rundeck properties
+      rundeck.uri=${RUNDECK_URI}
+      rundeck.system.path=/rundeck
+      rundeck.api.path=/rundeck/api/19
+      rundeck.project.name=Quickstarters
+      rundeck.group.pattern=${PACKAGE_PREFIX}.%s
+      rundeck.artifact.pattern=%s-%s
+      rundeck.project.group.quickstarter=quickstarts
+      rundeck.project.group.openshift=openshift
+      rundeck.project.openshift.create.name=create-projects
+
+      #Cookie Domain
+      atlassian.domain=${ATLASSIAN_DOMAIN}
+
+      #Data for confluence space creation
+      confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+
+      #crowd properties
+      crowd.application.name=provision
+      crowd.application.password=${CROWD_PASSWORD}
+      crowd.server.url=${CROWD_URL}/crowd/services/
+      crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
+      crowd.user.group=${CROWD_USER_GROUP}
+      crowd.admin.group=${CROWD_ADMIN_GROUP}
+
+      #local storage
+      project.storage.local=/opt/provision/history/
+
+      jasypt.encryptor.password=${JASYPT_PASSWORD}
+
+      #mail properties
+      spring.mail.host=${MAIL_HOST}
+      spring.mail.port=587
+      spring.mail.protocol=smtp
+      spring.mail.debug=true
+      spring.mail.defaultEncoding=UTF-8
+      spring.mail.smtp.timeout=1000
+      spring.mail.smtp.connectiontimeout=1000
+      spring.mail.smtps.connectiontimeout=1000
+      spring.mail.properties.mail.smtp.ssl.enable=true
+      spring.mail.properties.mail.smtp.auth=true
+      spring.mail.username=${MAIL_USERNAME}
+      spring.mail.password=${MAIL_PASSWORD}
+      provison.mail.sender=provision@${MAIL_HOST}
+parameters:
+- name: JIRA_URI
+  required: true
+- name: CONFLUENCE_URI
+  required: true
+- name: BITBUCKET_URI
+  required: true
+- name: RUNDECK_URI
+  required: true
+- name: CROWD_URL
+  required: true
+- name: OPENSHIFT_API_HOST
+  required: true
+- name: OPENSHIFT_CONSOLE_HOST
+  required: true
+- name: CROWD_USER_GROUP
+  required: true
+- name: CD_USER_ID
+  required: true
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+- name: PACKAGE_PREFIX
+  required: true
+- name: ATLASSIAN_DOMAIN
+  required: true
+- name: CROWD_PASSWORD
+  required: true
+- name: JASYPT_PASSWORD
+  required: true
+- name: MAIL_HOST
+  required: true
+- name: MAIL_PASSWORD
+  required: true
+- name: MAIL_USERNAME
+  required: true
+- name: CROWD_ADMIN_GROUP
+  required: true

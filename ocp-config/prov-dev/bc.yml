@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: prov-app-dev
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: prov-app
+      component: prov-app
+      env: dev
+      template: bc-docker
+    name: prov-app
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: prov-app:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: src/docker
+      git:
+        ref: production
+        uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
+      secrets:
+      - secret:
+          name: nexus-secret
+      sourceSecret:
+        name: cd-user-token
+      type: Git
+    strategy:
+      dockerStrategy:
+        env:
+        - name: NEXUS_HOST
+          value: ${NEXUS_URL}
+      type: Docker
+    triggers: []
+parameters:
+- name: NEXUS_URL
+  required: true
+- name: REPO_BASE
+  required: true

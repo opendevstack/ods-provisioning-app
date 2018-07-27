@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+
+    <div class="starter-template">
+        <h1>Provision a project</h1>
+        
+        <div id="res" class="alert"></div>
+        <!-- Choose an optin, edit or create -->
+        <form id="chooseOption">
+            <fieldset class="form-group">
+                <legend class="col-form-legend">Choose an option</legend>
+                <div class="radio" sec:authorize="hasAuthority(#vars.crowdUserGroup) or hasAuthority(#vars.crowdAdminGroup)">
+                    <label><input type="radio" name="optradio" id="optExistingInitiave" />Modifiy existing initiave</label>
+                </div>
+                <div class="radio" sec:authorize="hasAuthority(#vars.crowdAdminGroup)">
+                    <label><input type="radio" name="optradio" id="optNewProject" />Create new initiave</label>
+                </div>
+            </fieldset>
+        </form>
+
+        <!-- form for project edit -->
+        <form id="modifyProject" class="hidden"> 
+            <fieldset class="form-group">
+                <legend class="col-form-legend">Project</legend>
+                <div class="form-group">
+                    <label for="projects">Select existing project:</label>
+                    <select class="form-control" id="projects" name="key">
+                        <option value=""></option>
+                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.name}">Project name</option>
+                    </select>
+                </div>
+                <div class="table-responsive hidden" id="infoProjectTable">
+                	<table>
+                		<tr>
+                			<td>
+                    			<label for="description">Description</label>
+                    		</td>
+                    		<td>
+			                    <textarea class="form-control" id="projectDescription" name="projectDescription" disabled="true"
+                              		rows="3"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            	Jira / Confluence space created?
+                            </td>
+                            <td>
+                    			<input type="checkbox" name="jiraconfluencespaceInfo" id="jiraconfluencespaceInfo" checked="true" disabled="true"/>
+                    		</td>
+                    	</tr>
+                    </table>
+				</div>                
+                <div class="table-responsive hidden" id="quickstartTable">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Current Quickstarters</th> 
+                            <th>Component ID</th>
+                        </tr>
+                        </thead>
+                        <tbody id="quickstartRow">
+                        <tr>
+                            <td>Here is the name of the quickstarters</td>
+                            <td>the component id</td>
+                        </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </fieldset>
+            <fieldset class="form-group quickstartergroup">
+                <legend class="col-form-legend">Quickstarter</legend>
+                <div class="form-group form-inline entry">
+                    <div class="checkbox">
+                        <!-- label -->
+                        <input type="checkbox" name="quickstart-checked-1"  />
+                        <!-- span th:text="${project.description}"></span></label> -->
+                        <select class="form-control quickstart-chooser" name="quickstart-type-1">
+                            <option value=""></option>
+                            <option th:each="project : ${quickStarter}" th:value="${project.id}" th:text="${project.description}">Project name</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group pull-right input-group col-xs-5">
+                        <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id" data-unique-error="The component id already exist"/>
+                        <span class="input-group-btn">
+                                <button class="btn btn-success btn-add" type="button">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                        <div class="row"></div>
+                        <div class="help-block with-errors" name="quickstart-error-1"></div>
+                    </div>
+                </div>
+            </fieldset>
+            <button type="submit" id="modifySubmit" class="btn btn-default pull-right disable" th:disabled="true">Start provision</button>
+        </form>
+
+        <form id="createProject" class="hidden">
+            <fieldset class="form-group">
+                <legend class="col-form-legend">Project</legend>
+                <div class="form-group">
+                    <label for="name"  class="control-label">Name</label>
+                    <input type="text" class="form-control" data-remote="/api/v1/project/validate" data-remote-error="A project with this name already exists" id="name" name="name" placeholder="Project name" maxlength="80" required="required"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>
+                <div class="form-group">
+                    <label for="key" class="control-label">Key</label>
+                    <input type="text" pattern="([a-zA-Z][a-zA-Z_0-9]+)" class="form-control text-uppercase" data-remote="/api/v1/project/key/validate" data-remote-error="A key with this name already exists" id="key" name="key" placeholder="Project key" maxlength="10" required="required"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" placeholder="Provide a project description"
+                              rows="3"></textarea>
+                </div>
+                <!-- cutschig allow projects without jira and confluence spaces--> 
+                <div class="form-group">
+                    <label for="jiraconfluencespace">Create JIRA / Confluence spaces</label>
+                    <input type="checkbox" name="jiraconfluencespace" id="jiraconfluencespace" checked="true"/>
+				</div>                
+            </fieldset>
+            <fieldset class="form-group quickstartergroup">
+                <legend class="col-form-legend">Quickstarter</legend>
+
+                <div class="form-group form-inline entry">
+                        <div class="checkbox">
+                            <!-- label -->
+                                <input type="checkbox" name="quickstart-checked-1"  disabled="disabled"/>
+                            <!-- span th:text="${project.description}"></span></label> -->
+                            <select class="form-control quickstart-chooser" name="quickstart-type-1">
+                                <option value=""></option>
+                                <option th:each="project : ${quickStarter}" th:value="${project.id}" th:text="${project.description}">Project name</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group pull-right input-group col-xs-5">
+                                <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id" data-unique-error="The component id already exist"/>
+                                <span class="input-group-btn">
+                                <button class="btn btn-success btn-add" type="button">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                            <div class="row"></div>
+                            <div class="help-block with-errors" name="quickstart-error-1"></div>
+                        </div>
+                </div>
+
+            </fieldset>
+            <button type="submit" class="btn btn-default pull-right">Start provision</button>
+        </form>
+
+    </div>
+    <!-- Modal -->
+    <div id="createModal" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Project provision</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="resProject" class="alert">Project provision in progress</div>
+                    <div id="projectData" class="hide">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <b>Summary</b>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">
+                                        Name:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataProjectName"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">
+                                        Key:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataProjectKey"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">
+                                        JIRA / confluence space created:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataJiraConfluenceCreated"></div>
+                                </div>
+                                
+                                <div class="row" id="dataJiraUrlDiv">
+                                    <div class="col-xs-8 col-sm-6">
+                                        JIRA:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataJiraUrl"></div>
+                                </div>
+                                <div class="row" id="dataConfluenceUrlDiv">
+                                    <div class="col-xs-8 col-sm-6">
+                                        Confluence:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataConfluenceUrl"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8 col-sm-6">
+                                        Bitbucket:
+                                    </div>
+                                    <div class="col-xs-4 col-sm-6" id="dataBitbucketUrl"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="resButton">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- /.container -->
+
+<div th:replace="fragments/footer :: footer"/>
+
+<script type="text/javascript" src="/js/validator.js"></script>
+<script type="text/javascript" src="/js/client.js"></script>
+
+</body>
+</html>

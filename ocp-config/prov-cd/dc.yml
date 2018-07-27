@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Template
+metadata:
+  annotations: {}
+  creationTimestamp: null
+  name: prov-cd
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations: {}
+    creationTimestamp: null
+    labels:
+      app: jenkins
+      template: cd-jenkins-persistent-template
+    name: jenkins
+  spec:
+    replicas: 1
+    selector:
+      name: jenkins
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        annotations: {}
+        creationTimestamp: null
+        labels:
+          name: jenkins
+      spec:
+        containers:
+        - env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: 'true'
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: 'true'
+          - name: KUBERNETES_MASTER
+            value: 'https://kubernetes.default:443'
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: 'true'
+          - name: JNLP_SERVICE_NAME
+            value: jenkins-jnlp
+          - name: NEXUS_HOST
+            value: '${NEXUS_URL}'
+          - name: JENKINS_HOME
+            value: '/var/lib/jenkins'
+          - name: COPY_REFERENCE_FILE_LOG
+            value: '/var/lib/jenkins/copy_reference_file.log'
+          - name: SONAR_SERVER_URL
+            value: '${SONARQUBE_URL}'
+          - name: SONAR_SERVER_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: auth-token
+                name: sonarqube
+          - name: SHARED_LIBRARY_REPOSITORY
+            value: '${REPO_BASE}/opendevstack/ods-jenkins-shared-library.git'
+          - name: DOCKER_REGISTRY
+            value: ${DOCKER_REGISTRY}
+          - name: NEXUS_USERNAME
+            value: ${NEXUS_USERNAME}
+          - name: NEXUS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: nexus
+          image: cd/jenkins-master:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: jenkins
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /login
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 100Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: jenkins-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: jenkins
+        serviceAccountName: jenkins
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - jenkins
+        from:
+          kind: ImageStreamTag
+          name: jenkins-master:latest
+          namespace: cd
+      type: ImageChange
+    - type: ConfigChange
+parameters:
+- name: NEXUS_URL
+  required: true
+- name: SONARQUBE_URL
+  required: true
+- name: REPO_BASE
+  required: true
+- name: DOCKER_REGISTRY
+  required: true
+- name: NEXUS_USERNAME
+  required: true

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<!--
+
+-->
+<body>
+<span th:text="${message}"></span>
+<div class="row-mx-8">
+  <div class="row">
+    <div class="col-xs-8 col-sm-6">Name:</div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.name}"></span></div>
+  </div>
+  <div class="row">
+    <div class="col-xs-8 col-sm-6">Key:</div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.key}"></span></div>
+  </div>
+  <div class="row">
+    <div class="col-xs-8 col-sm-6">Description:</div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.description}"></span></div>
+  </div>
+  <!-- flag some people don't want spaces -->  
+  <div class="row" th:if="${project.jiraUrl != null}">
+    <div class="col-xs-8 col-sm-6">JIRA:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.jiraUrl}}" target="_blank"><span th:text="${project.jiraUrl}"></span></a></div>
+  </div>
+  <!-- flag some people don't want spaces -->  
+  <div class="row" th:if="${project.confluenceUrl != null}">
+    <div class="col-xs-8 col-sm-6">Confluence:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.confluenceUrl}}" target="_blank"><span th:text="${project.confluenceUrl}"></span></a></div>
+  </div>
+  <div class="row" th:if="${project.bitbucketUrl != null}">
+    <div class="col-xs-8 col-sm-6">Bitbucket:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.bitbucketUrl}}" target="_blank"><span th:text="${project.bitbucketUrl}"></span></a></div>
+  </div>
+  <!-- jenkins -->
+  <div class="row" th:if="${project.openshiftJenkinsUrl != null}">
+    <div class="col-xs-8 col-sm-6">Jenkins:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftJenkinsUrl}}" target="_blank"><span th:text="${project.openshiftJenkinsUrl}"></span></a></div>
+  </div>
+
+  <!-- dev env -->
+  <div class="row" th:if="${project.openshiftConsoleDevEnvUrl != null}">
+    <div class="col-xs-8 col-sm-6">OC Dev env:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftConsoleDevEnvUrl}}" target="_blank"><span th:text="${project.openshiftConsoleDevEnvUrl}"></span></a></div>
+  </div>
+
+  <!-- test env -->
+  <div class="row" th:if="${project.openshiftConsoleTestEnvUrl != null}">
+    <div class="col-xs-8 col-sm-6">OC test env:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftConsoleTestEnvUrl}}" target="_blank"><span th:text="${project.openshiftConsoleTestEnvUrl}"></span></a></div>
+  </div>
+
+</div>
+</body>
+</html>

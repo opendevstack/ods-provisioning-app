@@ -1,0 +1,6 @@
+{
+  "admins" : [ ],
+  "name" : "Test",
+  "description" : "test",
+  "key" : "TEST"
+}
