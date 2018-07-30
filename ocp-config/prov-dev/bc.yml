@@ -30,9 +30,6 @@ objects:
       git:
         ref: production
         uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
-      secrets:
-      - secret:
-          name: nexus-secret
       sourceSecret:
         name: cd-user-token
       type: Git
