@@ -26,7 +26,7 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: src/docker
+      contextDir: docker
       git:
         ref: production
         uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
