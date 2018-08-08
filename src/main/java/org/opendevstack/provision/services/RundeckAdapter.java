@@ -267,13 +267,15 @@ public class RundeckAdapter {
         .addHeader("Accept", "application/json").build();
 
     Response response = client.getClient().newCall(request).execute();
+
     if (response.isSuccessful()) {
-      logger.debug("Response: {}", response);
       String respBody = response.body().string();
       logger.debug("ResponseBody: {}", respBody);
       List<Job> jobs = new ObjectMapper().readValue(respBody, new TypeReference<List<Job>>() {});
       enabledJobs = jobs.stream().filter(x -> x.isEnabled()).collect(Collectors.toList());
       jobStore.addJobs(enabledJobs);
+    } else {
+    	throw new IOException("Error on rundeck call: " + response.body().string());
     }
     response.close();
     return enabledJobs;
