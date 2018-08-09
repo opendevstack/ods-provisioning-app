@@ -13,7 +13,7 @@ node {
   nexusPassword = env.NEXUS_PASSWORD
 }
 
-library identifier: 'ods-library@latest', retriever: modernSCM(
+library identifier: 'ods-library@production', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
@@ -30,7 +30,7 @@ odsPipeline(
   stageBuild(context)
   stageScanForSonarqube(context)
   stageCreateOpenshiftEnvironment(context)
-  stageUpdateOpenshiftBuild(context)
+  stageStartOpenshiftBuild(context)
   stageDeployToOpenshift(context)
   stageTriggerAllBuilds(context)
 }
@@ -44,7 +44,8 @@ def stageBuild(def context) {
   }
   stage('Build') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
-      sh "./gradlew clean build --stacktrace --no-daemon uploadArchives"
+      sh "./gradlew clean build --stacktrace --no-daemon"
     }
+    sh "cp build/libs/${context.componentId}-*.jar docker/app.jar"
   }
 }

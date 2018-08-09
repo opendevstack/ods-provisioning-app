@@ -9,7 +9,8 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ebs
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
       app: prov-app
@@ -20,3 +21,8 @@ objects:
     resources:
       requests:
         storage: 10Mi
+parameters:	
+- name: STORAGE_PROVISIONER
+  required: true
+- name: STORAGE_CLASS_NAME
+  required: true
