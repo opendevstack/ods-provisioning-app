@@ -1,3 +1,5 @@
 namespace prov-dev
 selector  app=prov-app
 param-dir ../../../ods-configuration/ods-provisioning-app/ocp-config/prov-dev
+
+bc,cm,dc,is,pvc,route,secret,svc
