@@ -24,7 +24,7 @@ odsPipeline(
   projectId: projectId,
   componentId: componentId,
   groupId: groupId,
-  testProjectBranch: 'production',
+  testProjectBranch: 'master',
   verbose: true,
 ) { context ->
   stageBuild(context)
