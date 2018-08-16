@@ -26,22 +26,9 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: docker
-      git:
-        ref: production
-        uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
-      sourceSecret:
-        name: cd-user-token
-      type: Git
+      binary: {}
+      type: Binary
     strategy:
-      dockerStrategy:
-        env:
-        - name: NEXUS_HOST
-          value: ${NEXUS_URL}
+      dockerStrategy: {}
       type: Docker
     triggers: []
-parameters:
-- name: NEXUS_URL
-  required: true
-- name: REPO_BASE
-  required: true
