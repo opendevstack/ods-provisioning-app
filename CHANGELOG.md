@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
 1. Extract all needed config params into config map injected into the DC as spring boot config
 1. Move provisioning app to new shared library version
