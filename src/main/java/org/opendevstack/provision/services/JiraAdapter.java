@@ -72,6 +72,12 @@ public class JiraAdapter {
   @Autowired
   RestClient client;
 
+  enum HTTP_VERB {
+	  put, 
+	  post,
+	  get
+  }
+  
   /**
    * Based on the information in the project object we create a jira project
    *
@@ -142,7 +148,7 @@ public class JiraAdapter {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(jiraProject);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-    FullJiraProject created = this.post(path, json, crowdCookieValue, FullJiraProject.class, false);
+    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.post);
     FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
         jiraProject.getName(), jiraProject.getDescription(), null, null, null, null, null, null,
         null, null);
@@ -194,26 +200,36 @@ public class JiraAdapter {
 	      
 	      String json = ow.writeValueAsString(singleScheme);
 	      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-	      singleScheme = post(path, json, crowdCookieValue, PermissionScheme.class, true);
+	      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.post);
 	      
 	      // update jira project
 	      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
 	      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
-	      put(path, json, crowdCookieValue, FullJiraProject.class);	      
+	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.put);	      
       }
   }
   
-  protected <T> T post(String url, String json, String crowdCookieValue, Class valueType, boolean newClient)
+  protected <T> T callHttp(String url, String json, String crowdCookieValue, Class valueType, 
+		  boolean newClient, HTTP_VERB verb)
       throws IOException {
 	  
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
 
-    Request request = new Request.Builder()
-        .url(url)
-        .post(body).addHeader("X-Atlassian-Token", "no-check")
-        .build();
+    okhttp3.Request.Builder builder = new Request.Builder();
+    builder.url(url).addHeader("X-Atlassian-Token", "no-check");
+    
+    if (HTTP_VERB.put.equals(verb))
+    {
+        builder = builder.post(body);
+    } else if (HTTP_VERB.get.equals(verb))
+    {
+    	builder = builder.get();
+    } else if (HTTP_VERB.post.equals(verb))
+    {
+    	builder = builder.post(body);
+    }
 
-    logger.debug("Call to: " + url);
+    logger.debug("Call to: " + url + " :new:" + newClient);
     
     Response response = null;
     if (newClient)
@@ -221,16 +237,12 @@ public class JiraAdapter {
     	String credentials =
     			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
     					manager.getUserPassword());
-    	request = new Request.Builder()
-    	        .url(url)
-    	        .post(body).addHeader("X-Atlassian-Token", "no-check")
-    	        .addHeader("Authorization", credentials)
-    	        .build();
-    	response = client.getClientFresh(crowdCookieValue).newCall(request).execute();
+    	builder = builder.addHeader("Authorization", credentials);
+    	response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     }
     else 
     {
-    	response = client.getClient(crowdCookieValue).newCall(request).execute();	
+    	response = client.getClient(crowdCookieValue).newCall(builder.build()).execute();	
     }
     	    
     String respBody = response.body().string();
@@ -239,33 +251,10 @@ public class JiraAdapter {
     
     if (response.code() < 200 || response.code() >= 300)
     {
-      throw new IOException(response.code()+": Could not create " +valueType.getName() + ": " + respBody);
+      throw new IOException(response.code()+": Could not " + verb + " > "  +valueType.getName() + ": " + respBody);
     }
     
     return (T)new ObjectMapper().readValue(respBody, valueType);
-  }
-
-  protected <T> T  put(String url, String json, String crowdCookieValue, Class valueType)
-      throws IOException {
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-    Request request = new Request.Builder()
-        .url(url)
-        .put(body).addHeader("X-Atlassian-Token", "no-check")
-        .build();
-
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(respBody);
-    response.close();
-    
-    if (response.code() < 200 || response.code() >= 300)
-    {
-      throw new IOException(response.code()+": Could not update " +valueType.getName() + ": " + respBody);
-    }
-    
-    return (T) new ObjectMapper().readValue(respBody, valueType);
   }
   
   protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
@@ -289,14 +278,14 @@ public class JiraAdapter {
 
   public boolean keyExists(String key, String crowdCookieValue) {
     getSessionId();
-/*    List<FullJiraProject> projects = getProjects(crowdCookieValue, key);
+    List<FullJiraProject> projects = getProjects(crowdCookieValue, key);
     for(FullJiraProject project : projects) {
       String normalizedProject = project.getKey().trim();
       String normalizedParam = key.trim();
       if(normalizedParam.equalsIgnoreCase(normalizedProject)) {
         return true;
       }
-    } */ 
+    }
     return false; 
   }
 
@@ -325,14 +314,6 @@ public class JiraAdapter {
           return new ArrayList<FullJiraProject>();
       }
       
-      // then max one .. and the conversion will fail
-      if (filter != null) 
-      {
-    	  List <FullJiraProject> results = new ArrayList<FullJiraProject>();
-    	  results.add(new ObjectMapper().readValue(respBody, FullJiraProject.class));
-    	  return results;
-      }
-      
       return new ObjectMapper().readValue(respBody, new TypeReference<List<FullJiraProject>>() {});
     } catch (JsonMappingException e) {
       // if for some odd reason serialization fails ... 
@@ -358,7 +339,5 @@ public class JiraAdapter {
 
   public String getEndpointUri () {
   	return jiraUri;
-  }
-  
-  
+  } 
 }
