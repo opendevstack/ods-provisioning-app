@@ -4,6 +4,7 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -283,7 +283,7 @@ public class JiraAdapter {
     key = key.toUpperCase();
     key = key.replaceAll("\\s+", "");
     key = key.replaceAll("-", "_");
-    key = key.length() > 5 ? key.substring(0, 5) : key;
+    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2, key.length())) : key;
     return key;
   }
 
@@ -334,6 +334,13 @@ public class JiraAdapter {
       }
       
       return new ObjectMapper().readValue(respBody, new TypeReference<List<FullJiraProject>>() {});
+    } catch (JsonMappingException e) {
+      // if for some odd reason serialization fails ... 
+      List<FullJiraProject> returnList = new ArrayList<>();
+      returnList.add(new FullJiraProject
+    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null));
+    				  
+      return returnList;
     } catch (IOException e) {
       logger.error("Error in getting projects", e);
       // if for nothing else - 

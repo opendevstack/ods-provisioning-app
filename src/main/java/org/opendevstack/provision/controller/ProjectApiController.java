@@ -132,13 +132,12 @@ public class ProjectApiController {
         logger.debug("project successful stored: {}", filePath);
       }
       
-      /* notify user via mail of project creation with embedding links
+      // notify user via mail of project creation with embedding links
       try {
         mailAdapter.notifyUsersAboutProject(project);
       } catch (Exception ex) {
         logger.error("Can't send mail: {}", ex);
       }
-	  */
       
       // return project data for further processing
       return ResponseEntity.ok().body(project);
