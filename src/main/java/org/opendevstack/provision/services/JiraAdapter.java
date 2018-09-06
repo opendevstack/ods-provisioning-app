@@ -289,14 +289,14 @@ public class JiraAdapter {
 
   public boolean keyExists(String key, String crowdCookieValue) {
     getSessionId();
-    List<FullJiraProject> projects = getProjects(crowdCookieValue, key);
+/*    List<FullJiraProject> projects = getProjects(crowdCookieValue, key);
     for(FullJiraProject project : projects) {
       String normalizedProject = project.getKey().trim();
       String normalizedParam = key.trim();
       if(normalizedParam.equalsIgnoreCase(normalizedProject)) {
         return true;
       }
-    } 
+    } */ 
     return false; 
   }
 
