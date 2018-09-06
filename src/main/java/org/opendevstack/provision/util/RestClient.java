@@ -44,32 +44,21 @@ public class RestClient {
 
   int readTimeout = 60;
   
-  private Map<String, OkHttpClient> cache = new HashMap<>();
-
   public OkHttpClient getClient() {
     return getClient(null);
   }
 
-  public OkHttpClient getClient(String crowdCookie) {
-
-	OkHttpClient client = cache.get(crowdCookie);
-	if (client != null) {
-		return client;
-	}
-	
+  public OkHttpClient getClient(String crowdCookie) {	
     OkHttpClient.Builder builder = new Builder();
     if (null != crowdCookie) {
       cookieJar.addCrowdCookie(crowdCookie);
     }
     builder.cookieJar(cookieJar).connectTimeout(connectTimeout, TimeUnit.SECONDS)
         .readTimeout(readTimeout, TimeUnit.SECONDS);
-    client = builder.build();
-    cache.put(crowdCookie, client);
-    return client;
+    return builder.build();
   }  
 
   public OkHttpClient getClientFresh(String crowdCookie) {
-	cache.remove(crowdCookie);
     cookieJar.clear();
     return getClient();
   }  
@@ -107,9 +96,5 @@ public class RestClient {
   }
   
   public void removeClient (String crowdCookieValue) {
-	  if (crowdCookieValue == null) {
-		  return;
-	  }
-	  cache.remove(crowdCookieValue);
   }
 }
