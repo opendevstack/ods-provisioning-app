@@ -72,7 +72,7 @@ public class JiraAdapter {
   @Autowired
   RestClient client;
 
-  enum HTTP_VERB {
+  public static enum HTTP_VERB {
 	  put, 
 	  post,
 	  get

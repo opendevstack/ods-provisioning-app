@@ -104,8 +104,8 @@ public class JiraAdapterTests {
     Mockito.when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
     Mockito.when(details.getUsername()).thenReturn("achmed");
     Mockito.when(details.getFullName()).thenReturn("achmed meyer");
-    Mockito.doReturn(getReturnProject()).when(spyAdapter).post(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean());
+    Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), JiraAdapter.HTTP_VERB.post);
 
     
     ProjectData createdProject =
@@ -122,8 +122,8 @@ public class JiraAdapterTests {
     String crowdCookieValue = "value";
     FullJiraProject expectedProject = new FullJiraProject();
 
-    Mockito.doReturn(expectedProject).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean());
+    Mockito.doReturn(expectedProject).when(spyAdapter).callHttp(Matchers.anyString(), Matchers.anyString(),
+        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), JiraAdapter.HTTP_VERB.post);
     
     FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject, crowdCookieValue);
 
