@@ -220,7 +220,7 @@ public class JiraAdapter {
     
     if (HTTP_VERB.put.equals(verb))
     {
-        builder = builder.post(body);
+        builder = builder.put(body);
     } else if (HTTP_VERB.get.equals(verb))
     {
     	builder = builder.get();
