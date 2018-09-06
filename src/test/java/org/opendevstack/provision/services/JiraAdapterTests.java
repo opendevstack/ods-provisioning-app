@@ -85,7 +85,7 @@ public class JiraAdapterTests {
   }
 
   //@Test
-  public void createJiraProjectForProject() throws IOException {
+  public void createJiraProjectForProject() throws Exception {
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
 
@@ -105,7 +105,7 @@ public class JiraAdapterTests {
     Mockito.when(details.getUsername()).thenReturn("achmed");
     Mockito.when(details.getFullName()).thenReturn("achmed meyer");
     Mockito.doReturn(getReturnProject()).when(spyAdapter).post(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString());
+        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean());
 
     
     ProjectData createdProject =
@@ -123,7 +123,7 @@ public class JiraAdapterTests {
     FullJiraProject expectedProject = new FullJiraProject();
 
     Mockito.doReturn(expectedProject).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString());
+        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean());
     
     FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject, crowdCookieValue);
 

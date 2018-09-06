@@ -44,6 +44,7 @@ public class FullJiraProject extends Project {
   public String projectTemplateKey; // e.g. com.pyxis.greenhopper.jira:gh-scrum-template
   public String projectTypeKey; // eg business or software
   public String id;
+  public String permissionScheme; // the permissionSchemeId
 
   public FullJiraProject() {
     super(null, null, null, null, null, null, null, null, null, null);

@@ -15,6 +15,7 @@
 package org.opendevstack.provision.services;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
@@ -27,6 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.data.rest.core.Path;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +54,9 @@ public class ConfluenceAdapter {
   @Value("${confluence.api.path}")
   private String confluenceApiPath;
 
+  @Value("${confluence.json.rpc.api.path}")
+  private String confluenceLegacyApiPath;
+  
   @Value("${confluence.uri}")
   private String confluenceUri;
 
@@ -75,11 +82,23 @@ public class ConfluenceAdapter {
 
   private String crowdCookieValue = null;
 
+  @Value("${confluence.permission.filepattern}")
+  private String confluencePermissionFilePattern;
+  
+  @Value("${global.keyuser.role.name}")
+  private String globalKeyuserRoleName;
+  
   public ProjectData createConfluenceSpaceForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
     this.crowdCookieValue = crowdCookieValue;
     SpaceData space = callCreateSpaceApi(createSpaceData(project), crowdCookieValue);
     project.confluenceUrl = space.getUrl();
+    
+    if (project.createpermissionset) 
+    {
+    	updateSpacePermissions(project, crowdCookieValue);
+    }
+    
     return project;
   }
 
@@ -90,7 +109,7 @@ public class ConfluenceAdapter {
     logger.debug(json);
 
     String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return this.post(path, json, crowdCookieValue);
+    return this.post(path, json, crowdCookieValue, SpaceData.class);
   }
 
   protected Space createSpaceData(ProjectData project) throws IOException {
@@ -101,6 +120,7 @@ public class ConfluenceAdapter {
     space.setSpaceBlueprintId(confluenceBlueprintId);
     space.setName(project.name);
     space.setSpaceKey(project.key);
+    space.setDescription(project.description);
 
     Context context = new Context();
     context.setName(project.name);
@@ -154,6 +174,7 @@ public class ConfluenceAdapter {
     Request request =
         new Request.Builder().url(url).addHeader("Accept", "application/json").get().build();
 
+    logger.debug("calling url : " + url);
     Response response = client.getClient(crowdCookieValue).newCall(request).execute();
     String respBody = response.body().string();
 
@@ -162,25 +183,66 @@ public class ConfluenceAdapter {
     return new ObjectMapper().readValue(respBody, reference);
   }
 
-  protected SpaceData post(String url, String json, String crowdCookieValue) throws IOException {
+  protected <T> T post(String url, String json, String crowdCookieValue, Class valueType) throws IOException {
 
     client.getSessionId(confluenceUri);
 
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
     Request request = new Request.Builder().url(url).post(body).build();
 
+    logger.debug("Call to: " + url);
+    
     Response response = client.getClient(crowdCookieValue).newCall(request).execute();
     String respBody = response.body().string();
 
-    logger.debug(respBody);
+    logger.debug(response.code() + " > " + respBody);
     response.close();
     
     if (response.code() != 200) 
     {
-      throw new IOException("Could not create confluence project: " + respBody);
+      throw new IOException("Could not create " + valueType.getName() + " : " + respBody);
     }
         
-    return new ObjectMapper().readValue(respBody, SpaceData.class);
+    return (T) new ObjectMapper().readValue(respBody, valueType);
   }
 
+  protected void updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
+  {
+      PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
+    	 Thread.currentThread().getContextClassLoader());
+      
+      Resource [] permissionFiles = pmrl.getResources(confluencePermissionFilePattern);
+      
+      logger.debug("Found permissionsets: "+ permissionFiles.length);
+      
+      for (int i = 0; i < permissionFiles.length; i++)
+      {
+    	  String permissionFilename = permissionFiles[i].getFilename();
+    	  
+    	  byte[] permissionContent = Files.readAllBytes(permissionFiles[i].getFile().toPath());
+    	  
+    	  String permissionset = new String(permissionContent);
+    	  
+    	  permissionset = permissionset.replace("SPACE_NAME", data.key);
+    	  
+    	  if (permissionFilename.contains("adminGroup")) {
+    		  permissionset = permissionset.replace("SPACE_GROUP", data.adminGroup);
+    	  } else if (permissionFilename.contains("userGroup")) {
+    		  permissionset = permissionset.replace("SPACE_GROUP", data.userGroup);
+      	  } else if (permissionFilename.contains("readonlyGroup")) {
+    		  permissionset = permissionset.replace("SPACE_GROUP", data.readonlyGroup);  
+      	  } else if (permissionFilename.contains("keyuserGroup")) {
+    		  permissionset = permissionset.replace("SPACE_GROUP", globalKeyuserRoleName);  
+      	  } else if (permissionFilename.contains("admin")) {
+    		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
+      	  } else {
+      		  
+      	  }
+    	  
+    	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
+    	  
+    	  post(path, permissionset, crowdCookieValue, String.class); 
+      }
+  }
+  
 }

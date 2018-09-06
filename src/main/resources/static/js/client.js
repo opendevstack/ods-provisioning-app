@@ -37,8 +37,8 @@ var validatorOptions = {
 };
 
 $(document).ready(function(){
-  $('form#createProject').validator(validatorOptions);
-  $('form#modifyProject').validator(validatorOptions);
+   $('form#createProject').validator(validatorOptions);
+   $('form#modifyProject').validator(validatorOptions);
 
 
   // inital getting of quickstarters for later use
@@ -95,6 +95,24 @@ $(document).ready(function(){
     nameCompare = {};
   });
 
+  $("#createpermissionset").change(function() {
+    if ( $( "#createpermissionset" )[0] .checked)
+    {
+        $( "#urgroupdiv" ).removeClass("hidden");
+        $( "#ugroupdiv" ).removeClass("hidden");
+        $( "#agroupdiv" ).removeClass("hidden");
+        $( "#auserdiv" ).removeClass("hidden");
+        $( "#admin" ).focus();
+    } else {
+        $( "#urgroupdiv" ).addClass("hidden");    	
+        $( "#ugroupdiv" ).addClass("hidden");    	
+        $( "#agroupdiv" ).addClass("hidden");    	
+        $( "#auserdiv" ).addClass("hidden");    	
+    }
+    nameCompare = {};
+  });  
+
+  
   /**
    * This is the event handler for the quickstarter select box
    */
@@ -154,6 +172,9 @@ $(document).ready(function(){
           
           // tick checkbox based on project created true false
           $('#jiraconfluencespaceInfo').prop('checked',data.jiraconfluencespace);
+
+          // tick checkbox based on project created true false
+          $('#openshiftProjectInfo').prop('checked',data.openshiftproject);
           
           // set description
           $('#projectDescription').val(data.description);
@@ -198,6 +219,9 @@ $(document).ready(function(){
           $("#resProject")
           .addClass("alert-success")
           .text("Project successful created.");
+          console.log("successfully created...");
+          console.log( data );
+          
           $("#resButton").button("reset");
           $("#createProject").trigger("reset");
           $("#createProject").show();
@@ -346,7 +370,9 @@ function objectifyForm(formArray) {//serialize data function
   var inputName = "";
   //  lousy html only a checked checkbox is returned - baehh
   var createJiraConfluenceSpace = false;
-  
+  var createOpenshiftproject = false;
+  var createPermissionset = false;
+
   for (var i = 0; i < formArray.length; i++){
       if((formArray[i]['name']).startsWith("quickstart")) {
         var indexOfSign = (formArray[i]['name']).lastIndexOf("-");
@@ -367,14 +393,22 @@ function objectifyForm(formArray) {//serialize data function
       } else if ((formArray[i]['name']).startsWith("jiraconfluencespace")) {
         // this is only the case if checkbox checked
         createJiraConfluenceSpace = true;
+      } else if ((formArray[i]['name']).startsWith("openshiftproject")) {
+        // this is only the case if checkbox checked
+    	createOpenshiftproject = true;
+      } else if ((formArray[i]['name']).startsWith("createpermissionset")) {
+          // this is only the case if checkbox checked
+    	createPermissionset = true;
       } else {
         returnArray[formArray[i]['name']] = formArray[i]['value'];
       }
   }
   
-  // add jira confluence space creation trigger
+  // add jira confluence space and openshift project creation trigger
   returnArray["jiraconfluencespace"] = createJiraConfluenceSpace;
-
+  returnArray["openshiftproject"] = createOpenshiftproject;
+  returnArray["createpermissionset"] = createPermissionset;
+  
   if(inputName != "") {
     returnArray[inputName] = array;
   }

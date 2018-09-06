@@ -1,0 +1,125 @@
+{
+    "name": "PERMISSION PROJECT SCHEME",
+    "description": "description",
+    "permissions": [
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ADMINISTER_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "VIEW_DEV_TOOLS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "VIEW_READONLY_WORKFLOW"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ASSIGN_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CREATE_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "CREATE_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "EDIT_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_ISSUES"
+        },		
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "TRANSITION_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CLOSE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MOVE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "RESOLVE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "SCHEDULE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ASSIGNABLE_USER"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MANAGE_SPRINTS_PERMISSION"
+        }
+    ]
+}
