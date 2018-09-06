@@ -17,6 +17,7 @@ package org.opendevstack.provision.services;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.List;
@@ -222,7 +223,7 @@ public class ConfluenceAdapter {
       {
     	  String permissionFilename = permissionFiles[i].getFilename();
     	  
-    	  BufferedReader reader = new BufferedReader (new FileReader(permissionFiles[i].getFile()));
+    	  BufferedReader reader = new BufferedReader (new InputStreamReader(permissionFiles[i].getInputStream()));
     	  
     	  String permissionset = new String(reader.readLine());
     	  
