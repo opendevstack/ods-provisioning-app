@@ -131,30 +131,19 @@ public class ProjectApiController {
       if (filePath != null) {
         logger.debug("project successful stored: {}", filePath);
       }
-      // notify user via mail of project creation with embedding links
-      
-      final ProjectData projectToSend = project;
-      
-      Thread mailSender = new Thread () {
-    	  
-    	  @Override
-    	  public void run () 
-    	  {
-		      try {
-		        mailAdapter.notifyUsersAboutProject(projectToSend);
-		      } catch (Exception ex) {
-		        logger.error("Can't send mail: {}", ex);
-		      }
-    	  }
-      };
-      mailSender.start();
-
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
       logger.error("An error occured while provisioning project: {}", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
+        // notify user via mail of project creation with embedding links
+        try {
+          mailAdapter.notifyUsersAboutProject(project);
+        } catch (Exception ex) {
+          logger.error("Can't send mail: {}", ex);
+        }
+    	
     	client.removeClient(crowdCookie);
     }
   }
