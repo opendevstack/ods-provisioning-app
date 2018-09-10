@@ -20,7 +20,7 @@ objects:
       logging.level.org.springframework=INFO
       logging.level.org.springframework.security=DEBUG
       logging.level.com.atlassian=INFO
-      logging.level.com.atlassian.crowd=DEBUG
+      logging.level.com.atlassian.crowd=INFO
 
       #log file
       logging.file=provision.log
@@ -28,6 +28,8 @@ objects:
       #server port
       server.port:8080
       server.use-forward-headers=true
+
+      global.keyuser.role.name=${KEYUSER_GROUP}
 
       #JIRA properties
       jira.uri=${JIRA_URI}
@@ -103,37 +105,57 @@ objects:
 parameters:
 - name: JIRA_URI
   required: true
+  description: the URI of JIRA used to create new jira projects  
 - name: CONFLUENCE_URI
   required: true
+  description: the URI of confluence used to create new confluence spaces
 - name: BITBUCKET_URI
   required: true
+  description: the URI of bitbucket used to create new project and repositories  
 - name: RUNDECK_URI
   required: true
+  description: the URI of rundeck used to kickstart provisioning projects and components  
 - name: CROWD_URL
   required: true
+  description: the URI of crowd used to authenticate users from the app against    
 - name: OPENSHIFT_API_HOST
   required: true
+  description: the API host of the OCP cluster   
 - name: OPENSHIFT_CONSOLE_HOST
   required: true
+  description: the console host of the OCP cluster 
 - name: CROWD_USER_GROUP
   required: true
+  description: crowd user group     
 - name: CD_USER_ID
   required: true
+  description: the username of the CD user     
 - name: OPENSHIFT_APPS_BASEDOMAIN
   required: true
+  description: the domain of routes exposed on OCP   
 - name: PACKAGE_PREFIX
   required: true
+  description: the default package prefix   
 - name: ATLASSIAN_DOMAIN
   required: true
+  description: the domain of the atlassian toolsuite needed for single signon cookies  
 - name: CROWD_PASSWORD
   required: true
+  description: password of the crowd app to authenticate the provision app against
 - name: JASYPT_PASSWORD
   required: true
 - name: MAIL_HOST
   required: true
+  description: The hostname of the mailserver
 - name: MAIL_PASSWORD
   required: true
+  description: The password to authenticate against the mail server
 - name: MAIL_USERNAME
   required: true
+  description: The username to authenticate against the mail server
 - name: CROWD_ADMIN_GROUP
   required: true
+  description: The crowd admin group name
+- name: KEYUSER_GROUP
+  required: true
+  description: The keyuser group name as in crowd used when creating a new permission scheme
