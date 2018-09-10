@@ -30,3 +30,4 @@ bin
 *.env
 gradle.properties
 /.gradle/
+/docker/app*.jar*
