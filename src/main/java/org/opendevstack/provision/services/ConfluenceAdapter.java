@@ -100,7 +100,15 @@ public class ConfluenceAdapter {
     
     if (project.createpermissionset) 
     {
-    	updateSpacePermissions(project, crowdCookieValue);
+    	try 
+    	{
+    		updateSpacePermissions(project, crowdCookieValue);
+    	} catch (Exception createPermissions) 
+    	{
+    		// continue - we are ok if permissions fail, because the admin has access, and create the set
+    		logger.error("Could not create project: " + project.key + "\n Exception: " 
+    				+ createPermissions.getMessage());
+    	}
     }
     
     return project;

@@ -107,9 +107,9 @@ public class RestClient {
   }
   
   public void removeClient (String crowdCookieValue) {
-//	  if (crowdCookieValue == null) {
-//		  return;
-//	  }
-//	  cache.remove(crowdCookieValue);
+	  if (crowdCookieValue == null) {
+		  return;
+	  }
+	  cache.remove(crowdCookieValue);
   }
 }

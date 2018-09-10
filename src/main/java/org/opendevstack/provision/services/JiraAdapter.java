@@ -113,7 +113,15 @@ public class JiraAdapter {
       project.jiraId = created.id;
       
       if (project.createpermissionset) {
+    	try 
+    	{
           createPermissions(project,crowdCookieValue);
+	  	} catch (Exception createPermissions) 
+	  	{
+	  		// continue - we are ok if permissions fail, because the admin has access, and create the set
+	  		logger.error("Could not create project: " + project.key + "\n Exception: " 
+	  				+ createPermissions.getMessage());
+	  	}
       }
       
       return project;
