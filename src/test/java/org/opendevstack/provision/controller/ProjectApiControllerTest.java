@@ -33,6 +33,7 @@ import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
+import org.opendevstack.provision.util.RestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -64,6 +65,9 @@ public class ProjectApiControllerTest {
   @Mock
   private IStorage storage;
 
+  @Mock
+  private RestClient client;
+  
   @InjectMocks
   private ProjectApiController apiController;
 
@@ -103,7 +107,8 @@ public class ProjectApiControllerTest {
         Matchers.isNull(String.class))).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-
+    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+    
     mockMvc.perform(post("/api/v1/project")
             .content(asJsonString(data))
             .contentType(MediaType.APPLICATION_JSON)
@@ -114,9 +119,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void addProjectAnd5xxResult() throws Exception {
-    ProjectData data = new ProjectData();
-    data.key = "KEY";
-    data.name = "Name";
+	Mockito.doNothing().when(client).removeClient(Matchers.anyString());
 
     mockMvc
         .perform(post("/api/v1/project")

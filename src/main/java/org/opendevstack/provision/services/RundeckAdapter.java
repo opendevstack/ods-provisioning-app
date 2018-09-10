@@ -218,7 +218,7 @@ public class RundeckAdapter {
 
     String username = userDetails.getUsername();
     String password = manager.getUserPassword();
-
+    
     RequestBody body =
         new FormBody.Builder().add("j_username", username).add("j_password", password).build();
     Request request = new Request.Builder()

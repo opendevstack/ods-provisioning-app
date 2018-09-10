@@ -28,6 +28,10 @@ public class Repository {
   private String scmId = "git";
   private boolean forkable = true;
 
+  @JsonIgnoreProperties({"adminGroup", "userGroup"})
+  String adminGroup;
+  String userGroup;
+    
   public String getName() {
     return name;
   }
@@ -50,6 +54,22 @@ public class Repository {
 
   public void setForkable(boolean forkable) {
     this.forkable = forkable;
+  }
+
+  public void setAdminGroup(String adminGroup) {
+	this.adminGroup = adminGroup;
+  }
+
+  public String getAdminGroup() {
+	return this.adminGroup;
+  }
+
+  public void setUserGroup(String userGroup) {
+	this.userGroup = userGroup;
+  }
+
+  public String getUserGroup() {
+	return this.userGroup;
   }
 
   @Override

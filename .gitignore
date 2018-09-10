@@ -23,8 +23,7 @@
 /.nb-gradle/
 
 /src/docker/target/
-/provision.log
-/provision.log.1
+/provision*.log
 bin
 
 *.env
