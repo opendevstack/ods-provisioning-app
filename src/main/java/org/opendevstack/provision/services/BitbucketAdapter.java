@@ -90,6 +90,10 @@ public class BitbucketAdapter {
   @Value("${bitbucket.technical.user}")
   private String technicalUser;
 
+  
+  @Value("${global.keyuser.role.name}") 
+  private String globalKeyuserRoleName;
+  
   @Autowired
   RestClient client;
 
@@ -100,7 +104,7 @@ public class BitbucketAdapter {
 
   public ProjectData createBitbucketProjectsForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
-    BitbucketData data = callCreateProjectApi(createBitbucketProject(project), crowdCookieValue);
+    BitbucketData data = callCreateProjectApi(project, crowdCookieValue);
     // data.setUrl(String.format("%s/projects/%s", bitbucketUri, data.getKey()));
 
     project.bitbucketUrl = data.getLinks().get("self").get(0).getHref();
@@ -121,6 +125,10 @@ public class BitbucketAdapter {
           String repoName = (String.format("%s-%s", project.key, option.get("component_id"))).toLowerCase().replace('_','-');
           Repository repo = new Repository();
           repo.setName(repoName);
+          
+          repo.setAdminGroup(project.adminGroup != null ? project.adminGroup : defaultUserGroup);
+          repo.setUserGroup(project.userGroup != null ? project.userGroup : defaultUserGroup);
+          
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
             if(result != null) {
@@ -164,6 +172,10 @@ public class BitbucketAdapter {
       Repository repo = new Repository();
       String repoName = String.format("%s-%s", project.key.toLowerCase(), name);
       repo.setName(repoName);
+
+      repo.setAdminGroup(project.adminGroup != null ? project.adminGroup : defaultUserGroup);
+      repo.setUserGroup(project.userGroup != null ? project.userGroup : defaultUserGroup);
+
       try {
         RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
         Map<String, List<Link>> links = result.getLinks();
@@ -227,20 +239,30 @@ public class BitbucketAdapter {
 
   }
 
-  protected BitbucketData callCreateProjectApi(BitbucketProject project, String crowdCookieValue)
+  protected BitbucketData callCreateProjectApi(ProjectData project, String crowdCookieValue)
       throws IOException {
+	  
+	BitbucketProject bbProject =  createBitbucketProject(project);
+	  
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(project);
+    String json = ow.writeValueAsString(bbProject);
 
-    logger.debug("About to create bitbucket project for: " + project.getKey());
+    logger.debug("About to create bitbucket project for: " + bbProject.getKey());
     logger.debug(json);
 
     BitbucketData projectData =
         (BitbucketData) this.post(buildBasePath(), json, crowdCookieValue, BitbucketData.class);
 
-    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue);
+    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue);
+    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue);
+    
     setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue);
 
+    if (project.admin != null) 
+    {
+    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue);
+    }
+    
     return projectData;
   }
 
@@ -253,7 +275,7 @@ public class BitbucketAdapter {
     RepositoryData data =
         (RepositoryData) this.post(path, json, crowdCookieValue, RepositoryData.class);
 
-    setRepositoryPermissions(data, projectKey, "groups", defaultUserGroup, crowdCookieValue);
+    setRepositoryPermissions(data, projectKey, "groups", repo.getUserGroup(), crowdCookieValue);
     setRepositoryPermissions(data, projectKey, "users", technicalUser, crowdCookieValue);
 
     return data;
@@ -279,7 +301,7 @@ public class BitbucketAdapter {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
     // allow people to modify settings (webhooks)
     urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
-    urlBuilder.addQueryParameter("name", defaultUserGroup);
+    urlBuilder.addQueryParameter("name", groupOrUser);
 
     this.put(urlBuilder.build(), crowdCookieValue);
   }
@@ -307,7 +329,7 @@ public class BitbucketAdapter {
 
   }
 
-  private BitbucketProject createBitbucketProject(ProjectData jiraProject) {
+  public static BitbucketProject createBitbucketProject(ProjectData jiraProject) {
     BitbucketProject project = new BitbucketProject();
     project.setKey(jiraProject.key);
     project.setName(jiraProject.name);
@@ -325,8 +347,12 @@ public class BitbucketAdapter {
     Response response = client.getClient(crowdCookieValue).newCall(request).execute();
     String respBody = response.body().string();
 
-    logger.debug(respBody);
+    logger.debug(response.code() + "> " +  respBody);
 
+    if (response.code() == 401) {
+    	throw new IOException("You are not authorized to create this resource!");
+    }
+    
     if (response.code() == 409) {
       throw new IOException("Resource creation failed, resource already exists");
     }

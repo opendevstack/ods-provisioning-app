@@ -59,6 +59,14 @@
                     			<input type="checkbox" name="jiraconfluencespaceInfo" id="jiraconfluencespaceInfo" checked="true" disabled="true"/>
                     		</td>
                     	</tr>
+                        <tr>
+                            <td>
+                            	Openshift Projects created?
+                            </td>
+                            <td>
+                    			<input type="checkbox" name="openshiftProjectInfo" id="openshiftProjectInfo" checked="true" disabled="false"/>
+                    		</td>
+                    	</tr>
                     </table>
 				</div>                
                 <div class="table-responsive hidden" id="quickstartTable">
@@ -127,10 +135,44 @@
                     <textarea class="form-control" id="description" name="description" placeholder="Provide a project description"
                               rows="3"></textarea>
                 </div>
+                <!-- cutschig user and admin group --> 
+                <div class="form-group hidden" id="auserdiv">
+                    <label for="adminuser"  class="control-label">Admin user</label>
+                    <input type="text" class="form-control" name="admin" placeholder="Admin user" maxlength="80" id="admin"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>                
+                <div class="form-group hidden" id="agroupdiv">
+                    <label for="admingroup"  class="control-label">Admin group</label>
+                    <input type="text" class="form-control" name="adminGroup" placeholder="Admin Group" maxlength="80" id="adminGroup"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>                
+                <div class="form-group hidden" id="ugroupdiv">
+                    <label for="usergroup"  class="control-label">User group</label>
+                    <input type="text" class="form-control" name="userGroup" placeholder="User Group" maxlength="80" id="userGroup"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>                
+                <div class="form-group hidden" id="urgroupdiv">
+                    <label for="readonlygroup"  class="control-label">Readonly user group</label>
+                    <input type="text" class="form-control" name="readonlyGroup" placeholder="Readonly user Group" maxlength="80" id="readonlyGroup"/>
+                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                    <div class="help-block with-errors"></div>
+                </div>                
+                <div class="form-group">
+                    <label for="createpermissionset">Create special permissionset</label>
+                    <input type="checkbox" name="createpermissionset" id="createpermissionset"/>
+				</div>                
                 <!-- cutschig allow projects without jira and confluence spaces--> 
                 <div class="form-group">
                     <label for="jiraconfluencespace">Create JIRA / Confluence spaces</label>
                     <input type="checkbox" name="jiraconfluencespace" id="jiraconfluencespace" checked="true"/>
+				</div>                
+                <!-- cutschig allow projects without jira and confluence spaces--> 
+                <div class="form-group">
+                    <label for="openshiftproject">Create Openshift Project</label>
+                    <input type="checkbox" name="openshiftproject" id="openshiftproject" checked="true"/>
 				</div>                
             </fieldset>
             <fieldset class="form-group quickstartergroup">

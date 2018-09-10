@@ -28,7 +28,12 @@
  	  {
  	    "who" : "clemens",
  	    "when" : "2018-07-09",
- 	    "what" : "error handling"
+ 	    "what" : "error handling refactoring"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-09-06",
+ 	    "what" : "addition of role model for visibility"
  	  }  	  
   ]
 }

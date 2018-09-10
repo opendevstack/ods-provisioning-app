@@ -14,13 +14,16 @@
 
 package org.opendevstack.provision.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
+
+import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.rundeck.Job;
@@ -30,6 +33,7 @@ import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
+import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -70,6 +76,16 @@ public class ProjectApiController {
   @Autowired
   private RundeckJobStore jobStore;
 
+  @Autowired
+  private RestClient client;
+  
+  @Autowired
+  private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
+
+  @Autowired
+  CustomAuthenticationManager manager;
+
+  
   /**
    * Add a project to JIRA and process subsequent calls to dependent services, to create a complete
    * project stack.
@@ -84,28 +100,34 @@ public class ProjectApiController {
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
     logger.debug("Crowd Cookie: {}", crowdCookie);
+    
     try {
       logger.debug("Project: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
-            if (project.jiraconfluencespace)
-            {
-            	if (storage.listProjectHistory().containsKey(project.key))
-            	{
-            		throw new IOException("Project with key " + project.key + " already exists");
-            	}
+      	if (project.createpermissionset) {
+      		projectIdentityMgmtAdapter.validateIdSettingsOfProject(project);
+      	}
+      
+        if (project.jiraconfluencespace)
+        {
+        	if (storage.listProjectHistory().containsKey(project.key))
+        	{
+        		throw new IOException("Project with key " + project.key + " already exists");
+        	}
+	
+	        //create JIRA project
+	        project = jiraAdapter.createJiraProjectForProject(project, crowdCookie);
+	
+	        //create confluence space
+	        project = confluenceAdapter.createConfluenceSpaceForProject(project, crowdCookie);
+	        logger.debug("Updated project: {}", new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
+	    }
+	    
+	    project = createDeliveryChain(project, crowdCookie, false);
 
-	            //create JIRA project
-	            project = jiraAdapter.createJiraProjectForProject(project, crowdCookie);
-
-	            //create confluence space
-	            project = confluenceAdapter.createConfluenceSpaceForProject(project, crowdCookie);
-	            logger.debug("Updated project: {}", new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
-            }
-
-      project = createDeliveryChain(project, crowdCookie, false);
-      // clear admin user list for storage to prevent serialization problems
-      project.admins = new ArrayList<>();
+	    // clear admin user list for storage to prevent serialization problems
+	    project.admins = new ArrayList<>();
 
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
@@ -113,18 +135,21 @@ public class ProjectApiController {
       if (filePath != null) {
         logger.debug("project successful stored: {}", filePath);
       }
+      
       // notify user via mail of project creation with embedding links
       try {
         mailAdapter.notifyUsersAboutProject(project);
       } catch (Exception ex) {
         logger.error("Can't send mail: {}", ex);
       }
-
+      
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
-      logger.error("An error occured: {}", ex);
+      logger.error("An error occured while provisioning project: {}", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    } finally {
+    	client.removeClient(crowdCookie);
     }
   }
 
@@ -180,16 +205,19 @@ public class ProjectApiController {
     } catch (Exception ex) {
       logger.error("An error occured: {}", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    } finally {
+    	client.removeClient(crowdCookie);
     }
   }
 
   /**
-   * Create the bitbucket delivery chain with openshift
+   * Create the bitbucket delivery chain with openshift. OC projects will only be created in case
+   * openshiftproject = true
    *
-   * @param project
-   * @param crowdCookie
-   * @return
-   * @throws Exception
+   * @param project the meta information from the API
+   * @param crowdCookie the authenticated user
+   * @return the generated, amended Project
+   * @throws Exception in case something goes wrong
    */
   private ProjectData createDeliveryChain(ProjectData project, String crowdCookie, boolean update)
       throws Exception {
@@ -200,17 +228,25 @@ public class ProjectApiController {
       // create a bitbucket project
       project = bitbucketAdapter.createBitbucketProjectsForProject(project, crowdCookie);
       // provision OpenShift project via rundeck
-      project = rundeckAdapter.createOpenshiftProjects(project, crowdCookie);
+      
+      if (project.openshiftproject) 
+      {
+          project = rundeckAdapter.createOpenshiftProjects(project, crowdCookie);
+      }
     }
 
-    // create repositories dependent of the chosen quickstarters
-    project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
-
-    if (!update) {
-      String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
-      project = bitbucketAdapter.createAuxiliaryRepositoriesForProject(project, crowdCookie,
-          auxiliaryRepositories);
+    if (project.openshiftproject) 
+    {
+	    // create repositories dependent of the chosen quickstarters
+	    project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
+	
+	    if (!update) {
+	      String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
+	      project = bitbucketAdapter.createAuxiliaryRepositoriesForProject(project, crowdCookie,
+	          auxiliaryRepositories);
+	    }
     }
+    
     rundeckAdapter.executeJobs(project);
 
     return project;
@@ -320,4 +356,5 @@ public class ProjectApiController {
     proj.put("key", jiraAdapter.buildProjectKey(name));
     return ResponseEntity.ok(proj);
   }
+  
 }

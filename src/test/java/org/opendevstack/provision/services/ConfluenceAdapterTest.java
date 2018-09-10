@@ -69,7 +69,7 @@ public class ConfluenceAdapterTest {
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
     doReturn(expectedSpaceData).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString());
+        Matchers.anyString(), Matchers.any(SpaceData.class.getClass()));
     
     SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space, "crowdCookieValue");
 
