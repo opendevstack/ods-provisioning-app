@@ -105,6 +105,10 @@ public class ProjectApiController {
       logger.debug("Project: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
+      	if (project.createpermissionset) {
+      		projectIdentityMgmtAdapter.validateIdSettingsOfProject(project);
+      	}
+      
         if (project.jiraconfluencespace)
         {
         	if (storage.listProjectHistory().containsKey(project.key))

@@ -102,11 +102,21 @@ $(document).ready(function(){
         $( "#ugroupdiv" ).removeClass("hidden");
         $( "#agroupdiv" ).removeClass("hidden");
         $( "#auserdiv" ).removeClass("hidden");
+
+        $( "#adminGroup" ).prop("required", true);
+        $( "#readonlyGroup" ).prop("required", true);
+        $( "#userGroup" ).prop("required", true);
+        
         $( "#admin" ).focus();
     } else {
         $( "#urgroupdiv" ).addClass("hidden");    	
         $( "#ugroupdiv" ).addClass("hidden");    	
-        $( "#agroupdiv" ).addClass("hidden");    	
+        $( "#agroupdiv" ).addClass("hidden");
+        
+        $( "#adminGroup" ).prop("required", false);
+        $( "#readonlyGroup" ).prop("required", false);
+        $( "#userGroup" ).prop("required", false);
+        
         $( "#auserdiv" ).addClass("hidden");    	
     }
     nameCompare = {};

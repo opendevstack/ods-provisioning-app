@@ -13,8 +13,12 @@
  */
 package org.opendevstack.provision.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +50,26 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     @Value("${crowd.local.directory}")
 	String crowdLocalDirectory;
 
+    public void validateIdSettingsOfProject (ProjectData project) throws Exception 
+    {
+    	Map<String, String> groupCheckStatus = new HashMap<String, String>();
+    	
+    	if (!groupExists(project.adminGroup)) {
+    		groupCheckStatus.put("adminGroup", project.adminGroup);
+    	}
+    	if (!groupExists(project.userGroup)) {
+    		groupCheckStatus.put("userGroup", project.userGroup);
+    	}
+    	if (!groupExists(project.readonlyGroup)) {
+    		groupCheckStatus.put("readonlyGroup", project.readonlyGroup);
+    	}
+    	
+    	if (!groupCheckStatus.isEmpty()) {
+    		throw new Exception ("Group check failed - these groups don't exist! " 
+    				+ groupCheckStatus);
+    	}
+    }
+    
 	@Override
 	public boolean groupExists(String groupName) 
 	{
@@ -77,7 +101,13 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	public String createAdminGroup(String projectName) throws Exception {
 		return createGroupInternal(projectName);
 	}
-	
+
+	@Override
+	public String createReadonlyGroup(String projectName) throws Exception 
+	{
+		return createGroupInternal(projectName);
+	}
+		
 	private String createGroupInternal (String groupName) throws Exception {
 		if (groupName == null || groupName.trim().length() == 0)
 			throw new Exception ("Cannot create a null group!");

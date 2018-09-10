@@ -14,6 +14,7 @@
 package org.opendevstack.provision.adapter;
 
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
@@ -62,5 +63,20 @@ public interface IProjectIdentityMgmtAdapter {
 	 * @throws Exception in case something goes wrong
 	 */	
 	public String createAdminGroup (String projectName) throws Exception;
+	
+	/**
+	 * Create the readonly group
+	 * @param projectName the name of the project
+	 * @return the admin groups name to be configured into artifacts
+	 * @throws Exception in case something goes wrong
+	 */
+	public String createReadonlyGroup(String projectName) throws Exception; 	
+	
+	/**
+	 * Validate project group settings
+	 * @param project the project with the groups set
+	 * @throws Exception in case one or more groups cannot be found
+	 */
+    public void validateIdSettingsOfProject (ProjectData project) throws Exception; 
 	
 }
