@@ -46,6 +46,5 @@ def stageBuild(def context) {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       sh "./gradlew clean build --stacktrace --no-daemon"
     }
-    sh "cp build/libs/${context.componentId}-*.jar docker/app.jar"
   }
 }
