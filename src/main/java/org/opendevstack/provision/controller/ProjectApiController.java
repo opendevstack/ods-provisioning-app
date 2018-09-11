@@ -175,6 +175,8 @@ public class ProjectApiController {
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;
+      project.openshiftproject = oldProject.openshiftproject;
+      project.jiraconfluencespace = oldProject.jiraconfluencespace;
 
       project = createDeliveryChain(project, crowdCookie, true);
 
