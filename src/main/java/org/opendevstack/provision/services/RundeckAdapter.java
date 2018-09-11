@@ -125,7 +125,7 @@ public class RundeckAdapter {
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) {
+  public List<ExecutionsData> executeJobs(ProjectData project) throws Exception {
     authenticate();
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
@@ -148,6 +148,11 @@ public class RundeckAdapter {
           ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
           String json = ow.writeValueAsString(execution);
           ExecutionsData data = (ExecutionsData) this.post(url, json, ExecutionsData.class);
+          
+          if (data.getError()) {
+        	  throw new Exception ("Could not provision component: " + data.getMessage());
+          }
+          
           executionList.add(data);
           if (data.getPermalink() != null) {
             options.put("joblink", data.getPermalink());

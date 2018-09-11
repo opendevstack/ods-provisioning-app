@@ -81,7 +81,7 @@ public class RundeckAdapterTest {
   }
 
   @Test
-  public void executeJobsWhenQuickstartIsNull() {
+  public void executeJobsWhenQuickstartIsNull() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
     ProjectData project = new ProjectData();
     List<ExecutionsData> expectedExecutions = new ArrayList<>();
