@@ -158,7 +158,8 @@ uploadArchives {
 }
 
 jar {
-    archiveName  "prov-app-${version}-${classifier}.${extension}"
+    archiveName     "app.jar"
+	destinationDir  file("$buildDir/../docker")
 }
 
 jacoco {
