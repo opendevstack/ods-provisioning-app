@@ -168,7 +168,6 @@ public class RundeckAdapter {
   public ProjectData createOpenshiftProjects(ProjectData project, String crowdCookie)
       throws IOException {
 
-	authenticate();
     CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);
 
     try {
