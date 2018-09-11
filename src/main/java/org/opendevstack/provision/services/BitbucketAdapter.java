@@ -132,8 +132,8 @@ public class BitbucketAdapter {
           Repository repo = new Repository();
           repo.setName(repoName);
           
-          repo.setAdminGroup(project.adminGroup != null ? project.adminGroup : defaultUserGroup);
-          repo.setUserGroup(project.userGroup != null ? project.userGroup : defaultUserGroup);
+          repo.setAdminGroup(project.adminGroup != null && project.adminGroup.length() > 0 ? project.adminGroup : defaultUserGroup);
+          repo.setUserGroup(project.userGroup != null && project.userGroup.length() > 0 ? project.userGroup : defaultUserGroup);
           
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
@@ -179,8 +179,8 @@ public class BitbucketAdapter {
       String repoName = String.format("%s-%s", project.key.toLowerCase(), name);
       repo.setName(repoName);
 
-      repo.setAdminGroup(project.adminGroup != null ? project.adminGroup : defaultUserGroup);
-      repo.setUserGroup(project.userGroup != null ? project.userGroup : defaultUserGroup);
+      repo.setAdminGroup(project.adminGroup != null && project.adminGroup.length() > 0 ? project.adminGroup : defaultUserGroup);
+      repo.setUserGroup(project.userGroup != null && project.userGroup.length() > 0 ? project.userGroup : defaultUserGroup);
 
       try {
         RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
@@ -259,9 +259,13 @@ public class BitbucketAdapter {
     BitbucketData projectData =
         (BitbucketData) this.post(buildBasePath(), json, crowdCookieValue, BitbucketData.class);
 
-    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue);
-    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue);
-    
+    if (project.createpermissionset)
+    {
+	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue);    
+	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue);
+    }
+	 
+    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue);
     setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue);
 
     if (project.admin != null) 
