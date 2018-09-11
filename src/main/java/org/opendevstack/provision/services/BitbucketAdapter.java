@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.RepositoryData;
@@ -36,13 +38,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
+import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
@@ -97,6 +103,12 @@ public class BitbucketAdapter {
   @Autowired
   RestClient client;
 
+  @Autowired
+  CrowdUserDetailsService crowdUserDetailsService;
+
+  @Autowired
+  CustomAuthenticationManager manager;
+    
   private static String PROJECT_PATTERN = "%s%s/projects";
 
   private static final MediaType JSON_MEDIA_TYPE =
@@ -333,40 +345,19 @@ public class BitbucketAdapter {
     return basePath;
   }
 
-  private void put(HttpUrl url, String crowdCookieValue) throws IOException {
-
-    Request req = new Request.Builder().url(bitbucketUri).get().build();
-    Response resp = client.getClient(crowdCookieValue).newCall(req).execute();
-    Headers hds = resp.headers();
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, "");
-    Request request = new Request.Builder().url(url).put(body).build();
-
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(respBody);
-    resp.close();
-    response.close();
-
-  }
-
-  public static BitbucketProject createBitbucketProject(ProjectData jiraProject) {
-    BitbucketProject project = new BitbucketProject();
-    project.setKey(jiraProject.key);
-    project.setName(jiraProject.name);
-    project.setDescription((jiraProject.description != null) ? jiraProject.description : "");
-    return project;
-  }
-
   protected Object post(String url, String json, String crowdCookieValue, Class clazz)
-      throws IOException {
+	      throws IOException {
     client.getSessionId(bitbucketUri);
 
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-    Request request = new Request.Builder().url(url).post(body).build();
+    Builder builder = new Request.Builder().url(url).post(body);
 
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
+	String credentials =
+			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
+					manager.getUserPassword());
+	builder = builder.addHeader("Authorization", credentials);
+	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
+
     String respBody = response.body().string();
 
     logger.debug(response.code() + "> " +  respBody);
@@ -382,6 +373,34 @@ public class BitbucketAdapter {
     response.close();
     return new ObjectMapper().readValue(respBody, clazz);
   }
+  
+  
+  private void put(HttpUrl url, String crowdCookieValue) throws IOException {
+
+    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, "");
+    Builder builder = new Request.Builder().url(url).put(body);
+
+	String credentials =
+			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
+					manager.getUserPassword());
+	builder = builder.addHeader("Authorization", credentials);
+    
+	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
+    String respBody = response.body().string();
+
+    logger.debug(respBody);
+    response.close();
+
+  }
+
+  public static BitbucketProject createBitbucketProject(ProjectData jiraProject) {
+    BitbucketProject project = new BitbucketProject();
+    project.setKey(jiraProject.key);
+    project.setName(jiraProject.name);
+    project.setDescription((jiraProject.description != null) ? jiraProject.description : "");
+    return project;
+  }
+
 
   /**
    * Get the bitbucket http endpoint
