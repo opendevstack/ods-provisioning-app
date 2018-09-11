@@ -65,12 +65,21 @@ public class MailAdapter {
       messageHelper.setSubject("Project provision");
       messageHelper.setText(build(data), true);
     };
-    try {
-      mailSender.send(messagePreparator);
-    } catch (MailException e) {
-      logger.error("Error in sending mail", e);
-      throw e;
-    }
+    
+    Thread sendThread = new Thread () {
+    	
+    	@Override
+    	public void run () 
+    	{
+		    try {
+		      mailSender.send(messagePreparator);
+		    } catch (MailException e) {
+		      logger.error("Error in sending mail for project: " + data.key, e);
+		    }
+    	}
+    };
+    
+    sendThread.start();
   }
 
   public void notifyUsersAboutProject(ProjectData data) throws Exception {

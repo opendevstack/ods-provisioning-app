@@ -134,6 +134,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
+    setUserPassword(password);
     return this.getSecurityServerClient().authenticatePrincipalSimple(username, password);
   }
 
@@ -169,6 +170,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
     
     Preconditions.checkNotNull(token);
     this.getSecurityServerClient().invalidateToken(token);
+    setUserPassword(null);
   }
 
   /**
