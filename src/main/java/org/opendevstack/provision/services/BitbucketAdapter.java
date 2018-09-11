@@ -372,7 +372,7 @@ public class BitbucketAdapter {
     logger.debug(response.code() + "> " +  respBody);
 
     if (response.code() == 401) {
-    	throw new IOException("You are not authorized to create this resource!");
+    	throw new IOException("You are not authorized to create this resource (" +  url + "): " + respBody);
     }
     
     if (response.code() == 409) {
