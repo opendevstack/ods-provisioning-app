@@ -97,7 +97,7 @@ public class JiraAdapter {
       CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookieValue);
       project.admins.add(new BasicUser(null, details.getUsername(), details.getFullName()));
       
-      if (project.admin != null) 
+      if (project.createpermissionset && project.admin != null && project.admin.length() > 0) 
       {
     	  //first one will be the lead!
     	  project.admins.clear();

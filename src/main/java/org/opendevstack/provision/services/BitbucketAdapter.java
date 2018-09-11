@@ -132,8 +132,14 @@ public class BitbucketAdapter {
           Repository repo = new Repository();
           repo.setName(repoName);
           
-          repo.setAdminGroup(project.adminGroup != null && project.adminGroup.length() > 0 ? project.adminGroup : defaultUserGroup);
-          repo.setUserGroup(project.userGroup != null && project.userGroup.length() > 0 ? project.userGroup : defaultUserGroup);
+          if (project.createpermissionset)
+          {
+        	  repo.setAdminGroup(project.adminGroup);
+        	  repo.setUserGroup(project.userGroup);
+          } else {
+        	  repo.setAdminGroup(this.defaultUserGroup);
+        	  repo.setUserGroup(this.defaultUserGroup);
+          }
           
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
@@ -179,8 +185,14 @@ public class BitbucketAdapter {
       String repoName = String.format("%s-%s", project.key.toLowerCase(), name);
       repo.setName(repoName);
 
-      repo.setAdminGroup(project.adminGroup != null && project.adminGroup.length() > 0 ? project.adminGroup : defaultUserGroup);
-      repo.setUserGroup(project.userGroup != null && project.userGroup.length() > 0 ? project.userGroup : defaultUserGroup);
+      if (project.createpermissionset)
+      {
+    	  repo.setAdminGroup(project.adminGroup);
+    	  repo.setUserGroup(project.userGroup);
+      } else {
+    	  repo.setAdminGroup(this.defaultUserGroup);
+    	  repo.setUserGroup(this.defaultUserGroup);
+      }
 
       try {
         RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
