@@ -177,6 +177,15 @@ public class ProjectApiController {
       project.bitbucketUrl = oldProject.bitbucketUrl;
       project.openshiftproject = oldProject.openshiftproject;
       project.jiraconfluencespace = oldProject.jiraconfluencespace;
+      
+      if (oldProject.createpermissionset) 
+      {
+    	  project.createpermissionset = oldProject.createpermissionset;
+    	  project.admin = oldProject.admin;
+    	  project.adminGroup = oldProject.adminGroup;
+    	  project.userGroup = oldProject.userGroup;
+    	  project.readonlyGroup = oldProject.readonlyGroup;
+      }
 
       project = createDeliveryChain(project, crowdCookie, true);
 
@@ -227,7 +236,7 @@ public class ProjectApiController {
   private ProjectData createDeliveryChain(ProjectData project, String crowdCookie, boolean update)
       throws Exception {
 
-    logger.debug("create delivery chain");
+    logger.debug("create delivery chain: " + project.openshiftproject);
 
     if (project.bitbucketUrl == null) {
       // create a bitbucket project
