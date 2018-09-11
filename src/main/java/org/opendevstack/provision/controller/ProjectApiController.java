@@ -168,7 +168,10 @@ public class ProjectApiController {
 
     logger.debug("Update project");
     try {
-      ProjectData oldProject = storage.getProject(project.key);
+      logger.debug("Project: {}",
+        new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
+
+	  ProjectData oldProject = storage.getProject(project.key);
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;

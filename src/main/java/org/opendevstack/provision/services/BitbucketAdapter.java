@@ -112,13 +112,19 @@ public class BitbucketAdapter {
   }
 
   public ProjectData createRepositoriesForProject(ProjectData project, String crowdCookieValue) throws IOException {
-    CrowdUserDetails userDetails =
+	  
+	  CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+	  logger.debug("Creating quickstartProjects");
+	  
       List<RepositoryData> repos = new ArrayList<>();
       Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
       List<Map<String, String>> newOptions = new ArrayList<>();
       if(project.quickstart != null) {
+    	  
+    	  logger.debug("new quickstarters: " + project.quickstart.size());
+    	  
     	  for(Map<String, String> option : project.quickstart) {
           logger.debug("create repo for quickstarter: " + option.get("component_id") + " in " + project.key);
 

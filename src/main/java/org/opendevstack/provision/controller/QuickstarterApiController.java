@@ -20,6 +20,7 @@ import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,7 +51,7 @@ public class QuickstarterApiController {
 
   @RequestMapping(value = "/provision", produces = {"application/json"},
       method = RequestMethod.POST)
-  public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project) {
+  public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project) throws Exception {
     List<ExecutionsData> executions = rundeckAdapter.executeJobs(project);
     return ResponseEntity.ok(executions);
   }
