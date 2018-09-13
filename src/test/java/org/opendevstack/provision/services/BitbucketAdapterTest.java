@@ -222,7 +222,7 @@ public class BitbucketAdapterTest {
 
     Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
         Matchers.eq(crowdCookieValue), Matchers.any());
-    Mockito.verify(spyAdapter, Mockito.times(2)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
+    Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
         Matchers.any(), Matchers.eq(crowdCookieValue));
     Mockito.verify(spyAdapter).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
         Matchers.any(), Matchers.eq(crowdCookieValue));
