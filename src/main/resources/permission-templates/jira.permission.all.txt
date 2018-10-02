@@ -253,13 +253,6 @@
                 "parameter": "adminGroup"
             },
             "permission": "CREATE_ATTACHMENT"
-        },          
-        {
-            "holder": {
-                "type": "group",
-                "parameter": "adminGroup"
-            },
-            "permission": "BULK_CHANGE"
         }
     ]
 }
