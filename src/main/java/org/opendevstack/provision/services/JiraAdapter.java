@@ -184,6 +184,14 @@ public class JiraAdapter {
 	      
 	      singleScheme.setName(permissionSchemeName);
 	      
+	      String description = project.description;
+	      if (description != null && description.length() > 0) {
+	    	  singleScheme.setDescription(description);
+	      } else 
+	      {
+	    	  singleScheme.setDescription(permissionSchemeName);
+	      }
+	      
 	      // replace group with real group
 	      for (Permission permission : singleScheme.getPermissions()) 
 	      {
