@@ -49,7 +49,7 @@ objects:
             protocol: TCP
           resources:
             limits:
-              memory: 1Gi
+              memory: 3Gi
             requests:
               memory: 100Mi
           terminationMessagePath: /dev/termination-log

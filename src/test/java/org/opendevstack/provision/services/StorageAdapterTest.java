@@ -14,13 +14,32 @@
 
 package org.opendevstack.provision.services;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.authentication.TestAuthentication;
+import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.storage.LocalStorage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Torsten Jaeschke
@@ -30,6 +49,78 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class StorageAdapterTest {
 
+  @Mock
+  LocalStorage storage;
+
+  @Autowired
+  private WebApplicationContext context;
+  
+  @Autowired
+  StorageAdapter adapter;
+  
+  @Before
+  public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+  }	
+	
   @Test
-  public void listProjectHistory() throws Exception {}
+  public void listProjectHistoryNoAuth() throws Exception 
+  {
+	  Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<String, ProjectData>());
+	  adapter.setStorage(storage);
+	  
+	  assertTrue(adapter.listProjectHistory().isEmpty());
+  }
+
+  @Test
+  public void listProjectHistoryWithAuth() throws Exception 
+  {
+	  try 
+	  {
+		  // open project
+		  ProjectData data = new ProjectData();
+		  data.name = "testproject";
+		  data.key = "testpprojectKey";
+		  data.adminGroup = "testgroup";
+	
+		  // case sensitive right group
+		  ProjectData dataProtected = new ProjectData();
+		  dataProtected.name = "testprojectProtected";
+		  dataProtected.key = "testprojectProtected";
+		  dataProtected.adminGroup = "testgroup";
+		  dataProtected.createpermissionset = true;
+	
+		  // wrong group
+		  ProjectData dataProtectedWrong = new ProjectData();
+		  dataProtectedWrong.name = "testprojectProtectedW";
+		  dataProtectedWrong.key = "testprojectProtectedW";
+		  dataProtectedWrong.adminGroup = "testgroupW";
+		  dataProtectedWrong.createpermissionset = true;
+
+		  // group upper lower case
+		  ProjectData dataProtectedCase = new ProjectData();
+		  dataProtectedCase.name = "testprojectProtectedC";
+		  dataProtectedCase.key = "testprojectProtectedC";
+		  dataProtectedCase.adminGroup = "testGroup";
+		  dataProtectedCase.createpermissionset = true;
+		  
+		  Map<String, ProjectData> projects = new HashMap<String, ProjectData>();
+		  projects.put(data.key, data);
+		  projects.put(dataProtected.key, dataProtected);
+		  projects.put(dataProtectedWrong.key, dataProtectedWrong);
+		  projects.put(dataProtectedCase.key, dataProtectedCase);
+		  
+		  Mockito.when(storage.listProjectHistory()).thenReturn(projects);
+		  adapter.setStorage(storage);
+		  
+		  SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
+		  
+		  Map<String, ProjectData> testresult = adapter.listProjectHistory();
+		  assertEquals(3, testresult.size());
+		  assertFalse(testresult.containsKey(dataProtectedWrong.key));
+	  } finally {
+		  SecurityContextHolder.clearContext();
+	  }
+  }
+
 }
