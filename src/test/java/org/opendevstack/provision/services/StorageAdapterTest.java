@@ -77,27 +77,38 @@ public class StorageAdapterTest {
   {
 	  try 
 	  {
+		  // open project
 		  ProjectData data = new ProjectData();
 		  data.name = "testproject";
 		  data.key = "testpprojectKey";
 		  data.adminGroup = "testgroup";
 	
+		  // case sensitive right group
 		  ProjectData dataProtected = new ProjectData();
 		  dataProtected.name = "testprojectProtected";
 		  dataProtected.key = "testprojectProtected";
 		  dataProtected.adminGroup = "testgroup";
 		  dataProtected.createpermissionset = true;
 	
+		  // wrong group
 		  ProjectData dataProtectedWrong = new ProjectData();
 		  dataProtectedWrong.name = "testprojectProtectedW";
 		  dataProtectedWrong.key = "testprojectProtectedW";
 		  dataProtectedWrong.adminGroup = "testgroupW";
 		  dataProtectedWrong.createpermissionset = true;
-		  	  
+
+		  // group upper lower case
+		  ProjectData dataProtectedCase = new ProjectData();
+		  dataProtectedCase.name = "testprojectProtectedC";
+		  dataProtectedCase.key = "testprojectProtectedC";
+		  dataProtectedCase.adminGroup = "testGroup";
+		  dataProtectedCase.createpermissionset = true;
+		  
 		  Map<String, ProjectData> projects = new HashMap<String, ProjectData>();
 		  projects.put(data.key, data);
 		  projects.put(dataProtected.key, dataProtected);
 		  projects.put(dataProtectedWrong.key, dataProtectedWrong);
+		  projects.put(dataProtectedCase.key, dataProtectedCase);
 		  
 		  Mockito.when(storage.listProjectHistory()).thenReturn(projects);
 		  adapter.setStorage(storage);
@@ -105,7 +116,7 @@ public class StorageAdapterTest {
 		  SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
 		  
 		  Map<String, ProjectData> testresult = adapter.listProjectHistory();
-		  assertEquals(2, testresult.size());
+		  assertEquals(3, testresult.size());
 		  assertFalse(testresult.containsKey(dataProtectedWrong.key));
 	  } finally {
 		  SecurityContextHolder.clearContext();

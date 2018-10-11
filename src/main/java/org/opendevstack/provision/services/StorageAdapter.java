@@ -66,21 +66,21 @@ public class StorageAdapter {
 	 for (Map.Entry<String, ProjectData> project : allProjects.entrySet()) 
 	 {
 		 ProjectData projectData = project.getValue();
-		 logger.debug("Project: " + project.getKey() + 
-			 projectData.adminGroup + " " + projectData.userGroup + 
-			 " " + projectData.createpermissionset);
+		 logger.debug("Project: " + projectData.key + 
+			 " groups: " + projectData.adminGroup + "," + projectData.userGroup + 
+			 " > " + projectData.createpermissionset);
 		 
 		 if (!projectData.createpermissionset)
 		 {
-			 filteredProjects.put(project.getKey(), projectData);
+			 filteredProjects.put(projectData.key, projectData);
 		 } else 
 		 {
 			 for (GrantedAuthority authority : authorities) 
 			 {
-				 if (authority.getAuthority().equals(projectData.adminGroup) || 
-				     authority.getAuthority().equals(projectData.userGroup)) 
+				 if (authority.getAuthority().equalsIgnoreCase(projectData.adminGroup) || 
+				     authority.getAuthority().equalsIgnoreCase(projectData.userGroup)) 
 				 {
-					 filteredProjects.put(project.getKey(), projectData);
+					 filteredProjects.put(projectData.key, projectData);
 					 break;
 				 }
 			 }
