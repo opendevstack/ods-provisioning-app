@@ -49,6 +49,14 @@ public interface IProjectIdentityMgmtAdapter {
 	public boolean groupExists (String groupName);
 	
 	/**
+	 * Verify if a given user exists - in case it's passed down from the initial
+	 * screen
+	 * @param userName
+	 * @return true in case the user exists otherwise false
+	 */
+	public boolean userExists (String userName);
+
+	/**
 	 * Create the users group
 	 * @param projectName the name of the project
 	 * @return the user groups name to be configured into artifacts

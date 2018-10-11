@@ -52,21 +52,24 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 
     public void validateIdSettingsOfProject (ProjectData project) throws Exception 
     {
-    	Map<String, String> groupCheckStatus = new HashMap<String, String>();
+    	Map<String, String> projectCheckStatus = new HashMap<String, String>();
     	
     	if (!groupExists(project.adminGroup)) {
-    		groupCheckStatus.put("adminGroup", project.adminGroup);
+    		projectCheckStatus.put("adminGroup", project.adminGroup);
     	}
     	if (!groupExists(project.userGroup)) {
-    		groupCheckStatus.put("userGroup", project.userGroup);
+    		projectCheckStatus.put("userGroup", project.userGroup);
     	}
     	if (!groupExists(project.readonlyGroup)) {
-    		groupCheckStatus.put("readonlyGroup", project.readonlyGroup);
+    		projectCheckStatus.put("readonlyGroup", project.readonlyGroup);
+    	}
+    	if (!userExists(project.admin)) {
+    		projectCheckStatus.put("admin", project.admin);
     	}
     	
-    	if (!groupCheckStatus.isEmpty()) {
-    		throw new Exception ("Group check failed - these groups don't exist! " 
-    				+ groupCheckStatus);
+    	if (!projectCheckStatus.isEmpty()) {
+    		throw new Exception ("Identity check failed - these groups don't exist! " 
+    				+ projectCheckStatus);
     	}
     }
     
@@ -89,6 +92,24 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		}
 	}
 
+	@Override
+	public boolean userExists(String userName) 
+	{
+		if (userName == null || userName.trim().length() == 0) 
+			return true;
+		
+		try 
+		{
+			manager.getSecurityServerClient().findPrincipalByName(userName);
+			return true;
+		} catch (Exception eSecurity) 
+		{
+			if (!(eSecurity instanceof GroupNotFoundException)) {
+				logger.error("UserFind call failed with: {}", eSecurity);
+			}
+			return false;
+		}
+	}
 
 	@Override
 	public String createUserGroup(String projectName) throws Exception 
