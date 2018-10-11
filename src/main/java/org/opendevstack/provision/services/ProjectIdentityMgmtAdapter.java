@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.atlassian.crowd.exception.GroupNotFoundException;
@@ -104,7 +105,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			return true;
 		} catch (Exception eSecurity) 
 		{
-			if (!(eSecurity instanceof GroupNotFoundException)) {
+			if (!(eSecurity instanceof UsernameNotFoundException)) {
 				logger.error("UserFind call failed with: {}", eSecurity);
 			}
 			return false;
