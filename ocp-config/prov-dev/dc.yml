@@ -57,7 +57,7 @@ objects:
           volumeMounts:
           - mountPath: /opt/provision/history
             name: volume-65x72
-          - mountPath: /test
+          - mountPath: /config
             name: volume-ikfik
         dnsPolicy: ClusterFirst
         restartPolicy: Always
