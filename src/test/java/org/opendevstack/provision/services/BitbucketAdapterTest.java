@@ -215,7 +215,7 @@ public class BitbucketAdapterTest {
     Mockito.doReturn(expected).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any(),
         Matchers.any());
     Mockito.doNothing().when(spyAdapter).setProjectPermissions(Matchers.any(), Matchers.any(),
-        Matchers.any(), Matchers.any(), Matchers.any(BitbucketAdapter.REPO_RIGHTS.class));
+        Matchers.any(), Matchers.any(), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
     Mockito.doReturn(uri).when(spyAdapter).buildBasePath();
 
     BitbucketData actual = spyAdapter.callCreateProjectApi(data, crowdCookieValue);
@@ -223,9 +223,9 @@ public class BitbucketAdapterTest {
     Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
         Matchers.eq(crowdCookieValue), Matchers.any());
     Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
-        Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.REPO_RIGHTS.class));
+        Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
     Mockito.verify(spyAdapter).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
-        Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.REPO_RIGHTS.class));
+        Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
     assertEquals(expected, actual);
   }

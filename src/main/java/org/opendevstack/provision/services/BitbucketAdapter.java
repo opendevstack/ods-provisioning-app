@@ -110,10 +110,10 @@ public class BitbucketAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
-  public enum REPO_RIGHTS {
-	  REPO_ADMIN,
-	  REPO_WRITE,
-	  REPO_READ
+  public enum PROJECT_PERMISSIONS {
+	  PROJECT_ADMIN,
+	  PROJECT_WRITE,
+	  PROJECT_READ
   }
   
   public ProjectData createBitbucketProjectsForProject(ProjectData project, String crowdCookieValue)
@@ -282,19 +282,19 @@ public class BitbucketAdapter {
 
     if (project.createpermissionset)
     {
-	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue, REPO_RIGHTS.REPO_ADMIN);    
-	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue, REPO_RIGHTS.REPO_ADMIN);
-	    setProjectPermissions(projectData, "groups", project.userGroup, crowdCookieValue, REPO_RIGHTS.REPO_WRITE);
-	    setProjectPermissions(projectData, "groups", project.readonlyGroup, crowdCookieValue, REPO_RIGHTS.REPO_READ);
+	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);    
+	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
+	    setProjectPermissions(projectData, "groups", project.userGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+	    setProjectPermissions(projectData, "groups", project.readonlyGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_READ);
     }
 	
     // set those in any case
-    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue, REPO_RIGHTS.REPO_WRITE);
-    setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue, REPO_RIGHTS.REPO_WRITE);
+    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+    setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
 
     if (project.admin != null) 
     {
-    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue, REPO_RIGHTS.REPO_ADMIN);
+    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
     }
     
     return projectData;
@@ -316,7 +316,7 @@ public class BitbucketAdapter {
   }
 
   protected void setProjectPermissions(BitbucketData data, String pathFragment, String groupOrUser,
-      String crowdCookieValue, REPO_RIGHTS rights) throws IOException {
+      String crowdCookieValue, PROJECT_PERMISSIONS rights) throws IOException {
     String basePath = buildBasePath();
     String url = String.format("%s/%s/permissions/%s", basePath, data.getKey(), pathFragment);
     // http://192.168.56.31:7990/rest/api/1.0/projects/{projectKey}/permissions/groups
