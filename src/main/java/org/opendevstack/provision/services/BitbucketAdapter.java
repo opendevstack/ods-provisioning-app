@@ -243,7 +243,7 @@ public class BitbucketAdapter {
 
       // projects/CLE200/repos/cle200-be-node-express/webhooks
       String url = String.format("%s/projects/%s/repos/%s/webhooks",
-      bitbucketUri, project.key, repo.getSlug());
+      buildBasePath(), project.key, repo.getSlug());
 
       int i = 0;
     	Webhook wHook = new Webhook();
@@ -388,7 +388,7 @@ public class BitbucketAdapter {
 	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     String respBody = response.body().string();
 
-    logger.debug(respBody);
+    logger.debug(response.code() + ">" + respBody);
     response.close();
 
   }
