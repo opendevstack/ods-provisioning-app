@@ -28,9 +28,9 @@ import org.opendevstack.provision.model.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
+import org.opendevstack.provision.model.bitbucket.Webhook;
 import org.opendevstack.provision.util.CrowdCookieJar;
 import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
-import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -67,9 +66,6 @@ public class BitbucketAdapter {
 
   @Autowired
   RundeckAdapter rundeckAdapter;
-
-  @Autowired
-  private RundeckJobStore jobStore;
 
   @Value("${bitbucket.api.path}")
   private String bitbucketApiPath;
@@ -114,6 +110,12 @@ public class BitbucketAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
+  public enum PROJECT_PERMISSIONS {
+	  PROJECT_ADMIN,
+	  PROJECT_WRITE,
+	  PROJECT_READ
+  }
+  
   public ProjectData createBitbucketProjectsForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
     BitbucketData data = callCreateProjectApi(project, crowdCookieValue);
@@ -156,7 +158,7 @@ public class BitbucketAdapter {
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
             if(result != null) {
-              createWebHooksForRepository(result, project, option.get("component_id"), crowdCookieValue);
+              createWebHooksForRepository(result, project, option.get("component_id"), crowdCookieValue, option.get("component_type"));
             }
             Map<String, List<Link>> links = result.getLinks();
             if(links != null) {
@@ -225,48 +227,48 @@ public class BitbucketAdapter {
   }
 
   protected void createWebHooksForRepository(RepositoryData repo, ProjectData project,
-      String component, String crowdCookie) {
+      String component, String crowdCookie, String componentType) {
 
     for (String openShiftEnv : webHookEnvironments.split(",")) {
       /*
        * bitbucket.webhook.url=<api_host>/oapi/v1/namespaces/%s-cd/
        * buildconfigs/%s-%s/webhooks/secret101/generic bitbucket.webhook.environments=dev,test
        */
-      String webHookUrl =
-          String.format(baseWebHookUrlPattern, project.key.toLowerCase(), component, openShiftEnv);
-      String webHookRshinyUrl = String.format(baseWebHookRshinyUrlPattern,
-          project.key.toLowerCase(), openShiftEnv, component);
+      String webHookUrlCI = 
+        	String.format(baseWebHookUrlPattern, project.key.toLowerCase(), component, openShiftEnv);
+      String webHookUrlDirect =
+      		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component);
+      
+      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect);
 
-      logger.info("classic hook: " + webHookUrl + " -- " + webHookRshinyUrl);
-
-      String url = String.format("%s/plugins/servlet/webhooks/repository/%s/%s/settings",
-      bitbucketUri, project.key, repo.getSlug());
-
-      String[] hooks = {webHookUrl, webHookRshinyUrl};
+      String[] hooks = {webHookUrlCI, webHookUrlDirect};
+      
+      // projects/CLE200/repos/cle200-be-node-express/webhooks
+      String url = String.format("%s/%s/repos/%s/webhooks",
+      buildBasePath(), project.key, repo.getSlug());
 
       int i = 0;
-      for (String hook : hooks) {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-        urlBuilder.addQueryParameter("edit", "");
-
-        RequestBody body = new FormBody.Builder()
-            .add("title", String.format("%s-%s-webhook-%d", repo.getSlug(), openShiftEnv, i))
-            .add("enabled", "on").add("isRepoPush", "on").add("isPrMerged", "on")
-            .addEncoded("url", hook).build();
-        Request request = new Request.Builder().url(urlBuilder.build()).post(body).build();
+      for (String hook : hooks)
+      {
+    	Webhook wHook = new Webhook();
+    		wHook.setName(String.format("%s-%s-webhook-%d", repo.getSlug(), openShiftEnv, i));	
+    		wHook.setActive(true);
+    		wHook.setUrl(hook);
+    		List<String> events = new ArrayList<String>();
+    		events.add("repo:refs_changed");
+    		events.add("pr:merged");
+    		wHook.setEvents(events);
+    	  
         try {
-          Response response = client.getClient(crowdCookie).newCall(request).execute();
-          if (response.isSuccessful()) {
-            logger.info("Successful webhook on cd project created: \n" + hook);
-          }
-          response.close();
+        	ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        	String json = ow.writeValueAsString(wHook);
+        	this.post(url, json, crowdCookie, Webhook.class);
         } catch (IOException ex) {
           logger.error("Error in webhook call", ex);
         }
         i++;
       }
     }
-
   }
 
   protected BitbucketData callCreateProjectApi(ProjectData project, String crowdCookieValue)
@@ -277,24 +279,26 @@ public class BitbucketAdapter {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(bbProject);
 
-    logger.debug("About to create bitbucket project for: " + bbProject.getKey());
-    logger.debug(json);
+    logger.debug("About to create bitbucket project for: " + bbProject.getKey() + "\n" + json);
 
     BitbucketData projectData =
         (BitbucketData) this.post(buildBasePath(), json, crowdCookieValue, BitbucketData.class);
 
     if (project.createpermissionset)
     {
-	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue);    
-	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue);
+	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);    
+	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
+	    setProjectPermissions(projectData, "groups", project.userGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+	    setProjectPermissions(projectData, "groups", project.readonlyGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_READ);
     }
-	 
-    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue);
-    setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue);
+	
+    // set those in any case
+    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+    setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
 
     if (project.admin != null) 
     {
-    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue);
+    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
     }
     
     return projectData;
@@ -316,21 +320,21 @@ public class BitbucketAdapter {
   }
 
   protected void setProjectPermissions(BitbucketData data, String pathFragment, String groupOrUser,
-      String crowdCookieValue) throws IOException {
+      String crowdCookieValue, PROJECT_PERMISSIONS rights) throws IOException {
     String basePath = buildBasePath();
     String url = String.format("%s/%s/permissions/%s", basePath, data.getKey(), pathFragment);
     // http://192.168.56.31:7990/rest/api/1.0/projects/{projectKey}/permissions/groups
     HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
     // utschig - allow group to create new repos (rather than just read / write)
-    urlBuilder.addQueryParameter("permission", "PROJECT_ADMIN");
+    urlBuilder.addQueryParameter("permission", rights.toString());
     urlBuilder.addQueryParameter("name", groupOrUser);
     this.put(urlBuilder.build(), crowdCookieValue);
   }
 
-  protected void setRepositoryPermissions(RepositoryData data, String key, String pathFragment,
+  protected void setRepositoryPermissions(RepositoryData data, String key, String userOrGroup,
       String groupOrUser, String crowdCookieValue) throws IOException {
     String basePath = buildBasePath();
-    String url = String.format("%s/%s/repos/%s/permissions/groups", basePath, key, data.getSlug());
+    String url = String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
 
     HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
     // allow people to modify settings (webhooks)
@@ -360,7 +364,7 @@ public class BitbucketAdapter {
 
     String respBody = response.body().string();
 
-    logger.debug(response.code() + "> " +  respBody);
+    logger.debug(url, " > " + json + "\n" + response.code() + "> " +  respBody);
 
     if (response.code() == 401) {
     	throw new IOException("You are not authorized to create this resource (" +  url + "): " + respBody);
@@ -388,7 +392,7 @@ public class BitbucketAdapter {
 	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     String respBody = response.body().string();
 
-    logger.debug(respBody);
+    logger.debug(response.code() + ">" + respBody);
     response.close();
 
   }
