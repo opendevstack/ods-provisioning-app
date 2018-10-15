@@ -234,22 +234,26 @@ public class BitbucketAdapter {
        * bitbucket.webhook.url=<api_host>/oapi/v1/namespaces/%s-cd/
        * buildconfigs/%s-%s/webhooks/secret101/generic bitbucket.webhook.environments=dev,test
        */
-      String webHookUrl = 
-          "rshiny_app".equals(componentType) ?
-        		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component) :
-        		String.format(baseWebHookUrlPattern, project.key.toLowerCase(), component, openShiftEnv);
+      String webHookUrlCI = 
+        	String.format(baseWebHookUrlPattern, project.key.toLowerCase(), component, openShiftEnv);
+      String webHookUrlDirect =
+      		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component);
+      
+      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect);
 
-      logger.info("created hook: " + webHookUrl + "based on " + componentType);
-
+      String[] hooks = {webHookUrlCI, webHookUrlDirect};
+      
       // projects/CLE200/repos/cle200-be-node-express/webhooks
       String url = String.format("%s/%s/repos/%s/webhooks",
       buildBasePath(), project.key, repo.getSlug());
 
       int i = 0;
+      for (String hook : hooks)
+      {
     	Webhook wHook = new Webhook();
     		wHook.setName(String.format("%s-%s-webhook-%d", repo.getSlug(), openShiftEnv, i));	
     		wHook.setActive(true);
-    		wHook.setUrl(webHookUrl);
+    		wHook.setUrl(hook);
     		List<String> events = new ArrayList<String>();
     		events.add("repo:refs_changed");
     		events.add("pr:merged");
@@ -263,8 +267,8 @@ public class BitbucketAdapter {
           logger.error("Error in webhook call", ex);
         }
         i++;
+      }
     }
-
   }
 
   protected BitbucketData callCreateProjectApi(ProjectData project, String crowdCookieValue)
