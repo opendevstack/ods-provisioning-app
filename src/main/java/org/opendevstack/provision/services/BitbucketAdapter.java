@@ -242,7 +242,7 @@ public class BitbucketAdapter {
       logger.info("created hook: " + webHookUrl + "based on " + componentType);
 
       // projects/CLE200/repos/cle200-be-node-express/webhooks
-      String url = String.format("%s/projects/%s/repos/%s/webhooks",
+      String url = String.format("%s/%s/repos/%s/webhooks",
       buildBasePath(), project.key, repo.getSlug());
 
       int i = 0;
