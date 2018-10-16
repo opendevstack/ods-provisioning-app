@@ -368,6 +368,15 @@ function summarize(data) {
     
   $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 
+  if (data.lastJobs != null) {
+	 console.log("jobs found: " + data.lastJobs);
+     html = "";
+	 for (var jobId = 0; jobId < data.lastJobs; jobId++) {
+		 var jobUrl = data.lastJobs[jobId];
+		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br";
+	 } 
+	  $("#dataJobUrls").html(html);
+  }
 
   $("#projectData").removeClass("hide");
 
