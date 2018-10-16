@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.rundeck.Job;
@@ -211,6 +212,8 @@ public class ProjectApiController {
       // notify user via mail of project creation with embedding links
       mailAdapter.notifyUsersAboutProject(oldProject);
 
+      oldProject.lastJobs = project.lastJobs;
+      
       /*
        * 
        * return project data for further processing
@@ -261,7 +264,13 @@ public class ProjectApiController {
 	    }
     }
     
-    rundeckAdapter.executeJobs(project);
+    if (project.lastJobs == null) {
+    	project.lastJobs = new ArrayList<String>();
+    }
+    List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
+    for (ExecutionsData exec : execs) {
+    	project.lastJobs.add(exec.getPermalink());
+    }
 
     return project;
   }
