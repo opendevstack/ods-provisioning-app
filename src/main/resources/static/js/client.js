@@ -353,8 +353,7 @@ function summarize(data) {
   $("#dataProjectName").html(data.name);
   $("#dataProjectKey").html(data.key);
   
-  console.log("space? " + data.jiraconfluencespace);
-  $("#dataJiraConfluenceCreated").html(data.jiraconfluencespace);
+  $("#dataJiraConfluenceCreated").val(data.jiraconfluencespace);
   
   // this is for the default case where spaces should be created.
   if (data.jiraconfluencespace) 
@@ -370,12 +369,19 @@ function summarize(data) {
   $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 
   if (data.lastJobs != null) {
-	 console.log("jobs found: " + data.lastJobs);
+	 console.log("jobs found: " + data.lastJobs + " length: " + data.lastJobs.length);
      html = "";
-     for(var obj in data.lastJobs) {
-    	 html += "<a href='" + obj + "' target='_blank'>" + obj +"</a></br>";
-		 console.log(html);
-	 } 
+     if (data.lastJobs.length == 0) {
+		 html += "<a href='" + data.lastJobs +"' target='_blank'>" + data.lastJobs +"</a></br>";
+     } 
+     else {
+    	 for (var jobId = 0; jobId < data.lastJobs.length; jobId++) {
+    		 var jobUrl = data.lastJobs[jobId];
+    		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br>";
+    		 console.log(html)
+    	 } 
+     }
+	 
 	 $("#dataJobUrls").html(html);
   }
 
