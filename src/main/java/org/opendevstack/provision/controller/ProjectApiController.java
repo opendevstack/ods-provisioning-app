@@ -269,7 +269,7 @@ public class ProjectApiController {
     }
     List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
     for (ExecutionsData exec : execs) {
-    	project.lastJobs.add(exec.getHref());
+    	project.lastJobs.add(exec.getPermalink());
     }
 
     return project;
