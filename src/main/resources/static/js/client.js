@@ -353,7 +353,7 @@ function summarize(data) {
   $("#dataProjectName").html(data.name);
   $("#dataProjectKey").html(data.key);
   
-  $("#dataJiraConfluenceCreated").val(data.jiraconfluencespace);
+  $("#dataJiraConfluenceCreated").text(data.jiraconfluencespace);
   
   // this is for the default case where spaces should be created.
   if (data.jiraconfluencespace) 
