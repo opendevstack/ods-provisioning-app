@@ -212,6 +212,8 @@ public class ProjectApiController {
       // notify user via mail of project creation with embedding links
       mailAdapter.notifyUsersAboutProject(oldProject);
 
+      oldProject.lastJobs = project.lastJobs;
+      
       /*
        * 
        * return project data for further processing
