@@ -353,7 +353,7 @@ function summarize(data) {
   $("#dataProjectName").html(data.name);
   $("#dataProjectKey").html(data.key);
   
-  $("#dataJiraConfluenceCreated").html(data.jiraconfluencespace);
+  $("#dataJiraConfluenceCreated").val(data.jiraconfluencespace);
   
   // this is for the default case where spaces should be created.
   if (data.jiraconfluencespace) 
@@ -373,9 +373,10 @@ function summarize(data) {
      html = "";
 	 for (var jobId = 0; jobId < data.lastJobs; jobId++) {
 		 var jobUrl = data.lastJobs[jobId];
-		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br";
+		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br>";
+		 console.log(html)
 	 } 
-	  $("#dataJobUrls").html(html);
+	 $("#dataJobUrls").html(html);
   }
 
   $("#projectData").removeClass("hide");
