@@ -385,6 +385,14 @@ function summarize(data) {
 	 $("#dataJobUrls").html(html);
   }
 
+  if (data.openshiftproject) 
+  {
+	  $("#dataJenkinsUrl").html("<a href='" + data.openshiftJenkinsUrl + "' target='_blank'>" + data.openshiftJenkinsUrl +"</a>");
+  } else 
+  {
+  	  $("#dataJenkinsUrlDiv").hide();
+  }  
+  
   $("#projectData").removeClass("hide");
 
 }
