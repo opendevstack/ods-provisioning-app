@@ -53,6 +53,9 @@ public class ProjectData {
 
   public boolean createpermissionset = false;
   
+  @JsonIgnoreProperties ({"lastJobs"})
+  public List<String> lastJobs = null;
+  
   @Override
   public int hashCode() {
     final int prime = 31;
