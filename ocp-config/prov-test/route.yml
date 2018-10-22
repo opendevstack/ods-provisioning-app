@@ -8,7 +8,8 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    annotations: {}
+    annotations:
+      haproxy.router.openshift.io/timeout: 2m
     creationTimestamp: null
     labels:
       app: prov-app
