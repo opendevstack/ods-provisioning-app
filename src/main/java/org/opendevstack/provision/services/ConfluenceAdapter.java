@@ -191,6 +191,9 @@ public class ConfluenceAdapter {
     String respBody = response.body().string();
 
     logger.debug(respBody);
+    if (!response.isSuccessful()) {
+    	throw new IOException("Could not retrieve blueprints: " + respBody);
+    }
 
     return new ObjectMapper().readValue(respBody, reference);
   }
