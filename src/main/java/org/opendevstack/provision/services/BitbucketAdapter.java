@@ -204,7 +204,7 @@ public class BitbucketAdapter {
     	  repo.setAdminGroup(project.adminGroup);
     	  repo.setUserGroup(project.userGroup);
       } else {
-    	  repo.setAdminGroup(this.defaultUserGroup);
+    	  repo.setAdminGroup(this.globalKeyuserRoleName);
     	  repo.setUserGroup(this.defaultUserGroup);
       }
 
