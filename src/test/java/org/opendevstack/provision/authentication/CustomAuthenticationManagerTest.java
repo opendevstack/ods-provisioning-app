@@ -52,8 +52,12 @@ public class CustomAuthenticationManagerTest {
 
   private static final String TOKEN = "token";
 
+  /**
+   * This is for tests only
+   */
   static final String USER = "test";
-  static final String PASSWORD = "test";
+  @SuppressWarnings("squid:S2068")
+  static final String TEST_CRED = "test";
 
   @Autowired
   CustomAuthenticationManager manager;
@@ -77,7 +81,7 @@ public class CustomAuthenticationManagerTest {
 
   @Test
   public void setUserPassword() throws Exception {
-    String pass = PASSWORD;
+    String pass = TEST_CRED;
     
     manager.setUserPassword(pass);
     
@@ -109,11 +113,11 @@ public class CustomAuthenticationManagerTest {
   @Test
   public void authenticateWithUsernameAndPassword() throws Exception {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
-    Mockito.when(client.authenticatePrincipalSimple(USER, PASSWORD)).thenReturn("login");
+    Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
     
     manager.setSecurityServerClient(client);
     
-    assertEquals("login", manager.authenticate(USER, PASSWORD));
+    assertEquals("login", manager.authenticate(USER, TEST_CRED));
   }
 
   @Test

@@ -43,7 +43,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import okhttp3.Credentials;
-import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -110,6 +109,11 @@ public class BitbucketAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
+  private static final String COMPONENT_ID_KEY = "component_id";
+  
+  private static final String ID_GROUPS = "groups";
+  private static final String ID_USERS = "users";
+  
   public enum PROJECT_PERMISSIONS {
 	  PROJECT_ADMIN,
 	  PROJECT_WRITE,
@@ -140,9 +144,9 @@ public class BitbucketAdapter {
     	  logger.debug("new quickstarters: " + project.quickstart.size());
     	  
     	  for(Map<String, String> option : project.quickstart) {
-          logger.debug("create repo for quickstarter: " + option.get("component_id") + " in " + project.key);
+          logger.debug("create repo for quickstarter: " + option.get(COMPONENT_ID_KEY) + " in " + project.key);
 
-          String repoName = (String.format("%s-%s", project.key, option.get("component_id"))).toLowerCase().replace('_','-');
+          String repoName = (String.format("%s-%s", project.key, option.get(COMPONENT_ID_KEY))).toLowerCase().replace('_','-');
           Repository repo = new Repository();
           repo.setName(repoName);
           
@@ -158,7 +162,7 @@ public class BitbucketAdapter {
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
             if(result != null) {
-              createWebHooksForRepository(result, project, option.get("component_id"), crowdCookieValue, option.get("component_type"));
+              createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue, option.get("component_type"));
             }
             Map<String, List<Link>> links = result.getLinks();
             if(links != null) {
@@ -174,9 +178,9 @@ public class BitbucketAdapter {
             }
           } catch (IOException ex)
           {
-            logger.error("Error in creating repo: " + option.get("component_id"), ex);
+            logger.error("Error in creating repo: " + option.get(COMPONENT_ID_KEY), ex);
             throw new IOException(
-            	"Error in creating repo: " + option.get("component_id") + "\n" +
+            	"Error in creating repo: " + option.get(COMPONENT_ID_KEY) + "\n" +
             			"details: " + ex.getMessage());
           }
         }
@@ -210,10 +214,7 @@ public class BitbucketAdapter {
 
       try {
         RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
-        Map<String, List<Link>> links = result.getLinks();
-        if (links != null) {
-          repoLinks.put(result.getName(), result.getLinks());
-        }
+        repoLinks.put(result.getName(), result.getLinks());
       } catch (IOException ex) {
         logger.error("Error in creating auxiliary repo", ex);
       }
@@ -286,19 +287,19 @@ public class BitbucketAdapter {
 
     if (project.createpermissionset)
     {
-	    setProjectPermissions(projectData, "groups", globalKeyuserRoleName, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);    
-	    setProjectPermissions(projectData, "groups", project.adminGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
-	    setProjectPermissions(projectData, "groups", project.userGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
-	    setProjectPermissions(projectData, "groups", project.readonlyGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_READ);
+	    setProjectPermissions(projectData, ID_GROUPS, globalKeyuserRoleName, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);    
+	    setProjectPermissions(projectData, ID_GROUPS, project.adminGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
+	    setProjectPermissions(projectData, ID_GROUPS, project.userGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+	    setProjectPermissions(projectData, ID_GROUPS, project.readonlyGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_READ);
     }
 	
     // set those in any case
-    setProjectPermissions(projectData, "groups", defaultUserGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
-    setProjectPermissions(projectData, "users", technicalUser, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+    setProjectPermissions(projectData, ID_GROUPS, defaultUserGroup, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+    setProjectPermissions(projectData, ID_USERS, technicalUser, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
 
     if (project.admin != null) 
     {
-    	setProjectPermissions(projectData, "users", project.admin, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
+    	setProjectPermissions(projectData, ID_USERS, project.admin, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);
     }
     
     return projectData;
@@ -313,8 +314,8 @@ public class BitbucketAdapter {
     RepositoryData data =
         (RepositoryData) this.post(path, json, crowdCookieValue, RepositoryData.class);
 
-    setRepositoryPermissions(data, projectKey, "groups", repo.getUserGroup(), crowdCookieValue);
-    setRepositoryPermissions(data, projectKey, "users", technicalUser, crowdCookieValue);
+    setRepositoryPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup(), crowdCookieValue);
+    setRepositoryPermissions(data, projectKey, ID_USERS, technicalUser, crowdCookieValue);
 
     return data;
   }

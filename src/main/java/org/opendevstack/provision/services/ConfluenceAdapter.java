@@ -77,6 +77,8 @@ public class ConfluenceAdapter {
   private static String BLUEPRINT_PATTERN =
       "%s%s/create-dialog/1.0/space-blueprint/dialog/web-items";
   private static String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
+  
+  private static final String SPACE_GROUP = "SPACE_GROUP";
 
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
@@ -232,21 +234,26 @@ public class ConfluenceAdapter {
     	  String permissionFilename = permissionFiles[i].getFilename();
     	  
     	  BufferedReader reader = new BufferedReader (new InputStreamReader(permissionFiles[i].getInputStream()));
-    	  
-    	  String permissionset = new String(reader.readLine());
-    	  
-    	  reader.close();
+    	  String permissionset = null;
+    	  try 
+    	  {
+    		  permissionset = new String(reader.readLine());
+    	  } finally 
+    	  {
+    		  //sq finding
+    		  reader.close();
+    	  }
     	  
     	  permissionset = permissionset.replace("SPACE_NAME", data.key);
     	  
     	  if (permissionFilename.contains("adminGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.adminGroup);
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
     	  } else if (permissionFilename.contains("userGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.userGroup);
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
       	  } else if (permissionFilename.contains("readonlyGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.readonlyGroup);  
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);  
       	  } else if (permissionFilename.contains("keyuserGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", globalKeyuserRoleName);  
+    		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
       	  } else if (permissionFilename.contains("admin")) {
     		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
       	  } else {

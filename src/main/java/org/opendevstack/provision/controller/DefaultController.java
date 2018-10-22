@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -58,6 +57,10 @@ public class DefaultController {
 
   private BitbucketAdapter bitbucketAdapter;
   
+  private static final String LOGIN_REDIRECT = "redirect:/login";
+  
+  private static final String ACTIVE = "active";
+  
   @Value("${crowd.user.group}")
   private String crowdUserGroup;
   
@@ -72,23 +75,23 @@ public class DefaultController {
   @RequestMapping("/home")
   String home(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveHome", "active");
+    model.addAttribute("classActiveHome", ACTIVE);
     return "home";
   }
 
     @RequestMapping("/provision")
     String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie){
         if(!isAuthenticated()) {
-            return "redirect:/login";
+            return LOGIN_REDIRECT;
         } else {
             model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
             model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
             model.addAttribute("crowdUserGroup", crowdUserGroup);
             model.addAttribute("crowdAdminGroup", crowdAdminGroup);
         }
-        model.addAttribute("classActiveNew","active");
+        model.addAttribute("classActiveNew", ACTIVE);
         return "provision";
     }
 
@@ -100,9 +103,9 @@ public class DefaultController {
   @RequestMapping("/history")
   String history(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveHistory", "active");
+    model.addAttribute("classActiveHistory", ACTIVE);
     model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
     return "history";
   }
@@ -110,9 +113,9 @@ public class DefaultController {
   @RequestMapping("/about")
   String about(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveAbout", "active");
+    model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
     // add endpoint map
