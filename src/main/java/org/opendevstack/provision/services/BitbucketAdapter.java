@@ -161,9 +161,7 @@ public class BitbucketAdapter {
           
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
-            if(result != null) {
-              createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue, option.get("component_type"));
-            }
+            createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue, option.get("component_type"));
             Map<String, List<Link>> links = result.getLinks();
             if(links != null) {
               repoLinks.put(result.getName(), result.getLinks());
