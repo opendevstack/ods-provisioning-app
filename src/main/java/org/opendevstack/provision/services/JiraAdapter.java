@@ -125,9 +125,9 @@ public class JiraAdapter {
       }
       
       return project;
-    } catch (IOException e) {
-      logger.error("Error in project creation", e);
-      throw e;
+    } catch (IOException eCreationException) {
+      logger.error("Error in project creation", eCreationException);
+      throw eCreationException;
     }
 
   }
@@ -144,8 +144,9 @@ public class JiraAdapter {
       logger.debug(response);
       return new ObjectMapper().readValue(response, FullJiraProject.class);
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException eGetProjects) 
+    {
+      logger.error("Error getting projects: {}", eGetProjects);
       return null;
     }
   }
@@ -309,8 +310,9 @@ public class JiraAdapter {
   public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
   {
     getSessionId();
+    logger.debug("Getting jira projects with filter {}", filter);
     String url = 
-    	filter == null ? String.format("%s%s/project", jiraUri, jiraApiPath) :
+    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
         String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
     	
     Request request = new Request

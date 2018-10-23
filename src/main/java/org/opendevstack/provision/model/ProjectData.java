@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  * @author Torsten Jaeschke
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectData {
   public List<BasicUser> admins = new ArrayList<>();
