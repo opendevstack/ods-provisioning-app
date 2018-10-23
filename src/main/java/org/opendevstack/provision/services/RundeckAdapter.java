@@ -110,6 +110,8 @@ public class RundeckAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
+  private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
+  
   @Autowired
   RestClient client;
 
@@ -120,7 +122,7 @@ public class RundeckAdapter {
     try {
       return getJobs(projectQuickstarterGroup);
     } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
     }
     return new ArrayList<>();
   }
@@ -210,7 +212,7 @@ public class RundeckAdapter {
         }
       }
     } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
       throw ex;
     }
     return project;
@@ -220,7 +222,7 @@ public class RundeckAdapter {
   /**
    * method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar
    */
-  protected void authenticate() {
+  protected void authenticate() throws IOException {
     CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -232,16 +234,20 @@ public class RundeckAdapter {
     Request request = new Request.Builder()
         .url(String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath)).post(body)
         .build();
-    try {
-      Response response = client.getClient().newCall(request).execute();
-      if (response.isSuccessful()) {
-        logger.debug("successful rundeck auth");
-      }
-      response.close();
-    } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+    Response response = null;
+    try 
+    {
+    	response = client.getClient().newCall(request).execute();
+    	if (response.isSuccessful()) {
+    		logger.debug("successful rundeck auth");
+    	} else {
+    		throw new IOException("Could not authenticate: " + username + " : " + response.body());
+    	}
     }
-
+    finally {
+    	if (response != null)
+    		response.close();
+    }
   }
 
   protected Object post(String url, String json, Class clazz) throws IOException {

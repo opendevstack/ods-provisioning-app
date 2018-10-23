@@ -73,9 +73,9 @@ public class JiraAdapter {
   RestClient client;
 
   public static enum HTTP_VERB {
-	  put, 
-	  post,
-	  get
+	  PUT, 
+	  POST,
+	  GET
   }
   
   /**
@@ -124,9 +124,9 @@ public class JiraAdapter {
       }
       
       return project;
-    } catch (IOException e) {
-      logger.error("Error in project creation", e);
-      throw e;
+    } catch (IOException eCreationException) {
+      logger.error("Error in project creation", eCreationException);
+      throw eCreationException;
     }
 
   }
@@ -143,8 +143,9 @@ public class JiraAdapter {
       logger.debug(response);
       return new ObjectMapper().readValue(response, FullJiraProject.class);
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException eGetProjects) 
+    {
+      logger.error("Error getting projects: {}", eGetProjects);
       return null;
     }
   }
@@ -155,7 +156,7 @@ public class JiraAdapter {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(jiraProject);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.post);
+    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.POST);
     FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
         jiraProject.getName(), jiraProject.getDescription(), null, null, null, null, null, null,
         null, null);
@@ -215,12 +216,12 @@ public class JiraAdapter {
 	      
 	      String json = ow.writeValueAsString(singleScheme);
 	      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-	      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.post);
+	      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.POST);
 	      
 	      // update jira project
 	      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
 	      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
-	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.put);	      
+	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);	      
       }
   }
   
@@ -233,13 +234,13 @@ public class JiraAdapter {
     okhttp3.Request.Builder builder = new Request.Builder();
     builder.url(url).addHeader("X-Atlassian-Token", "no-check");
     
-    if (HTTP_VERB.put.equals(verb))
+    if (HTTP_VERB.PUT.equals(verb))
     {
         builder = builder.put(body);
-    } else if (HTTP_VERB.get.equals(verb))
+    } else if (HTTP_VERB.GET.equals(verb))
     {
     	builder = builder.get();
-    } else if (HTTP_VERB.post.equals(verb))
+    } else if (HTTP_VERB.POST.equals(verb))
     {
     	builder = builder.post(body);
     }
@@ -308,8 +309,9 @@ public class JiraAdapter {
   public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
   {
     getSessionId();
+    logger.debug("Getting jira projects with filter {}", filter);
     String url = 
-    	filter == null ? String.format("%s%s/project", jiraUri, jiraApiPath) :
+    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
         String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
     	
     Request request = new Request

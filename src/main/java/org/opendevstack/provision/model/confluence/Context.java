@@ -14,11 +14,14 @@
 
 package org.opendevstack.provision.model.confluence;
 
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Torsten Jaeschke
  */
+@Generated(value = {"JSON-to-Pojo-Generator"})
 public class Context {
 
   /*

@@ -16,6 +16,9 @@ package org.opendevstack.provision.model;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Generated;
+
 import org.opendevstack.provision.model.bitbucket.Link;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -26,7 +29,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  * @author Torsten Jaeschke
  */
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public class BitbucketData {
 
   private String id;
