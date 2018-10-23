@@ -108,8 +108,7 @@ public class JiraAdapter {
           .callJiraCreateProjectApi(this.buildJiraProjectPojoFromApiProject(project),
               crowdCookieValue);
       logger.debug("Created project: {}", created);
-      created.getKey();
-      project.jiraUrl = created.getSelf().toASCIIString();
+      project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
       project.jiraId = created.id;
       
       if (project.createpermissionset) {
