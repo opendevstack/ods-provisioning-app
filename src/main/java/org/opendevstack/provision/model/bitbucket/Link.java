@@ -14,11 +14,14 @@
 
 package org.opendevstack.provision.model.bitbucket;
 
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torten Jaeschke
  */
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Link {
   private String name;

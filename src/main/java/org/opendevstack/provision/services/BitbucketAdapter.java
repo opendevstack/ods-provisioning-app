@@ -136,7 +136,7 @@ public class BitbucketAdapter {
 
 	  logger.debug("Creating quickstartProjects");
 	  
-      List<RepositoryData> repos = new ArrayList<>();
+      List<RepositoryData> repos = new ArrayList<RepositoryData>();
       Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
       List<Map<String, String>> newOptions = new ArrayList<>();
       if(project.quickstart != null) {

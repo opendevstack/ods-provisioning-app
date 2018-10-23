@@ -16,15 +16,15 @@ package org.opendevstack.provision.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -43,9 +43,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DefaultController {
-
-  private static final Logger logger = LoggerFactory
-      .getLogger(DefaultController.class);
 
   StorageAdapter storageAdapter;
 

@@ -15,12 +15,10 @@
 package org.opendevstack.provision.services;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.file.Files;
 import java.util.List;
+
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
@@ -34,11 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.data.rest.core.Path;
 import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;

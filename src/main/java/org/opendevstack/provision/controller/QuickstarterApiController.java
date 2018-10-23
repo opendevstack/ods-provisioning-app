@@ -15,12 +15,12 @@
 package org.opendevstack.provision.controller;
 
 import java.util.List;
+
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

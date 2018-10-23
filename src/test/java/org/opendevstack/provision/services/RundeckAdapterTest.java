@@ -15,6 +15,7 @@
 package org.opendevstack.provision.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -156,6 +157,13 @@ public class RundeckAdapterTest {
     ProjectData createdProjectData = spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
 
     assertEquals(expectedProjectData, createdProjectData);
+    assertTrue(expectedProjectData.openshiftproject);
+    assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl, 
+    		createdProjectData.openshiftConsoleDevEnvUrl);
+    assertEquals(expectedProjectData.openshiftConsoleTestEnvUrl, 
+    		createdProjectData.openshiftConsoleTestEnvUrl);
+    assertEquals(expectedProjectData.openshiftJenkinsUrl, 
+    		createdProjectData.openshiftJenkinsUrl);
   }
 
   private ProjectData generateDefaultProjectData() {
@@ -164,6 +172,7 @@ public class RundeckAdapterTest {
     expected.openshiftConsoleTestEnvUrl = "https://192.168.99.100:8443/console/project/key-test";
     expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
     expected.jiraconfluencespace = true;
+    expected.openshiftproject = true;
     expected.key = "key";
     return expected;
   }
