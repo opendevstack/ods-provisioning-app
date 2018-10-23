@@ -129,6 +129,7 @@ public class BitbucketAdapter {
     return project;
   }
 
+  @SuppressWarnings("squid:S3776")
   public ProjectData createRepositoriesForProject(ProjectData project, String crowdCookieValue) throws IOException {
 	  
 	  CrowdUserDetails userDetails =
