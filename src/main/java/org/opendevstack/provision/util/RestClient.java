@@ -14,6 +14,8 @@
 package org.opendevstack.provision.util;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ public class RestClient {
   int connectTimeout = 30;
 
   int readTimeout = 60;
+  
+  private Map<String, OkHttpClient> cache = new HashMap<>();
 
   public OkHttpClient getClient() {
     return getClient(null);
@@ -48,15 +52,28 @@ public class RestClient {
 
   public OkHttpClient getClient(String crowdCookie) {
 
+	OkHttpClient client = cache.get(crowdCookie);
+	if (client != null) {
+		return client;
+	}
+	
     OkHttpClient.Builder builder = new Builder();
     if (null != crowdCookie) {
       cookieJar.addCrowdCookie(crowdCookie);
     }
     builder.cookieJar(cookieJar).connectTimeout(connectTimeout, TimeUnit.SECONDS)
         .readTimeout(readTimeout, TimeUnit.SECONDS);
-    return builder.build();
-  }
+    client = builder.build();
+    cache.put(crowdCookie, client);
+    return client;
+  }  
 
+  public OkHttpClient getClientFresh(String crowdCookie) {
+	cache.remove(crowdCookie);
+    cookieJar.clear();
+    return getClient();
+  }  
+  
   public void getSessionId(String url) throws IOException {
     try {
       Request req = new Request.Builder().url(url).get().build();
@@ -87,5 +104,12 @@ public class RestClient {
 
   public void setReadTimeout(int readTimeout) {
     this.readTimeout = readTimeout;
+  }
+  
+  public void removeClient (String crowdCookieValue) {
+	  if (crowdCookieValue == null) {
+		  return;
+	  }
+	  cache.remove(crowdCookieValue);
   }
 }

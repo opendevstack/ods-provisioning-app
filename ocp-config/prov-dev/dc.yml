@@ -49,7 +49,7 @@ objects:
             protocol: TCP
           resources:
             limits:
-              memory: 1Gi
+              memory: 3Gi
             requests:
               memory: 100Mi
           terminationMessagePath: /dev/termination-log
@@ -57,7 +57,7 @@ objects:
           volumeMounts:
           - mountPath: /opt/provision/history
             name: volume-65x72
-          - mountPath: /test
+          - mountPath: /config
             name: volume-ikfik
         dnsPolicy: ClusterFirst
         restartPolicy: Always

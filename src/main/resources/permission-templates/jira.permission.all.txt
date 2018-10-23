@@ -1,0 +1,244 @@
+{
+    "name": "PERMISSION PROJECT SCHEME",
+    "description": "description",
+    "permissions": [
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ADMINISTER_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "keyuserGroup"
+            },
+            "permission": "ADMINISTER_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "keyuserGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "VIEW_DEV_TOOLS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "keyuserGroup"
+            },
+            "permission": "VIEW_DEV_TOOLS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "VIEW_READONLY_WORKFLOW"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "keyuserGroup"
+            },
+            "permission": "VIEW_READONLY_WORKFLOW"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ASSIGN_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "ASSIGN_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CREATE_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "CREATE_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "EDIT_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "EDIT_ISSUES"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_ISSUES"
+        },		
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "TRANSITION_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "TRANSITION_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CLOSE_ISSUES"
+        },	
+        		        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "CLOSE_ISSUES"
+        },	
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MOVE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "MOVE_ISSUES"
+        },			        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "RESOLVE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "RESOLVE_ISSUES"
+        },			        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "SCHEDULE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "SCHEDULE_ISSUES"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "ASSIGNABLE_USER"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "ASSIGNABLE_USER"
+        },			
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MANAGE_SPRINTS_PERMISSION"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "MANAGE_SPRINTS_PERMISSION"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "ADD_COMMENTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "ADD_COMMENTS"
+        },                
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "DELETE_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "EDIT_OWN_COMMENTS"
+        }
+    ]
+}

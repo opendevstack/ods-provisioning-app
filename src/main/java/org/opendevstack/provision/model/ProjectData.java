@@ -36,6 +36,7 @@ public class ProjectData {
   public List<String> tags = new ArrayList<>();
   public List<Map<String, String>> quickstart = null;
   public boolean jiraconfluencespace = true;
+  public boolean openshiftproject = true;
   public String jiraUrl = null;
   public String confluenceUrl = null;
   public String bitbucketUrl = null;
@@ -43,7 +44,18 @@ public class ProjectData {
   public String openshiftJenkinsUrl = null;
   public String openshiftConsoleDevEnvUrl = null;
   public String openshiftConsoleTestEnvUrl = null;
+  
+  // permissions
+  public String adminGroup = null;
+  public String userGroup = null;
+  public String admin = null;
+  public String readonlyGroup = null;
 
+  public boolean createpermissionset = false;
+  
+  @JsonIgnoreProperties ({"lastJobs"})
+  public List<String> lastJobs = null;
+  
   @Override
   public int hashCode() {
     final int prime = 31;

@@ -125,7 +125,7 @@ public class RundeckAdapter {
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) {
+  public List<ExecutionsData> executeJobs(ProjectData project) throws Exception {
     authenticate();
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
@@ -148,6 +148,11 @@ public class RundeckAdapter {
           ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
           String json = ow.writeValueAsString(execution);
           ExecutionsData data = (ExecutionsData) this.post(url, json, ExecutionsData.class);
+          
+          if (data.getError()) {
+        	  throw new Exception ("Could not provision component: " + data.getMessage());
+          }
+          
           executionList.add(data);
           if (data.getPermalink() != null) {
             options.put("joblink", data.getPermalink());
@@ -198,6 +203,9 @@ public class RundeckAdapter {
           project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
               projectOpenshiftConsoleUri, project.key.toLowerCase());
 
+          project.lastJobs = new ArrayList<String>();
+          project.lastJobs.add(data.getPermalink());
+          
           return project;
         }
       }
@@ -218,7 +226,7 @@ public class RundeckAdapter {
 
     String username = userDetails.getUsername();
     String password = manager.getUserPassword();
-
+    
     RequestBody body =
         new FormBody.Builder().add("j_username", username).add("j_password", password).build();
     Request request = new Request.Builder()
