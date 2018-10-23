@@ -9,7 +9,7 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
@@ -22,12 +22,12 @@ objects:
     resources:
       requests:
         storage: 5Gi
-    storageClassName: ${STORAGE_CLASS_NAME}
+    storageClassName: ${STORAGE_CLASS_DATA}
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
@@ -43,6 +43,5 @@ objects:
     storageClassName: ${STORAGE_CLASS_NAME}
 parameters:	
 - name: STORAGE_PROVISIONER
-  required: true
-- name: STORAGE_CLASS_NAME
-  required: true
+- name: STORAGE_CLASS_DATA
+- name: STORAGE_CLASS_BACKUP
