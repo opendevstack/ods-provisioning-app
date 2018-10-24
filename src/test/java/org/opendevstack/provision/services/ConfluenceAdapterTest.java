@@ -21,11 +21,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Space;
+import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -44,6 +47,9 @@ public class ConfluenceAdapterTest {
   @InjectMocks
   ConfluenceAdapter confluenceAdapter;
 
+  @Mock
+  RestClient client;
+  
   @Test
   public void createConfluenceSpaceForProject() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
@@ -75,4 +81,27 @@ public class ConfluenceAdapterTest {
 
     assertEquals(expectedSpaceData, createdSpaceData);
   }
+  
+  @Test
+  public void updateSpacePermissions() throws Exception {
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    ProjectData project = JiraAdapterTests.getTestProject("name");
+    project.adminGroup = "adminGroup";
+    project.userGroup = "adminGroup";
+    project.readonlyGroup = "adminGroup";
+    
+    Mockito.doReturn(String.class).when(spyAdapter).post
+    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
+    		Matchers.any(String.class.getClass()));
+    
+    int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
+
+    // 4 permission sets
+    Mockito.verify(spyAdapter, Mockito.times(4)).post
+    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
+    		Matchers.any(String.class.getClass()));
+    
+    assertEquals(4, permissionSets);
+  }
+  
 }

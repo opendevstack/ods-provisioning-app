@@ -33,12 +33,15 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,11 +67,10 @@ public class JiraAdapterTests {
   CustomAuthenticationManager manager;
   @Mock
   CrowdUserDetailsService service;
-  List<FullJiraProject> projects;
-  @Mock
-  FullJiraProject project;
+  
+  List<FullJiraProject> projects = new ArrayList<>();
 
-  @SpyBean
+  @Mock
   RestClient client;
 
   @Rule
@@ -84,7 +86,7 @@ public class JiraAdapterTests {
     projects = new ArrayList<FullJiraProject>();
   }
 
-  //@Test
+  @Test
   public void createJiraProjectForProject() throws Exception {
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
@@ -102,6 +104,9 @@ public class JiraAdapterTests {
     Mockito.when(authentication.getPrincipal()).thenReturn(details);
 
     Mockito.when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
+    
+    Mockito.doNothing().when(client).getSessionId(null);
+    
     Mockito.when(details.getUsername()).thenReturn("achmed");
     Mockito.when(details.getFullName()).thenReturn("achmed meyer");
     Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
@@ -109,8 +114,7 @@ public class JiraAdapterTests {
 
     
     ProjectData createdProject =
-        spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);
-    
+        spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);   
     
     assertEquals(getTestProject(name).key, createdProject.key);
     assertEquals(getTestProject(name).name, createdProject.name);
@@ -148,39 +152,65 @@ public class JiraAdapterTests {
     assertEquals("SHRT", jiraAdapter.buildProjectKey(shortName));
   }
 
-  //@Test
-  public void projectExists() {
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-
+  @Test
+  public void projectExists() throws Exception
+  {
     String projectNameTrue = "TESTP";
     String projectNameFalse = "TESTP_FALSE";
 
-    projects.add(project);
+    ProjectData apiInput = getTestProject(projectNameTrue);
+    apiInput.key = projectNameTrue;
 
-    doReturn(projects).when(spyAdapter).getProjects("CookieValue", null);
-    when(project.getName()).thenReturn(projectNameTrue);
+    FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    projects.add(fullJiraProject);
 
-    assertEquals(true, spyAdapter.keyExists(projectNameTrue, "CookieValue"));
-    assertEquals(false, spyAdapter.keyExists(projectNameFalse, "CookieValue"));
+    JiraAdapter mocked = Mockito.spy(jiraAdapter);
+    Mockito.doNothing().when(client).getSessionId(null);
+    Mockito.doReturn(projects).when(mocked).getProjects("CookieValue", projectNameTrue);
+
+    assertTrue(mocked.keyExists(projectNameTrue, "CookieValue"));
+
+    projects.clear();
+    Mockito.doReturn(projects).when(mocked).getProjects("CookieValue", projectNameFalse);
+    assertFalse(mocked.keyExists(projectNameFalse, "CookieValue"));
   }
 
-  //@Test
-  public void keyExists() {
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    String crowdCookieValue = "crowdCookieValue";
+  @Test
+  public void testCreatePermissions () throws Exception 
+  {
+    JiraAdapter mocked = Mockito.spy(jiraAdapter);
+	Mockito.doNothing().when(client).getSessionId(null);
 
-    FullJiraProject project = new FullJiraProject(null, "KEY", null, null, null, null, null, null,
-        null, null, null, null);
-    List<FullJiraProject> projects = new ArrayList<FullJiraProject>();
-    projects.add(project);
+    String projectNameTrue = "TESTP";
+    ProjectData apiInput = getTestProject(projectNameTrue);
+    apiInput.key = projectNameTrue;
 
-    doReturn(projects).when(spyAdapter).getProjects(crowdCookieValue, null);
+    apiInput.admin = "Clemens";
+    apiInput.adminGroup = "AdminGroup";
+    apiInput.userGroup = "UserGroup";
+    apiInput.readonlyGroup = "ReadonlyGroup";
+    
+    PermissionScheme scheme = new PermissionScheme();
+    scheme.setId("permScheme1");
+    
+    Mockito.doReturn(scheme).when(mocked).callHttp(Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyString(), 
+        Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
+        Matchers.any(JiraAdapter.HTTP_VERB.class));
+    
+	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-    assertTrue(spyAdapter.keyExists("KEY", crowdCookieValue));
-    assertFalse(spyAdapter.keyExists("KEY2", crowdCookieValue));
+	// this is a bad ass bug ... there should be 2 times 1, one put one post - but 
+	// mockito does believe its two times the same call :(
+    Mockito.verify(mocked, Mockito.times(2)).callHttp(Matchers.anyString(),
+            Matchers.anyString(), Matchers.anyString(), 
+            Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
+            Matchers.any(JiraAdapter.HTTP_VERB.class));
+    
+    assertEquals(1, updates);
   }
-
-  private ProjectData getTestProject(String name) {
+  
+  public static ProjectData getTestProject(String name) {
     ProjectData apiInput = new ProjectData();
     BasicUser admin = new BasicUser(null, "testuser", "test user");
 
@@ -189,6 +219,7 @@ public class JiraAdapterTests {
     apiInput.name = name;
     apiInput.description = "Test Description";
     apiInput.key = "TESTP";
+    apiInput.admin = "Clemens";
     return apiInput;
   }
 

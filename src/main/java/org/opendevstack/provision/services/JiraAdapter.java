@@ -118,7 +118,7 @@ public class JiraAdapter {
 	  	} catch (Exception createPermissions) 
 	  	{
 	  		// continue - we are ok if permissions fail, because the admin has access, and create the set
-	  		logger.error("Could not create project: " + project.key + "\n Exception: " 
+	  		logger.error("Could not update permissionset: " + project.key + "\n Exception: " 
 	  				+ createPermissions.getMessage());
 	  	}
       }
@@ -164,13 +164,15 @@ public class JiraAdapter {
     return returnProject;
   }
 
-  protected void createPermissions (ProjectData project, String crowdCookieValue) 
+  protected int createPermissions (ProjectData project, String crowdCookieValue) 
 		  throws Exception 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
       
       Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
+      
+      int updatedPermissions = 0;
       
       logger.debug("Found permissionsets: "+ permissionFiles.length);
       
@@ -221,8 +223,10 @@ public class JiraAdapter {
 	      // update jira project
 	      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
 	      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
-	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);	      
+	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);
+	      updatedPermissions++;
       }
+      return updatedPermissions;
   }
   
   protected <T> T callHttp(String url, String json, String crowdCookieValue, Class valueType, 

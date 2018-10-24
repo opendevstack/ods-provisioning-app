@@ -222,13 +222,15 @@ public class ConfluenceAdapter {
     return (T) new ObjectMapper().readValue(respBody, valueType);
   }
 
-  protected void updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
+  int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
       
       Resource [] permissionFiles = pmrl.getResources(confluencePermissionFilePattern);
       
+      int updatedPermissions = 0;
+
       logger.debug("Found permissionsets: "+ permissionFiles.length);
       
       for (int i = 0; i < permissionFiles.length; i++)
@@ -265,7 +267,9 @@ public class ConfluenceAdapter {
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
     	  post(path, permissionset, crowdCookieValue, String.class); 
+	      updatedPermissions++;
       }
+      return updatedPermissions;
   }
   
 }

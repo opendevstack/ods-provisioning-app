@@ -131,7 +131,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		return createGroupInternal(projectName);
 	}
 		
-	private String createGroupInternal (String groupName) throws IdMgmtException {
+	String createGroupInternal (String groupName) throws IdMgmtException {
 		if (groupName == null || groupName.trim().length() == 0)
 			throw new IdMgmtException ("Cannot create a null group!");
 		
