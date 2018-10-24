@@ -9,7 +9,7 @@ objects:
   kind: PersistentVolumeClaim
   metadata:
     annotations:
-      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_NAME}
+      volume.beta.kubernetes.io/storage-class: ${STORAGE_CLASS_DATA}
       volume.beta.kubernetes.io/storage-provisioner: ${STORAGE_PROVISIONER}
     creationTimestamp: null
     labels:
@@ -23,6 +23,5 @@ objects:
         storage: 10Mi
 parameters:	
 - name: STORAGE_PROVISIONER
-  required: true
-- name: STORAGE_CLASS_NAME
-  required: true
+- name: STORAGE_CLASS_DATA
+- name: STORAGE_CLASS_BACKUP
