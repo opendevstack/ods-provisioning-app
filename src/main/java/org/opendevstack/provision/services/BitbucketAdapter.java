@@ -237,7 +237,7 @@ public class BitbucketAdapter {
       String webHookUrlDirect =
       		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component);
       
-      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect);
+      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect + ":" + componentType);
 
       String[] hooks = {webHookUrlCI, webHookUrlDirect};
       

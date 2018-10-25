@@ -76,6 +76,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     }
     
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean groupExists(String groupName) 
 	{
 		if (groupName == null || groupName.trim().length() == 0) 
@@ -95,6 +96,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	}
 
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean userExists(String userName) 
 	{
 		if (userName == null || userName.trim().length() == 0) 

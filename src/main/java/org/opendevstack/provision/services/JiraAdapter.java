@@ -152,7 +152,8 @@ public class JiraAdapter {
 
   protected FullJiraProject callJiraCreateProjectApi(
       FullJiraProject jiraProject, String crowdCookieValue)
-      throws IOException {
+      throws IOException 
+  {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(jiraProject);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
@@ -207,9 +208,7 @@ public class JiraAdapter {
 	    		  permission.getHolder().setParameter(project.readonlyGroup);
 	    	  } else if ("keyuserGroup".equals(group)) {
 	    		  permission.getHolder().setParameter(globalKeyuserRoleName);
-	    	  } else {
-	    		  	    		  
-	    	  }
+	    	  } 
 	      }
 	      logger.debug("Update permissionScheme " + permissionSchemeName +
 	    	" location: " + permissionFiles[i].getFilename());

@@ -199,10 +199,9 @@ public class ProjectApiController {
         }
       }
 
-      if (oldProject.repositories != null) {
-        if (project.repositories != null) {
+      if ((oldProject.repositories != null) && (project.repositories != null)) 
+      {
           oldProject.repositories.putAll(project.repositories);
-        }
       }
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
@@ -234,11 +233,12 @@ public class ProjectApiController {
    * @param project the meta information from the API
    * @param crowdCookie the authenticated user
    * @return the generated, amended Project
+   * @throws IOException 
    * @throws Exception in case something goes wrong
    */
   private ProjectData createDeliveryChain(ProjectData project, String crowdCookie, boolean update)
-      throws Exception {
-
+    throws IOException
+  {
     logger.debug("create delivery chain: " + project.openshiftproject);
 
     if (project.bitbucketUrl == null) {
