@@ -177,7 +177,6 @@ public class RundeckAdapter {
       for (Job job : jobs) {
         if (job.getName().equalsIgnoreCase(projectCreateOpenshiftJob)) {
           String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
-          // String projectId = String.format(groupPattern, key.toLowerCase()).replace('_', '-');
           Execution execution = new Execution();
           Map<String, String> options = new HashMap<>();
           options.put("project_id", project.key.toLowerCase());

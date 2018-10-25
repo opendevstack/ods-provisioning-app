@@ -82,9 +82,6 @@ public class ConfluenceAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
-  // Pattern to use for project with id
-  private static String URL_PATTERN = "%s/api/%s";
-
   private String crowdCookieValue = null;
 
   @Value("${confluence.permission.filepattern}")
@@ -241,7 +238,8 @@ public class ConfluenceAdapter {
     	  String permissionset = null;
     	  try 
     	  {
-    		  permissionset = new String(reader.readLine());
+    		  // we know it's a singular pseudo json line
+    		  permissionset = reader.readLine();
     	  } finally 
     	  {
     		  //sq finding
@@ -260,8 +258,6 @@ public class ConfluenceAdapter {
     		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
       	  } else if (permissionFilename.contains("admin")) {
     		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
-      	  } else {
-      		  
       	  }
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
