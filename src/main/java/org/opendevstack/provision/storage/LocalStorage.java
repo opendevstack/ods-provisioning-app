@@ -115,6 +115,9 @@ public class LocalStorage implements IStorage {
   @Override
   public ProjectData getProject(String id) {
     ProjectData project = null;
+    if (id == null) {
+    	return project;
+    }
     try {
       File folder = new File(localStoragePath);
       if (folder.isDirectory()) {

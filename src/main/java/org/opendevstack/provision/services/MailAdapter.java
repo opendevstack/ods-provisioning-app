@@ -79,6 +79,7 @@ public class MailAdapter {
     };
     
     sendThread.start();
+    logger.debug("Mail for project: " + data.key + " sent");
   }
 
   public void notifyUsersAboutProject(ProjectData data) {
@@ -87,7 +88,7 @@ public class MailAdapter {
     prepareAndSend(recipient, data);
   }
 
-  private String build(ProjectData data) {
+  String build(ProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);

@@ -18,6 +18,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,9 +38,11 @@ import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.ProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -68,8 +76,12 @@ public class ProjectApiControllerTest {
 
   @Mock
   private RestClient client;
+
+  @Mock
+  private ProjectIdentityMgmtAdapter idm;
   
   @InjectMocks
+  @Autowired
   private ProjectApiController apiController;
 
   private MockMvc mockMvc;
@@ -88,6 +100,18 @@ public class ProjectApiControllerTest {
     data.key = "KEY";
     data.name = "Name";
     data.description = "Description";
+
+    Map<String, String> someQuickstarter = new HashMap<>();
+    someQuickstarter.put("key", "value");
+    List<Map<String,String>> quickstart = new ArrayList<>();
+    quickstart.add(someQuickstarter);
+    data.quickstart = quickstart;
+    
+    data.createpermissionset = true;
+    data.admin = "clemens";
+    data.adminGroup = "group";
+    data.userGroup = "group";
+    data.readonlyGroup = "group";
   }
 
   @Test
@@ -110,12 +134,23 @@ public class ProjectApiControllerTest {
     Mockito.when(storage.storeProject(data)).thenReturn("created");
     Mockito.doNothing().when(client).removeClient(Matchers.anyString());
     
+    Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
+    
     mockMvc.perform(post("/api/v1/project")
             .content(asJsonString(data))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
+    
+    // try with failing storage
+    Mockito.when(storage.storeProject(data)).thenThrow(IOException.class);
+    mockMvc.perform(post("/api/v1/project")
+        .content(asJsonString(data))
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is5xxServerError());
+    
   }
 
   @Test
@@ -129,6 +164,9 @@ public class ProjectApiControllerTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().is5xxServerError())
         .andDo(MockMvcResultHandlers.print());
+
+    
+    
   }
 
   @Test
@@ -219,7 +257,7 @@ public class ProjectApiControllerTest {
         .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andDo(MockMvcResultHandlers.print());
-    
+        
     Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
     
     mockMvc.perform(get("/api/v1/project/1")

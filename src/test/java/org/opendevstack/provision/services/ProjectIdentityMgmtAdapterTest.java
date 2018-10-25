@@ -75,7 +75,9 @@ public class ProjectIdentityMgmtAdapterTest {
 	    
 	    Mockito.when(manager.getSecurityServerClient().findGroupByName(group.getName())).
 	    	thenThrow(new GroupNotFoundException("GroupNotFound"));
+	    
 	    assertFalse(idMgr.groupExists(group.getName()));
+	    assertTrue(idMgr.groupExists(null));
 	}
 
 
@@ -93,6 +95,8 @@ public class ProjectIdentityMgmtAdapterTest {
 	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).
 	    	thenThrow(new UserNotFoundException(principal.getName()));
 		assertFalse(idMgr.userExists(principal.getName()));
+		
+	    assertTrue(idMgr.userExists(null));
 	}
 
 	@Test
@@ -102,6 +106,10 @@ public class ProjectIdentityMgmtAdapterTest {
 
 		Mockito.when(manager.getSecurityServerClient().addGroup(group)).thenReturn(group);
 		assertEquals(group.getName(), idMgr.createGroupInternal(group.getName()));
+
+		assertEquals(group.getName(), idMgr.createAdminGroup(group.getName()));
+		assertEquals(group.getName(), idMgr.createUserGroup(group.getName()));
+		assertEquals(group.getName(), idMgr.createReadonlyGroup(group.getName()));
 	}
 
 	
@@ -138,9 +146,18 @@ public class ProjectIdentityMgmtAdapterTest {
 	    
 	    idMgr.validateIdSettingsOfProject(data);
 	    
-	    data.userGroup = "doesNotExist";
+	    data.userGroup = "doesNotExistUG";
+	    data.adminGroup = "doesNotExistAD";
+	    data.readonlyGroup = "doesNotExistRO";
+	    
 	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.userGroup)).
-	    	thenThrow(new GroupNotFoundException(""));
+	    	thenThrow(new GroupNotFoundException(data.userGroup));
+
+	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.adminGroup)).
+    		thenThrow(new GroupNotFoundException(data.adminGroup));
+
+	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.readonlyGroup)).
+	    	thenThrow(new GroupNotFoundException(data.readonlyGroup));
 
 	    Exception testE = null;
 	    try 
@@ -151,6 +168,8 @@ public class ProjectIdentityMgmtAdapterTest {
 	    }
 	    assertNotNull(testE);
 	    assertTrue (testE.getMessage().contains(data.userGroup));
+	    assertTrue (testE.getMessage().contains(data.adminGroup));
+	    assertTrue (testE.getMessage().contains(data.readonlyGroup));
 	    
 	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).
     		thenThrow(new UserNotFoundException(principal.getName()));
