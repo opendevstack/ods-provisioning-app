@@ -81,7 +81,6 @@ public class BitbucketAdapter {
   @Value("${bitbucket.webhook.rshiny.url}")
   private String baseWebHookRshinyUrlPattern;
 
-
   @Value("${bitbucket.webhook.environments}")
   private String webHookEnvironments;
 
@@ -343,8 +342,7 @@ public class BitbucketAdapter {
   }
 
   protected String buildBasePath() {
-    String basePath = String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
-    return basePath;
+    return String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
   }
 
   protected Object post(String url, String json, String crowdCookieValue, Class clazz)

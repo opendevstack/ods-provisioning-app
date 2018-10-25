@@ -35,6 +35,8 @@ import org.opendevstack.provision.model.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
+import org.opendevstack.provision.model.bitbucket.Webhook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.core.Authentication;
@@ -58,7 +60,9 @@ public class BitbucketAdapterTest {
   BitbucketData bitbucketData;
   @Mock
   BitbucketProject project;
+  
   @InjectMocks
+  @Autowired
   BitbucketAdapter bitbucketAdapter;
   @Mock
   Repository repo;
@@ -97,7 +101,7 @@ public class BitbucketAdapterTest {
     Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
     
     SecurityContextHolder.setContext(securityContext);
-    ProjectData projectData = getReturnProjectData();
+    ProjectData projectData = getReturnProjectData();    
     RepositoryData repoData = getReturnRepoData();
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(Matchers.any(), Matchers.any(),
@@ -198,8 +202,9 @@ public class BitbucketAdapterTest {
     data.key = "testkey";
     data.name = "testproject";
     data.description = "this is a discription";
-    
-    
+    data.createpermissionset = true;
+    data.admin = "someadmin";
+
     BitbucketProject project = BitbucketAdapter.createBitbucketProject(data);
 
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -222,9 +227,11 @@ public class BitbucketAdapterTest {
 
     Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
         Matchers.eq(crowdCookieValue), Matchers.any());
-    Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
+    // once for each group
+    Mockito.verify(spyAdapter, Mockito.times(5)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
         Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
-    Mockito.verify(spyAdapter).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
+    //one for each user
+    Mockito.verify(spyAdapter, Mockito.times(2)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
         Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
     assertEquals(expected, actual);
@@ -303,8 +310,6 @@ public class BitbucketAdapterTest {
     // Mockito.doReturn(repoData2).when(spyAdapter).callCreateRepoApi(Matchers.any(),
     // Matchers.any(), Matchers.any());
 
-
-
     spyAdapter.createAuxiliaryRepositoriesForProject(projectData, crowdCookieValue, auxRepos);
     Map<String, Map<String, List<Link>>> actual;
     actual = projectData.repositories;
@@ -312,6 +317,28 @@ public class BitbucketAdapterTest {
     assertEquals(expected, actual);
   }
 
+  @Test
+  public void testCreateWebhooks() throws Exception {
+
+    ProjectData projectData = new ProjectData();
+    projectData.repositories = new HashMap<>();
+    projectData.key = "12423qtr";
+
+    RepositoryData repoData1 = new RepositoryData();
+    repoData1.setName("repoData1");
+    repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
+
+    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+
+	Mockito.doReturn(repoData1).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(), 
+			Matchers.anyString(), Matchers.any());
+    
+    spyAdapter.createWebHooksForRepository
+    	(repoData1, projectData, "someComponent", "crowdCookie", "componentType");
+    
+    
+  }
+  
   private Map<String, List<Link>> generateRepoLinks(String[] linknames) {
     List<Link> linkList = new ArrayList();
     for (String linkname : linknames) {
