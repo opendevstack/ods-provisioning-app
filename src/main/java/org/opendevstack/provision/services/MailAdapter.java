@@ -82,7 +82,7 @@ public class MailAdapter {
     sendThread.start();
   }
 
-  public void notifyUsersAboutProject(ProjectData data) throws Exception {
+  public void notifyUsersAboutProject(ProjectData data) {
     CrowdUserDetails userDetails = getCrowdUserDetails();
 
     String recipient = userDetails.getEmail();
@@ -96,7 +96,7 @@ public class MailAdapter {
       context.setVariable("project", data);
       return templateEngine.process("mailTemplate", context);
     } catch (SpelEvaluationException ex) {
-      logger.error("Error in template", ex);
+      logger.error("Error in creating mail template", ex);
     }
     return "";
   }

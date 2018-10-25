@@ -192,11 +192,6 @@ public class LocalStorage implements IStorage {
     InputStream aboutChangesStream = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
 
-    if (aboutChangesStream == null) {
-      logger.error("Could not find " + ABOUT_CHANGES_LOGFILENAME);
-      return null;
-    }
-
     try {
       return (AboutChangesData) new ObjectMapper().readValue(aboutChangesStream,
           AboutChangesData.class);
@@ -204,13 +199,11 @@ public class LocalStorage implements IStorage {
       logger.error("Could not deserialize content: " + e.getMessage());
       return null;
     } finally {
-      if (aboutChangesStream != null) {
         try {
           aboutChangesStream.close();
         } catch (IOException ioE) {
           logger.error(ioE.toString());
         }
-      }
     }
   }
 }

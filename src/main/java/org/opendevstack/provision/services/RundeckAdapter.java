@@ -127,11 +127,11 @@ public class RundeckAdapter {
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) throws Exception {
+  public List<ExecutionsData> executeJobs(ProjectData project) throws IOException
+  {
     authenticate();
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
-      // List<String> jobIds = new ArrayList<String>(project.quickstart.keySet());
       for (Map<String, String> options : project.quickstart) {
         Job job = jobStore.getJob(options.get("component_type"));
 
@@ -152,7 +152,7 @@ public class RundeckAdapter {
           ExecutionsData data = (ExecutionsData) this.post(url, json, ExecutionsData.class);
           
           if (data.getError()) {
-        	  throw new Exception ("Could not provision component: " + data.getMessage());
+        	  throw new IOException ("Could not provision component: " + data.getMessage());
           }
           
           executionList.add(data);
@@ -265,11 +265,8 @@ public class RundeckAdapter {
   }
 
   protected List<Job> getJobs(String group) throws IOException {
-    // Authenticate to rundeck for api calls
-
-    List<Job> enabledJobs = new ArrayList<>();
-
     authenticate();
+    List<Job> enabledJobs;
 
     String jobsUrl =
         String.format("%s%s/project/%s/jobs", rundeckUri, rundeckApiPath, rundeckProject);
