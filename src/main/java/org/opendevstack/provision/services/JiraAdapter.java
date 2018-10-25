@@ -85,7 +85,7 @@ public class JiraAdapter {
    * @param crowdCookieValue the value for the crowd cookie
    */
   public ProjectData createJiraProjectForProject(ProjectData project,
-      String crowdCookieValue) throws Exception {
+      String crowdCookieValue) throws IOException {
     try {
       client.getSessionId(jiraUri);
 
@@ -166,7 +166,7 @@ public class JiraAdapter {
   }
 
   protected int createPermissions (ProjectData project, String crowdCookieValue) 
-		  throws Exception 
+		  throws IOException 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());

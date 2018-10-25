@@ -33,10 +33,8 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 /**
  * Service for mail interaction with the user in the provisioning app
  *
- *
  * @author Brokmeier, Pascal
  */
-
 @Service
 public class MailAdapter {
 
@@ -50,6 +48,7 @@ public class MailAdapter {
   @Autowired
   private TemplateEngine templateEngine;
 
+  // testing only!
   CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
@@ -84,9 +83,7 @@ public class MailAdapter {
 
   public void notifyUsersAboutProject(ProjectData data) {
     CrowdUserDetails userDetails = getCrowdUserDetails();
-
     String recipient = userDetails.getEmail();
-
     prepareAndSend(recipient, data);
   }
 
@@ -101,7 +98,7 @@ public class MailAdapter {
     return "";
   }
 
-  public void setCrowdUserDetails(CrowdUserDetails details) {
+  void setCrowdUserDetails(CrowdUserDetails details) {
     this.crowdUserDetails = details;
   }
 
@@ -112,7 +109,7 @@ public class MailAdapter {
     return crowdUserDetails;
   }
 
-  protected CrowdUserDetails getCrowdUserDetailsFromContext() {
+  CrowdUserDetails getCrowdUserDetailsFromContext() {
     return (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   }
 }
