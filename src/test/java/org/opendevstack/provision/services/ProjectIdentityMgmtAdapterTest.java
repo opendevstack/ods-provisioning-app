@@ -34,6 +34,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.atlassian.crowd.exception.GroupNotFoundException;
+import com.atlassian.crowd.exception.InvalidGroupException;
 import com.atlassian.crowd.exception.UserNotFoundException;
 import com.atlassian.crowd.integration.soap.SOAPGroup;
 import com.atlassian.crowd.integration.soap.SOAPPrincipal;
@@ -109,6 +110,16 @@ public class ProjectIdentityMgmtAdapterTest {
 	{
 		idMgr.createGroupInternal(null);
 	}
+	
+	@Test (expected = IdMgmtException.class)
+	public void testCreateGroupSOAPErr () throws Exception 
+	{
+		SOAPGroup group = new SOAPGroup("xxx", null);
+
+		Mockito.when(manager.getSecurityServerClient().addGroup(group)).thenThrow(InvalidGroupException.class);
+		idMgr.createGroupInternal(group.getName());
+	}
+	
 	
 	@Test
 	public void testValidateProject () throws Exception
