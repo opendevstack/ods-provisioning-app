@@ -112,15 +112,7 @@ public class JiraAdapter {
       project.jiraId = created.id;
       
       if (project.createpermissionset) {
-    	try 
-    	{
-          createPermissions(project,crowdCookieValue);
-	  	} catch (Exception createPermissions) 
-	  	{
-	  		// continue - we are ok if permissions fail, because the admin has access, and create the set
-	  		logger.error("Could not update permissionset: " + project.key + "\n Exception: " 
-	  				+ createPermissions.getMessage());
-	  	}
+        createPermissions(project,crowdCookieValue);
       }
       
       return project;
@@ -165,66 +157,77 @@ public class JiraAdapter {
     return returnProject;
   }
 
+  /**
+   * Create permission set for jira project
+   * @param project the project
+   * @param crowdCookieValue the crowd cookie
+   * @return the number of created permission sets
+   */
   protected int createPermissions (ProjectData project, String crowdCookieValue) 
-		  throws IOException 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
-      
-      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
-      
-      int updatedPermissions = 0;
-      
-      logger.debug("Found permissionsets: "+ permissionFiles.length);
-      
-      for (int i = 0; i < permissionFiles.length; i++)
+      int updatedPermissions = 0;   
+      try 
       {
-	      PermissionScheme singleScheme = 
-	         new ObjectMapper().readValue(
-	    		permissionFiles[i].getInputStream(), PermissionScheme.class);
+	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
 	      
-	      String permissionSchemeName = project.key + " PERMISSION SCHEME";
+	      logger.debug("Found permissionsets: "+ permissionFiles.length);
 	      
-	      singleScheme.setName(permissionSchemeName);
-	      
-	      String description = project.description;
-	      if (description != null && description.length() > 0) {
-	    	  singleScheme.setDescription(description);
-	      } else 
+	      for (int i = 0; i < permissionFiles.length; i++)
 	      {
-	    	  singleScheme.setDescription(permissionSchemeName);
+		      PermissionScheme singleScheme = 
+		         new ObjectMapper().readValue(
+		    		permissionFiles[i].getInputStream(), PermissionScheme.class);
+		      
+		      String permissionSchemeName = project.key + " PERMISSION SCHEME";
+		      
+		      singleScheme.setName(permissionSchemeName);
+		      
+		      String description = project.description;
+		      if (description != null && description.length() > 0) {
+		    	  singleScheme.setDescription(description);
+		      } else 
+		      {
+		    	  singleScheme.setDescription(permissionSchemeName);
+		      }
+		      
+		      // replace group with real group
+		      for (Permission permission : singleScheme.getPermissions()) 
+		      {
+		    	  String group = permission.getHolder().getParameter();
+		    	  
+		    	  if ("adminGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.adminGroup);
+		    	  } else if ("userGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.userGroup);
+		    	  } else if ("readonlyGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.readonlyGroup);
+		    	  } else if ("keyuserGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(globalKeyuserRoleName);
+		    	  } 
+		      }
+		      logger.debug("Update permissionScheme " + permissionSchemeName +
+		    	" location: " + permissionFiles[i].getFilename());
+		      
+		      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		      
+		      String json = ow.writeValueAsString(singleScheme);
+		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
+		      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.POST);
+		      
+		      // update jira project
+		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
+		      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
+		      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);
+		      updatedPermissions++;
 	      }
-	      
-	      // replace group with real group
-	      for (Permission permission : singleScheme.getPermissions()) 
-	      {
-	    	  String group = permission.getHolder().getParameter();
-	    	  
-	    	  if ("adminGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.adminGroup);
-	    	  } else if ("userGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.userGroup);
-	    	  } else if ("readonlyGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.readonlyGroup);
-	    	  } else if ("keyuserGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(globalKeyuserRoleName);
-	    	  } 
-	      }
-	      logger.debug("Update permissionScheme " + permissionSchemeName +
-	    	" location: " + permissionFiles[i].getFilename());
-	      
-	      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-	      
-	      String json = ow.writeValueAsString(singleScheme);
-	      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-	      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.POST);
-	      
-	      // update jira project
-	      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-	      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
-	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);
-	      updatedPermissions++;
-      }
+    	} catch (Exception createPermissions) 
+    	{
+  	    	// continue - we are ok if permissions fail, because the admin has access, and create the set
+    		logger.error("Could not update permissionset: " + project.key + "\n Exception: " 
+    				+ createPermissions.getMessage());
+    	}      
       return updatedPermissions;
   }
   

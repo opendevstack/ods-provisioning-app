@@ -122,7 +122,7 @@ public class ConfluenceAdapter {
     return this.post(path, json, crowdCookieValue, SpaceData.class);
   }
 
-  protected Space createSpaceData(ProjectData project) throws IOException {
+  Space createSpaceData(ProjectData project) throws IOException {
     String confluenceBlueprintId = getBluePrintId();
     String jiraServerId = getJiraServerId();
 
@@ -147,7 +147,7 @@ public class ConfluenceAdapter {
     return space;
   }
 
-  private String getJiraServerId() throws IOException {
+  protected String getJiraServerId() throws IOException {
     String jiraServerId = null;
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
@@ -161,7 +161,7 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  private String getBluePrintId() throws IOException {
+  protected String getBluePrintId() throws IOException {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints =
@@ -176,7 +176,7 @@ public class ConfluenceAdapter {
   }
 
 
-  private List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
+  List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
       throws IOException {
 
     client.getSessionId(confluenceUri);

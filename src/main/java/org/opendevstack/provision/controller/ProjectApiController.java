@@ -169,6 +169,11 @@ public class ProjectApiController {
         new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
 	  ProjectData oldProject = storage.getProject(project.key);
+	  
+	  if (oldProject == null) {
+		  return ResponseEntity.notFound().build();
+	  }
+	  
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;
@@ -282,6 +287,9 @@ public class ProjectApiController {
   public ResponseEntity<ProjectData> getProject(HttpServletRequest request, @PathVariable String id,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     ProjectData project = storage.getProject(id);
+    if (project == null) {
+    	return ResponseEntity.notFound().build();
+    }
     if (project.quickstart != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
       for (Map<String, String> quickstarter : project.quickstart) {

@@ -15,7 +15,11 @@
 package org.opendevstack.provision.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doReturn;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +30,7 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
+import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.util.RestClient;
@@ -34,6 +39,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author Torsten Jaeschke
@@ -102,6 +109,31 @@ public class ConfluenceAdapterTest {
     		Matchers.any(String.class.getClass()));
     
     assertEquals(4, permissionSets);
+  }
+  
+  @Test
+  public void testCreateSpaceData () throws Exception {
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    ProjectData project = JiraAdapterTests.getTestProject("name");
+    project.adminGroup = "adminGroup";
+    project.userGroup = "adminGroup";
+    project.readonlyGroup = "adminGroup";
+
+    List <Blueprint> blList = new ArrayList<>();
+    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getList
+    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
+    
+    Space space = spyAdapter.createSpaceData(project);
+
+    assertNotNull(space);
+    assertEquals(project.name, space.getName());
+    assertEquals(project.key, space.getSpaceKey());
+
+    assertNotNull(space.getContext());
+
+    assertEquals(project.name, space.getContext().getProjectName());
+    assertEquals(project.key, space.getContext().getProjectKey());
+
   }
   
 }

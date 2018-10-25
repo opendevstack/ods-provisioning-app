@@ -16,6 +16,7 @@ package org.opendevstack.provision.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -210,6 +211,77 @@ public class ProjectApiControllerTest {
             .andDo(MockMvcResultHandlers.print());
   }
 
+  @Test
+  public void getProject () throws Exception
+  {
+    // arbitrary number
+    mockMvc.perform(get("/api/v1/project/1")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
+        .andDo(MockMvcResultHandlers.print());
+    
+    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    
+    mockMvc.perform(get("/api/v1/project/1")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+  }
+  
+  @Test
+  public void getProjects () throws Exception
+  {
+    mockMvc.perform(get("/api/v1/project/jira/all")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+
+    mockMvc.perform(get("/api/v1/project/xxxx/all")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void updateProject() throws Exception {
+    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(bitbucketAdapter.createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(bitbucketAdapter.createRepositoriesForProject(
+            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class)))
+        .thenReturn(data);
+    Mockito.when(bitbucketAdapter.createAuxiliaryRepositoriesForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class),
+        Matchers.isNotNull(String[].class))).thenReturn(data);
+    Mockito.when(rundeckAdapter.createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
+    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isNotFound());
+    
+    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+
+    data.bitbucketUrl = "https://xxxbitbucket.com";
+    data.openshiftproject = true;
+    
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+  }
+  
+  
   private String asJsonString(final Object obj) {
     try {
       final ObjectMapper mapper = new ObjectMapper();
