@@ -14,13 +14,26 @@
 
 package org.opendevstack.provision.filter;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 
 /**
  * @author Torsten Jaeschke
@@ -30,10 +43,31 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class SSOAuthProcessingFilterTest {
 
+  @Mock
+  HttpAuthenticator authenticator;	
+	
+  @Autowired
+  @InjectMocks
+  SSOAuthProcessingFilter filter;
+  
   @Test
-  public void successfulAuthentication() throws Exception {}
+  public void storeCrowdToken() throws Exception {
+	  CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
+	  
+	  HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+	  HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+
+	  assertTrue(filter.storeTokenIfCrowd(request, response, token));
+	  assertFalse(filter.storeTokenIfCrowd(request, response, null));
+  }
 
   @Test
-  public void setHttpAuthenticator() throws Exception {}
+  public void testSuccessfullAuth() throws Exception {	  
+	  HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+	  HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
+	  CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
+	  
+	  filter.successfulAuthentication(request, response, null, token);
+  }  
 }

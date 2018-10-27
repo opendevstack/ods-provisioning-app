@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.util;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -56,6 +57,13 @@ public class CrowdCookieJarTest {
     assertTrue(crowdCookieJar.loadForRequest(getUrl()).equals(getCookies()));
   }
 
+  @Test
+  public void loadForRequestWClear() throws Exception {
+    crowdCookieJar.clear();
+    assertEquals(0, crowdCookieJar.loadForRequest(null).size());
+  }
+
+  
   @Test
   public void loadForRequestWithoutCookies() throws Exception {
     assertTrue(crowdCookieJar.loadForRequest(getUrl()).size() == 0);

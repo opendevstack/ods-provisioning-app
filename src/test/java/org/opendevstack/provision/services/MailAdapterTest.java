@@ -14,6 +14,9 @@
 
 package org.opendevstack.provision.services;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +28,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,6 +51,7 @@ public class MailAdapterTest {
   CrowdUserDetails details;
 
   @InjectMocks
+  @Autowired
   MailAdapter mailAdapter;
 
   @Before
@@ -56,12 +61,13 @@ public class MailAdapterTest {
 
   @Test
   public void notifyUsersAboutProject() throws Exception {
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     Mockito.doNothing().when(mailSender).send(Matchers.any(MimeMessage.class));
     Mockito.when(details.getEmail()).thenReturn("test@example.com");
-    mailAdapter = new MailAdapter(mailSender);
-    mailAdapter.setCrowdUserDetails(details);
+    spyAdapter = new MailAdapter(mailSender);
+    spyAdapter.setCrowdUserDetails(details);
     
-    mailAdapter.notifyUsersAboutProject(new ProjectData());
+    spyAdapter.notifyUsersAboutProject(new ProjectData());
   }
 
   @Test
@@ -75,5 +81,17 @@ public class MailAdapterTest {
     spyAdapter.notifyUsersAboutProject(new ProjectData());
 
     Mockito.verify(spyAdapter).getCrowdUserDetailsFromContext();
+  }
+  
+  @Test
+  public void testMailBuild () throws Exception {
+    Mockito.doNothing().when(mailSender).send(Matchers.any(MimeMessage.class));
+    Mockito.when(details.getEmail()).thenReturn("test@example.com");
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    spyAdapter.setCrowdUserDetails(details);
+
+    String message = spyAdapter.build(new ProjectData());
+    assertNotNull(message);
+    assertTrue(message.trim().length() > 0);
   }
 }

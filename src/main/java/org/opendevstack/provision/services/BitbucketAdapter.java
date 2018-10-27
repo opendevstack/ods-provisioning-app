@@ -81,7 +81,6 @@ public class BitbucketAdapter {
   @Value("${bitbucket.webhook.rshiny.url}")
   private String baseWebHookRshinyUrlPattern;
 
-
   @Value("${bitbucket.webhook.environments}")
   private String webHookEnvironments;
 
@@ -123,7 +122,6 @@ public class BitbucketAdapter {
   public ProjectData createBitbucketProjectsForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
     BitbucketData data = callCreateProjectApi(project, crowdCookieValue);
-    // data.setUrl(String.format("%s/projects/%s", bitbucketUri, data.getKey()));
 
     project.bitbucketUrl = data.getLinks().get("self").get(0).getHref();
     return project;
@@ -137,7 +135,6 @@ public class BitbucketAdapter {
 
 	  logger.debug("Creating quickstartProjects");
 	  
-      List<RepositoryData> repos = new ArrayList<RepositoryData>();
       Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
       List<Map<String, String>> newOptions = new ArrayList<>();
       if(project.quickstart != null) {
@@ -239,7 +236,7 @@ public class BitbucketAdapter {
       String webHookUrlDirect =
       		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component);
       
-      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect);
+      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect + ":" + componentType);
 
       String[] hooks = {webHookUrlCI, webHookUrlDirect};
       
@@ -345,8 +342,7 @@ public class BitbucketAdapter {
   }
 
   protected String buildBasePath() {
-    String basePath = String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
-    return basePath;
+    return String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
   }
 
   protected Object post(String url, String json, String crowdCookieValue, Class clazz)

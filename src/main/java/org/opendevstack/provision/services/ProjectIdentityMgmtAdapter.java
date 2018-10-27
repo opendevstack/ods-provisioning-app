@@ -76,6 +76,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     }
     
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean groupExists(String groupName) 
 	{
 		if (groupName == null || groupName.trim().length() == 0) 
@@ -95,6 +96,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	}
 
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean userExists(String userName) 
 	{
 		if (userName == null || userName.trim().length() == 0) 
@@ -131,7 +133,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		return createGroupInternal(projectName);
 	}
 		
-	private String createGroupInternal (String groupName) throws IdMgmtException {
+	String createGroupInternal (String groupName) throws IdMgmtException {
 		if (groupName == null || groupName.trim().length() == 0)
 			throw new IdMgmtException ("Cannot create a null group!");
 		

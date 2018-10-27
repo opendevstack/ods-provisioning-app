@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.opendevstack.provision.model.ExecutionsData;
@@ -51,7 +52,9 @@ public class QuickstarterApiController {
 
   @RequestMapping(value = "/provision", produces = {"application/json"},
       method = RequestMethod.POST)
-  public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project) throws Exception {
+  public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project) 
+		  throws IOException 
+  {
     List<ExecutionsData> executions = rundeckAdapter.executeJobs(project);
     return ResponseEntity.ok(executions);
   }

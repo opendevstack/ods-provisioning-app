@@ -138,11 +138,7 @@ public class ProjectApiController {
       }
       
       // notify user via mail of project creation with embedding links
-      try {
-        mailAdapter.notifyUsersAboutProject(project);
-      } catch (Exception ex) {
-        logger.error("Can't send mail: {}", ex);
-      }
+      mailAdapter.notifyUsersAboutProject(project);
       
       // return project data for further processing
       return ResponseEntity.ok().body(project);
@@ -173,6 +169,11 @@ public class ProjectApiController {
         new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
 	  ProjectData oldProject = storage.getProject(project.key);
+	  
+	  if (oldProject == null) {
+		  return ResponseEntity.notFound().build();
+	  }
+	  
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;
@@ -199,10 +200,9 @@ public class ProjectApiController {
         }
       }
 
-      if (oldProject.repositories != null) {
-        if (project.repositories != null) {
+      if ((oldProject.repositories != null) && (project.repositories != null)) 
+      {
           oldProject.repositories.putAll(project.repositories);
-        }
       }
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
@@ -234,11 +234,12 @@ public class ProjectApiController {
    * @param project the meta information from the API
    * @param crowdCookie the authenticated user
    * @return the generated, amended Project
+   * @throws IOException 
    * @throws Exception in case something goes wrong
    */
   private ProjectData createDeliveryChain(ProjectData project, String crowdCookie, boolean update)
-      throws Exception {
-
+    throws IOException
+  {
     logger.debug("create delivery chain: " + project.openshiftproject);
 
     if (project.bitbucketUrl == null) {
@@ -286,6 +287,9 @@ public class ProjectApiController {
   public ResponseEntity<ProjectData> getProject(HttpServletRequest request, @PathVariable String id,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     ProjectData project = storage.getProject(id);
+    if (project == null) {
+    	return ResponseEntity.notFound().build();
+    }
     if (project.quickstart != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
       for (Map<String, String> quickstarter : project.quickstart) {

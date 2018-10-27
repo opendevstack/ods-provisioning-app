@@ -82,9 +82,6 @@ public class ConfluenceAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
-  // Pattern to use for project with id
-  private static String URL_PATTERN = "%s/api/%s";
-
   private String crowdCookieValue = null;
 
   @Value("${confluence.permission.filepattern}")
@@ -125,7 +122,7 @@ public class ConfluenceAdapter {
     return this.post(path, json, crowdCookieValue, SpaceData.class);
   }
 
-  protected Space createSpaceData(ProjectData project) throws IOException {
+  Space createSpaceData(ProjectData project) throws IOException {
     String confluenceBlueprintId = getBluePrintId();
     String jiraServerId = getJiraServerId();
 
@@ -150,7 +147,7 @@ public class ConfluenceAdapter {
     return space;
   }
 
-  private String getJiraServerId() throws IOException {
+  protected String getJiraServerId() throws IOException {
     String jiraServerId = null;
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
@@ -164,7 +161,7 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  private String getBluePrintId() throws IOException {
+  protected String getBluePrintId() throws IOException {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints =
@@ -179,7 +176,7 @@ public class ConfluenceAdapter {
   }
 
 
-  private List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
+  List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
       throws IOException {
 
     client.getSessionId(confluenceUri);
@@ -222,13 +219,15 @@ public class ConfluenceAdapter {
     return (T) new ObjectMapper().readValue(respBody, valueType);
   }
 
-  protected void updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
+  int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
       
       Resource [] permissionFiles = pmrl.getResources(confluencePermissionFilePattern);
       
+      int updatedPermissions = 0;
+
       logger.debug("Found permissionsets: "+ permissionFiles.length);
       
       for (int i = 0; i < permissionFiles.length; i++)
@@ -239,7 +238,8 @@ public class ConfluenceAdapter {
     	  String permissionset = null;
     	  try 
     	  {
-    		  permissionset = new String(reader.readLine());
+    		  // we know it's a singular pseudo json line
+    		  permissionset = reader.readLine();
     	  } finally 
     	  {
     		  //sq finding
@@ -258,14 +258,14 @@ public class ConfluenceAdapter {
     		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
       	  } else if (permissionFilename.contains("admin")) {
     		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
-      	  } else {
-      		  
       	  }
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
     	  post(path, permissionset, crowdCookieValue, String.class); 
+	      updatedPermissions++;
       }
+      return updatedPermissions;
   }
   
 }
