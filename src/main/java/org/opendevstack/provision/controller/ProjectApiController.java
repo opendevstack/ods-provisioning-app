@@ -200,6 +200,10 @@ public class ProjectApiController {
       {
     	  return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
     	  	body("Project: " + project.key + " cannot be upgraded to openshift usage");
+      } else if (oldProject.openshiftproject) 
+      {
+    	  // we need to set this, otherwise the provisioniong will not work
+    	  project.openshiftproject = oldProject.openshiftproject;
       }
       
       if (oldProject.createpermissionset) 
