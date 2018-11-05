@@ -397,7 +397,21 @@ public class ProjectApiControllerTest {
     	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
     Mockito.verify(bitbucketAdapter).createBitbucketProjectsForProject(
         Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+
+    // now w/o upgrade
+    data.openshiftproject = true;
+    upgrade.openshiftproject = false;
     
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+
+    // rundeck should have been called (and repo creation as well)
+    Mockito.verify(bitbucketAdapter, Mockito.times(2)).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
   }
   
   
