@@ -291,5 +291,8 @@ public class RundeckAdapter {
     return enabledJobs;
   }
 
-
+  public String getRundeckAPIPath () {
+	  return rundeckUri + rundeckApiPath;
+  }
+  
 }

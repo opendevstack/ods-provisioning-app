@@ -71,6 +71,13 @@ public class MailAdapterTest {
   }
 
   @Test
+  public void notifyUsersMailDisabled() throws Exception {
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    spyAdapter.isMailEnabled = false;
+    Mockito.verify(mailSender, Mockito.never()).send(Matchers.any(MimeMessage.class));
+  }
+  
+  @Test
   public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull() throws Exception {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     spyAdapter.setCrowdUserDetails(null);

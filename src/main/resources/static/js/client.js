@@ -32,7 +32,7 @@ var validatorOptions = {
     }
   },
   errors: {
-    unique: "This Device is already exist"
+    unique: "This component already exist"
   }
 };
 
@@ -185,6 +185,12 @@ $(document).ready(function(){
 
           // tick checkbox based on project created true false
           $('#openshiftProjectInfo').prop('checked',data.openshiftproject);
+          // only allow upgrade if modifyable == true
+          if (data.openshiftproject == false && $('#openshiftProjectInfo').prop('modifyable') == true) {
+        	  // allow people to change it - update will take care about this
+        	  $("#openshiftProjectInfo").removeClass("disable");
+        	  $("#openshiftProjectInfo").prop("disabled", false);
+          }
           
           // set description
           $('#projectDescription').val(data.description);

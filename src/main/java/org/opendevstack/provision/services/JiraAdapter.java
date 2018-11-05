@@ -53,6 +53,9 @@ public class JiraAdapter {
 
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
+
+  @Value("${jira.project.template.key}")
+  String jiraTemplateKey;
   
   //Pattern to use for project with id
   private static String URL_PATTERN = "%s%s/project/%s";
@@ -281,11 +284,10 @@ public class JiraAdapter {
   
   protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
     BasicUser lead = s.admins.get(0);
-    String templateKey = "com.pyxis.greenhopper.jira:gh-scrum-template";
     String type = "software";
 
-    return new FullJiraProject(null, s.key.toUpperCase(), s.name, s.description, lead, null, null, null, null, null,
-        templateKey, type);
+    return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
+    	jiraTemplateKey, type);
   }
 
   public String buildProjectKey(String name) {
@@ -361,6 +363,6 @@ public class JiraAdapter {
   }
 
   public String getEndpointUri () {
-  	return jiraUri;
+  	return jiraUri + jiraApiPath;
   } 
 }
