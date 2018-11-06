@@ -45,6 +45,10 @@ public class MailAdapter {
   @Value("${provison.mail.sender}")
   private String mailSenderAddress;
 
+  // open because of testing
+  @Value("${mail.enabled:false}")
+  boolean isMailEnabled;
+  
   @Autowired
   private TemplateEngine templateEngine;
 
@@ -56,36 +60,36 @@ public class MailAdapter {
     this.mailSender = mailSender;
   }
 
-  private void prepareAndSend(String recipient, ProjectData data) {
-    MimeMessagePreparator messagePreparator = mimeMessage -> {
-      MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-      messageHelper.setFrom(mailSenderAddress);
-      messageHelper.setTo(recipient);
-      messageHelper.setSubject("Project provision");
-      messageHelper.setText(build(data), true);
-    };
-    
-    Thread sendThread = new Thread () {
-    	
-    	@Override
-    	public void run () 
-    	{
-		    try {
-		      mailSender.send(messagePreparator);
-		    } catch (MailException e) {
-		      logger.error("Error in sending mail for project: " + data.key, e);
-		    }
-    	}
-    };
-    
-    sendThread.start();
-    logger.debug("Mail for project: " + data.key + " sent");
-  }
-
   public void notifyUsersAboutProject(ProjectData data) {
+	if (!isMailEnabled) {
+		logger.debug("Email disabled, returning");
+		return;
+	}
     CrowdUserDetails userDetails = getCrowdUserDetails();
     String recipient = userDetails.getEmail();
-    prepareAndSend(recipient, data);
+    MimeMessagePreparator messagePreparator = mimeMessage -> {
+        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+        messageHelper.setFrom(mailSenderAddress);
+        messageHelper.setTo(recipient);
+        messageHelper.setSubject("Project provision");
+        messageHelper.setText(build(data), true);
+      };
+      
+      Thread sendThread = new Thread () {
+      	
+      	@Override
+      	public void run () 
+      	{
+  		    try {
+  		      mailSender.send(messagePreparator);
+  		    } catch (MailException e) {
+  		      logger.error("Error in sending mail for project: " + data.key, e);
+  		    }
+      	}
+      };
+      
+      sendThread.start();
+      logger.debug("Mail for project: " + data.key + " sent");
   }
 
   String build(ProjectData data) {

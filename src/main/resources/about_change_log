@@ -34,6 +34,11 @@
  	    "who" : "clemens",
  	    "when" : "2018-09-06",
  	    "what" : "addition of role model for visibility"
+ 	  },  	  
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-10-31",
+ 	    "what" : "various role fixes"
  	  }  	  
   ]
 }

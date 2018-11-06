@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.services.BitbucketAdapter;
+import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -53,7 +54,10 @@ public class DefaultController {
   private JiraAdapter jiraAdapter;
 
   private BitbucketAdapter bitbucketAdapter;
-  
+
+  @Autowired
+  private ConfluenceAdapter confluenceAdapter;
+
   private static final String LOGIN_REDIRECT = "redirect:/login";
   
   private static final String ACTIVE = "active";
@@ -64,6 +68,9 @@ public class DefaultController {
   @Value("${crowd.admin.group}")
   private String crowdAdminGroup;
 
+  @Value("${openshift.project.upgrade}")
+  private boolean ocUpgradeAllowed;
+  
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:home.html";
@@ -87,6 +94,7 @@ public class DefaultController {
             model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
             model.addAttribute("crowdUserGroup", crowdUserGroup);
             model.addAttribute("crowdAdminGroup", crowdAdminGroup);
+            model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
         }
         model.addAttribute("classActiveNew", ACTIVE);
         return "provision";
@@ -119,6 +127,8 @@ public class DefaultController {
     Map<String, String> endpoints = new HashMap<String, String>();
     endpoints.put("JIRA", jiraAdapter.getEndpointUri());
     endpoints.put("GIT", bitbucketAdapter.getEndpointUri());
+    endpoints.put("RUNDECK", rundeckAdapter.getRundeckAPIPath());
+    endpoints.put("CONFLUENCE", confluenceAdapter.getConfluenceAPIPath());
 
     model.addAttribute("endpointMap", endpoints);
 

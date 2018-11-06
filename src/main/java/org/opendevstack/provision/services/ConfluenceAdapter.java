@@ -256,9 +256,7 @@ public class ConfluenceAdapter {
     		  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);  
       	  } else if (permissionFilename.contains("keyuserGroup")) {
     		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
-      	  } else if (permissionFilename.contains("admin")) {
-    		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
-      	  }
+      	  } 
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
@@ -266,6 +264,10 @@ public class ConfluenceAdapter {
 	      updatedPermissions++;
       }
       return updatedPermissions;
+  }
+  
+  public String getConfluenceAPIPath () {
+	  return confluenceUri + confluenceApiPath;
   }
   
 }

@@ -166,6 +166,13 @@ public class RundeckAdapterTest {
     		createdProjectData.openshiftJenkinsUrl);
   }
 
+  @Test
+  public void getEndpointAPIPath () throws Exception 
+  {
+	  assertEquals("http://192.168.56.31:4440/rundeck/api/19", 
+		rundeckAdapter.getRundeckAPIPath());
+  }
+  
   private ProjectData generateDefaultProjectData() {
     ProjectData expected = new ProjectData();
     expected.openshiftConsoleDevEnvUrl = "https://192.168.99.100:8443/console/project/key-dev";
@@ -194,4 +201,6 @@ public class RundeckAdapterTest {
     return exec;
   }
 
+  
+  
 }

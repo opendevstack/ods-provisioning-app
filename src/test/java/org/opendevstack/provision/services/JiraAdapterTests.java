@@ -17,13 +17,12 @@ package org.opendevstack.provision.services;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,10 +32,8 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
@@ -46,11 +43,11 @@ import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.jira.rest.client.domain.BasicUser;
@@ -137,12 +134,12 @@ public class JiraAdapterTests {
   @Test
   public void buildJiraProjectPojoFromApiProject() {
     ProjectData apiInput = getTestProject("TestProject");
-    apiInput.key = "TESTP";
+    apiInput.key = "TestP";
 
     FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
     
     assertEquals(apiInput.name, fullJiraProject.getName());
-    assertEquals("TESTP", fullJiraProject.getKey());
+    assertEquals(apiInput.key, fullJiraProject.getKey());
   }
 
   @Test
@@ -200,13 +197,16 @@ public class JiraAdapterTests {
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-	// this is a bad ass bug ... there should be 2 times 1, one put one post - but 
-	// mockito does believe its two times the same call :(
-    Mockito.verify(mocked, Mockito.times(2)).callHttp(Matchers.anyString(),
+    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
             Matchers.anyString(), Matchers.anyString(), 
-            Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
-            Matchers.any(JiraAdapter.HTTP_VERB.class));
-    
+            Matchers.eq(PermissionScheme.class), Matchers.anyBoolean(),
+            Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+
+    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
+            Matchers.anyString(), Matchers.anyString(), 
+            Matchers.eq(FullJiraProject.class), Matchers.anyBoolean(),
+            Matchers.eq(JiraAdapter.HTTP_VERB.PUT));
+
     assertEquals(1, updates);
   }
   

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.doReturn;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -94,8 +95,8 @@ public class ConfluenceAdapterTest {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
     ProjectData project = JiraAdapterTests.getTestProject("name");
     project.adminGroup = "adminGroup";
-    project.userGroup = "adminGroup";
-    project.readonlyGroup = "adminGroup";
+    project.userGroup = "userGroup";
+    project.readonlyGroup = "readGroup";
     
     Mockito.doReturn(String.class).when(spyAdapter).post
     	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
@@ -103,12 +104,19 @@ public class ConfluenceAdapterTest {
     
     int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
 
-    // 4 permission sets
-    Mockito.verify(spyAdapter, Mockito.times(4)).post
-    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
-    		Matchers.any(String.class.getClass()));
+    // 3 permission sets
+    Mockito.verify(spyAdapter, Mockito.times(1)).post
+		(Matchers.anyString(), Matchers.contains(project.adminGroup), Matchers.anyString(), 
+			Matchers.any(String.class.getClass()));
+    Mockito.verify(spyAdapter, Mockito.times(1)).post
+		(Matchers.anyString(), Matchers.contains(project.userGroup), Matchers.anyString(), 
+			Matchers.any(String.class.getClass()));
+    Mockito.verify(spyAdapter, Mockito.times(1)).post
+		(Matchers.anyString(), Matchers.contains(project.readonlyGroup), Matchers.anyString(), 
+			Matchers.any(String.class.getClass()));
+
     
-    assertEquals(4, permissionSets);
+    assertEquals(3, permissionSets);
   }
   
   @Test
