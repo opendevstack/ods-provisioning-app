@@ -105,14 +105,14 @@ public class BitbucketAdapterTest {
     RepositoryData repoData = getReturnRepoData();
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(Matchers.any(), Matchers.any(),
-        Matchers.any(), Matchers.any(), Matchers.anyString());
+        Matchers.any(), Matchers.any());
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(Matchers.anyString(),
         Matchers.any(Repository.class), Matchers.anyString());
 
     ProjectData result = spyAdapter.createRepositoriesForProject(projectData, crowdCookieValue);
 
     Mockito.verify(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        projectData.quickstart.get(0).get("component_id"), crowdCookieValue, null);
+        projectData.quickstart.get(0).get("component_id"), crowdCookieValue);
     for (Entry<String, Map<String, List<Link>>> entry : result.repositories.entrySet()) {
       Map<String, List<Link>> resultLinkMap = entry.getValue();
       assertEquals(repoData.getLinks(), resultLinkMap);
@@ -146,7 +146,7 @@ public class BitbucketAdapterTest {
     projectData.key = "testkey";
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        quickstart.get("component_id"), crowdCookieValue, null);
+        quickstart.get("component_id"), crowdCookieValue);
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(Matchers.anyString(),
         Matchers.any(Repository.class), Matchers.any());
 
@@ -183,7 +183,7 @@ public class BitbucketAdapterTest {
     repoData.setLinks(links);
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(Matchers.any(), Matchers.any(),
-        Matchers.any(), Matchers.any(), Matchers.anyString());
+        Matchers.any(), Matchers.any());
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(Matchers.anyString(),
         Matchers.any(Repository.class), Matchers.anyString());
 
@@ -333,8 +333,7 @@ public class BitbucketAdapterTest {
 	Mockito.doReturn(repoData1).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(), 
 			Matchers.anyString(), Matchers.any());
     
-    spyAdapter.createWebHooksForRepository
-    	(repoData1, projectData, "someComponent", "crowdCookie", "componentType");
+    spyAdapter.createWebHooksForRepository(repoData1, projectData, "someComponent", "crowdCookie");
     
     
   }

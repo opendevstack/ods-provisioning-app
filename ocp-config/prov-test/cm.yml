@@ -43,9 +43,6 @@ objects:
       bitbucket.uri=${BITBUCKET_URI}
       bitbucket.api.path=/rest/api/1.0
       bitbucket.repository.pattern=%s-%s
-      bitbucket.webhook.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-cd/buildconfigs/%s-%s/webhooks/secret101/generic
-      bitbucket.webhook.rshiny.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-%s/buildconfigs/%s/webhooks/secret101/generic
-      bitbucket.webhook.environments=dev,test
       bitbucket.default.user.group=${CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
