@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     @Value("${crowd.local.directory}")
 	String crowdLocalDirectory;
 
-    public void validateIdSettingsOfProject (ProjectData project) throws Exception 
+    public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException 
     {
     	Map<String, String> projectCheckStatus = new HashMap<String, String>();
     	
@@ -69,12 +70,13 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     	}
     	
     	if (!projectCheckStatus.isEmpty()) {
-    		throw new Exception ("Identity check failed - these groups don't exist! " 
+    		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
     				+ projectCheckStatus);
     	}
     }
     
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean groupExists(String groupName) 
 	{
 		if (groupName == null || groupName.trim().length() == 0) 
@@ -94,6 +96,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	}
 
 	@Override
+	@SuppressWarnings("squid:S1193")
 	public boolean userExists(String userName) 
 	{
 		if (userName == null || userName.trim().length() == 0) 
@@ -113,35 +116,35 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	}
 
 	@Override
-	public String createUserGroup(String projectName) throws Exception 
+	public String createUserGroup(String projectName) throws IdMgmtException 
 	{
 		return createGroupInternal(projectName);
 	}
 
 
 	@Override
-	public String createAdminGroup(String projectName) throws Exception {
+	public String createAdminGroup(String projectName) throws IdMgmtException {
 		return createGroupInternal(projectName);
 	}
 
 	@Override
-	public String createReadonlyGroup(String projectName) throws Exception 
+	public String createReadonlyGroup(String projectName) throws IdMgmtException 
 	{
 		return createGroupInternal(projectName);
 	}
 		
-	private String createGroupInternal (String groupName) throws Exception {
+	String createGroupInternal (String groupName) throws IdMgmtException {
 		if (groupName == null || groupName.trim().length() == 0)
-			throw new Exception ("Cannot create a null group!");
+			throw new IdMgmtException ("Cannot create a null group!");
 		
 		try 
 		{
 			return manager.getSecurityServerClient().
 				addGroup(new SOAPGroup(groupName, new String [] {})).getName();
-		} catch (Exception e) 
+		} catch (Exception eAddGroup) 
 		{
-			logger.error("Could not create group {}, error: {}", groupName, e);
-			throw e;
+			logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
+			throw new IdMgmtException(eAddGroup);
 		}
 	}
 }

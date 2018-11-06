@@ -222,7 +222,7 @@ $(document).ready(function(){
         data:projectData,
         contentType:"application/json; charset=utf-8",
         dataType:"json",
-        timeout: 60000,
+        timeout: 120000,
         success: function(data, status, xhr){
 
           summarize(data);

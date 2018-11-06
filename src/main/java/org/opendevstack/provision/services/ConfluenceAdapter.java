@@ -15,12 +15,10 @@
 package org.opendevstack.provision.services;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.file.Files;
 import java.util.List;
+
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
@@ -34,11 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.data.rest.core.Path;
 import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -77,12 +76,11 @@ public class ConfluenceAdapter {
   private static String BLUEPRINT_PATTERN =
       "%s%s/create-dialog/1.0/space-blueprint/dialog/web-items";
   private static String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
+  
+  private static final String SPACE_GROUP = "SPACE_GROUP";
 
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
-
-  // Pattern to use for project with id
-  private static String URL_PATTERN = "%s/api/%s";
 
   private String crowdCookieValue = null;
 
@@ -124,7 +122,7 @@ public class ConfluenceAdapter {
     return this.post(path, json, crowdCookieValue, SpaceData.class);
   }
 
-  protected Space createSpaceData(ProjectData project) throws IOException {
+  Space createSpaceData(ProjectData project) throws IOException {
     String confluenceBlueprintId = getBluePrintId();
     String jiraServerId = getJiraServerId();
 
@@ -149,7 +147,7 @@ public class ConfluenceAdapter {
     return space;
   }
 
-  private String getJiraServerId() throws IOException {
+  protected String getJiraServerId() throws IOException {
     String jiraServerId = null;
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
@@ -163,7 +161,7 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  private String getBluePrintId() throws IOException {
+  protected String getBluePrintId() throws IOException {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints =
@@ -178,7 +176,7 @@ public class ConfluenceAdapter {
   }
 
 
-  private List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
+  List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
       throws IOException {
 
     client.getSessionId(confluenceUri);
@@ -191,6 +189,9 @@ public class ConfluenceAdapter {
     String respBody = response.body().string();
 
     logger.debug(respBody);
+    if (!response.isSuccessful()) {
+    	throw new IOException("Could not retrieve blueprints: " + respBody);
+    }
 
     return new ObjectMapper().readValue(respBody, reference);
   }
@@ -218,13 +219,15 @@ public class ConfluenceAdapter {
     return (T) new ObjectMapper().readValue(respBody, valueType);
   }
 
-  protected void updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
+  int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
       
       Resource [] permissionFiles = pmrl.getResources(confluencePermissionFilePattern);
       
+      int updatedPermissions = 0;
+
       logger.debug("Found permissionsets: "+ permissionFiles.length);
       
       for (int i = 0; i < permissionFiles.length; i++)
@@ -232,31 +235,37 @@ public class ConfluenceAdapter {
     	  String permissionFilename = permissionFiles[i].getFilename();
     	  
     	  BufferedReader reader = new BufferedReader (new InputStreamReader(permissionFiles[i].getInputStream()));
-    	  
-    	  String permissionset = new String(reader.readLine());
-    	  
-    	  reader.close();
+    	  String permissionset = null;
+    	  try 
+    	  {
+    		  // we know it's a singular pseudo json line
+    		  permissionset = reader.readLine();
+    	  } finally 
+    	  {
+    		  //sq finding
+    		  reader.close();
+    	  }
     	  
     	  permissionset = permissionset.replace("SPACE_NAME", data.key);
     	  
     	  if (permissionFilename.contains("adminGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.adminGroup);
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
     	  } else if (permissionFilename.contains("userGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.userGroup);
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
       	  } else if (permissionFilename.contains("readonlyGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", data.readonlyGroup);  
+    		  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);  
       	  } else if (permissionFilename.contains("keyuserGroup")) {
-    		  permissionset = permissionset.replace("SPACE_GROUP", globalKeyuserRoleName);  
+    		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
       	  } else if (permissionFilename.contains("admin")) {
     		  permissionset = permissionset.replace("SPACE_USER", data.admin);  
-      	  } else {
-      		  
       	  }
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
     	  post(path, permissionset, crowdCookieValue, String.class); 
+	      updatedPermissions++;
       }
+      return updatedPermissions;
   }
   
 }

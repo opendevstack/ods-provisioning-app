@@ -33,10 +33,8 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 /**
  * Service for mail interaction with the user in the provisioning app
  *
- *
  * @author Brokmeier, Pascal
  */
-
 @Service
 public class MailAdapter {
 
@@ -50,6 +48,7 @@ public class MailAdapter {
   @Autowired
   private TemplateEngine templateEngine;
 
+  // testing only!
   CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
@@ -80,28 +79,27 @@ public class MailAdapter {
     };
     
     sendThread.start();
+    logger.debug("Mail for project: " + data.key + " sent");
   }
 
-  public void notifyUsersAboutProject(ProjectData data) throws Exception {
+  public void notifyUsersAboutProject(ProjectData data) {
     CrowdUserDetails userDetails = getCrowdUserDetails();
-
     String recipient = userDetails.getEmail();
-
     prepareAndSend(recipient, data);
   }
 
-  private String build(ProjectData data) {
+  String build(ProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);
       return templateEngine.process("mailTemplate", context);
     } catch (SpelEvaluationException ex) {
-      logger.error("Error in template", ex);
+      logger.error("Error in creating mail template", ex);
     }
     return "";
   }
 
-  public void setCrowdUserDetails(CrowdUserDetails details) {
+  void setCrowdUserDetails(CrowdUserDetails details) {
     this.crowdUserDetails = details;
   }
 
@@ -112,7 +110,7 @@ public class MailAdapter {
     return crowdUserDetails;
   }
 
-  protected CrowdUserDetails getCrowdUserDetailsFromContext() {
+  CrowdUserDetails getCrowdUserDetailsFromContext() {
     return (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   }
 }

@@ -110,6 +110,8 @@ public class RundeckAdapter {
   private static final MediaType JSON_MEDIA_TYPE =
       MediaType.parse("application/json; charset=utf-8");
 
+  private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
+  
   @Autowired
   RestClient client;
 
@@ -120,16 +122,16 @@ public class RundeckAdapter {
     try {
       return getJobs(projectQuickstarterGroup);
     } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
     }
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) throws Exception {
+  public List<ExecutionsData> executeJobs(ProjectData project) throws IOException
+  {
     authenticate();
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
-      // List<String> jobIds = new ArrayList<String>(project.quickstart.keySet());
       for (Map<String, String> options : project.quickstart) {
         Job job = jobStore.getJob(options.get("component_type"));
 
@@ -150,7 +152,7 @@ public class RundeckAdapter {
           ExecutionsData data = (ExecutionsData) this.post(url, json, ExecutionsData.class);
           
           if (data.getError()) {
-        	  throw new Exception ("Could not provision component: " + data.getMessage());
+        	  throw new IOException ("Could not provision component: " + data.getMessage());
           }
           
           executionList.add(data);
@@ -175,7 +177,6 @@ public class RundeckAdapter {
       for (Job job : jobs) {
         if (job.getName().equalsIgnoreCase(projectCreateOpenshiftJob)) {
           String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
-          // String projectId = String.format(groupPattern, key.toLowerCase()).replace('_', '-');
           Execution execution = new Execution();
           Map<String, String> options = new HashMap<>();
           options.put("project_id", project.key.toLowerCase());
@@ -210,7 +211,7 @@ public class RundeckAdapter {
         }
       }
     } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
       throw ex;
     }
     return project;
@@ -220,7 +221,7 @@ public class RundeckAdapter {
   /**
    * method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar
    */
-  protected void authenticate() {
+  protected void authenticate() throws IOException {
     CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -232,16 +233,20 @@ public class RundeckAdapter {
     Request request = new Request.Builder()
         .url(String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath)).post(body)
         .build();
-    try {
-      Response response = client.getClient().newCall(request).execute();
-      if (response.isSuccessful()) {
-        logger.debug("successful rundeck auth");
-      }
-      response.close();
-    } catch (IOException ex) {
-      logger.error("Error in rundeck call", ex);
+    Response response = null;
+    try 
+    {
+    	response = client.getClient().newCall(request).execute();
+    	if (response.isSuccessful()) {
+    		logger.debug("successful rundeck auth");
+    	} else {
+    		throw new IOException("Could not authenticate: " + username + " : " + response.body());
+    	}
     }
-
+    finally {
+    	if (response != null)
+    		response.close();
+    }
   }
 
   protected Object post(String url, String json, Class clazz) throws IOException {
@@ -259,11 +264,8 @@ public class RundeckAdapter {
   }
 
   protected List<Job> getJobs(String group) throws IOException {
-    // Authenticate to rundeck for api calls
-
-    List<Job> enabledJobs = new ArrayList<>();
-
     authenticate();
+    List<Job> enabledJobs;
 
     String jobsUrl =
         String.format("%s%s/project/%s/jobs", rundeckUri, rundeckApiPath, rundeckProject);

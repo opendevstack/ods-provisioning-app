@@ -14,9 +14,12 @@
 
 package org.opendevstack.provision.model.confluence;
 
+import javax.annotation.Generated;
+
 /**
  * @author Torsten Jaeschke
  */
+@Generated(value = {"JSON-to-Pojo-Generator"})
 public class Space {
   private String spaceKey = null;
   private String name = null;

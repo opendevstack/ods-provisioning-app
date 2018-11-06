@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.AboutChangesData.AboutRecordData;
 import org.opendevstack.provision.services.RundeckAdapter;
@@ -42,6 +43,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
@@ -121,6 +123,20 @@ public class DefaultControllerTest {
   }
 
   @Test
+  @WithMockUser(username = "test")
+  public void provisionWithAuth() throws Exception 
+  {
+	Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(new ArrayList<>());
+    defaultController.setRundeckAdapter(rundeckAdapter);
+    defaultController.setCustomAuthenticationManager(customAuthenticationManager);
+	SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
+    mockMvc.perform(get("/provision"))
+    	.andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+  
+  @Test
   public void provisionWithoutAuth() throws Exception {
     Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(new ArrayList<>());
     Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn(null);
@@ -167,4 +183,20 @@ public class DefaultControllerTest {
         .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 
+  @Test
+  public void aboutWithAuth() throws Exception {
+    Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(storageAdapter.listAboutChangesData()).thenReturn(new AboutChangesData());
+    defaultController.setStorageAdapter(storageAdapter);
+    defaultController.setCustomAuthenticationManager(customAuthenticationManager);
+    mockMvc.perform(get("/about"))
+        .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+  
+  @Test
+  public void aboutWithoutAuth() throws Exception {
+    Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn(null);
+    mockMvc.perform(get("/about"))
+    	.andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+  }
 }

@@ -14,11 +14,15 @@
 
 package org.opendevstack.provision.model;
 
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torsten Jaeschke
  */
+@SuppressWarnings("common-java:DuplicatedBlocks")
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpaceData {
   private String key = null;

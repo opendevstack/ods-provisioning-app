@@ -73,9 +73,9 @@ public class JiraAdapter {
   RestClient client;
 
   public static enum HTTP_VERB {
-	  put, 
-	  post,
-	  get
+	  PUT, 
+	  POST,
+	  GET
   }
   
   /**
@@ -85,7 +85,7 @@ public class JiraAdapter {
    * @param crowdCookieValue the value for the crowd cookie
    */
   public ProjectData createJiraProjectForProject(ProjectData project,
-      String crowdCookieValue) throws Exception {
+      String crowdCookieValue) throws IOException {
     try {
       client.getSessionId(jiraUri);
 
@@ -108,26 +108,17 @@ public class JiraAdapter {
           .callJiraCreateProjectApi(this.buildJiraProjectPojoFromApiProject(project),
               crowdCookieValue);
       logger.debug("Created project: {}", created);
-      created.getKey();
-      project.jiraUrl = created.getSelf().toASCIIString();
+      project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
       project.jiraId = created.id;
       
       if (project.createpermissionset) {
-    	try 
-    	{
-          createPermissions(project,crowdCookieValue);
-	  	} catch (Exception createPermissions) 
-	  	{
-	  		// continue - we are ok if permissions fail, because the admin has access, and create the set
-	  		logger.error("Could not create project: " + project.key + "\n Exception: " 
-	  				+ createPermissions.getMessage());
-	  	}
+        createPermissions(project,crowdCookieValue);
       }
       
       return project;
-    } catch (IOException e) {
-      logger.error("Error in project creation", e);
-      throw e;
+    } catch (IOException eCreationException) {
+      logger.error("Error in project creation", eCreationException);
+      throw eCreationException;
     }
 
   }
@@ -144,19 +135,21 @@ public class JiraAdapter {
       logger.debug(response);
       return new ObjectMapper().readValue(response, FullJiraProject.class);
 
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException eGetProjects) 
+    {
+      logger.error("Error getting projects: {}", eGetProjects);
       return null;
     }
   }
 
   protected FullJiraProject callJiraCreateProjectApi(
       FullJiraProject jiraProject, String crowdCookieValue)
-      throws IOException {
+      throws IOException 
+  {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(jiraProject);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.post);
+    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.POST);
     FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
         jiraProject.getName(), jiraProject.getDescription(), null, null, null, null, null, null,
         null, null);
@@ -164,65 +157,78 @@ public class JiraAdapter {
     return returnProject;
   }
 
-  protected void createPermissions (ProjectData project, String crowdCookieValue) 
-		  throws Exception 
+  /**
+   * Create permission set for jira project
+   * @param project the project
+   * @param crowdCookieValue the crowd cookie
+   * @return the number of created permission sets
+   */
+  protected int createPermissions (ProjectData project, String crowdCookieValue) 
   {
       PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
     	 Thread.currentThread().getContextClassLoader());
-      
-      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
-      
-      logger.debug("Found permissionsets: "+ permissionFiles.length);
-      
-      for (int i = 0; i < permissionFiles.length; i++)
+      int updatedPermissions = 0;   
+      try 
       {
-	      PermissionScheme singleScheme = 
-	         new ObjectMapper().readValue(
-	    		permissionFiles[i].getInputStream(), PermissionScheme.class);
+	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
 	      
-	      String permissionSchemeName = project.key + " PERMISSION SCHEME";
+	      logger.debug("Found permissionsets: "+ permissionFiles.length);
 	      
-	      singleScheme.setName(permissionSchemeName);
-	      
-	      String description = project.description;
-	      if (description != null && description.length() > 0) {
-	    	  singleScheme.setDescription(description);
-	      } else 
+	      for (int i = 0; i < permissionFiles.length; i++)
 	      {
-	    	  singleScheme.setDescription(permissionSchemeName);
+		      PermissionScheme singleScheme = 
+		         new ObjectMapper().readValue(
+		    		permissionFiles[i].getInputStream(), PermissionScheme.class);
+		      
+		      String permissionSchemeName = project.key + " PERMISSION SCHEME";
+		      
+		      singleScheme.setName(permissionSchemeName);
+		      
+		      String description = project.description;
+		      if (description != null && description.length() > 0) {
+		    	  singleScheme.setDescription(description);
+		      } else 
+		      {
+		    	  singleScheme.setDescription(permissionSchemeName);
+		      }
+		      
+		      // replace group with real group
+		      for (Permission permission : singleScheme.getPermissions()) 
+		      {
+		    	  String group = permission.getHolder().getParameter();
+		    	  
+		    	  if ("adminGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.adminGroup);
+		    	  } else if ("userGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.userGroup);
+		    	  } else if ("readonlyGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(project.readonlyGroup);
+		    	  } else if ("keyuserGroup".equals(group)) {
+		    		  permission.getHolder().setParameter(globalKeyuserRoleName);
+		    	  } 
+		      }
+		      logger.debug("Update permissionScheme " + permissionSchemeName +
+		    	" location: " + permissionFiles[i].getFilename());
+		      
+		      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		      
+		      String json = ow.writeValueAsString(singleScheme);
+		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
+		      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.POST);
+		      
+		      // update jira project
+		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
+		      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
+		      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);
+		      updatedPermissions++;
 	      }
-	      
-	      // replace group with real group
-	      for (Permission permission : singleScheme.getPermissions()) 
-	      {
-	    	  String group = permission.getHolder().getParameter();
-	    	  
-	    	  if ("adminGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.adminGroup);
-	    	  } else if ("userGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.userGroup);
-	    	  } else if ("readonlyGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(project.readonlyGroup);
-	    	  } else if ("keyuserGroup".equals(group)) {
-	    		  permission.getHolder().setParameter(globalKeyuserRoleName);
-	    	  } else {
-	    		  	    		  
-	    	  }
-	      }
-	      logger.debug("Update permissionScheme " + permissionSchemeName +
-	    	" location: " + permissionFiles[i].getFilename());
-	      
-	      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-	      
-	      String json = ow.writeValueAsString(singleScheme);
-	      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-	      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.post);
-	      
-	      // update jira project
-	      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-	      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
-	      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.put);	      
-      }
+    	} catch (Exception createPermissions) 
+    	{
+  	    	// continue - we are ok if permissions fail, because the admin has access, and create the set
+    		logger.error("Could not update permissionset: " + project.key + "\n Exception: " 
+    				+ createPermissions.getMessage());
+    	}      
+      return updatedPermissions;
   }
   
   protected <T> T callHttp(String url, String json, String crowdCookieValue, Class valueType, 
@@ -234,13 +240,13 @@ public class JiraAdapter {
     okhttp3.Request.Builder builder = new Request.Builder();
     builder.url(url).addHeader("X-Atlassian-Token", "no-check");
     
-    if (HTTP_VERB.put.equals(verb))
+    if (HTTP_VERB.PUT.equals(verb))
     {
         builder = builder.put(body);
-    } else if (HTTP_VERB.get.equals(verb))
+    } else if (HTTP_VERB.GET.equals(verb))
     {
     	builder = builder.get();
-    } else if (HTTP_VERB.post.equals(verb))
+    } else if (HTTP_VERB.POST.equals(verb))
     {
     	builder = builder.post(body);
     }
@@ -309,8 +315,9 @@ public class JiraAdapter {
   public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
   {
     getSessionId();
+    logger.debug("Getting jira projects with filter {}", filter);
     String url = 
-    	filter == null ? String.format("%s%s/project", jiraUri, jiraApiPath) :
+    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
         String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
     	
     Request request = new Request

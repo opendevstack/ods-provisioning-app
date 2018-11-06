@@ -14,12 +14,14 @@
 
 package org.opendevstack.provision.model.rundeck;
 
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torsten Jaeschke
  */
-
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
   private String id;
