@@ -384,7 +384,7 @@ public class JiraAdapter {
 	Shortcut shortcutConfluence = new Shortcut();
 		shortcutConfluence.setId("" + id);
 		shortcutConfluence.setName("Confluence: " + data.key);
-		shortcutConfluence.setUrl(data.openshiftConsoleTestEnvUrl);
+		shortcutConfluence.setUrl(data.confluenceUrl);
 		shortcutConfluence.setIcon("");
 		shortcuts.add(shortcutConfluence);
 		
