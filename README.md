@@ -26,7 +26,7 @@ There is a special knob to tighten security (which can be passed with the projec
 1. readonly group: read rights on the generated projects / spaces / repositories
 
 The configuration for the permission sets are configured:
-1. JIRA Project is provisioned with its own permissionset [defined in src/main/resources/permission-templates/jira.permission.all.txt](src/main/resources/permission-templates)
+1. JIRA Project is provisioned with its own permissionset [defined in src/main/resources/permission-templates/jira.permission.all.txt](src/main/resources/permission-templates/jira.permission.all.txt)
 2. Confluence Project is provisioned with special permission set [defined in src/main/resources/permission-templates/confluence.permission.*](src/main/resources/permission-templates)
 3. Bitbucket Project is provisioned with tight read & write roles
 
@@ -54,9 +54,9 @@ The base configuration map /as well as the deployment yamls can be found in /ocp
 
 The frontend UI - is based on jquery and thymeleaf.
  
-# Frontend Code
+# Backend Code
 
-The backend is based on Spring Boot. Both frontende and backend are tested thru Mockito 
+The backend is based on Spring Boot, and authenticates against Atlassian Crowd. Both frontend (html) and backend are tested thru Mockito 
  
 ## Consuming REST APIs in Java
 
