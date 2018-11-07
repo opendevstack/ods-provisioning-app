@@ -39,6 +39,7 @@ import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -209,6 +210,28 @@ public class JiraAdapterTests {
 
     assertEquals(1, updates);
   }
+
+  @Test
+  public void testCreateShortcuts () throws Exception 
+  {
+    JiraAdapter mocked = Mockito.spy(jiraAdapter);
+    ProjectData apiInput = getTestProject("testproject");
+    
+    Mockito.doReturn(Shortcut.class).when(mocked).callHttp(Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyString(), 
+        Matchers.any(Shortcut.class.getClass()), Matchers.anyBoolean(),
+        Matchers.any(JiraAdapter.HTTP_VERB.class));
+
+    int shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
+    
+    assertEquals(5, shortcutsAdded);
+    
+    Mockito.verify(mocked, Mockito.times(5)).callHttp(Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyString(), 
+        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
+        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+  }
+
   
   public static ProjectData getTestProject(String name) {
     ProjectData apiInput = new ProjectData();

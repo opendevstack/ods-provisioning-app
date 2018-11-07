@@ -112,6 +112,20 @@
                 "type": "group",
                 "parameter": "adminGroup"
             },
+            "permission": "LINK_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "LINK_ISSUES"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
             "permission": "DELETE_ISSUES"
         },		
         {
@@ -135,7 +149,7 @@
             },
             "permission": "CLOSE_ISSUES"
         },	
-        		        {
+        {
             "holder": {
                 "type": "group",
                 "parameter": "userGroup"
@@ -229,7 +243,14 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "userGroup"
+                "parameter": "adminGroup"
+            },
+            "permission": "ADD_COMMENTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
             },
             "permission": "DELETE_OWN_COMMENTS"
         },          
@@ -238,7 +259,63 @@
                 "type": "group",
                 "parameter": "userGroup"
             },
+            "permission": "DELETE_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "DELETE_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
             "permission": "EDIT_OWN_COMMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "EDIT_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "EDIT_OWN_COMMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MODIFY_REPORTERS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "MANAGE_WATCHERS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "MANAGE_WATCHERS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MANAGE_WATCHERS"
         }
     ]
 }

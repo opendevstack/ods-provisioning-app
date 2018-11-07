@@ -23,6 +23,7 @@ import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -365,4 +366,64 @@ public class JiraAdapter {
   public String getEndpointUri () {
   	return jiraUri + jiraApiPath;
   } 
+  
+  public int addShortcutsToProject (ProjectData data, String crowdCookieValue) 
+  {
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    String path = String.format("%s%s/project/%s/shortcut", jiraUri, jiraApiPath, data.key);
+
+    List<Shortcut> shortcuts = new ArrayList<>();
+    
+    int id = 0;
+    int createdShortcuts = 1;
+    
+	Shortcut shortcutConfluence = new Shortcut();
+		shortcutConfluence.setId("" + id);
+		shortcutConfluence.setName("Confluence: " + data.key);
+		shortcutConfluence.setUrl(data.openshiftConsoleTestEnvUrl);
+		shortcuts.add(shortcutConfluence);
+		
+	if (data.openshiftproject)
+	{
+	    Shortcut shortcutBB = new Shortcut();
+	    	shortcutBB.setId("" + id++);
+	    	shortcutBB.setName("GIT: " + data.key);
+	    	shortcutBB.setUrl(data.bitbucketUrl);
+	        shortcuts.add(shortcutBB);
+	        
+	    Shortcut shortcutJenkins = new Shortcut();
+	    	shortcutJenkins.setId("" + id++);
+	    	shortcutJenkins.setName("Jenkins");
+	    	shortcutJenkins.setUrl(data.openshiftJenkinsUrl);
+	        shortcuts.add(shortcutJenkins);
+	
+	    Shortcut shortcutOCDev = new Shortcut();
+	    	shortcutOCDev.setId("" + id++);
+	    	shortcutOCDev.setName("OC Dev " + data.key);
+	    	shortcutOCDev.setUrl(data.openshiftConsoleDevEnvUrl);
+	        shortcuts.add(shortcutOCDev);
+	
+		Shortcut shortcutOCTest = new Shortcut();
+			shortcutOCTest.setId("" + id++);
+			shortcutOCTest.setName("OC Test " + data.key);
+			shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
+	        shortcuts.add(shortcutOCTest);
+	}
+	    	
+	for (Shortcut shortcut : shortcuts) 
+	{
+		logger.debug("Attempting to creation shortcut for: " + shortcut.getName());
+		try 
+		{
+		    String json = ow.writeValueAsString(shortcut);
+		    callHttp(path, json, crowdCookieValue, Shortcut.class, false, HTTP_VERB.POST);
+		    createdShortcuts++;
+		} catch (IOException shortcutEx) 
+		{
+			logger.error("Could not create shortcut for: " + shortcut.getName() + 
+				" Error: " + shortcutEx.getMessage());
+		}
+	}
+	return createdShortcuts;
+  }
 }
