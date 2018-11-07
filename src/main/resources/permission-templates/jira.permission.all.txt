@@ -47,7 +47,7 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "keyuserGroup"
+                "parameter": "userGroup"
             },
             "permission": "VIEW_DEV_TOOLS"
         },        
@@ -61,7 +61,7 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "keyuserGroup"
+                "parameter": "userGroup"
             },
             "permission": "VIEW_READONLY_WORKFLOW"
         },        
@@ -292,14 +292,7 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "userGroup"
-            },
-            "permission": "MANAGE_WATCHERS"
-        },          
-        {
-            "holder": {
-                "type": "group",
-                "parameter": "readonlyGroup"
+                "parameter": "adminGroup"
             },
             "permission": "MANAGE_WATCHERS"
         },
@@ -308,7 +301,14 @@
                 "type": "group",
                 "parameter": "adminGroup"
             },
-            "permission": "MANAGE_WATCHERS"
+            "permission": "VIEW_VOTERS_AND_WATCHERS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MODIFY_REPORTER"
         }
     ]
 }
