@@ -374,7 +374,7 @@ public class JiraAdapter {
 	}
 	  
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String path = String.format("%s%s/project/%s/shortcut", jiraUri, jiraApiPath, data.key);
+    String path = String.format("%s/rest/projects/1.0/project/%s/shortcut", jiraUri, data.key);
 
     List<Shortcut> shortcuts = new ArrayList<>();
     
