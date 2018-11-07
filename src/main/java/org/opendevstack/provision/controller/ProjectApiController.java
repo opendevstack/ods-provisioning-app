@@ -142,6 +142,8 @@ public class ProjectApiController {
 	    // clear admin user list for storage to prevent serialization problems
 	    project.admins = new ArrayList<>();
 
+	    jiraAdapter.addShortcutsToProject(project, crowdCookie);
+	    
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
       String filePath = storage.storeProject(project);

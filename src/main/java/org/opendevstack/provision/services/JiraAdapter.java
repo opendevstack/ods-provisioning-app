@@ -369,6 +369,10 @@ public class JiraAdapter {
   
   public int addShortcutsToProject (ProjectData data, String crowdCookieValue) 
   {
+	if (!data.jiraconfluencespace) {
+		return -1;
+	}
+	  
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String path = String.format("%s%s/project/%s/shortcut", jiraUri, jiraApiPath, data.key);
 
