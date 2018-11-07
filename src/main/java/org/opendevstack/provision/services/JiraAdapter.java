@@ -385,6 +385,7 @@ public class JiraAdapter {
 		shortcutConfluence.setId("" + id);
 		shortcutConfluence.setName("Confluence: " + data.key);
 		shortcutConfluence.setUrl(data.openshiftConsoleTestEnvUrl);
+		shortcutConfluence.setIcon("");
 		shortcuts.add(shortcutConfluence);
 		
 	if (data.openshiftproject)
@@ -393,24 +394,28 @@ public class JiraAdapter {
 	    	shortcutBB.setId("" + id++);
 	    	shortcutBB.setName("GIT: " + data.key);
 	    	shortcutBB.setUrl(data.bitbucketUrl);
+	    	shortcutBB.setIcon("");
 	        shortcuts.add(shortcutBB);
 	        
 	    Shortcut shortcutJenkins = new Shortcut();
 	    	shortcutJenkins.setId("" + id++);
 	    	shortcutJenkins.setName("Jenkins");
 	    	shortcutJenkins.setUrl(data.openshiftJenkinsUrl);
+	    	shortcutJenkins.setIcon("");
 	        shortcuts.add(shortcutJenkins);
 	
 	    Shortcut shortcutOCDev = new Shortcut();
 	    	shortcutOCDev.setId("" + id++);
 	    	shortcutOCDev.setName("OC Dev " + data.key);
 	    	shortcutOCDev.setUrl(data.openshiftConsoleDevEnvUrl);
+	    	shortcutOCDev.setIcon("");
 	        shortcuts.add(shortcutOCDev);
 	
 		Shortcut shortcutOCTest = new Shortcut();
 			shortcutOCTest.setId("" + id++);
 			shortcutOCTest.setName("OC Test " + data.key);
 			shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
+			shortcutOCTest.setIcon("");
 	        shortcuts.add(shortcutOCTest);
 	}
 	    	
