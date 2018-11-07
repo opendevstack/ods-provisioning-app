@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="PROV_HIST_HOME" value="opt/provision/history" />
+	<property name="PROV_HIST_HOME" value="opt/provision/history/logs" />
 
 	<appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
 
