@@ -378,8 +378,8 @@ public class JiraAdapter {
 
     List<Shortcut> shortcuts = new ArrayList<>();
     
-    int id = 0;
-    int createdShortcuts = 1;
+    int id = 1;
+    int createdShortcuts = 0;
     
 	Shortcut shortcutConfluence = new Shortcut();
 		shortcutConfluence.setId("" + id);

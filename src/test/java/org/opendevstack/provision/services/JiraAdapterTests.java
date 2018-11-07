@@ -232,8 +232,8 @@ public class JiraAdapterTests {
         Matchers.eq(JiraAdapter.HTTP_VERB.POST));
     
     apiInput.jiraconfluencespace = false;
+    mocked = Mockito.spy(jiraAdapter);
     shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
-    
     assertEquals(-1, shortcutsAdded);
     
     Mockito.verify(mocked, Mockito.never()).callHttp(Matchers.anyString(),
