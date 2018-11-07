@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<property name="PROV_HIST_HOME" value="opt/provision/history" />
+
+	<appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
+
+		<discriminator>
+			<key>loggerFileName</key>
+			<defaultValue>Project</defaultValue>
+		</discriminator>
+
+		<sift>
+		  <appender name="FILE-${logFileName}"
+			class="ch.qos.logback.core.FileAppender">
+			<file>${PROV_HIST_HOME}/${loggerFileName}.log</file>
+
+			<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<Pattern>
+					%d{yyyy-MM-dd HH:mm:ss} %mdc [%thread] %level %logger{35} - %msg%n
+				</Pattern>
+			</encoder>
+		  </appender>
+
+		</sift>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>
+				%-5level %logger{36} - %msg%n
+			</Pattern>
+		</layout>
+	</appender>
+
+	<logger name="org.opendevstack.provision" level="debug"
+		additivity="true">
+		<appender-ref ref="FILE-THREAD" />
+	</logger>
+
+	<root level="error">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>
