@@ -5,28 +5,27 @@ This application creates new opendevstack digital projects. It delegates the tas
 Basic idea:
 1. Admin (user in `crowd.admin.group`) creates new project
     - Jira Space (name based on project key & name)
-    - Confluence Spance (name based on project key)
-    - Openshift projects project key-dev *-test *-cd - based on property `openshiftproject : boolean`
+    - Confluence Space (name based on project key)
+    - Openshift projects named key-dev *-test *-cd - based on property `openshiftproject : boolean`
     - Bitbucket Project (name based on project key) - in case `openshiftproject` == true
 
-2. Normal user `crowd.user.group` creates all resources required for a working component
+2. Normal user(user in `crowd.user.group`) creates all resources required for a working component
     - jenkins pipeline
-    - confluence
     - Bitbucket repository
-    - subdomain & service discovery in openshift
+    - Openshift components based on the chose boilerplate
 
 3. The involved people receive an email with the setup, URLs etc - in case `mail.enabled` == true 
 
 # Permission sets
 
-There is a special knob to tighten security (which can be passed with the project input `createpermissionset : boolean`) which tightens security - based on three groups that need to be provided as part of the API call.
+There is a special knob to tighten security (which can be passed with the project input `createpermissionset : boolean`)  - based on three groups that need to be provided as part of the API call / from the userinterface.
 
 1. admin group: admin rights on the generated projects / spaces / repositories
 1. user group: read / write rights on the generated projects / spaces / repositories
 1. readonly group: read rights on the generated projects / spaces / repositories
 
 The configuration for the permission sets are configured:
-1. JIRA Project is provisioned with its own permissionset [defined in src/main/resources/permission-templates/jira.permission.all.txt](src/main/resources/permission-templates)
+1. JIRA Project is provisioned with its own permissionset [defined in src/main/resources/permission-templates/jira.permission.all.txt](src/main/resources/permission-templates/jira.permission.all.txt)
 2. Confluence Project is provisioned with special permission set [defined in src/main/resources/permission-templates/confluence.permission.*](src/main/resources/permission-templates)
 3. Bitbucket Project is provisioned with tight read & write roles
 
@@ -48,15 +47,15 @@ gradle bootRun
 
 If you want to overwrite the provided application.properties just create a configmap out of them and 
 inject the key into /config/application.properties in the container - voila, you can overwrite the config.
-The base configuration map /as well as the deployment yamls can be found in /ocp-config, and overwrites parameters from application.
+The base configuration map /as well as the deployment yamls can be found in /ocp-config, and overwrite parameters from application.
 
 # Frontend Code
 
-The frontend UI - is based on jquery and thymeleaf.
+The frontend UI - is based on jquery and thymeleaf. All (posting to the API)[src/main/resources/static/js/client.js] happens out of java script (client.js)
  
-# Frontend Code
+# Backend Code
 
-The backend is based on Spring Boot. Both frontende and backend are tested thru Mockito 
+The backend is based on Spring Boot, and authenticates against Atlassian Crowd. Both frontend (html) and backend are tested thru Mockito 
  
 ## Consuming REST APIs in Java
 

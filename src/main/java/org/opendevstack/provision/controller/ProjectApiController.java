@@ -38,6 +38,7 @@ import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,8 @@ public class ProjectApiController {
 
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
+  private static final String STR_LOGFILE_KEY = "loggerFileName";
+  
   @Autowired
   private JiraAdapter jiraAdapter;
   @Autowired
@@ -111,7 +114,7 @@ public class ProjectApiController {
 	}
 	  
 	project.key = project.key.toUpperCase();
-	
+	MDC.put(STR_LOGFILE_KEY, project.key);
     logger.debug("Crowd Cookie: {}", crowdCookie);
     
     try {
@@ -142,6 +145,8 @@ public class ProjectApiController {
 	    // clear admin user list for storage to prevent serialization problems
 	    project.admins = new ArrayList<>();
 
+	    jiraAdapter.addShortcutsToProject(project, crowdCookie);
+	    
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
       String filePath = storage.storeProject(project);
@@ -159,6 +164,7 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
+    	MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
@@ -175,9 +181,10 @@ public class ProjectApiController {
   public ResponseEntity<Object> updateProject(HttpServletRequest request, @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-	if (project == null) {
+	if (project == null || project.key.trim().length() == 0) {
 		  return ResponseEntity.badRequest().build();
 	}
+	MDC.put(STR_LOGFILE_KEY, project.key);
 	  
     logger.debug("Update project: " + project.key);
     try {
@@ -250,6 +257,7 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
+    	MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
