@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="PROV_HIST_HOME" value="opt/provision/history/logs" />
+	<!-- home of the logs -->
+	<property name="PROV_HIST_HOME" value="/opt/provision/history/logs" />
 
+	<!-- custom file appender -->"
 	<appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
 
+		<!--  mdc overwrite hook, changed thru the codebase, to create a new file per project -->
 		<discriminator>
 			<key>loggerFileName</key>
 			<defaultValue>Project</defaultValue>
@@ -33,11 +36,13 @@
 		</layout>
 	</appender>
 
+	<!-- debug for provision -->
 	<logger name="org.opendevstack.provision" level="debug"
 		additivity="true">
 		<appender-ref ref="FILE-THREAD" />
 	</logger>
 
+	<!-- root config -->
 	<root level="error">
 		<appender-ref ref="STDOUT" />
 	</root>
