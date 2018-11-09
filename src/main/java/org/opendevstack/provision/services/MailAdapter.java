@@ -73,7 +73,7 @@ public class MailAdapter {
         MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
         messageHelper.setFrom(mailSenderAddress);
         messageHelper.setTo(recipient);
-        messageHelper.setSubject("Project provision");
+        messageHelper.setSubject("ODS Project provision update");
         messageHelper.setText(build(data), true);
       };
       
