@@ -384,7 +384,7 @@ public class BitbucketAdapter {
 	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     String respBody = response.body().string();
 
-    logger.debug(response.code() + ">" + respBody);
+    logger.debug(url+ " - " + response.code() + ">" + respBody);
     response.close();
 
   }

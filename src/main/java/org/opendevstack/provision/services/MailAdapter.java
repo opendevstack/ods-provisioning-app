@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.services;
 
+import org.jboss.logging.MDC;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 public class MailAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(MailAdapter.class);
+  private static final String STR_LOGFILE_KEY = "loggerFileName";
 
   private JavaMailSender mailSender;
 
@@ -81,9 +83,12 @@ public class MailAdapter {
       	public void run () 
       	{
   		    try {
+  		      MDC.put(STR_LOGFILE_KEY, data.key);
   		      mailSender.send(messagePreparator);
   		    } catch (MailException e) {
   		      logger.error("Error in sending mail for project: " + data.key, e);
+  		    } finally {
+		      MDC.remove(STR_LOGFILE_KEY);
   		    }
       	}
       };

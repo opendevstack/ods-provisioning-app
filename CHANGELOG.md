@@ -7,9 +7,10 @@
 1. Move provisioning app to new shared library version (01-latest)
 1. Mail sending can be now explicitely disabled [#47]
 1. Bitbucket Project is only created if openshift == true, but a project can be upgraded later to openshift usage, if allowed by application.properties [#44]
+1. Logfiles are per project now - located in /opt/provision/history/logs [#36]
 
 1. Others (bugfixes)
-   1. Several OC artifacts were missing so tailor update did not work
+   1. Several OC artifacts were missing so `tailor update` did not work
    1. Update gradle to 4.9 
    1. Wrong confluence & jira URL was generated and returned [#35]
    1. Special permission set bug with lowercase mixed project key [#46]
