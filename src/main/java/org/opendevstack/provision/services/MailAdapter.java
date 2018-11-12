@@ -14,10 +14,10 @@
 
 package org.opendevstack.provision.services;
 
-import org.jboss.logging.MDC;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.spel.SpelEvaluationException;
@@ -73,7 +73,7 @@ public class MailAdapter {
         MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
         messageHelper.setFrom(mailSenderAddress);
         messageHelper.setTo(recipient);
-        messageHelper.setSubject("Project provision");
+        messageHelper.setSubject("ODS Project provision update");
         messageHelper.setText(build(data), true);
       };
       

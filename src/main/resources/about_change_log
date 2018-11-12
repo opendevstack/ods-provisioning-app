@@ -39,6 +39,11 @@
  	    "who" : "clemens",
  	    "when" : "2018-10-31",
  	    "what" : "various role fixes"
- 	  }  	  
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-11-09",
+ 	    "what" : "surface junit results, and restructure logging"
+ 	  }  	   	  
   ]
 }
