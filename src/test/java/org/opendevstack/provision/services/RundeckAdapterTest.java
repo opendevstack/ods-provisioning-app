@@ -21,12 +21,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -67,6 +70,11 @@ public class RundeckAdapterTest {
   @InjectMocks
   RundeckAdapter rundeckAdapter;
 
+  @Before
+  public void setup() {
+    MockitoAnnotations.initMocks(this);
+  }
+  
   @Test
   public void getQuickstarter() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);

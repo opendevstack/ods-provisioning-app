@@ -382,7 +382,7 @@ public class JiraAdapter {
     int createdShortcuts = 0;
     
 	Shortcut shortcutConfluence = new Shortcut();
-		shortcutConfluence.setId("" + id);
+		shortcutConfluence.setId("" + id++);
 		shortcutConfluence.setName("Confluence: " + data.key);
 		shortcutConfluence.setUrl(data.confluenceUrl);
 		shortcutConfluence.setIcon("");
@@ -412,7 +412,7 @@ public class JiraAdapter {
 	        shortcuts.add(shortcutOCDev);
 	
 		Shortcut shortcutOCTest = new Shortcut();
-			shortcutOCTest.setId("" + id++);
+			shortcutOCTest.setId("" + id);
 			shortcutOCTest.setName("OC Test " + data.key);
 			shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
 			shortcutOCTest.setIcon("");
@@ -421,7 +421,8 @@ public class JiraAdapter {
 	    	
 	for (Shortcut shortcut : shortcuts) 
 	{
-		logger.debug("Attempting to creation shortcut for: " + shortcut.getName());
+		logger.debug("Attempting to create shortcut (" + shortcut.getId()
+			+ ") for: " + shortcut.getName());
 		try 
 		{
 		    String json = ow.writeValueAsString(shortcut);
