@@ -20,11 +20,13 @@ import static org.junit.Assert.assertTrue;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +51,11 @@ public class SSOAuthProcessingFilterTest {
   @Autowired
   @InjectMocks
   SSOAuthProcessingFilter filter;
+  
+  @Before
+  public void setup() {
+    MockitoAnnotations.initMocks(this);
+  }
   
   @Test
   public void storeCrowdToken() throws Exception {

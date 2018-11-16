@@ -48,7 +48,7 @@
                     		</td>
                     		<td>
 			                    <textarea class="form-control" id="projectDescription" name="projectDescription" disabled="true"
-                              		rows="3"></textarea>
+                              		rows="2" size="40"></textarea>
                             </td>
                         </tr>
                         <tr>
@@ -64,7 +64,7 @@
                             	Openshift Projects created?
                             </td>
                             <td>
-                    			<input type="checkbox" name="openshiftProjectInfo" id="openshiftProjectInfo" checked="true" disabled="false"/>
+                    			<input type="checkbox" th:attr="modifyable=${ocUpgradeAllowed}" name="openshiftProjectInfo" id="openshiftProjectInfo" checked="true" disabled="false"/>
                     		</td>
                     	</tr>
                     </table>
