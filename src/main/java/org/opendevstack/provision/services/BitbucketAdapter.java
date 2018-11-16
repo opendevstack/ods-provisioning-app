@@ -14,13 +14,22 @@
 
 package org.opendevstack.provision.services;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import okhttp3.Credentials;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.Request.Builder;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.ProjectData;
@@ -30,6 +39,7 @@ import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.Webhook;
 import org.opendevstack.provision.util.CrowdCookieJar;
+import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
-import okhttp3.Credentials;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -165,9 +163,8 @@ public class BitbucketAdapter {
               repoLinks.put(result.getName(), result.getLinks());
               for(Link repoLink : links.get("clone")) {
                 String href = repoLink.getHref();
-                if(repoLink.getName().equalsIgnoreCase("http")) {
-                  href = href.replace(URLEncoder.encode(userDetails.getUsername(), "UTF-8"), technicalUser);
-                }
+                GitUrlWrangler gitUrlWrangler = new GitUrlWrangler();
+                href = gitUrlWrangler.buildGitUrl(userDetails.getUsername(), technicalUser, href);
                 option.put(String.format("git_url_%s", repoLink.getName()), href);
               }
               newOptions.add(option);
