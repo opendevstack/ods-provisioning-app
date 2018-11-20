@@ -371,8 +371,6 @@ function summarize(data) {
   	  $("#dataJiraUrlDiv").hide();
   	  $("#dataConfluenceUrlDiv").hide();
   }
-    
-  $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 
   if (data.lastJobs != null) {
 	 console.log("jobs found: " + data.lastJobs + " length: " + data.lastJobs.length);
@@ -393,10 +391,13 @@ function summarize(data) {
 
   if (data.openshiftproject) 
   {
+	  // this was moved, in case of jira / confluence only - no more bitbucket
+	  $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 	  $("#dataJenkinsUrl").html("<a href='" + data.openshiftJenkinsUrl + "' target='_blank'>" + data.openshiftJenkinsUrl +"</a>");
   } else 
   {
   	  $("#dataJenkinsUrlDiv").hide();
+  	  $("#dataBitbucketUrlUrlDiv").hide();
   }  
   
   $("#projectData").removeClass("hide");
