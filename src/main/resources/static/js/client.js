@@ -397,7 +397,7 @@ function summarize(data) {
   } else 
   {
   	  $("#dataJenkinsUrlDiv").hide();
-  	  $("#dataBitbucketUrlUrlDiv").hide();
+  	  $("#dataBitbucketUrlDiv").hide();
   }  
   
   $("#projectData").removeClass("hide");
