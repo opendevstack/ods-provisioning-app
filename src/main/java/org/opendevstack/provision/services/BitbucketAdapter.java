@@ -81,6 +81,9 @@ public class BitbucketAdapter {
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectNamePattern;
 
+  @Value("${openshift.jenkins.trigger.secret}")
+  private String projectOpenshiftJenkinsTriggerSecret;
+
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
 
@@ -225,7 +228,7 @@ public class BitbucketAdapter {
     String component, String crowdCookie) {
 
     // projectOpenshiftJenkinsProjectNamePattern is e.g. "jenkins-%s-cd%s"
-    String webhookProxyUrl = "https://" + String.format(projectOpenshiftJenkinsProjectNamePattern, "webhook-proxy-"+project.key.toLowerCase(), projectOpenshiftBaseDomain);
+    String webhookProxyUrl = "https://" + String.format(projectOpenshiftJenkinsProjectNamePattern, "webhook-proxy-"+project.key.toLowerCase(), projectOpenshiftBaseDomain) + "?trigger_secret=" + projectOpenshiftJenkinsTriggerSecret;
     Webhook webhook = new Webhook();
     webhook.setName("Jenkins");
     webhook.setActive(true);

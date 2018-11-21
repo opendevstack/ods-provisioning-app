@@ -55,6 +55,7 @@ objects:
       openshift.test.project.name.pattern=%s%s-test
       openshift.dev.project.name.pattern=%s%s-dev
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
+      openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
 
       #Rundeck properties
       rundeck.uri=${RUNDECK_URI}
@@ -157,4 +158,6 @@ parameters:
 - name: KEYUSER_GROUP
   required: true
   description: The keyuser group name as in crowd used when creating a new permission scheme
-  
+- name: PIPELINE_TRIGGER_SECRET
+  required: true
+  description: The trigger secret to pass to the webhook proxy
