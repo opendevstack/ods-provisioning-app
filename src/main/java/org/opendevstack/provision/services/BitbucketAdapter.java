@@ -75,14 +75,14 @@ public class BitbucketAdapter {
   @Value("${atlassian.domain}")
   private String confluenceDomain;
 
-  @Value("${bitbucket.webhook.url}")
-  private String baseWebHookUrlPattern;
+  @Value("${openshift.apps.basedomain}")
+  private String projectOpenshiftBaseDomain;
 
-  @Value("${bitbucket.webhook.rshiny.url}")
-  private String baseWebHookRshinyUrlPattern;
+  @Value("${openshift.jenkins.project.name.pattern}")
+  private String projectOpenshiftJenkinsProjectNamePattern;
 
-  @Value("${bitbucket.webhook.environments}")
-  private String webHookEnvironments;
+  @Value("${openshift.jenkins.trigger.secret}")
+  private String projectOpenshiftJenkinsTriggerSecret;
 
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
@@ -159,7 +159,7 @@ public class BitbucketAdapter {
           
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
-            createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue, option.get("component_type"));
+            createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue);
             Map<String, List<Link>> links = result.getLinks();
             if(links != null) {
               repoLinks.put(result.getName(), result.getLinks());
@@ -223,48 +223,33 @@ public class BitbucketAdapter {
     return project;
   }
 
+  // Create webhook for CI (using webhook proxy)
   protected void createWebHooksForRepository(RepositoryData repo, ProjectData project,
-      String component, String crowdCookie, String componentType) {
+    String component, String crowdCookie) {
 
-    for (String openShiftEnv : webHookEnvironments.split(",")) {
-      /*
-       * bitbucket.webhook.url=<api_host>/oapi/v1/namespaces/%s-cd/
-       * buildconfigs/%s-%s/webhooks/secret101/generic bitbucket.webhook.environments=dev,test
-       */
-      String webHookUrlCI = 
-        	String.format(baseWebHookUrlPattern, project.key.toLowerCase(), component, openShiftEnv);
-      String webHookUrlDirect =
-      		String.format(baseWebHookRshinyUrlPattern, project.key.toLowerCase(), openShiftEnv, component);
-      
-      logger.info("created hook: " + webHookUrlCI + " -- " + webHookUrlDirect + ":" + componentType);
+    // projectOpenshiftJenkinsProjectNamePattern is e.g. "jenkins-%s-cd%s"
+    String webhookProxyUrl = "https://" + String.format(projectOpenshiftJenkinsProjectNamePattern, "webhook-proxy-"+project.key.toLowerCase(), projectOpenshiftBaseDomain) + "?trigger_secret=" + projectOpenshiftJenkinsTriggerSecret;
+    Webhook webhook = new Webhook();
+    webhook.setName("Jenkins");
+    webhook.setActive(true);
+    webhook.setUrl(webhookProxyUrl);
+    List<String> events = new ArrayList<String>();
+    events.add("repo:refs_changed");
+    events.add("pr:merged");
+    events.add("pr:declined");
+    webhook.setEvents(events);
 
-      String[] hooks = {webHookUrlCI, webHookUrlDirect};
-      
-      // projects/CLE200/repos/cle200-be-node-express/webhooks
-      String url = String.format("%s/%s/repos/%s/webhooks",
-      buildBasePath(), project.key, repo.getSlug());
+    // projects/CLE200/repos/cle200-be-node-express/webhooks
+    String url = String.format("%s/%s/repos/%s/webhooks",
+        buildBasePath(), project.key, repo.getSlug());
 
-      int i = 0;
-      for (String hook : hooks)
-      {
-    	Webhook wHook = new Webhook();
-    		wHook.setName(String.format("%s-%s-webhook-%d", repo.getSlug(), openShiftEnv, i));	
-    		wHook.setActive(true);
-    		wHook.setUrl(hook);
-    		List<String> events = new ArrayList<String>();
-    		events.add("repo:refs_changed");
-    		events.add("pr:merged");
-    		wHook.setEvents(events);
-    	  
-        try {
-        	ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        	String json = ow.writeValueAsString(wHook);
-        	this.post(url, json, crowdCookie, Webhook.class);
-        } catch (IOException ex) {
-          logger.error("Error in webhook call", ex);
-        }
-        i++;
-      }
+    try {
+      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+      String json = ow.writeValueAsString(webhook);
+      this.post(url, json, crowdCookie, Webhook.class);
+      logger.info("created hook: " + webhook.getUrl());
+    } catch (IOException ex) {
+      logger.error("Error in webhook call", ex);
     }
   }
 
