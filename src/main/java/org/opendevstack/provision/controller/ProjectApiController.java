@@ -38,7 +38,9 @@ import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -55,6 +57,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Rest Controller to handle the process of project creation
  *
  * @author Torsten Jaeschke
+ * @author Clemens Utschig
  */
 @RestController
 @RequestMapping(value = "api/v1/project")
@@ -62,6 +65,8 @@ public class ProjectApiController {
 
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
+  private static final String STR_LOGFILE_KEY = "loggerFileName";
+  
   @Autowired
   private JiraAdapter jiraAdapter;
   @Autowired
@@ -83,9 +88,13 @@ public class ProjectApiController {
   @Autowired
   private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
+  // open for testing
   @Autowired
   CustomAuthenticationManager manager;
 
+  // open for testing
+  @Value("${openshift.project.upgrade}")
+  boolean ocUpgradeAllowed;
   
   /**
    * Add a project to JIRA and process subsequent calls to dependent services, to create a complete
@@ -100,10 +109,16 @@ public class ProjectApiController {
   public ResponseEntity<Object> addProject(HttpServletRequest request, @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
+	if (project == null || project.key == null || project.key.trim().length() == 0) {
+	  return ResponseEntity.badRequest().build();
+	}
+	  
+	project.key = project.key.toUpperCase();
+	MDC.put(STR_LOGFILE_KEY, project.key);
     logger.debug("Crowd Cookie: {}", crowdCookie);
     
     try {
-      logger.debug("Project: {}",
+        logger.debug("Project: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
       	if (project.createpermissionset) {
@@ -125,11 +140,13 @@ public class ProjectApiController {
 	        logger.debug("Updated project: {}", new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 	    }
 	    
-	    project = createDeliveryChain(project, crowdCookie, false);
+	    project = createDeliveryChain(project, crowdCookie);
 
 	    // clear admin user list for storage to prevent serialization problems
 	    project.admins = new ArrayList<>();
 
+	    jiraAdapter.addShortcutsToProject(project, crowdCookie);
+	    
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
       String filePath = storage.storeProject(project);
@@ -147,6 +164,7 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
+    	MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
@@ -163,7 +181,12 @@ public class ProjectApiController {
   public ResponseEntity<Object> updateProject(HttpServletRequest request, @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-    logger.debug("Update project");
+	if (project == null || project.key.trim().length() == 0) {
+		  return ResponseEntity.badRequest().build();
+	}
+	MDC.put(STR_LOGFILE_KEY, project.key);
+	  
+    logger.debug("Update project: " + project.key);
     try {
       logger.debug("Project: {}",
         new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
@@ -177,8 +200,18 @@ public class ProjectApiController {
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;
-      project.openshiftproject = oldProject.openshiftproject;
       project.jiraconfluencespace = oldProject.jiraconfluencespace;
+      // we purposely allow overwriting openshift settings, to create a project later on
+      if (!oldProject.openshiftproject && project.openshiftproject &&
+    		 !ocUpgradeAllowed) 
+      {
+    	  return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+    	  	body("Project: " + project.key + " cannot be upgraded to openshift usage");
+      } else if (oldProject.openshiftproject) 
+      {
+    	  // we need to set this, otherwise the provisioniong will not work
+    	  project.openshiftproject = oldProject.openshiftproject;
+      }
       
       if (oldProject.createpermissionset) 
       {
@@ -189,7 +222,7 @@ public class ProjectApiController {
     	  project.readonlyGroup = oldProject.readonlyGroup;
       }
 
-      project = createDeliveryChain(project, crowdCookie, true);
+      project = createDeliveryChain(project, crowdCookie);
 
       oldProject.bitbucketUrl = project.bitbucketUrl;
       if (project.quickstart != null) {
@@ -220,10 +253,11 @@ public class ProjectApiController {
        */
       return ResponseEntity.ok().body(oldProject);
     } catch (Exception ex) {
-      logger.error("An error occured: {}", ex);
+      logger.error("An error occured while updating project: " + project.key, ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
+    	MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
@@ -237,34 +271,30 @@ public class ProjectApiController {
    * @throws IOException 
    * @throws Exception in case something goes wrong
    */
-  private ProjectData createDeliveryChain(ProjectData project, String crowdCookie, boolean update)
+  private ProjectData createDeliveryChain(ProjectData project, String crowdCookie)
     throws IOException
   {
-    logger.debug("create delivery chain: " + project.openshiftproject);
+    logger.debug("create delivery chain for:" + project.key + " oc?" + project.openshiftproject);
 
-    if (project.bitbucketUrl == null) {
-      // create a bitbucket project
-      project = bitbucketAdapter.createBitbucketProjectsForProject(project, crowdCookie);
-      // provision OpenShift project via rundeck
-      
-      if (project.openshiftproject) 
-      {
-          project = rundeckAdapter.createOpenshiftProjects(project, crowdCookie);
-      }
-    }
-
-    if (project.openshiftproject) 
-    {
-	    // create repositories dependent of the chosen quickstarters
-	    project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
-	
-	    if (!update) {
-	      String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
-	      project = bitbucketAdapter.createAuxiliaryRepositoriesForProject(project, crowdCookie,
-	          auxiliaryRepositories);
-	    }
+    if (!project.openshiftproject) {
+    	return project;
     }
     
+    if (project.bitbucketUrl == null) 
+    {
+      // create a bitbucket project
+      project = bitbucketAdapter.createBitbucketProjectsForProject(project, crowdCookie);
+      // create auxilaries - for design and for the ocp artifacts
+      String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
+      project = bitbucketAdapter.createAuxiliaryRepositoriesForProject(project, crowdCookie,
+          auxiliaryRepositories);
+      // provision OpenShift project via rundeck
+      project = rundeckAdapter.createOpenshiftProjects(project, crowdCookie);
+    }
+
+    // create repositories dependent of the chosen quickstarters
+    project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
+
     if (project.lastJobs == null) {
     	project.lastJobs = new ArrayList<String>();
     }

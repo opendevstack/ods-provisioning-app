@@ -230,9 +230,9 @@ public class BitbucketAdapterTest {
     // once for each group
     Mockito.verify(spyAdapter, Mockito.times(5)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
         Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
-    //one for each user
-    Mockito.verify(spyAdapter, Mockito.times(2)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
-        Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
+    // one for the tech user!
+    Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("users"),
+    	Matchers.eq("cd_user"), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
     assertEquals(expected, actual);
   }
