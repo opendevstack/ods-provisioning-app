@@ -15,12 +15,17 @@
 package org.opendevstack.provision.services;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -225,8 +230,8 @@ public class BitbucketAdapterTest {
 
     BitbucketData actual = spyAdapter.callCreateProjectApi(data, crowdCookieValue);
 
-    Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
-        Matchers.eq(crowdCookieValue), Matchers.any());
+    Mockito.verify(spyAdapter).post(eq(uri), eq(json),
+        eq(crowdCookieValue), Matchers.any());
     // once for each group
     Mockito.verify(spyAdapter, Mockito.times(5)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
         Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
@@ -263,13 +268,13 @@ public class BitbucketAdapterTest {
 
     RepositoryData actual = spyAdapter.callCreateRepoApi(projectKey, repo, crowdCookieValue);
 
-    Mockito.verify(spyAdapter).setRepositoryPermissions(Matchers.eq(expected),
-        Matchers.eq(projectKey), Matchers.eq("groups"), Matchers.any(),
-        Matchers.eq(crowdCookieValue));
-    Mockito.verify(spyAdapter).setRepositoryPermissions(Matchers.eq(expected),
-        Matchers.eq(projectKey), Matchers.eq("users"), Matchers.any(),
-        Matchers.eq(crowdCookieValue));
-    Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
+    Mockito.verify(spyAdapter).setRepositoryPermissions(eq(expected),
+        eq(projectKey), eq("groups"), Matchers.any(),
+        eq(crowdCookieValue));
+    Mockito.verify(spyAdapter).setRepositoryPermissions(eq(expected),
+        eq(projectKey), eq("users"), Matchers.any(),
+        eq(crowdCookieValue));
+    Mockito.verify(spyAdapter).post(eq(uri), eq(json),
         Matchers.same(crowdCookieValue), Matchers.any());
 
 
@@ -337,7 +342,8 @@ public class BitbucketAdapterTest {
     
     
   }
-  
+
+
   private Map<String, List<Link>> generateRepoLinks(String[] linknames) {
     List<Link> linkList = new ArrayList();
     for (String linkname : linknames) {
