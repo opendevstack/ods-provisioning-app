@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.0] - 2018-12-03
+
 ### Added
 - Support for named permission sets. One can provide role names and those are used in jira / confluence and bitbucket - rather than inheriting system wide role permissions (#19, #40)
 - Mail sending can be now explicitely disabled (#47)
@@ -20,6 +23,7 @@
 - Special permission set bug with lowercase mixed project key (#46)
 - Occasional 504 timeout on provision app (#34)
 - Error handling massively fixed to provide insight in what goes wrong - if it does (#38)
+
 
 ## [0.1.0] - 2018-07-27
 
