@@ -1,14 +1,8 @@
 apiVersion: v1
 kind: Template
-metadata:
-  annotations: {}
-  creationTimestamp: null
-  name: prov-app-test
 objects:
 - kind: ConfigMap
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: prov-app
     name: application.properties
@@ -20,7 +14,8 @@ objects:
       logging.level.org.springframework=INFO
       logging.level.org.springframework.security=DEBUG
       logging.level.com.atlassian=INFO
-      logging.level.com.atlassian.crowd=INFO
+      logging.level.com.atlassian.crowd=${LOG_LEVEL_ATLASSIAN_CROWD}
+      logging.level.org.opendevstack=${LOG_LEVEL_OPENDEVSTACK}
 
       #log file
       logging.file=provision.log
@@ -34,10 +29,13 @@ objects:
       #JIRA properties
       jira.uri=${JIRA_URI}
       jira.api.path=/rest/api/latest
+      jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
 
       #Confluence properties
       confluence.uri=${CONFLUENCE_URI}
       confluence.api.path=/rest
+      confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
+      confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
 
       #Bitbucket properties
       bitbucket.uri=${BITBUCKET_URI}
@@ -161,3 +159,9 @@ parameters:
 - name: PIPELINE_TRIGGER_SECRET
   required: true
   description: The trigger secret to pass to the webhook proxy
+- name: LOG_LEVEL_ATLASSIAN_CROWD
+  required: true
+  description: Log level of Atlassian crowd package
+- name: LOG_LEVEL_OPENDEVSTACK
+  required: true
+  description: Log level of OpenDevStack package
