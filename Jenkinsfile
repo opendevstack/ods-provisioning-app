@@ -13,7 +13,7 @@ node {
   nexusPassword = env.NEXUS_PASSWORD
 }
 
-library identifier: 'ods-library@0.1-latest', retriever: modernSCM(
+library identifier: 'ods-library@production', retriever: modernSCM(
   [$class: 'GitSCMSource',
    remote: sharedLibraryRepository,
    credentialsId: credentialsId])
