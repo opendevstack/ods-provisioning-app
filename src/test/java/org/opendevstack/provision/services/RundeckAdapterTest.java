@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.AbstractDocument.Content;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +41,7 @@ import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -140,7 +143,7 @@ public class RundeckAdapterTest {
 
     ProjectData projectData = new ProjectData();
     projectData.key = "key";
-    String crowdCookie = "cookie";
+    String crowdCookie = "cookie2";
 
     ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
@@ -164,6 +167,8 @@ public class RundeckAdapterTest {
 
     ProjectData createdProjectData = spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
 
+    Mockito.verify(spyAdapter).post(Matchers.any(), Matchers.contains("admin\" : \"crowdUsername"), Matchers.any());
+    
     assertEquals(expectedProjectData, createdProjectData);
     assertTrue(expectedProjectData.openshiftproject);
     assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl, 
@@ -172,8 +177,43 @@ public class RundeckAdapterTest {
     		createdProjectData.openshiftConsoleTestEnvUrl);
     assertEquals(expectedProjectData.openshiftJenkinsUrl, 
     		createdProjectData.openshiftJenkinsUrl);
+    
   }
 
+  @Test
+  public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+
+    ProjectData projectData = new ProjectData();
+    projectData.key = "key";
+    String crowdCookie = "cookie2";
+
+    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
+
+    Job job1 = new Job();
+    job1.setName("create-projects");
+    Job job2 = new Job();
+    job2.setName("name2");
+
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(job1);
+    jobs.add(job2);
+  
+    // create special permissionset - here crowd userdetails should never be called
+    projectData.createpermissionset = true;
+    projectData.admin = "clemens";
+  
+    spyAdapter = Mockito.spy(rundeckAdapter);
+        
+    Mockito.doNothing().when(spyAdapter).authenticate();
+    doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
+    doReturn(execData).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any());
+    
+    spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
+    Mockito.verify(crowdUserDetailsService, Mockito.never()).loadUserByToken(crowdCookie); 
+    Mockito.verify(spyAdapter).post(Matchers.any(), Matchers.contains("admin\" : \"clemens"), Matchers.any());
+  }
+  
   @Test
   public void getEndpointAPIPath () throws Exception 
   {
