@@ -112,13 +112,16 @@ public class ProjectApiController {
 	if (project == null || project.key == null || project.key.trim().length() == 0) {
 	  return ResponseEntity.badRequest().build();
 	}
-	  
+	 
+	// fix for opendevstack/ods-provisioning-app/issues/64
+	shortenDescription(project);
+	
 	project.key = project.key.toUpperCase();
 	MDC.put(STR_LOGFILE_KEY, project.key);
     logger.debug("Crowd Cookie: {}", crowdCookie);
     
     try {
-        logger.debug("Project: {}",
+        logger.debug("Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
       	if (project.createpermissionset) {
@@ -412,6 +415,14 @@ public class ProjectApiController {
     Map<String, String> proj = new HashMap<>();
     proj.put("key", jiraAdapter.buildProjectKey(name));
     return ResponseEntity.ok(proj);
+  }
+  
+  void shortenDescription (ProjectData project) 
+  {
+	if (project != null && project.description != null && project.description.length() > 100) 
+	{
+		project.description = project.description.substring(0, 99);
+	}	  
   }
   
 }

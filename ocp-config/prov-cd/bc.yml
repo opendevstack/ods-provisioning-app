@@ -1,19 +1,12 @@
 apiVersion: v1
 kind: Template
-metadata:
-  annotations: {}
-  creationTimestamp: null
-  name: prov-cd
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: jenkins
-      template: component-pipeline
-    name: prov-app-dev
+    name: ods-provisioning-app-production
   spec:
     nodeSelector: {}
     output: {}
@@ -23,7 +16,7 @@ objects:
     source:
       git:
         ref: production
-        uri: ${PROV_APP_REPO_URL}
+        uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
       sourceSecret:
         name: cd-user-with-password
       type: Git
@@ -33,38 +26,10 @@ objects:
       type: JenkinsPipeline
     triggers:
     - generic:
-        secret: secret101
-      type: Generic
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    annotations: {}
-    creationTimestamp: null
-    labels:
-      app: jenkins
-      template: component-pipeline
-    name: prov-app-test
-  spec:
-    nodeSelector: {}
-    output: {}
-    postCommit: {}
-    resources: {}
-    runPolicy: Serial
-    source:
-      git:
-        ref: production
-        uri: ${PROV_APP_REPO_URL}
-      sourceSecret:
-        name: cd-user-with-password
-      type: Git
-    strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfilePath: Jenkinsfile
-      type: JenkinsPipeline
-    triggers:
-    - generic:
-        secret: secret101
+        secret: ${PIPELINE_TRIGGER_SECRET}
       type: Generic
 parameters:
-- name: PROV_APP_REPO_URL
+- name: REPO_BASE
+  required: true
+- name: PIPELINE_TRIGGER_SECRET
   required: true

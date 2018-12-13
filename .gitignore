@@ -22,8 +22,12 @@
 /nbdist/
 /.nb-gradle/
 
+### VS Code ###
+.vscode
+
 /src/docker/target/
 /provision*.log
+/provision.log.*
 bin
 
 *.env
