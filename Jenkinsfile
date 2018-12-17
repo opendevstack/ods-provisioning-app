@@ -33,7 +33,6 @@ odsPipeline(
   stageStartOpenshiftBuild(context)
   stageDeployToOpenshift(context)
   stageTriggerAllBuilds(context)
-  stageCollectBuildArtifacts(context)
 }
 
 def stageBuild(def context) {
@@ -51,27 +50,5 @@ def stageBuild(def context) {
         error "Build failed!"
       }
     }
-  }
-}
-
-// as long as there is no support in shared lib .. 
-def stageCollectBuildArtifacts(def context) 
-{
-  stage('Collect and archive') {
-    // we need to get the sq project name - people could modify it
-    sq_props = readProperties file: 'sonar-project.properties'
-    sonarProjectKey = sq_props['sonar.projectKey']    
-    withEnv (["SQ_PROJECT=${sonarProjectKey}"]) 
-    {
-      withSonarQubeEnv('SonarServerConfig') 
-      {
-          sh "java -jar /usr/local/cnes/cnesreport.jar -s $SONAR_HOST_URL -t $SONAR_AUTH_TOKEN -p $SQ_PROJECT"
-          archiveArtifacts '*-analysis-report.docx*'
-      }
-    }
-    // archive the jenkinsfile (== install plan)
-    archiveArtifacts 'Jenkinsfile'
-    
-    // archive build log
   }
 }
