@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
@@ -170,8 +171,6 @@ public class RundeckAdapter {
   public ProjectData createOpenshiftProjects(ProjectData project, String crowdCookie)
       throws IOException {
 
-    CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);
-
     try {
       List<Job> jobs = getJobs(projectOpenshiftGroup);
       for (Job job : jobs) {
@@ -180,12 +179,18 @@ public class RundeckAdapter {
           Execution execution = new Execution();
           Map<String, String> options = new HashMap<>();
           options.put("project_id", project.key.toLowerCase());
-          if (details != null) {
+          if (project.createpermissionset) 
+          {
+              logger.info("project id: " + project.key + " passed project owner: " + project.admin);
+              options.put("project_admin", project.admin);
+          }
+          else 
+          {
+        	// someone is always logged in :)
+        	UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);  
             logger.info("project id: " + project.key + " details: " + details);
             options.put("project_admin", details.getUsername());
-          } else {
-            logger.info("project id: " + project.key + " -- no user found");
-          }
+          } 
           execution.setOptions(options);
           ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
           String json = ow.writeValueAsString(execution);
@@ -221,7 +226,7 @@ public class RundeckAdapter {
   /**
    * method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar
    */
-  protected void authenticate() throws IOException {
+  void authenticate() throws IOException {
     CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
