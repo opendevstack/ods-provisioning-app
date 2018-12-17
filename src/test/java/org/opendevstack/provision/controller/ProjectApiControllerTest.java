@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -414,6 +415,44 @@ public class ProjectApiControllerTest {
         Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
   }
   
+  @Test
+  public void testProjectDescLengh () throws Exception 
+  {
+        data.description = 
+          	"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
+
+        ProjectData dataReturn = this.copyFromProject(data);
+        apiController.shortenDescription(dataReturn); 
+        
+	    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+            Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+            Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
+        Mockito.when(storage.storeProject(data)).thenReturn("created");
+        Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+        
+        Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
+                
+        mockMvc.perform(post("/api/v1/project")
+                .content(asJsonString(data))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(dataReturn.description + "\"")));
+        
+        // test with null
+        apiController.shortenDescription(null);
+        
+        // test with content
+        apiController.shortenDescription(data);
+        assertEquals(dataReturn.description, data.description);
+        
+        // test with null description
+        data.description = null;
+        apiController.shortenDescription(data);        
+  }
   
   private String asJsonString(final Object obj) {
     try {
@@ -429,6 +468,7 @@ public class ProjectApiControllerTest {
 	  ProjectData data = new ProjectData();
 	  data.key = origin.key;
 	  data.name = origin.name;
+	  data.description = origin.description;
 	  data.openshiftproject = origin.openshiftproject;
 	  data.bitbucketUrl = origin.bitbucketUrl;
 	  data.quickstart = origin.quickstart;
@@ -439,5 +479,5 @@ public class ProjectApiControllerTest {
 	  data.readonlyGroup = origin.readonlyGroup;
 	  return data;
   }
-
+  
 }
