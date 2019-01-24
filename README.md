@@ -29,9 +29,38 @@ The configuration for the permission sets are configured:
 2. Confluence Project is provisioned with special permission set [defined in src/main/resources/permission-templates/confluence.permission.*](src/main/resources/permission-templates)
 3. Bitbucket Project is provisioned with tight read & write roles
 
+# Project types
+The default jira / confluence projects to be created are defined in [src/main/resources/application.properties](src/main/resources/application.properties) - and correspondingly in the config maps
+
+```
+project.template.key.names=default
+
+jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+jira.project.template.type=software
+
+confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-software-project:sp-space-blueprint
+```
+
+To add a new template - copy, and add your config, based on a new <name>
+
+```
+jira.project.template.key.<name>=com.pyxis.greenhopper.jira:gh-scrum-template
+jira.project.template.type.<name>=software
+
+# optional, can stay as is
+confluence.blueprint.key.<name>=com.atlassian.confluence.plugins.confluence-software-project:sp-space-blueprint
+
+```
+
+and add the new <name> into the existing property
+
+```
+project.template.key.names=default,<name>
+```
+
 # Project setup
 
-The Project is based on Spring Boot, using several techs which can be seen in the build.gradle.
+The Project is based on Spring Boot, using several techs which can be seen in the [build.gradle](build.gradle).
 
 If you want to build locally - create gradle.properties in the root 
 

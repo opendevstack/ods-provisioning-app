@@ -11,6 +11,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import okhttp3.Credentials;
@@ -29,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -58,6 +61,9 @@ public class JiraAdapter {
   @Value("${jira.project.template.key}")
   String jiraTemplateKey;
   
+  @Value("${jira.project.template.type}")
+  String jiraTemplateType;
+  
   //Pattern to use for project with id
   private static String URL_PATTERN = "%s%s/project/%s";
 
@@ -76,6 +82,15 @@ public class JiraAdapter {
   @Autowired
   RestClient client;
 
+  @Autowired
+  ConfigurableEnvironment environment;
+
+  @Autowired
+  List<String> projectTemplateKeyNames;
+
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+  
   public static enum HTTP_VERB {
 	  PUT, 
 	  POST,
@@ -108,9 +123,28 @@ public class JiraAdapter {
           project.admins.add(new BasicUser(null, project.admin, project.admin));
       }
       
-      FullJiraProject created = this
-          .callJiraCreateProjectApi(this.buildJiraProjectPojoFromApiProject(project),
-              crowdCookieValue);
+      FullJiraProject toBeCreated = 
+    		  this.buildJiraProjectPojoFromApiProject(project);
+      
+      FullJiraProject created = null;
+      try {
+    	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue); 
+      } catch (IOException jiracreateException) 
+      {
+          logger.debug("error creating project with template {}: {}", 
+        		  toBeCreated.projectTemplateKey,
+        		  jiracreateException.getMessage());
+    	  if (jiracreateException.getMessage() != null && jiracreateException.getMessage().startsWith("400")) {
+    		  toBeCreated.projectTypeKey = jiraTemplateType;
+    		  toBeCreated.projectTemplateKey = jiraTemplateKey;
+        	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
+        	  project.projectType = defaultProjectKey;
+    	  } else 
+    	  {
+    		  throw jiracreateException;
+    	  }
+      }
+          
       logger.debug("Created project: {}", created);
       project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
       project.jiraId = created.id;
@@ -152,6 +186,7 @@ public class JiraAdapter {
   {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(jiraProject);
+    logger.debug("Jira rest object {}", json);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
     FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.POST);
     FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
@@ -255,7 +290,7 @@ public class JiraAdapter {
     	builder = builder.post(body);
     }
 
-    logger.debug("Call to: " + url + " :new:" + newClient);
+    logger.debug("Call to: " + url + " :new:" + newClient + "\n" + json);
     
     Response response = null;
     if (newClient)
@@ -272,7 +307,7 @@ public class JiraAdapter {
     }
     	    
     String respBody = response.body().string();
-    logger.debug(respBody);
+    logger.debug(response.code() + ": " + respBody);
     response.close();
     
     if (response.code() < 200 || response.code() >= 300)
@@ -285,10 +320,31 @@ public class JiraAdapter {
   
   protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
     BasicUser lead = s.admins.get(0);
-    String type = "software";
+
+    String jiratemplateKeyPrefix = "jira.project.template.key.";
+    String jiratemplateTypePrefix = "jira.project.template.type.";
+    
+    String template =
+    	(s.projectType != null && 
+    		environment.containsProperty(jiratemplateKeyPrefix + s.projectType) && 
+    		projectTemplateKeyNames.contains(s.projectType)) ?
+    		environment.getProperty(jiratemplateKeyPrefix + s.projectType) : jiraTemplateKey;
+    		
+    String templateType =
+    	(s.projectType != null && 
+    		environment.containsProperty(jiratemplateTypePrefix + s.projectType) &&
+    		projectTemplateKeyNames.contains(s.projectType)) ?
+        	environment.getProperty(jiratemplateTypePrefix + s.projectType) : jiraTemplateType;
+    
+    if (jiraTemplateKey.equals(template)) 
+    {
+    	s.projectType = defaultProjectKey;
+    }
+    		
+    logger.debug("Creating project of type: " + template + " for project: "  + s.key);
 
     return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
-    	jiraTemplateKey, type);
+    	template, templateType);
   }
 
   public String buildProjectKey(String name) {
@@ -436,4 +492,5 @@ public class JiraAdapter {
 	}
 	return createdShortcuts;
   }
+  
 }

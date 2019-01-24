@@ -45,6 +45,7 @@ import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -85,11 +86,14 @@ public class ProjectApiControllerTest {
   @InjectMocks
   @Autowired
   private ProjectApiController apiController;
-
+  
   private MockMvc mockMvc;
 
   private ProjectData data;
 
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -302,6 +306,22 @@ public class ProjectApiControllerTest {
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void getProjectTemplateKeys () throws Exception
+  {
+      try 
+      {
+		  mockMvc.perform(get("/api/v1/project/templates")
+	        .accept(MediaType.APPLICATION_JSON))
+	        .andExpect(MockMvcResultMatchers.status().isOk())
+	        .andExpect(MockMvcResultMatchers.content().
+	        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
+	        .andDo(MockMvcResultHandlers.print());
+      } finally {
+    	  apiController.jiraAdapter = jiraAdapter;
+      }
   }
   
   @Test

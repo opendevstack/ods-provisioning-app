@@ -36,6 +36,7 @@ import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
@@ -57,6 +58,9 @@ public class ConfluenceAdapterTest {
 
   @Mock
   RestClient client;
+  
+  @Value("${confluence.blueprint.key}")
+  private String confluenceBlueprintKey;
   
   @Test
   public void createConfluenceSpaceForProject() throws Exception {
@@ -128,8 +132,16 @@ public class ConfluenceAdapterTest {
     project.readonlyGroup = "adminGroup";
 
     List <Blueprint> blList = new ArrayList<>();
+    	Blueprint bPrint = new Blueprint();
+    	bPrint.setBlueprintModuleCompleteKey(confluenceBlueprintKey);
+    	bPrint.setContentBlueprintId("1234");
+    blList.add(bPrint);
+    
+    Mockito.doReturn(blList).when(spyAdapter).getList
+    	(Matchers.contains("space-blueprint"), Matchers.anyString(), Matchers.anyObject());
+
     Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getList
-    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
+		(Matchers.contains("jira"), Matchers.anyString(), Matchers.anyObject());
     
     Space space = spyAdapter.createSpaceData(project);
 

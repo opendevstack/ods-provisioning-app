@@ -68,7 +68,7 @@ public class ProjectApiController {
   private static final String STR_LOGFILE_KEY = "loggerFileName";
   
   @Autowired
-  private JiraAdapter jiraAdapter;
+  JiraAdapter jiraAdapter;
   @Autowired
   private ConfluenceAdapter confluenceAdapter;
   @Autowired
@@ -88,6 +88,9 @@ public class ProjectApiController {
   @Autowired
   private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
+  @Autowired
+  private List<String> projectTemplateKeyNames;
+  
   // open for testing
   @Autowired
   CustomAuthenticationManager manager;
@@ -374,6 +377,13 @@ public class ProjectApiController {
     return ResponseEntity.ok().build();
   }
 
+  @RequestMapping(method = RequestMethod.GET, value = "/templates")
+  public ResponseEntity<Object> getProjectTemplateKeys(HttpServletRequest request,
+      @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) 
+  {
+    return ResponseEntity.ok(projectTemplateKeyNames);
+  }
+  
   /**
    * Validate the project's key name. Duplicates are not allowed in JIRA.
    * 

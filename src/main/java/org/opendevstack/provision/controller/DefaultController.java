@@ -15,6 +15,7 @@
 package org.opendevstack.provision.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -71,6 +72,9 @@ public class DefaultController {
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
   
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:home.html";
@@ -95,6 +99,7 @@ public class DefaultController {
             model.addAttribute("crowdUserGroup", crowdUserGroup);
             model.addAttribute("crowdAdminGroup", crowdAdminGroup);
             model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
+            model.addAttribute("projectTypes", projectTemplateKeyNames);
         }
         model.addAttribute("classActiveNew", ACTIVE);
         return "provision";

@@ -17,6 +17,8 @@ package org.opendevstack.provision.services;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,8 +44,10 @@ import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,6 +56,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.jira.rest.client.domain.BasicUser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * @author Brokmeier, Pascal
@@ -77,7 +83,16 @@ public class JiraAdapterTests {
   @Autowired
   @InjectMocks
   JiraAdapter jiraAdapter;
+  
+  @Autowired
+  Environment env;
 
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;  
+  
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
   @Before
   public void initTests() {
     MockitoAnnotations.initMocks(this);
@@ -110,12 +125,42 @@ public class JiraAdapterTests {
     Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
         Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
 
-    
     ProjectData createdProject =
         spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);   
     
     assertEquals(getTestProject(name).key, createdProject.key);
     assertEquals(getTestProject(name).name, createdProject.name);
+    // default template
+    assertEquals(defaultProjectKey, createdProject.projectType);
+    
+    // new template
+    ProjectData templateProject = getTestProject(name);
+    templateProject.projectType="newTemplate";
+    
+    //spyAdapter.jiraTemplateKeyNames[1] = new String("newTemplate");
+    projectTemplateKeyNames.add("newTemplate");
+    spyAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "templateKey");
+    spyAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate", "templateType");
+    
+    ProjectData createdProjectWithNewTemplate =
+        spyAdapter.createJiraProjectForProject(templateProject, crowdCookieValue);   
+    
+    assertEquals(templateProject.key, createdProjectWithNewTemplate.key);
+    assertEquals(templateProject.name, createdProjectWithNewTemplate.name);
+    assertEquals("newTemplate", createdProjectWithNewTemplate.projectType);
+
+    Exception thrownEx = null;
+    try 
+    {
+        IOException ioEx = new IOException("300: ... ");
+        Mockito.doThrow(ioEx).when(spyAdapter).callHttp(Matchers.anyString(),
+                Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+        spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);  
+    } catch (Exception e) 
+    {
+    	thrownEx = e;
+    }
+    assertNotNull(thrownEx);
   }
 
   @Test
@@ -133,7 +178,8 @@ public class JiraAdapterTests {
   }
 
   @Test
-  public void buildJiraProjectPojoFromApiProject() {
+  public void buildJiraProjectPojoFromApiProject() throws Exception
+  {
     ProjectData apiInput = getTestProject("TestProject");
     apiInput.key = "TestP";
 
@@ -141,6 +187,31 @@ public class JiraAdapterTests {
     
     assertEquals(apiInput.name, fullJiraProject.getName());
     assertEquals(apiInput.key, fullJiraProject.getKey());
+    assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
+    assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
+    
+    apiInput.projectType = "notFound";
+    fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
+    assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
+    
+    apiInput.projectType = "newTemplate";
+    // set them adhoc
+//    /*
+//     * does not work - as the bean is already there - jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.names", "newTemplate");
+//     */
+//    jiraAdapter.jiraTemplateKeyNames[1] = new String("newTemplate");
+    projectTemplateKeyNames.add("newTemplate");
+    
+    jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "template");
+    jiraAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate", "templateType");
+    fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    assertEquals("template", fullJiraProject.projectTemplateKey);
+    assertEquals("templateType", fullJiraProject.projectTypeKey);
+    
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    
+    System.out.println(ow.writeValueAsString(fullJiraProject));
   }
 
   @Test
@@ -242,7 +313,6 @@ public class JiraAdapterTests {
         Matchers.eq(JiraAdapter.HTTP_VERB.POST));
     
   }
-
   
   public static ProjectData getTestProject(String name) {
     ProjectData apiInput = new ProjectData();

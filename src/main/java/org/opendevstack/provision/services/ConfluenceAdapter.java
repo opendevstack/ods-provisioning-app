@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,15 @@ public class ConfluenceAdapter {
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
   
+  @Autowired
+  Environment environment;
+  
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+  
   public ProjectData createConfluenceSpaceForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
     this.crowdCookieValue = crowdCookieValue;
@@ -123,7 +133,7 @@ public class ConfluenceAdapter {
   }
 
   Space createSpaceData(ProjectData project) throws IOException {
-    String confluenceBlueprintId = getBluePrintId();
+    String confluenceBlueprintId = getBluePrintId(project.projectType);
     String jiraServerId = getJiraServerId();
 
     Space space = new Space();
@@ -161,16 +171,35 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  protected String getBluePrintId() throws IOException {
+  protected String getBluePrintId(String projectTypeKey) throws IOException 
+  {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints =
         getList(url, crowdCookieValue, new TypeReference<List<Blueprint>>() {});
+    
+    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
+
+    String template =
+    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
+    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
+    		projectTemplateKeyNames.contains(projectTypeKey)) ?
+    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
+    			confluenceBlueprintKey;
+    
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
-      if (blueprint.getBlueprintModuleCompleteKey().equals(confluenceBlueprintKey)) {
+      logger.debug("Blueprint: " + blueprint.getBlueprintModuleCompleteKey() + 
+    		 " searchKey: " +template);
+      if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
         bluePrintId = blueprint.getContentBlueprintId();
+        break;
       }
+    }
+    if (bluePrintId == null) 
+    {
+    	// default
+    	return getBluePrintId(null);
     }
     return bluePrintId;
   }
@@ -190,7 +219,7 @@ public class ConfluenceAdapter {
 
     logger.debug(respBody);
     if (!response.isSuccessful()) {
-    	throw new IOException("Could not retrieve blueprints: " + respBody);
+    	throw new IOException("Could not retrieve " +reference.getClass()+ ": " + respBody);
     }
 
     return new ObjectMapper().readValue(respBody, reference);
@@ -203,12 +232,12 @@ public class ConfluenceAdapter {
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
     Request request = new Request.Builder().url(url).post(body).build();
 
-    logger.debug("Call to: " + url);
+    logger.debug("Call to: " + url + " \n" + json);
     
     Response response = client.getClient(crowdCookieValue).newCall(request).execute();
     String respBody = response.body().string();
 
-    logger.debug(response.code() + " > " + respBody);
+    logger.debug(response.code() + ": " + respBody);
     response.close();
     
     if (response.code() != 200) 

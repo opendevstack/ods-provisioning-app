@@ -356,7 +356,7 @@ public class BitbucketAdapter {
 
     String respBody = response.body().string();
 
-    logger.debug(url, " > " + json + "\n" + response.code() + "> " +  respBody);
+    logger.debug(url + " > " + json + "\n" + response.code() + "> " +  respBody);
 
     if (response.code() == 401) {
     	throw new IOException("You are not authorized to create this resource (" +  url + "): " + respBody);
