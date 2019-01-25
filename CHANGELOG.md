@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+- Limit description to 100 characters ([#70](https://github.com/opendevstack/ods-provisioning-app/pull/70))
+
+### Fixed
+- In case of special permission set, do not create OpenShift projects as admin ([#73](https://github.com/opendevstack/ods-provisioning-app/pull/73))
+
 
 ## [1.0.0] - 2018-12-03
 
