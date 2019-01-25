@@ -3,6 +3,7 @@ package org.opendevstack.provision.services;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.jira.rest.client.domain.BasicUser;
+import com.atlassian.jira.rest.client.domain.Project;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,6 +136,8 @@ public class JiraAdapter {
         		  toBeCreated.projectTemplateKey,
         		  jiracreateException.getMessage());
     	  if (jiracreateException.getMessage() != null && jiracreateException.getMessage().startsWith("400")) {
+    		  logger.info("Template {} did not work, falling back to default {}", 
+    				 toBeCreated.projectTemplateKey, jiraTemplateKey);
     		  toBeCreated.projectTypeKey = jiraTemplateType;
     		  toBeCreated.projectTemplateKey = jiraTemplateKey;
         	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
@@ -324,27 +327,30 @@ public class JiraAdapter {
     String jiratemplateKeyPrefix = "jira.project.template.key.";
     String jiratemplateTypePrefix = "jira.project.template.type.";
     
-    String template =
-    	(s.projectType != null && 
-    		environment.containsProperty(jiratemplateKeyPrefix + s.projectType) && 
-    		projectTemplateKeyNames.contains(s.projectType)) ?
-    		environment.getProperty(jiratemplateKeyPrefix + s.projectType) : jiraTemplateKey;
+    String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
+        (s, jiratemplateKeyPrefix, jiraTemplateKey);
+//    	(s.projectType != null && 
+//    		environment.containsProperty(jiratemplateKeyPrefix + s.projectType) && 
+//    		projectTemplateKeyNames.contains(s.projectType)) ?
+//    		environment.getProperty(jiratemplateKeyPrefix + s.projectType) : jiraTemplateKey;
     		
-    String templateType =
-    	(s.projectType != null && 
-    		environment.containsProperty(jiratemplateTypePrefix + s.projectType) &&
-    		projectTemplateKeyNames.contains(s.projectType)) ?
-        	environment.getProperty(jiratemplateTypePrefix + s.projectType) : jiraTemplateType;
+    String templateType = calculateJiraProjectTypeAndTemplateFromProjectType
+    	(s, jiratemplateTypePrefix, jiraTemplateType);
+    		
+//    	(s.projectType != null && 
+//    		environment.containsProperty(jiratemplateTypePrefix + s.projectType) &&
+//    		projectTemplateKeyNames.contains(s.projectType)) ?
+//        	environment.getProperty(jiratemplateTypePrefix + s.projectType) : jiraTemplateType;
     
-    if (jiraTemplateKey.equals(template)) 
+    if (jiraTemplateKey.equals(templateKey)) 
     {
     	s.projectType = defaultProjectKey;
     }
     		
-    logger.debug("Creating project of type: " + template + " for project: "  + s.key);
+    logger.debug("Creating project of type: " + templateKey + " for project: "  + s.key);
 
     return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
-    	template, templateType);
+    		templateKey, templateType);
   }
 
   public String buildProjectKey(String name) {
@@ -491,6 +497,24 @@ public class JiraAdapter {
 		}
 	}
 	return createdShortcuts;
+  }
+
+  String calculateJiraProjectTypeAndTemplateFromProjectType 
+  	(ProjectData project, String templatePrefix, String defaultValue) 
+  {
+	  Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
+	  Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
+	  /*
+	   * if the type can be found in the global definition of types (projectTemplateKeyNames)
+	   * and is also configured for jira (environment.containsProperty) - take it, if not
+	   * fall back to default
+	   */
+	  return
+    	(project.projectType != null && 
+    		environment.containsProperty(templatePrefix + project.projectType) && 
+    		projectTemplateKeyNames.contains(project.projectType)) ?
+    		environment.getProperty(templatePrefix + project.projectType) : defaultValue;
+	  
   }
   
 }

@@ -311,17 +311,12 @@ public class ProjectApiControllerTest {
   @Test
   public void getProjectTemplateKeys () throws Exception
   {
-      try 
-      {
-		  mockMvc.perform(get("/api/v1/project/templates")
-	        .accept(MediaType.APPLICATION_JSON))
-	        .andExpect(MockMvcResultMatchers.status().isOk())
-	        .andExpect(MockMvcResultMatchers.content().
-	        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
-	        .andDo(MockMvcResultHandlers.print());
-      } finally {
-    	  apiController.jiraAdapter = jiraAdapter;
-      }
+	  mockMvc.perform(get("/api/v1/project/templates")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.content().
+        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
+        .andDo(MockMvcResultHandlers.print());
   }
   
   @Test
