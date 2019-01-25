@@ -68,7 +68,7 @@ public class ProjectApiController {
   private static final String STR_LOGFILE_KEY = "loggerFileName";
   
   @Autowired
-  JiraAdapter jiraAdapter;
+  private JiraAdapter jiraAdapter;
   @Autowired
   private ConfluenceAdapter confluenceAdapter;
   @Autowired
