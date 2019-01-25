@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.1] - 2019-01-25
+
 ### Changed
 - Limit description to 100 characters ([#70](https://github.com/opendevstack/ods-provisioning-app/pull/70))
 
