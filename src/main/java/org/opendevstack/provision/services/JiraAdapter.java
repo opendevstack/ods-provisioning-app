@@ -329,18 +329,9 @@ public class JiraAdapter {
     
     String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
         (s, jiratemplateKeyPrefix, jiraTemplateKey);
-//    	(s.projectType != null && 
-//    		environment.containsProperty(jiratemplateKeyPrefix + s.projectType) && 
-//    		projectTemplateKeyNames.contains(s.projectType)) ?
-//    		environment.getProperty(jiratemplateKeyPrefix + s.projectType) : jiraTemplateKey;
     		
     String templateType = calculateJiraProjectTypeAndTemplateFromProjectType
     	(s, jiratemplateTypePrefix, jiraTemplateType);
-    		
-//    	(s.projectType != null && 
-//    		environment.containsProperty(jiratemplateTypePrefix + s.projectType) &&
-//    		projectTemplateKeyNames.contains(s.projectType)) ?
-//        	environment.getProperty(jiratemplateTypePrefix + s.projectType) : jiraTemplateType;
     
     if (jiraTemplateKey.equals(templateKey)) 
     {
