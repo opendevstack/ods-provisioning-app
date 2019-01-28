@@ -69,9 +69,6 @@ public class JiraAdapter {
   //Pattern to use for project with id
   private static String URL_PATTERN = "%s%s/project/%s";
 
-//  private static final MediaType JSON_MEDIA_TYPE = MediaType
-//      .parse("application/json; charset=utf-8");
-
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
 
@@ -92,13 +89,7 @@ public class JiraAdapter {
 
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
-  
-//  public static enum HTTP_VERB {
-//	  PUT, 
-//	  POST,
-//	  GET
-//  }
-  
+    
   /**
    * Based on the information in the project object we create a jira project
    *
@@ -167,25 +158,7 @@ public class JiraAdapter {
 
   public FullJiraProject getProject(String id, String crowdCookieValue) {
     String url = String.format(URL_PATTERN, jiraUri, jiraApiPath, id);
-//    Request request = new Request
-//        .Builder()
-//        .url(url)
-//        .get()
-//        .build();
-//    try {
-//      String response = client.getClient(crowdCookieValue).newCall(request).execute().body().toString();
-//      logger.debug(response);
-//      return new ObjectMapper().readValue(response, FullJiraProject.class);
-//
-//    } catch (IOException eGetProjects) 
-//    {
-//      logger.error("Error getting projects: {}", eGetProjects);
-//      return null;
-//    }
       try {
-//        String response = client.getClient(crowdCookieValue).newCall(request).execute().body().toString();
-//        logger.debug(response);
-//        return new ObjectMapper().readValue(response, FullJiraProject.class);
     	  return client.callHttp(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, FullJiraProject.class);
       } catch (IOException eGetProjects) 
       {
@@ -199,11 +172,7 @@ public class JiraAdapter {
       FullJiraProject jiraProject, String crowdCookieValue)
       throws IOException 
   {
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//    String json = ow.writeValueAsString(jiraProject);
-//    logger.debug("Jira rest object {}", json);
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-//    FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.POST);
 	  
 	FullJiraProject created = client.callHttp(path, jiraProject, 
 			crowdCookieValue, false, RestClient.HTTP_VERB.POST, FullJiraProject.class);  
@@ -267,21 +236,15 @@ public class JiraAdapter {
 		      logger.debug("Update permissionScheme " + permissionSchemeName +
 		    	" location: " + permissionFiles[i].getFilename());
 		      
-//		      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//		      
-//		      String json = ow.writeValueAsString(singleScheme);
 		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
 		      client.callHttp(path, singleScheme, crowdCookieValue, true, RestClient.HTTP_VERB.POST, PermissionScheme.class);
-//		      singleScheme = callHttp(path, json, crowdCookieValue, PermissionScheme.class, true, HTTP_VERB.POST);
 		      
 		      // update jira project
 		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-//		      json = String.format("{ \"id\" : %s }", singleScheme.getId()); 
 		      
 		      PermissionScheme small = new PermissionScheme();
 		      small.setId(singleScheme.getId());
 		      client.callHttp(path, small, crowdCookieValue, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
-//		      callHttp(path, json, crowdCookieValue, FullJiraProject.class, true, HTTP_VERB.PUT);
 		      
 		      updatedPermissions++;
 	      }
@@ -293,54 +256,6 @@ public class JiraAdapter {
     	}      
       return updatedPermissions;
   }
-  
-//  protected <T> T callHttp(String url, String json, String crowdCookieValue, Class valueType, 
-//		  boolean newClient, HTTP_VERB verb)
-//      throws IOException {
-//	  
-//    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-//
-//    okhttp3.Request.Builder builder = new Request.Builder();
-//    builder.url(url).addHeader("X-Atlassian-Token", "no-check");
-//    
-//    if (HTTP_VERB.PUT.equals(verb))
-//    {
-//        builder = builder.put(body);
-//    } else if (HTTP_VERB.GET.equals(verb))
-//    {
-//    	builder = builder.get();
-//    } else if (HTTP_VERB.POST.equals(verb))
-//    {
-//    	builder = builder.post(body);
-//    }
-//
-//    logger.debug("Call to: " + url + " :new:" + newClient + "\n" + json);
-//    
-//    Response response = null;
-//    if (newClient)
-//    {
-//    	String credentials =
-//    			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
-//    					manager.getUserPassword());
-//    	builder = builder.addHeader("Authorization", credentials);
-//    	response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-//    }
-//    else 
-//    {
-//    	response = client.getClient(crowdCookieValue).newCall(builder.build()).execute();	
-//    }
-//    	    
-//    String respBody = response.body().string();
-//    logger.debug(response.code() + ": " + respBody);
-//    response.close();
-//    
-//    if (response.code() < 200 || response.code() >= 300)
-//    {
-//      throw new IOException(response.code()+": Could not " + verb + " > "  +valueType.getName() + ": " + respBody);
-//    }
-//    
-//    return (T)new ObjectMapper().readValue(respBody, valueType);
-//  }
   
   protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
     BasicUser lead = s.admins.get(0);
@@ -396,25 +311,7 @@ public class JiraAdapter {
     String url = 
     	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
         String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
-    	
-//    Request request = new Request
-//        .Builder()
-//        .url(url)
-//        .get()
-//        .build();
     try {
-//      Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-//      String respBody = response.body().string();
-//
-//      logger.debug(respBody);
-//      response.close();
-//      
-//      if (response.code() == 404) 
-//      {
-//          return new ArrayList<FullJiraProject>();
-//      }
-//      
-//      return new ObjectMapper().readValue(respBody, new TypeReference<List<FullJiraProject>>() {});
     	return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, 
     		new TypeReference<List<FullJiraProject>>() {});
     } catch (JsonMappingException e) {
@@ -424,8 +321,12 @@ public class JiraAdapter {
     		  (null, filter,filter,filter,null, null,null,null, null,null,null, null));
     				  
       return returnList;
-    } catch (IOException e) {
-      logger.error("Error in getting projects", e);
+    } catch (IOException e) 
+    {
+      if (e instanceof HttpException && ((HttpException)e).getResponseCode() != 404)
+      {
+    	  logger.error("Error in getting projects", e);
+      }
       // if for nothing else - 
       return new ArrayList<FullJiraProject>();
     }
@@ -449,7 +350,6 @@ public class JiraAdapter {
 		return -1;
 	}
 	  
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String path = String.format("%s/rest/projects/1.0/project/%s/shortcut", jiraUri, data.key);
 
     List<Shortcut> shortcuts = new ArrayList<>();
@@ -501,8 +401,6 @@ public class JiraAdapter {
 			+ ") for: " + shortcut.getName());
 		try 
 		{
-//		    String json = ow.writeValueAsString(shortcut);
-//		    callHttp(path, json, crowdCookieValue, Shortcut.class, false, HTTP_VERB.POST);
 			client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);
 		    createdShortcuts++;
 		} catch (IOException shortcutEx) 

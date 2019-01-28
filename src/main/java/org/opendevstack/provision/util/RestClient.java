@@ -75,12 +75,10 @@ public class RestClient {
   public static enum HTTP_VERB {
 	  PUT, 
 	  POST,
-	  GET
+	  GET,
+	  HEAD
   }  
   
-//  OkHttpClient getClient() {
-//    return getClient(null);
-//  }
 
   OkHttpClient getClient(String crowdCookie) {
 	  
@@ -106,16 +104,9 @@ public class RestClient {
     return getClient(null);
   }  
   
-  public void getSessionId(String url) throws IOException {
-//    try {
-//      Request req = new Request.Builder().url(url).get().build();
-//      Response resp = getClient().newCall(req).execute();
-//      resp.close();
-//    } catch (IOException ex) {
-//      logger.error("Error in getting session", ex);
-//      throw ex;
-//    }
-	  callHttpInternal(url, null, null, false, HTTP_VERB.GET, null, null);
+  public void getSessionId(String url) throws IOException 
+  {
+	  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
   }
 
   public <T> T callHttp(String url, Object input, String crowdCookieValue, 
@@ -131,7 +122,6 @@ public class RestClient {
   {
 	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
   }
-  
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef)
@@ -160,17 +150,20 @@ public class RestClient {
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
 
     okhttp3.Request.Builder builder = new Request.Builder();
-    builder.url(url).addHeader("X-Atlassian-Token", "no-check");
+    builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
     
     if (HTTP_VERB.PUT.equals(verb))
     {
         builder = builder.put(body);
     } else if (HTTP_VERB.GET.equals(verb))
     {
-    	builder = builder.get().addHeader("Accept", "application/json");
+    	builder = builder.get();
     } else if (HTTP_VERB.POST.equals(verb))
     {
     	builder = builder.post(body);
+    } else if (HTTP_VERB.HEAD.equals(verb))
+    {
+    	builder = builder.head();
     }
     
     Response response = null;
@@ -189,7 +182,7 @@ public class RestClient {
     	    
     String respBody = response.body().string();
     response.close();
-    logger.debug(response.code() + ": " + respBody + " :: " + verb);
+    logger.debug(url + " > " + response.code() + ": \n" + respBody + " :: " + verb);
     
     if (response.code() < 200 || response.code() >= 300)
     {

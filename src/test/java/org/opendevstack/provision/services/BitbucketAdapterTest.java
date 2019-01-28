@@ -27,7 +27,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-//import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.ProjectData;
@@ -35,7 +34,6 @@ import org.opendevstack.provision.model.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
-import org.opendevstack.provision.model.bitbucket.Webhook;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,8 +44,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * @author Torsten Jaeschke
@@ -211,20 +207,12 @@ public class BitbucketAdapterTest {
 
     spyAdapter.client = client;
     
-//    BitbucketProject project = BitbucketAdapter.createBitbucketProject(data);
-
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//    String json = ow.writeValueAsString(project);
-
     BitbucketData expected = new BitbucketData();
     expected.setDescription("this is a discription");
     expected.setName("testproject");
     expected.setKey("testkey");
     expected.setId("13231");
 
-//    Mockito.doReturn(expected).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any(),
-//        Matchers.any());
-    
 	Mockito.doReturn(expected).when(client).callHttp(
 		Matchers.anyString(), Matchers.anyString(), Matchers.anyString(),
 		Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any());
@@ -234,9 +222,6 @@ public class BitbucketAdapterTest {
     Mockito.doReturn(uri).when(spyAdapter).buildBasePath();
 
     BitbucketData actual = spyAdapter.callCreateProjectApi(data, crowdCookieValue);
-
-//    Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
-//        Matchers.eq(crowdCookieValue), Matchers.any());
     
     Mockito.verify(client).callHttp(Matchers.eq(uri), Matchers.isA(BitbucketProject.class),
 		  Matchers.eq(crowdCookieValue), Matchers.anyBoolean(), 
@@ -266,14 +251,9 @@ public class BitbucketAdapterTest {
     String uri = "http://192.168.56.31:7990/rest/api/1.0/testkey/repos";
 
 
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//    String json = ow.writeValueAsString(repo);
-
     RepositoryData expected = new RepositoryData();
 
     Mockito.doReturn(basePath).when(spyAdapter).buildBasePath();
-//    Mockito.doReturn(expected).when(spyAdapter).post(Matchers.anyString(), Matchers.any(),
-//        Matchers.same(crowdCookieValue), Matchers.any());
     
 	Mockito.doReturn(expected).when(client).callHttp(
 		Matchers.anyString(), Matchers.anyString(), Matchers.same(crowdCookieValue),
@@ -290,8 +270,6 @@ public class BitbucketAdapterTest {
     Mockito.verify(spyAdapter).setRepositoryPermissions(Matchers.eq(expected),
         Matchers.eq(projectKey), Matchers.eq("users"), Matchers.any(),
         Matchers.eq(crowdCookieValue));
-//    Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
-//        Matchers.same(crowdCookieValue), Matchers.any());
     
     Mockito.verify(client).callHttp(Matchers.eq(uri), Matchers.eq(repo),
 		  Matchers.same(crowdCookieValue), Matchers.anyBoolean(), 
@@ -352,9 +330,6 @@ public class BitbucketAdapterTest {
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-
-//	Mockito.doReturn(repoData1).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(), 
-//			Matchers.anyString(), Matchers.any());
 
 	Mockito.doReturn(repoData1).when(client).callHttp(
 		Matchers.anyString(), Matchers.anyString(), Matchers.anyString(),

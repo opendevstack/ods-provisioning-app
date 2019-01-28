@@ -41,16 +41,6 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 
 import okhttp3.HttpUrl;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.databind.ObjectWriter;
-
-//import okhttp3.Credentials;
-//import okhttp3.HttpUrl;
-//import okhttp3.MediaType;
-//import okhttp3.Request;
-//import okhttp3.Request.Builder;
-//import okhttp3.RequestBody;
-//import okhttp3.Response;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -106,9 +96,6 @@ public class BitbucketAdapter {
   CustomAuthenticationManager manager;
     
   private static String PROJECT_PATTERN = "%s%s/projects";
-
-//  private static final MediaType JSON_MEDIA_TYPE =
-//      MediaType.parse("application/json; charset=utf-8");
 
   private static final String COMPONENT_ID_KEY = "component_id";
   
@@ -260,9 +247,6 @@ public class BitbucketAdapter {
     	  
         try 
         {
-//        	ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//        	String json = ow.writeValueAsString(wHook);
-//        	this.post(url, json, crowdCookie, Webhook.class);
         	client.callHttp(url, wHook, crowdCookie, false, RestClient.HTTP_VERB.POST, Webhook.class);
         } catch (IOException ex) {
           logger.error("Error in webhook call", ex);
@@ -277,16 +261,9 @@ public class BitbucketAdapter {
 	  
 	BitbucketProject bbProject =  createBitbucketProject(project);
 	  
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//    String json = ow.writeValueAsString(bbProject);
-//
-//    logger.debug("About to create bitbucket project for: " + bbProject.getKey() + "\n" + json);
-
     BitbucketData projectData =
-//        (BitbucketData) this.post(buildBasePath(), json, crowdCookieValue, BitbucketData.class);
-
 	    client.callHttp(buildBasePath(), bbProject, crowdCookieValue, false, RestClient.HTTP_VERB.POST,
-	    		BitbucketData.class);
+    		BitbucketData.class);
     
     if (project.createpermissionset)
     {
@@ -306,12 +283,9 @@ public class BitbucketAdapter {
 
   protected RepositoryData callCreateRepoApi(String projectKey, Repository repo,
       String crowdCookieValue) throws IOException {
-//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//    String json = ow.writeValueAsString(repo);
     String path = String.format("%s/%s/repos", buildBasePath(), projectKey);
 
     RepositoryData data =
-//        (RepositoryData) this.post(path, json, crowdCookieValue, RepositoryData.class);
     	client.callHttp(path, repo, crowdCookieValue, false, RestClient.HTTP_VERB.POST,
     		RepositoryData.class);
 
@@ -345,8 +319,6 @@ public class BitbucketAdapter {
     urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
     urlBuilder.addQueryParameter("name", groupOrUser);
     
-//    this.put(urlBuilder.build(), crowdCookieValue);
-    
     client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
     	RestClient.HTTP_VERB.PUT, String.class);
   }
@@ -354,54 +326,6 @@ public class BitbucketAdapter {
   protected String buildBasePath() {
     return String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
   }
-
-//  protected Object post(String url, String json, String crowdCookieValue, Class clazz)
-//	      throws IOException {
-//    client.getSessionId(bitbucketUri);
-//
-//    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-//    Builder builder = new Request.Builder().url(url).post(body);
-//
-//	String credentials =
-//			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
-//					manager.getUserPassword());
-//	builder = builder.addHeader("Authorization", credentials);
-//	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-//
-//    String respBody = response.body().string();
-//
-//    logger.debug(url + " > " + json + "\n" + response.code() + "> " +  respBody);
-//
-//    if (response.code() == 401) {
-//    	throw new IOException("You are not authorized to create this resource (" +  url + "): " + respBody);
-//    }
-//    
-//    if (response.code() == 409) {
-//      throw new IOException("Resource creation failed, resource already exists");
-//    }
-//
-//    response.close();
-//    return new ObjectMapper().readValue(respBody, clazz);
-//  }
-//  
-//  
-//  private void put(HttpUrl url, String crowdCookieValue) throws IOException {
-//
-//    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, "");
-//    Builder builder = new Request.Builder().url(url).put(body);
-//
-//	String credentials =
-//			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
-//					manager.getUserPassword());
-//	builder = builder.addHeader("Authorization", credentials);
-//    
-//	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-//    String respBody = response.body().string();
-//
-//    logger.debug(url+ " - " + response.code() + ">" + respBody);
-//    response.close();
-//
-//  }
 
   public static BitbucketProject createBitbucketProject(ProjectData jiraProject) {
     BitbucketProject project = new BitbucketProject();
