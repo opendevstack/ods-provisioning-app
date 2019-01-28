@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -41,6 +42,9 @@ public class RestClientTest {
 
   private RestClient client;
 
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdSSOCookieName;
+  
   @Before
   public void setUp() {
     client = new RestClient();
@@ -48,6 +52,7 @@ public class RestClientTest {
     client.setReadTimeout(1);
     CrowdCookieJar cookieJar = new CrowdCookieJar();
     cookieJar.setDomain("localhost");
+    cookieJar.setSSOCookieName(crowdSSOCookieName);
     client.setCookieJar(cookieJar);
   }
 
