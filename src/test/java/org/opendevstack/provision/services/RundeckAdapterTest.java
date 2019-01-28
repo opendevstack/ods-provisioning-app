@@ -35,6 +35,7 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,6 +71,9 @@ public class RundeckAdapterTest {
   @InjectMocks
   RundeckAdapter rundeckAdapter;
 
+  @Mock
+  RestClient client;
+  
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
@@ -125,8 +129,14 @@ public class RundeckAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).authenticate();
     doReturn(job).when(jobStore).getJob(Matchers.anyString());
-    doReturn(Mockito.mock(ExecutionsData.class)).when(spyAdapter).post(Matchers.anyString(),
-        Matchers.eq(json), Matchers.any());
+//    doReturn(Mockito.mock(ExecutionsData.class)).when(spyAdapter).post(Matchers.anyString(),
+//        Matchers.eq(json), Matchers.any());
+
+    doReturn(Mockito.mock(ExecutionsData.class)).when(client).
+		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
+			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
+			Matchers.eq(ExecutionsData.class));    
+    
     int expectedExecutionsSize = 1;
     
     int actualExecutionsSize = spyAdapter.executeJobs(project).size();
@@ -158,7 +168,13 @@ public class RundeckAdapterTest {
     Mockito.when(details.getUsername()).thenReturn("crowdUsername");
 
     doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
-    doReturn(execData).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any());
+//    doReturn(execData).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any());
+
+    doReturn(execData).when(client).
+		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
+			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
+			Matchers.eq(ExecutionsData.class));
+    
     
     ProjectData expectedProjectData = generateDefaultProjectData();
 

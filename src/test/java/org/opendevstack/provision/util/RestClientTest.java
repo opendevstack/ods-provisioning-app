@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.util;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -21,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -54,7 +57,7 @@ public class RestClientTest {
 
   @Test
   public void getClient() throws Exception {
-    assertTrue(client.getClient() instanceof OkHttpClient);
+    assertTrue(client.getClient(null) instanceof OkHttpClient);
   }
 
   @Test
@@ -71,4 +74,31 @@ public class RestClientTest {
   public void getSessionIdWithException() throws Exception {
     client.getSessionId(String.format("http://invalid_address", randomServerPort));
   }
+
+  @Test
+  public void callHttpGreen () throws Exception
+  { 
+	  String response = client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+	  
+	  assertNotNull(response);
+	  
+	  ProjectData data = new ProjectData();
+	  
+	  response = client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
+	  
+	  assertNotNull(response);
+	  
+  }
+
+  @Test (expected = NullPointerException.class)
+  public void callAuthWithoutCredentials () throws Exception
+  { 
+	  client.callHttpBasicFormAuthenticate(
+			 String.format("http://localhost:%d", randomServerPort));
+  }
+    
 }

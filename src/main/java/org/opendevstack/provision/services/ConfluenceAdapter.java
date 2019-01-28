@@ -36,13 +36,13 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.databind.ObjectWriter;
+//
+//import okhttp3.MediaType;
+//import okhttp3.Request;
+//import okhttp3.RequestBody;
+//import okhttp3.Response;
 
 /**
  * Service to interact with and add Spaces
@@ -80,8 +80,8 @@ public class ConfluenceAdapter {
   
   private static final String SPACE_GROUP = "SPACE_GROUP";
 
-  private static final MediaType JSON_MEDIA_TYPE =
-      MediaType.parse("application/json; charset=utf-8");
+//  private static final MediaType JSON_MEDIA_TYPE =
+//      MediaType.parse("application/json; charset=utf-8");
 
   private String crowdCookieValue = null;
 
@@ -123,13 +123,14 @@ public class ConfluenceAdapter {
   }
 
   protected SpaceData callCreateSpaceApi(Space space, String crowdCookieValue) throws IOException {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(space);
-
-    logger.debug(json);
-
-    String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return this.post(path, json, crowdCookieValue, SpaceData.class);
+//    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+//    String json = ow.writeValueAsString(space);
+//
+//    logger.debug(json);
+//
+      String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
+//    return this.post(path, json, crowdCookieValue, SpaceData.class);
+	  return client.callHttp(path, space, crowdCookieValue, false, RestClient.HTTP_VERB.POST, SpaceData.class);
   }
 
   Space createSpaceData(ProjectData project) throws IOException {
@@ -210,43 +211,45 @@ public class ConfluenceAdapter {
 
     client.getSessionId(confluenceUri);
 
-    Request request =
-        new Request.Builder().url(url).addHeader("Accept", "application/json").get().build();
-
-    logger.debug("calling url : " + url);
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(respBody);
-    if (!response.isSuccessful()) {
-    	throw new IOException("Could not retrieve " +reference.getClass()+ ": " + respBody);
-    }
-
-    return new ObjectMapper().readValue(respBody, reference);
+//    Request request =
+//        new Request.Builder().url(url).addHeader("Accept", "application/json").get().build();
+//
+//    logger.debug("calling url : " + url);
+//    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
+//    String respBody = response.body().string();
+//
+//    logger.debug(respBody);
+//    if (!response.isSuccessful()) {
+//    	throw new IOException("Could not retrieve " +reference.getClass()+ ": " + respBody);
+//    }
+//
+//    return new ObjectMapper().readValue(respBody, reference);
+    
+    return (List<Object>) client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, reference);
   }
 
-  protected <T> T post(String url, String json, String crowdCookieValue, Class valueType) throws IOException {
-
-    client.getSessionId(confluenceUri);
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-    Request request = new Request.Builder().url(url).post(body).build();
-
-    logger.debug("Call to: " + url + " \n" + json);
-    
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(response.code() + ": " + respBody);
-    response.close();
-    
-    if (response.code() != 200) 
-    {
-      throw new IOException("Could not create " + valueType.getName() + " : " + respBody);
-    }
-        
-    return (T) new ObjectMapper().readValue(respBody, valueType);
-  }
+//  protected <T> T post(String url, String json, String crowdCookieValue, Class valueType) throws IOException {
+//
+//    client.getSessionId(confluenceUri);
+//
+//    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
+//    Request request = new Request.Builder().url(url).post(body).build();
+//
+//    logger.debug("Call to: " + url + " \n" + json);
+//    
+//    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
+//    String respBody = response.body().string();
+//
+//    logger.debug(response.code() + ": " + respBody);
+//    response.close();
+//    
+//    if (response.code() != 200) 
+//    {
+//      throw new IOException("Could not create " + valueType.getName() + " : " + respBody);
+//    }
+//        
+//    return (T) new ObjectMapper().readValue(respBody, valueType);
+//  }
 
   int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
   {
@@ -289,7 +292,9 @@ public class ConfluenceAdapter {
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
-    	  post(path, permissionset, crowdCookieValue, String.class); 
+    	  // post(path, permissionset, crowdCookieValue, String.class); 
+    	  client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
+    	  
 	      updatedPermissions++;
       }
       return updatedPermissions;

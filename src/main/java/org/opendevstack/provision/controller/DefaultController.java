@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,6 +28,8 @@ import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -59,6 +62,8 @@ public class DefaultController {
   @Autowired
   private ConfluenceAdapter confluenceAdapter;
 
+  private static final Logger logger = LoggerFactory.getLogger(DefaultController.class);
+
   private static final String LOGIN_REDIRECT = "redirect:/login";
   
   private static final String ACTIVE = "active";
@@ -75,6 +80,9 @@ public class DefaultController {
   @Autowired
   List<String> projectTemplateKeyNames;
   
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdCookieKey;
+  
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:home.html";
@@ -90,7 +98,23 @@ public class DefaultController {
   }
 
     @RequestMapping("/provision")
-    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie){
+    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
+    {
+    	if (crowdCookie == null && request != null) {
+    		logger.debug("cookie NULL + " + request);
+    		
+    		Cookie[] cookies = request.getCookies();
+    		for (Cookie cookie : cookies) 
+    		{
+        		logger.debug("cookie" + cookie.getName());
+    			
+    			if (cookie.getName().equals(this.crowdCookieKey)) 
+    			{
+    				crowdCookie = cookie.getValue();
+    			}
+    		}
+    	}
+    	
         if(!isAuthenticated()) {
             return LOGIN_REDIRECT;
         } else {

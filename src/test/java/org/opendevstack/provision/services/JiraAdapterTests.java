@@ -18,7 +18,6 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 
 import java.io.IOException;
 import java.net.URI;
@@ -122,9 +121,12 @@ public class JiraAdapterTests {
     
     Mockito.when(details.getUsername()).thenReturn("achmed");
     Mockito.when(details.getFullName()).thenReturn("achmed meyer");
-    Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+//    Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
+//        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
 
+    Mockito.doReturn(getReturnProject()).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
+            Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));    
+    
     ProjectData createdProject =
         spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);   
     
@@ -153,8 +155,12 @@ public class JiraAdapterTests {
     try 
     {
         IOException ioEx = new IOException("300: ... ");
-        Mockito.doThrow(ioEx).when(spyAdapter).callHttp(Matchers.anyString(),
-                Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+//        Mockito.doThrow(ioEx).when(spyAdapter).callHttp(Matchers.anyString(),
+//                Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+        
+        Mockito.doThrow(ioEx).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
+                Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
+        
         spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);  
     } catch (Exception e) 
     {
@@ -169,8 +175,11 @@ public class JiraAdapterTests {
     String crowdCookieValue = "value";
     FullJiraProject expectedProject = new FullJiraProject();
 
-    Mockito.doReturn(expectedProject).when(spyAdapter).callHttp(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+//    Mockito.doReturn(expectedProject).when(spyAdapter).callHttp(Matchers.anyString(), Matchers.anyString(),
+//        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+ 
+    Mockito.doReturn(expectedProject).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
     
     FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject, crowdCookieValue);
 
@@ -262,23 +271,33 @@ public class JiraAdapterTests {
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
     
-    Mockito.doReturn(scheme).when(mocked).callHttp(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), 
-        Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
-        Matchers.any(JiraAdapter.HTTP_VERB.class));
+//    Mockito.doReturn(scheme).when(mocked).callHttp(Matchers.anyString(),
+//        Matchers.anyString(), Matchers.anyString(), 
+//        Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
+//        Matchers.any(JiraAdapter.HTTP_VERB.class));
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyString(), 
-            Matchers.eq(PermissionScheme.class), Matchers.anyBoolean(),
-            Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+//    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
+//            Matchers.anyString(), Matchers.anyString(), 
+//            Matchers.eq(PermissionScheme.class), Matchers.anyBoolean(),
+//            Matchers.eq(JiraAdapter.HTTP_VERB.POST));
 
-    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyString(), 
-            Matchers.eq(FullJiraProject.class), Matchers.anyBoolean(),
-            Matchers.eq(JiraAdapter.HTTP_VERB.PUT));
+    Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
+            Matchers.anyObject(),
+            Matchers.anyString(), Matchers.anyBoolean(),
+            Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class));
 
+//    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
+//            Matchers.anyString(), Matchers.anyString(), 
+//            Matchers.eq(FullJiraProject.class), Matchers.anyBoolean(),
+//            Matchers.eq(JiraAdapter.HTTP_VERB.PUT));
+
+    Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
+            Matchers.anyObject(),
+            Matchers.anyString(), Matchers.anyBoolean(),
+            Matchers.eq(RestClient.HTTP_VERB.PUT), Matchers.eq(FullJiraProject.class));
+    
     assertEquals(1, updates);
   }
 
@@ -286,31 +305,43 @@ public class JiraAdapterTests {
   public void testCreateShortcuts () throws Exception 
   {
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
+    RestClient restClientMocket = Mockito.spy(RestClient.class);
     ProjectData apiInput = getTestProject("testproject");
     
-    Mockito.doReturn(Shortcut.class).when(mocked).callHttp(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), 
-        Matchers.any(Shortcut.class.getClass()), Matchers.anyBoolean(),
-        Matchers.any(JiraAdapter.HTTP_VERB.class));
+//    Mockito.doReturn(Shortcut.class).when(mocked).callHttp(Matchers.anyString(),
+//        Matchers.anyString(), Matchers.anyString(), 
+//        Matchers.any(Shortcut.class.getClass()), Matchers.anyBoolean(),
+//        Matchers.any(JiraAdapter.HTTP_VERB.class));
 
     int shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
     
     assertEquals(5, shortcutsAdded);
     
-    Mockito.verify(mocked, Mockito.times(5)).callHttp(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), 
-        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
-        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+//    Mockito.verify(mocked, Mockito.times(5)).callHttp(Matchers.anyString(),
+//        Matchers.anyString(), Matchers.anyString(), 
+//        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
+//        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+
+    Mockito.verify(client, Mockito.times(5)).callHttp(Matchers.anyString(),
+        Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(),
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
     
     apiInput.jiraconfluencespace = false;
     mocked = Mockito.spy(jiraAdapter);
+    mocked.client = Mockito.spy(RestClient.class);
     shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
     assertEquals(-1, shortcutsAdded);
     
-    Mockito.verify(mocked, Mockito.never()).callHttp(Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyString(), 
-        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
-        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+//    Mockito.verify(mocked, Mockito.never()).callHttp(Matchers.anyString(),
+//        Matchers.anyString(), Matchers.anyString(), 
+//        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
+//        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
+    
+    Mockito.verify(mocked.client, Mockito.never()).callHttp(Matchers.anyString(),
+        Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(),
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
     
   }
   

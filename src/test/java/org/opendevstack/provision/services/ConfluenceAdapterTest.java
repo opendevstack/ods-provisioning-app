@@ -52,12 +52,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 @DirtiesContext
 public class ConfluenceAdapterTest {
 
+  @Mock
+  RestClient client;
+
   @Autowired
   @InjectMocks
   ConfluenceAdapter confluenceAdapter;
-
-  @Mock
-  RestClient client;
   
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
@@ -83,11 +83,15 @@ public class ConfluenceAdapterTest {
   @Test
   public void callCreateSpaceApi() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    spyAdapter.client = client;
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
-    doReturn(expectedSpaceData).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.any(SpaceData.class.getClass()));
+//    doReturn(expectedSpaceData).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
+//        Matchers.anyString(), Matchers.any(SpaceData.class.getClass()));
+    doReturn(expectedSpaceData).when(client).callHttp(Matchers.anyString(), Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(), 
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(SpaceData.class));
     
     SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space, "crowdCookieValue");
 
@@ -102,23 +106,45 @@ public class ConfluenceAdapterTest {
     project.userGroup = "userGroup";
     project.readonlyGroup = "readGroup";
     
-    Mockito.doReturn(String.class).when(spyAdapter).post
-    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
-    		Matchers.any(String.class.getClass()));
+//    Mockito.doReturn(String.class).when(spyAdapter).post
+//    	(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), 
+//    		Matchers.any(String.class.getClass()));
+    spyAdapter.client = client;
+
+    doReturn(String.class).when(client).callHttp(Matchers.anyString(), Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(), 
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any(String.class.getClass()));
     
     int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
 
     // 3 permission sets
-    Mockito.verify(spyAdapter, Mockito.times(1)).post
-		(Matchers.anyString(), Matchers.contains(project.adminGroup), Matchers.anyString(), 
-			Matchers.any(String.class.getClass()));
-    Mockito.verify(spyAdapter, Mockito.times(1)).post
-		(Matchers.anyString(), Matchers.contains(project.userGroup), Matchers.anyString(), 
-			Matchers.any(String.class.getClass()));
-    Mockito.verify(spyAdapter, Mockito.times(1)).post
-		(Matchers.anyString(), Matchers.contains(project.readonlyGroup), Matchers.anyString(), 
-			Matchers.any(String.class.getClass()));
+//    Mockito.verify(spyAdapter, Mockito.times(1)).post
+//		(Matchers.anyString(), Matchers.contains(project.adminGroup), Matchers.anyString(), 
+//			Matchers.any(String.class.getClass()));
 
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.adminGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
+    
+//    Mockito.verify(spyAdapter, Mockito.times(1)).post
+//		(Matchers.anyString(), Matchers.contains(project.userGroup), Matchers.anyString(), 
+//			Matchers.any(String.class.getClass()));
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.userGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
+//    Mockito.verify(spyAdapter, Mockito.times(1)).post
+//		(Matchers.anyString(), Matchers.contains(project.readonlyGroup), Matchers.anyString(), 
+//			Matchers.any(String.class.getClass()));
+
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.readonlyGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
     
     assertEquals(3, permissionSets);
   }
