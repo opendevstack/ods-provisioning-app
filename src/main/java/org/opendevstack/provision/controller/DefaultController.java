@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -62,8 +61,6 @@ public class DefaultController {
   @Autowired
   private ConfluenceAdapter confluenceAdapter;
 
-  private static final Logger logger = LoggerFactory.getLogger(DefaultController.class);
-
   private static final String LOGIN_REDIRECT = "redirect:/login";
   
   private static final String ACTIVE = "active";
@@ -100,21 +97,6 @@ public class DefaultController {
     @RequestMapping("/provision")
     String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
     {
-    	if (crowdCookie == null && request != null) {
-    		logger.debug("cookie NULL + " + request);
-    		
-    		Cookie[] cookies = request.getCookies();
-    		for (Cookie cookie : cookies) 
-    		{
-        		logger.debug("cookie" + cookie.getName());
-    			
-    			if (cookie.getName().equals(this.crowdCookieKey)) 
-    			{
-    				crowdCookie = cookie.getValue();
-    			}
-    		}
-    	}
-    	
         if(!isAuthenticated()) {
             return LOGIN_REDIRECT;
         } else {
