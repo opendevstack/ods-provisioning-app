@@ -275,6 +275,11 @@ public class JiraAdapterTests {
 //        Matchers.anyString(), Matchers.anyString(), 
 //        Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
 //        Matchers.any(JiraAdapter.HTTP_VERB.class));
+    Mockito.when(client.callHttp(Matchers.anyString(),
+            Matchers.anyObject(),
+            Matchers.anyString(), Matchers.anyBoolean(),
+            Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class))).
+    	thenReturn(scheme);
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
