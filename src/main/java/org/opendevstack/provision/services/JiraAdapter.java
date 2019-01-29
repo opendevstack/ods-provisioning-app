@@ -237,11 +237,12 @@ public class JiraAdapter {
 		    	" location: " + permissionFiles[i].getFilename());
 		      
 		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-		      client.callHttp(path, singleScheme, crowdCookieValue, true, RestClient.HTTP_VERB.POST, PermissionScheme.class);
+		      singleScheme = 
+		    		client.callHttp(path, singleScheme, crowdCookieValue, true, 
+		    			RestClient.HTTP_VERB.POST, PermissionScheme.class);
 		      
 		      // update jira project
 		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-		      
 		      PermissionScheme small = new PermissionScheme();
 		      small.setId(singleScheme.getId());
 		      client.callHttp(path, small, crowdCookieValue, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
