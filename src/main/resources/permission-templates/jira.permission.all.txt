@@ -40,6 +40,13 @@
         {
             "holder": {
                 "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
                 "parameter": "adminGroup"
             },
             "permission": "VIEW_DEV_TOOLS"
