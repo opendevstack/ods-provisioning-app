@@ -129,8 +129,6 @@ public class RundeckAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).authenticate();
     doReturn(job).when(jobStore).getJob(Matchers.anyString());
-//    doReturn(Mockito.mock(ExecutionsData.class)).when(spyAdapter).post(Matchers.anyString(),
-//        Matchers.eq(json), Matchers.any());
 
     doReturn(Mockito.mock(ExecutionsData.class)).when(client).
 		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
@@ -168,7 +166,6 @@ public class RundeckAdapterTest {
     Mockito.when(details.getUsername()).thenReturn("crowdUsername");
 
     doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
-//    doReturn(execData).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any());
 
     doReturn(execData).when(client).
 		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 

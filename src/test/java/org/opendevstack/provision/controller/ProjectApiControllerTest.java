@@ -196,7 +196,7 @@ public class ProjectApiControllerTest {
   
   
   @Test
-  public void addProjectAndBadRequest() throws Exception {
+  public void addProjectEmptyAndBadRequest() throws Exception {
 	Mockito.doNothing().when(client).removeClient(Matchers.anyString());
 
     mockMvc
@@ -206,17 +206,10 @@ public class ProjectApiControllerTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andDo(MockMvcResultHandlers.print());
-
-    
-    
   }
 
   @Test
-  public void addProjectAnd4xxClientResult() throws Exception {
-    ProjectData data = new ProjectData();
-    data.key = "KEY";
-    data.name = "Name";
-
+  public void addProjectNullAnd4xxClientResult() throws Exception {
     mockMvc
         .perform(post("/api/v1/project")
             .content("")
@@ -226,6 +219,22 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
   }
 
+  @Test
+  public void addProjectKeyOnlyAndExpectBadRequest() throws Exception {
+    ProjectData data = new ProjectData();
+    data.key = "KEY";
+    data.openshiftproject = true;
+
+    mockMvc
+        .perform(post("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andDo(MockMvcResultHandlers.print());
+  }
+
+  
   @Test
   public void validateProjectWithProjectExists() throws Exception {
     Mockito.when(
@@ -364,8 +373,9 @@ public class ProjectApiControllerTest {
     // existing - store prior
     Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
 
-    // upgrade to OC
-    ProjectData upgrade = copyFromProject(data);
+    // upgrade to OC - with minimal set
+    ProjectData upgrade = new ProjectData();
+    upgrade.key = data.key;
     upgrade.openshiftproject = true;
     apiController.ocUpgradeAllowed = true;
     

@@ -42,6 +42,7 @@ import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -121,8 +122,6 @@ public class JiraAdapterTests {
     
     Mockito.when(details.getUsername()).thenReturn("achmed");
     Mockito.when(details.getFullName()).thenReturn("achmed meyer");
-//    Mockito.doReturn(getReturnProject()).when(spyAdapter).callHttp(Matchers.anyString(),
-//        Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
 
     Mockito.doReturn(getReturnProject()).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
             Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));    
@@ -139,7 +138,6 @@ public class JiraAdapterTests {
     ProjectData templateProject = getTestProject(name);
     templateProject.projectType="newTemplate";
     
-    //spyAdapter.jiraTemplateKeyNames[1] = new String("newTemplate");
     projectTemplateKeyNames.add("newTemplate");
     spyAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "templateKey");
     spyAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate", "templateType");
@@ -151,22 +149,21 @@ public class JiraAdapterTests {
     assertEquals(templateProject.name, createdProjectWithNewTemplate.name);
     assertEquals("newTemplate", createdProjectWithNewTemplate.projectType);
 
-    Exception thrownEx = null;
+    HttpException thrownEx = null;
     try 
     {
-        IOException ioEx = new IOException("300: ... ");
-//        Mockito.doThrow(ioEx).when(spyAdapter).callHttp(Matchers.anyString(),
-//                Matchers.anyString(), Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
+        HttpException ioEx = new HttpException(300, "testerror");
         
         Mockito.doThrow(ioEx).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
                 Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
         
         spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);  
-    } catch (Exception e) 
+    } catch (HttpException e) 
     {
     	thrownEx = e;
     }
     assertNotNull(thrownEx);
+    assertEquals(300, thrownEx.getResponseCode());
   }
 
   @Test
@@ -175,9 +172,6 @@ public class JiraAdapterTests {
     String crowdCookieValue = "value";
     FullJiraProject expectedProject = new FullJiraProject();
 
-//    Mockito.doReturn(expectedProject).when(spyAdapter).callHttp(Matchers.anyString(), Matchers.anyString(),
-//        Matchers.anyString(), Matchers.any(FullJiraProject.class.getClass()), Matchers.anyBoolean(), Matchers.any(JiraAdapter.HTTP_VERB.class));
- 
     Mockito.doReturn(expectedProject).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
         Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
     
@@ -205,11 +199,8 @@ public class JiraAdapterTests {
     assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
     
     apiInput.projectType = "newTemplate";
+
     // set them adhoc
-//    /*
-//     * does not work - as the bean is already there - jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.names", "newTemplate");
-//     */
-//    jiraAdapter.jiraTemplateKeyNames[1] = new String("newTemplate");
     projectTemplateKeyNames.add("newTemplate");
     
     jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "template");
@@ -271,10 +262,6 @@ public class JiraAdapterTests {
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
     
-//    Mockito.doReturn(scheme).when(mocked).callHttp(Matchers.anyString(),
-//        Matchers.anyString(), Matchers.anyString(), 
-//        Matchers.any(PermissionScheme.class.getClass()), Matchers.anyBoolean(),
-//        Matchers.any(JiraAdapter.HTTP_VERB.class));
     Mockito.when(client.callHttp(Matchers.anyString(),
             Matchers.anyObject(),
             Matchers.anyString(), Matchers.anyBoolean(),
@@ -283,20 +270,10 @@ public class JiraAdapterTests {
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-//    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
-//            Matchers.anyString(), Matchers.anyString(), 
-//            Matchers.eq(PermissionScheme.class), Matchers.anyBoolean(),
-//            Matchers.eq(JiraAdapter.HTTP_VERB.POST));
-
     Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
             Matchers.anyObject(),
             Matchers.anyString(), Matchers.anyBoolean(),
             Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class));
-
-//    Mockito.verify(mocked, Mockito.times(1)).callHttp(Matchers.anyString(),
-//            Matchers.anyString(), Matchers.anyString(), 
-//            Matchers.eq(FullJiraProject.class), Matchers.anyBoolean(),
-//            Matchers.eq(JiraAdapter.HTTP_VERB.PUT));
 
     Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
             Matchers.anyObject(),
@@ -313,20 +290,10 @@ public class JiraAdapterTests {
     RestClient restClientMocket = Mockito.spy(RestClient.class);
     ProjectData apiInput = getTestProject("testproject");
     
-//    Mockito.doReturn(Shortcut.class).when(mocked).callHttp(Matchers.anyString(),
-//        Matchers.anyString(), Matchers.anyString(), 
-//        Matchers.any(Shortcut.class.getClass()), Matchers.anyBoolean(),
-//        Matchers.any(JiraAdapter.HTTP_VERB.class));
-
     int shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
     
     assertEquals(5, shortcutsAdded);
     
-//    Mockito.verify(mocked, Mockito.times(5)).callHttp(Matchers.anyString(),
-//        Matchers.anyString(), Matchers.anyString(), 
-//        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
-//        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
-
     Mockito.verify(client, Mockito.times(5)).callHttp(Matchers.anyString(),
         Matchers.anyObject(),
         Matchers.anyString(), Matchers.anyBoolean(),
@@ -337,12 +304,7 @@ public class JiraAdapterTests {
     mocked.client = Mockito.spy(RestClient.class);
     shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
     assertEquals(-1, shortcutsAdded);
-    
-//    Mockito.verify(mocked, Mockito.never()).callHttp(Matchers.anyString(),
-//        Matchers.anyString(), Matchers.anyString(), 
-//        Matchers.eq(Shortcut.class), Matchers.anyBoolean(),
-//        Matchers.eq(JiraAdapter.HTTP_VERB.POST));
-    
+        
     Mockito.verify(mocked.client, Mockito.never()).callHttp(Matchers.anyString(),
         Matchers.anyObject(),
         Matchers.anyString(), Matchers.anyBoolean(),

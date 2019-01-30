@@ -32,4 +32,9 @@ public class HttpException extends IOException
 		return httpResponseCode;
 	}
 	
+	@Override
+	public String getMessage () 
+	{
+		return super.getMessage() + " Errorcode: " + httpResponseCode;
+	}
 }

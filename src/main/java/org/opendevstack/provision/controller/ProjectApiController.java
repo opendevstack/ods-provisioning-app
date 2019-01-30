@@ -112,8 +112,10 @@ public class ProjectApiController {
   public ResponseEntity<Object> addProject(HttpServletRequest request, @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-	if (project == null || project.key == null || project.key.trim().length() == 0) {
-	  return ResponseEntity.badRequest().build();
+	if (project == null || project.key == null || project.key.trim().length() == 0 || 
+		project.name == null || project.name.trim().length() == 0) 
+	{
+	  return ResponseEntity.badRequest().body("Project key and name are mandatory fields to create a project!");
 	}
 	  
 	project.key = project.key.toUpperCase();
@@ -185,7 +187,7 @@ public class ProjectApiController {
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
 	if (project == null || project.key.trim().length() == 0) {
-		  return ResponseEntity.badRequest().build();
+		  return ResponseEntity.badRequest().body("Project key is mandatory to call update project!");
 	}
 	MDC.put(STR_LOGFILE_KEY, project.key);
 	  

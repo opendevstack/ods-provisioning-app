@@ -106,7 +106,15 @@ public class RestClient {
   
   public void getSessionId(String url) throws IOException 
   {
-	  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
+	  try 
+	  {
+		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
+	  } catch (HttpException httpX) {
+		  if (httpX.getResponseCode() != 401) 
+		  {
+			  throw httpX;
+		  }
+	  }
   }
 
   public <T> T callHttp(String url, Object input, String crowdCookieValue, 
@@ -131,7 +139,9 @@ public class RestClient {
 	Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
 	  
 	String json = null;
-			
+
+	logger.debug("Calling url: " + url);
+	
 	if (input == null) 
 	{
 		json = "";
@@ -139,12 +149,12 @@ public class RestClient {
 	} else if (input instanceof String) 
 	{
 		json = (String)input;
-	    logger.debug("Passed String rest object {}", json);
+	    logger.debug("Passed String rest object: [{}]", json);
 	} else
 	{
 	    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 	    json = ow.writeValueAsString(input);
-	    logger.debug("Converted rest object {}", json);
+	    logger.debug("Converted rest object: {}", json);
 	}
 	  
     RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
@@ -170,7 +180,8 @@ public class RestClient {
     if (directAuth)
     {
     	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
+			Credentials.basic(this.crowdUserDetailsService.
+				loadUserByToken(crowdCookieValue).getUsername(),
 				manager.getUserPassword());
     	builder = builder.addHeader("Authorization", credentials);
     	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
@@ -182,7 +193,9 @@ public class RestClient {
     	    
     String respBody = response.body().string();
     response.close();
-    logger.debug(url + " > " + response.code() + ": \n" + respBody + " :: " + verb);
+    logger.debug(url + " > " + response.code() + 
+    	(respBody == null || respBody.trim().length() == 0 ?
+    		"" : (": \n" + respBody  )) + " : " + verb);
     
     if (response.code() < 200 || response.code() >= 300)
     {
@@ -208,6 +221,7 @@ public class RestClient {
 
   public void callHttpBasicFormAuthenticate(String url) throws IOException 
   {
+	Preconditions.checkNotNull(url, "Url cannot be null");
 	Preconditions.checkNotNull(SecurityContextHolder.getContext().getAuthentication(),
 		"Cannot auth with null principal");
     CrowdUserDetails userDetails =
@@ -225,10 +239,12 @@ public class RestClient {
     try 
     {
     	response = getClient(null).newCall(request).execute();
-    	if (response.isSuccessful()) {
+    	if (response.isSuccessful()) 
+    	{
     		logger.debug("Successful form based auth");
     	} else {
-    		throw new IOException("Could not authenticate: " + username + " : " + response.body());
+    		throw new IOException("Could not authenticate: " + username + 
+    			" : " + response.body());
     	}
     }
     finally {

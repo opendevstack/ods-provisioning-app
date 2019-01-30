@@ -18,19 +18,30 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Response.Builder;
+import okhttp3.ResponseBody;
 
 /**
  * @author Torsten Jaeschke
@@ -95,9 +106,22 @@ public class RestClientTest {
 		String.format("http://localhost:%d", randomServerPort),
 		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
 	  
-	  assertNotNull(response);
-	  
+	  assertNotNull(response);  
   }
+  
+  @Test (expected = NullPointerException.class)
+  public void callHttpMissingVerb () throws Exception
+  { 
+	  client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, null, String.class);
+  }  
+  
+  @Test (expected = NullPointerException.class)
+  public void callHttpMissingUrl () throws Exception
+  { 
+	  client.callHttp(null, "ClemensTest", null, false, null, String.class);
+  }   
 
   @Test (expected = NullPointerException.class)
   public void callAuthWithoutCredentials () throws Exception
@@ -105,5 +129,21 @@ public class RestClientTest {
 	  client.callHttpBasicFormAuthenticate(
 			 String.format("http://localhost:%d", randomServerPort));
   }
-    
+
+  @Test (expected = NullPointerException.class)
+  public void callAuthWithoutUrl () throws Exception
+  { 
+	  client.callHttpBasicFormAuthenticate(null);
+  }
+
+  @Test (expected = SocketTimeoutException.class)
+  public void callRealClientWrongPort () throws Exception
+  { 
+	  RestClient spyAdapter = Mockito.spy(client);
+	  
+	  String response = spyAdapter.callHttp(
+		String.format("http://localhost:%d", 1000),
+		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+  }
+  
 }
