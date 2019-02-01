@@ -195,10 +195,10 @@ public class RundeckAdapter {
 
           // we can only add the console based links - as no routes are created per default
           project.openshiftConsoleDevEnvUrl = String.format(projectOpenshiftDevProjectPattern,
-              projectOpenshiftConsoleUri, project.key.toLowerCase());
+              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
 
           project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
-              projectOpenshiftConsoleUri, project.key.toLowerCase());
+              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
 
           project.lastJobs = new ArrayList<String>();
           project.lastJobs.add(data.getPermalink());

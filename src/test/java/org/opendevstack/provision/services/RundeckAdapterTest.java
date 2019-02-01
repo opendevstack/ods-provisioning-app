@@ -17,6 +17,7 @@ package org.opendevstack.provision.services;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -164,9 +165,11 @@ public class RundeckAdapterTest {
     jobs.add(job1);
     jobs.add(job2);
 
+    String userNameFromCrowd = "crowdUsername";
+    
     CrowdUserDetails details = Mockito.mock(CrowdUserDetails.class);
     Mockito.when(crowdUserDetailsService.loadUserByToken(crowdCookie)).thenReturn(details);
-    Mockito.when(details.getUsername()).thenReturn("crowdUsername");
+    Mockito.when(details.getUsername()).thenReturn(userNameFromCrowd);
 
     doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
 
@@ -183,11 +186,18 @@ public class RundeckAdapterTest {
     Execution execution = new Execution();
     Map<String, String> options = new HashMap<>();
     	options.put("project_id", projectData.key);
-    	options.put("project_admin", "crowdUsername");
+    	options.put("project_admin", userNameFromCrowd);
     execution.setOptions(options);
-    
+
+    // called once -positive
     Mockito.verify(client).callHttp
     	(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
+			Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any());
+
+	options.put("project_admin", "crowdUsername-WRONG");
+    Mockito.verify(client, Mockito.never()).callHttp
+		(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
 			Matchers.eq(RestClient.HTTP_VERB.POST),
 			Matchers.any());
     
@@ -239,7 +249,7 @@ public class RundeckAdapterTest {
     Execution execution = new Execution();
     Map<String, String> options = new HashMap<>();
     	options.put("project_id", projectData.key);
-    	options.put("project_admin", "clemens");
+    	options.put("project_admin", projectData.admin);
     execution.setOptions(options);
     
     Mockito.verify(client).callHttp

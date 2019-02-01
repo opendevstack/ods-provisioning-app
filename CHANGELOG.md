@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- Define templates & allow pick of project templates for jira / confluence projects ([#26](https://github.com/opendevstack/ods-provisioning-app/issues/26))
+
+### Changed
+- Refactoring of http call logic - centralized in RestClient now ([#84](https://github.com/opendevstack/ods-provisioning-app/issues/64))
+
+### Fixed
+- Attachment permission was missing for all groups ([#78](https://github.com/opendevstack/ods-provisioning-app/issues/78))
+- Browse_project permission was missing for readonly groups ([#85](https://github.com/opendevstack/ods-provisioning-app/issues/85))
+
 
 ## [1.0.1] - 2019-01-25
 

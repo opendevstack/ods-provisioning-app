@@ -25,12 +25,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -52,6 +56,12 @@ public class RestClientTest {
   @Value("${crowd.sso.cookie.name}")
   private String crowdSSOCookieName;
   
+  @Autowired
+  CustomAuthenticationManager manager;
+  
+  @Autowired
+  RestClient realClient;
+
   @Before
   public void setUp() {
     client = new RestClient();
@@ -128,13 +138,13 @@ public class RestClientTest {
   { 
 	  client.callHttpBasicFormAuthenticate(null);
   }
-
+  
   @Test (expected = SocketTimeoutException.class)
   public void callRealClientWrongPort () throws Exception
   { 
 	  RestClient spyAdapter = Mockito.spy(client);
 	  
-	  String response = spyAdapter.callHttp(
+	  spyAdapter.callHttp(
 		String.format("http://localhost:%d", 1000),
 		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
   }
