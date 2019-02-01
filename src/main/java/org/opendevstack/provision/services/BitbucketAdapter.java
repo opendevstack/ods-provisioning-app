@@ -59,8 +59,6 @@ public class BitbucketAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapter.class);
 
-  CrowdCookieJar cookieJar = new CrowdCookieJar();
-
   @Autowired
   RundeckAdapter rundeckAdapter;
 
@@ -102,9 +100,6 @@ public class BitbucketAdapter {
   CustomAuthenticationManager manager;
     
   private static String PROJECT_PATTERN = "%s%s/projects";
-
-  private static final MediaType JSON_MEDIA_TYPE =
-      MediaType.parse("application/json; charset=utf-8");
 
   private static final String COMPONENT_ID_KEY = "component_id";
   
@@ -222,7 +217,8 @@ public class BitbucketAdapter {
 
   // Create webhook for CI (using webhook proxy)
   protected void createWebHooksForRepository(RepositoryData repo, ProjectData project,
-    String component, String crowdCookie) {
+    String component, String crowdCookie) 
+  {
 
     // projectOpenshiftJenkinsWebhookProxyNamePattern is e.g. "webhook-proxy-%s-cd%s"
     String webhookProxyHost = String.format(projectOpenshiftJenkinsWebhookProxyNamePattern, project.key.toLowerCase(), projectOpenshiftBaseDomain);
@@ -241,10 +237,9 @@ public class BitbucketAdapter {
     String url = String.format("%s/%s/repos/%s/webhooks",
         buildBasePath(), project.key, repo.getSlug());
 
-    try {
-      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-      String json = ow.writeValueAsString(webhook);
-      this.post(url, json, crowdCookie, Webhook.class);
+    try 
+    {
+    	client.callHttp(url, webhook, crowdCookie, false, RestClient.HTTP_VERB.POST, Webhook.class);
       logger.info("created hook: " + webhook.getUrl());
     } catch (IOException ex) {
       logger.error("Error in webhook call", ex);
@@ -256,14 +251,10 @@ public class BitbucketAdapter {
 	  
 	BitbucketProject bbProject =  createBitbucketProject(project);
 	  
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(bbProject);
-
-    logger.debug("About to create bitbucket project for: " + bbProject.getKey() + "\n" + json);
-
     BitbucketData projectData =
-        (BitbucketData) this.post(buildBasePath(), json, crowdCookieValue, BitbucketData.class);
-
+	    client.callHttp(buildBasePath(), bbProject, crowdCookieValue, false, RestClient.HTTP_VERB.POST,
+    		BitbucketData.class);
+    
     if (project.createpermissionset)
     {
 	    setProjectPermissions(projectData, ID_GROUPS, globalKeyuserRoleName, crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_ADMIN);    
@@ -282,12 +273,11 @@ public class BitbucketAdapter {
 
   protected RepositoryData callCreateRepoApi(String projectKey, Repository repo,
       String crowdCookieValue) throws IOException {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(repo);
     String path = String.format("%s/%s/repos", buildBasePath(), projectKey);
 
     RepositoryData data =
-        (RepositoryData) this.post(path, json, crowdCookieValue, RepositoryData.class);
+    	client.callHttp(path, repo, crowdCookieValue, false, RestClient.HTTP_VERB.POST,
+    		RepositoryData.class);
 
     setRepositoryPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup(), crowdCookieValue);
     setRepositoryPermissions(data, projectKey, ID_USERS, technicalUser, crowdCookieValue);
@@ -304,7 +294,9 @@ public class BitbucketAdapter {
     // utschig - allow group to create new repos (rather than just read / write)
     urlBuilder.addQueryParameter("permission", rights.toString());
     urlBuilder.addQueryParameter("name", groupOrUser);
-    this.put(urlBuilder.build(), crowdCookieValue);
+//    this.put(urlBuilder.build(), crowdCookieValue);
+    client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
+    	RestClient.HTTP_VERB.PUT, String.class);
   }
 
   protected void setRepositoryPermissions(RepositoryData data, String key, String userOrGroup,
@@ -316,60 +308,13 @@ public class BitbucketAdapter {
     // allow people to modify settings (webhooks)
     urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
     urlBuilder.addQueryParameter("name", groupOrUser);
-
-    this.put(urlBuilder.build(), crowdCookieValue);
+    
+    client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
+    	RestClient.HTTP_VERB.PUT, String.class);
   }
 
   protected String buildBasePath() {
     return String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
-  }
-
-  protected Object post(String url, String json, String crowdCookieValue, Class clazz)
-	      throws IOException {
-    client.getSessionId(bitbucketUri);
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-    Builder builder = new Request.Builder().url(url).post(body);
-
-	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
-					manager.getUserPassword());
-	builder = builder.addHeader("Authorization", credentials);
-	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-
-    String respBody = response.body().string();
-
-    logger.debug(url, " > " + json + "\n" + response.code() + "> " +  respBody);
-
-    if (response.code() == 401) {
-    	throw new IOException("You are not authorized to create this resource (" +  url + "): " + respBody);
-    }
-    
-    if (response.code() == 409) {
-      throw new IOException("Resource creation failed, resource already exists");
-    }
-
-    response.close();
-    return new ObjectMapper().readValue(respBody, clazz);
-  }
-  
-  
-  private void put(HttpUrl url, String crowdCookieValue) throws IOException {
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, "");
-    Builder builder = new Request.Builder().url(url).put(body);
-
-	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.loadUserByToken(crowdCookieValue).getUsername(),
-					manager.getUserPassword());
-	builder = builder.addHeader("Authorization", credentials);
-    
-	Response response = client.getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-    String respBody = response.body().string();
-
-    logger.debug(url+ " - " + response.code() + ">" + respBody);
-    response.close();
-
   }
 
   public static BitbucketProject createBitbucketProject(ProjectData jiraProject) {

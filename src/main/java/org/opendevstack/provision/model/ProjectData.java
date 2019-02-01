@@ -58,6 +58,8 @@ public class ProjectData {
   @JsonIgnoreProperties ({"lastJobs"})
   public List<String> lastJobs = null;
   
+  public String projectType = null;
+  
   @Override
   public int hashCode() {
     final int prime = 31;

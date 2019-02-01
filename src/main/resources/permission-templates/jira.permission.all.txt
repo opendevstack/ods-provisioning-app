@@ -40,6 +40,13 @@
         {
             "holder": {
                 "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
                 "parameter": "adminGroup"
             },
             "permission": "VIEW_DEV_TOOLS"
@@ -309,6 +316,48 @@
                 "parameter": "adminGroup"
             },
             "permission": "MODIFY_REPORTER"
-        }
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_ALL_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_OWN_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "DELETE_OWN_ATTACHMENTS"
+        }        
     ]
 }
