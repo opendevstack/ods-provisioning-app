@@ -17,10 +17,13 @@ package org.opendevstack.provision.services;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.text.AbstractDocument.Content;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +38,12 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -70,6 +75,9 @@ public class RundeckAdapterTest {
   @InjectMocks
   RundeckAdapter rundeckAdapter;
 
+  @Mock
+  RestClient client;
+  
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
@@ -125,8 +133,12 @@ public class RundeckAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).authenticate();
     doReturn(job).when(jobStore).getJob(Matchers.anyString());
-    doReturn(Mockito.mock(ExecutionsData.class)).when(spyAdapter).post(Matchers.anyString(),
-        Matchers.eq(json), Matchers.any());
+
+    doReturn(Mockito.mock(ExecutionsData.class)).when(client).
+		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
+			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
+			Matchers.eq(ExecutionsData.class));    
+    
     int expectedExecutionsSize = 1;
     
     int actualExecutionsSize = spyAdapter.executeJobs(project).size();
@@ -140,7 +152,7 @@ public class RundeckAdapterTest {
 
     ProjectData projectData = new ProjectData();
     projectData.key = "key";
-    String crowdCookie = "cookie";
+    String crowdCookie = "cookie2";
 
     ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
@@ -153,17 +165,42 @@ public class RundeckAdapterTest {
     jobs.add(job1);
     jobs.add(job2);
 
+    String userNameFromCrowd = "crowdUsername";
+    
     CrowdUserDetails details = Mockito.mock(CrowdUserDetails.class);
     Mockito.when(crowdUserDetailsService.loadUserByToken(crowdCookie)).thenReturn(details);
-    Mockito.when(details.getUsername()).thenReturn("crowdUsername");
+    Mockito.when(details.getUsername()).thenReturn(userNameFromCrowd);
 
     doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
-    doReturn(execData).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any());
+
+    doReturn(execData).when(client).
+		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
+			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
+			Matchers.eq(ExecutionsData.class));
+    
     
     ProjectData expectedProjectData = generateDefaultProjectData();
 
     ProjectData createdProjectData = spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
 
+    Execution execution = new Execution();
+    Map<String, String> options = new HashMap<>();
+    	options.put("project_id", projectData.key);
+    	options.put("project_admin", userNameFromCrowd);
+    execution.setOptions(options);
+
+    // called once -positive
+    Mockito.verify(client).callHttp
+    	(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
+			Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any());
+
+	options.put("project_admin", "crowdUsername-WRONG");
+    Mockito.verify(client, Mockito.never()).callHttp
+		(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
+			Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any());
+    
     assertEquals(expectedProjectData, createdProjectData);
     assertTrue(expectedProjectData.openshiftproject);
     assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl, 
@@ -174,6 +211,53 @@ public class RundeckAdapterTest {
     		createdProjectData.openshiftJenkinsUrl);
   }
 
+  @Test
+  public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+
+    ProjectData projectData = new ProjectData();
+    projectData.key = "key";
+    String crowdCookie = "cookie2";
+
+    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
+
+    Job job1 = new Job();
+    job1.setName("create-projects");
+    Job job2 = new Job();
+    job2.setName("name2");
+
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(job1);
+    jobs.add(job2);
+  
+    // create special permissionset - here crowd userdetails should never be called
+    projectData.createpermissionset = true;
+    projectData.admin = "clemens";
+  
+    spyAdapter = Mockito.spy(rundeckAdapter);
+        
+    Mockito.doNothing().when(spyAdapter).authenticate();
+    doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
+    doReturn(execData).when(client).callHttp(Matchers.anyString(), Matchers.any(), 
+    	Matchers.any(), Matchers.anyBoolean(),
+    	Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any());
+    
+    spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
+    Mockito.verify(crowdUserDetailsService, Mockito.never()).loadUserByToken(crowdCookie); 
+
+
+    Execution execution = new Execution();
+    Map<String, String> options = new HashMap<>();
+    	options.put("project_id", projectData.key);
+    	options.put("project_admin", projectData.admin);
+    execution.setOptions(options);
+    
+    Mockito.verify(client).callHttp
+    	(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
+    		Matchers.eq(RestClient.HTTP_VERB.POST),
+    		Matchers.any());
+  }
+  
   @Test
   public void getEndpointAPIPath () throws Exception 
   {

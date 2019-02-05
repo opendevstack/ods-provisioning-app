@@ -14,18 +14,30 @@
 
 package org.opendevstack.provision.util;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.TestAuthentication;
+import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import okhttp3.OkHttpClient;
 
 /**
@@ -41,6 +53,15 @@ public class RestClientTest {
 
   private RestClient client;
 
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdSSOCookieName;
+  
+  @Autowired
+  CustomAuthenticationManager manager;
+  
+  @Autowired
+  RestClient realClient;
+
   @Before
   public void setUp() {
     client = new RestClient();
@@ -48,13 +69,14 @@ public class RestClientTest {
     client.setReadTimeout(1);
     CrowdCookieJar cookieJar = new CrowdCookieJar();
     cookieJar.setDomain("localhost");
+    cookieJar.setSSOCookieName(crowdSSOCookieName);
     client.setCookieJar(cookieJar);
   }
 
 
   @Test
   public void getClient() throws Exception {
-    assertTrue(client.getClient() instanceof OkHttpClient);
+    assertTrue(client.getClient(null) instanceof OkHttpClient);
   }
 
   @Test
@@ -71,4 +93,60 @@ public class RestClientTest {
   public void getSessionIdWithException() throws Exception {
     client.getSessionId(String.format("http://invalid_address", randomServerPort));
   }
+
+  @Test
+  public void callHttpGreen () throws Exception
+  { 
+	  String response = client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+	  
+	  assertNotNull(response);
+	  
+	  ProjectData data = new ProjectData();
+	  
+	  response = client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
+	  
+	  assertNotNull(response);  
+  }
+  
+  @Test (expected = NullPointerException.class)
+  public void callHttpMissingVerb () throws Exception
+  { 
+	  client.callHttp(
+		String.format("http://localhost:%d", randomServerPort),
+		"ClemensTest", null, false, null, String.class);
+  }  
+  
+  @Test (expected = NullPointerException.class)
+  public void callHttpMissingUrl () throws Exception
+  { 
+	  client.callHttp(null, "ClemensTest", null, false, null, String.class);
+  }   
+
+  @Test (expected = NullPointerException.class)
+  public void callAuthWithoutCredentials () throws Exception
+  { 
+	  client.callHttpBasicFormAuthenticate(
+			 String.format("http://localhost:%d", randomServerPort));
+  }
+
+  @Test (expected = NullPointerException.class)
+  public void callAuthWithoutUrl () throws Exception
+  { 
+	  client.callHttpBasicFormAuthenticate(null);
+  }
+  
+  @Test (expected = SocketTimeoutException.class)
+  public void callRealClientWrongPort () throws Exception
+  { 
+	  RestClient spyAdapter = Mockito.spy(client);
+	  
+	  spyAdapter.callHttp(
+		String.format("http://localhost:%d", 1000),
+		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+  }
+  
 }

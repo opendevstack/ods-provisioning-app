@@ -44,6 +44,11 @@
  	    "who" : "clemens",
  	    "when" : "2018-11-09",
  	    "what" : "surface junit results, and restructure logging"
- 	  }  	   	  
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2019-01-24",
+ 	    "what" : "add project type"
+ 	  }   	  
   ]
 }

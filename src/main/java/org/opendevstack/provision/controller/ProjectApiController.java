@@ -88,6 +88,9 @@ public class ProjectApiController {
   @Autowired
   private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
+  @Autowired
+  private List<String> projectTemplateKeyNames;
+  
   // open for testing
   @Autowired
   CustomAuthenticationManager manager;
@@ -109,16 +112,21 @@ public class ProjectApiController {
   public ResponseEntity<Object> addProject(HttpServletRequest request, @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-	if (project == null || project.key == null || project.key.trim().length() == 0) {
-	  return ResponseEntity.badRequest().build();
+	if (project == null || project.key == null || project.key.trim().length() == 0 || 
+		project.name == null || project.name.trim().length() == 0) 
+	{
+	  return ResponseEntity.badRequest().body("Project key and name are mandatory fields to create a project!");
 	}
-	  
+	 
+	// fix for opendevstack/ods-provisioning-app/issues/64
+	shortenDescription(project);
+	
 	project.key = project.key.toUpperCase();
 	MDC.put(STR_LOGFILE_KEY, project.key);
     logger.debug("Crowd Cookie: {}", crowdCookie);
     
     try {
-        logger.debug("Project: {}",
+        logger.debug("Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
       	if (project.createpermissionset) {
@@ -182,7 +190,7 @@ public class ProjectApiController {
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
 	if (project == null || project.key.trim().length() == 0) {
-		  return ResponseEntity.badRequest().build();
+		  return ResponseEntity.badRequest().body("Project key is mandatory to call update project!");
 	}
 	MDC.put(STR_LOGFILE_KEY, project.key);
 	  
@@ -374,6 +382,13 @@ public class ProjectApiController {
     return ResponseEntity.ok().build();
   }
 
+  @RequestMapping(method = RequestMethod.GET, value = "/templates")
+  public ResponseEntity<Object> getProjectTemplateKeys(HttpServletRequest request,
+      @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) 
+  {
+    return ResponseEntity.ok(projectTemplateKeyNames);
+  }
+  
   /**
    * Validate the project's key name. Duplicates are not allowed in JIRA.
    * 
@@ -412,6 +427,14 @@ public class ProjectApiController {
     Map<String, String> proj = new HashMap<>();
     proj.put("key", jiraAdapter.buildProjectKey(name));
     return ResponseEntity.ok(proj);
+  }
+  
+  void shortenDescription (ProjectData project) 
+  {
+	if (project != null && project.description != null && project.description.length() > 100) 
+	{
+		project.description = project.description.substring(0, 99);
+	}	  
   }
   
 }

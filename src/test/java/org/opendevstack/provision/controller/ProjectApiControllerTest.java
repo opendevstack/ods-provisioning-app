@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -45,6 +46,7 @@ import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -85,11 +87,14 @@ public class ProjectApiControllerTest {
   @InjectMocks
   @Autowired
   private ProjectApiController apiController;
-
+  
   private MockMvc mockMvc;
 
   private ProjectData data;
 
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -192,7 +197,7 @@ public class ProjectApiControllerTest {
   
   
   @Test
-  public void addProjectAndBadRequest() throws Exception {
+  public void addProjectEmptyAndBadRequest() throws Exception {
 	Mockito.doNothing().when(client).removeClient(Matchers.anyString());
 
     mockMvc
@@ -202,17 +207,10 @@ public class ProjectApiControllerTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andDo(MockMvcResultHandlers.print());
-
-    
-    
   }
 
   @Test
-  public void addProjectAnd4xxClientResult() throws Exception {
-    ProjectData data = new ProjectData();
-    data.key = "KEY";
-    data.name = "Name";
-
+  public void addProjectNullAnd4xxClientResult() throws Exception {
     mockMvc
         .perform(post("/api/v1/project")
             .content("")
@@ -222,6 +220,22 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
   }
 
+  @Test
+  public void addProjectKeyOnlyAndExpectBadRequest() throws Exception {
+    ProjectData data = new ProjectData();
+    data.key = "KEY";
+    data.openshiftproject = true;
+
+    mockMvc
+        .perform(post("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andDo(MockMvcResultHandlers.print());
+  }
+
+  
   @Test
   public void validateProjectWithProjectExists() throws Exception {
     Mockito.when(
@@ -303,6 +317,17 @@ public class ProjectApiControllerTest {
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print());
   }
+
+  @Test
+  public void getProjectTemplateKeys () throws Exception
+  {
+	  mockMvc.perform(get("/api/v1/project/templates")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.content().
+        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
+        .andDo(MockMvcResultHandlers.print());
+  }
   
   @Test
   public void getProjects () throws Exception
@@ -349,8 +374,9 @@ public class ProjectApiControllerTest {
     // existing - store prior
     Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
 
-    // upgrade to OC
-    ProjectData upgrade = copyFromProject(data);
+    // upgrade to OC - with minimal set
+    ProjectData upgrade = new ProjectData();
+    upgrade.key = data.key;
     upgrade.openshiftproject = true;
     apiController.ocUpgradeAllowed = true;
     
@@ -414,6 +440,44 @@ public class ProjectApiControllerTest {
         Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
   }
   
+  @Test
+  public void testProjectDescLengh () throws Exception 
+  {
+        data.description = 
+          	"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
+
+        ProjectData dataReturn = this.copyFromProject(data);
+        apiController.shortenDescription(dataReturn); 
+        
+	    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+            Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+            Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
+        Mockito.when(storage.storeProject(data)).thenReturn("created");
+        Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+        
+        Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
+                
+        mockMvc.perform(post("/api/v1/project")
+                .content(asJsonString(data))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(dataReturn.description + "\"")));
+        
+        // test with null
+        apiController.shortenDescription(null);
+        
+        // test with content
+        apiController.shortenDescription(data);
+        assertEquals(dataReturn.description, data.description);
+        
+        // test with null description
+        data.description = null;
+        apiController.shortenDescription(data);        
+  }
   
   private String asJsonString(final Object obj) {
     try {
@@ -429,6 +493,7 @@ public class ProjectApiControllerTest {
 	  ProjectData data = new ProjectData();
 	  data.key = origin.key;
 	  data.name = origin.name;
+	  data.description = origin.description;
 	  data.openshiftproject = origin.openshiftproject;
 	  data.bitbucketUrl = origin.bitbucketUrl;
 	  data.quickstart = origin.quickstart;
@@ -439,5 +504,5 @@ public class ProjectApiControllerTest {
 	  data.readonlyGroup = origin.readonlyGroup;
 	  return data;
   }
-
+  
 }

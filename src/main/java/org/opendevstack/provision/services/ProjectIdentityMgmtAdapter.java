@@ -56,6 +56,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     {
     	Map<String, String> projectCheckStatus = new HashMap<String, String>();
     	
+		long startTime = System.currentTimeMillis();
+
     	if (!groupExists(project.adminGroup)) {
     		projectCheckStatus.put("adminGroup", project.adminGroup);
     	}
@@ -68,6 +70,9 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     	if (!userExists(project.admin)) {
     		projectCheckStatus.put("admin", project.admin);
     	}
+
+    	logger.debug("identityCheck Name took (ms): " + 
+				(System.currentTimeMillis() - startTime));
     	
     	if (!projectCheckStatus.isEmpty()) {
     		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
@@ -81,7 +86,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 	{
 		if (groupName == null || groupName.trim().length() == 0) 
 			return true;
-		
+
+		long startTime = System.currentTimeMillis();
 		try 
 		{
 			manager.getSecurityServerClient().findGroupByName(groupName);
@@ -92,6 +98,10 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 				logger.error("GroupFind call failed with: {}", eSecurity);
 			}
 			return false;
+		} finally 
+		{
+			logger.debug("findGroupByName by Name took (ms): " + 
+				(System.currentTimeMillis() - startTime));
 		}
 	}
 
@@ -102,6 +112,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		if (userName == null || userName.trim().length() == 0) 
 			return true;
 		
+		long startTime = System.currentTimeMillis();
 		try 
 		{
 			manager.getSecurityServerClient().findPrincipalByName(userName);
@@ -112,6 +123,10 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 				logger.error("UserFind call failed with: {}", eSecurity);
 			}
 			return false;
+		} finally 
+		{
+			logger.debug("findPrincipal by Name took (ms): " + 
+				(System.currentTimeMillis() - startTime));
 		}
 	}
 

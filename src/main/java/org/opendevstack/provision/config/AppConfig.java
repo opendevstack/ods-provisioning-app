@@ -14,7 +14,12 @@
 
 package org.opendevstack.provision.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.opendevstack.provision.util.RundeckJobStore;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
@@ -29,6 +34,9 @@ import org.thymeleaf.templateresolver.TemplateResolver;
 @Configuration
 public class AppConfig {
 
+  @Value("${project.template.key.names:default}")
+  String[] projectTemplateKeyNames;
+	
   @Bean
   public SpringTemplateEngine templateEngine(TemplateResolver templateResolver) {
     SpringTemplateEngine templateEngine = new SpringTemplateEngine();
@@ -40,5 +48,11 @@ public class AppConfig {
   @Bean
   public RundeckJobStore jobStore() {
     return new RundeckJobStore();
+  }
+  
+  @Bean (name = "projectKeys")
+  public List<String> globalProjectKeys () 
+  {
+	return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));  
   }
 }

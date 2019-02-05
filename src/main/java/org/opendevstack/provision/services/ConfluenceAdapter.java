@@ -30,18 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * Service to interact with and add Spaces
@@ -79,9 +73,6 @@ public class ConfluenceAdapter {
   
   private static final String SPACE_GROUP = "SPACE_GROUP";
 
-  private static final MediaType JSON_MEDIA_TYPE =
-      MediaType.parse("application/json; charset=utf-8");
-
   private String crowdCookieValue = null;
 
   @Value("${confluence.permission.filepattern}")
@@ -89,6 +80,15 @@ public class ConfluenceAdapter {
   
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
+  
+  @Autowired
+  Environment environment;
+  
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
   
   public ProjectData createConfluenceSpaceForProject(ProjectData project, String crowdCookieValue)
       throws IOException {
@@ -113,17 +113,12 @@ public class ConfluenceAdapter {
   }
 
   protected SpaceData callCreateSpaceApi(Space space, String crowdCookieValue) throws IOException {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(space);
-
-    logger.debug(json);
-
-    String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return this.post(path, json, crowdCookieValue, SpaceData.class);
+      String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
+	  return client.callHttp(path, space, crowdCookieValue, false, RestClient.HTTP_VERB.POST, SpaceData.class);
   }
 
   Space createSpaceData(ProjectData project) throws IOException {
-    String confluenceBlueprintId = getBluePrintId();
+    String confluenceBlueprintId = getBluePrintId(project.projectType);
     String jiraServerId = getJiraServerId();
 
     Space space = new Space();
@@ -161,16 +156,35 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  protected String getBluePrintId() throws IOException {
+  protected String getBluePrintId(String projectTypeKey) throws IOException 
+  {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints =
         getList(url, crowdCookieValue, new TypeReference<List<Blueprint>>() {});
+    
+    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
+
+    String template =
+    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
+    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
+    		projectTemplateKeyNames.contains(projectTypeKey)) ?
+    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
+    			confluenceBlueprintKey;
+    
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
-      if (blueprint.getBlueprintModuleCompleteKey().equals(confluenceBlueprintKey)) {
+      logger.debug("Blueprint: " + blueprint.getBlueprintModuleCompleteKey() + 
+    		 " searchKey: " +template);
+      if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
         bluePrintId = blueprint.getContentBlueprintId();
+        break;
       }
+    }
+    if (bluePrintId == null) 
+    {
+    	// default
+    	return getBluePrintId(null);
     }
     return bluePrintId;
   }
@@ -178,45 +192,9 @@ public class ConfluenceAdapter {
 
   List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
       throws IOException {
-
     client.getSessionId(confluenceUri);
-
-    Request request =
-        new Request.Builder().url(url).addHeader("Accept", "application/json").get().build();
-
-    logger.debug("calling url : " + url);
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(respBody);
-    if (!response.isSuccessful()) {
-    	throw new IOException("Could not retrieve blueprints: " + respBody);
-    }
-
-    return new ObjectMapper().readValue(respBody, reference);
-  }
-
-  protected <T> T post(String url, String json, String crowdCookieValue, Class valueType) throws IOException {
-
-    client.getSessionId(confluenceUri);
-
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-    Request request = new Request.Builder().url(url).post(body).build();
-
-    logger.debug("Call to: " + url);
     
-    Response response = client.getClient(crowdCookieValue).newCall(request).execute();
-    String respBody = response.body().string();
-
-    logger.debug(response.code() + " > " + respBody);
-    response.close();
-    
-    if (response.code() != 200) 
-    {
-      throw new IOException("Could not create " + valueType.getName() + " : " + respBody);
-    }
-        
-    return (T) new ObjectMapper().readValue(respBody, valueType);
+    return (List<Object>) client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, reference);
   }
 
   int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
@@ -260,7 +238,8 @@ public class ConfluenceAdapter {
     	  
     	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
     	  
-    	  post(path, permissionset, crowdCookieValue, String.class); 
+    	  client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
+    	  
 	      updatedPermissions++;
       }
       return updatedPermissions;
