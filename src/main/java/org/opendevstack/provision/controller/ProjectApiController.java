@@ -150,9 +150,6 @@ public class ProjectApiController {
 	    
 	    project = createDeliveryChain(project, crowdCookie);
 
-	    // clear admin user list for storage to prevent serialization problems
-	    project.admins = new ArrayList<>();
-
 	    jiraAdapter.addShortcutsToProject(project, crowdCookie);
 	    
       // store project data. The storage is autowired with an interface to enable the

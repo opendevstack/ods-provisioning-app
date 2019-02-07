@@ -36,6 +36,7 @@ import com.google.common.base.Preconditions;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
@@ -78,7 +79,11 @@ public class RestClient {
 	  GET,
 	  HEAD
   }  
-  
+ 
+  public static enum HTTP_POST_TYPE {
+	  URL,
+	  FORM
+  }
 
   OkHttpClient getClient(String crowdCookie) {
 	  
@@ -108,7 +113,8 @@ public class RestClient {
   {
 	  try 
 	  {
-		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
+		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, 
+				null, null, null);
 	  } catch (HttpException httpX) {
 		  if (httpX.getResponseCode() != 401) 
 		  {
@@ -117,22 +123,32 @@ public class RestClient {
 	  }
   }
 
+  public <T> T callHttpPut(String url, Map<String,String> input, String crowdCookieValue, 
+		boolean directAuth)
+			throws JsonMappingException, HttpException, IOException
+  {
+	  return callHttpInternal(url, input, crowdCookieValue, directAuth, 
+			HTTP_VERB.PUT, null, null, HTTP_POST_TYPE.URL);
+  }
+  
+  
   public <T> T callHttp(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null, null);
   }
 
   public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType, null);
   }
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef)
+		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef, 
+		  HTTP_POST_TYPE contentType)
       throws JsonMappingException, HttpException, IOException
   {
 	Preconditions.checkNotNull(url, "Url cannot be null");
@@ -142,25 +158,49 @@ public class RestClient {
 
 	logger.debug("Calling url: " + url);
 	
-	if (input == null) 
-	{
-		json = "";
-	    logger.debug("Null payload");
-	} else if (input instanceof String) 
-	{
-		json = (String)input;
-	    logger.debug("Passed String rest object: [{}]", json);
-	} else
-	{
-	    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-	    json = ow.writeValueAsString(input);
-	    logger.debug("Converted rest object: {}", json);
-	}
-	  
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
+    RequestBody body = null;
+    
+    if (HTTP_POST_TYPE.FORM.equals(contentType) && input instanceof Map)
+    {
+    	FormBody.Builder formBuilder = new FormBody.Builder();
+    	for (Map.Entry<String, String> entry : ((Map<String,String>)input).entrySet())
+    	{
+    		formBuilder.add(entry.getKey(), entry.getValue());
+    	}
+    	body = formBuilder.build();
+    }
+    else if (HTTP_POST_TYPE.URL.equals(contentType) && input instanceof Map) 
+    {
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+    	for (Map.Entry<String, String> entry : ((Map<String,String>)input).entrySet())
+    	{
+	        urlBuilder.addQueryParameter(entry.getKey(), entry.getValue());
+    	}
+    	url = urlBuilder.toString();
+    }
+    else 
+    {
+    	if (input == null) 
+    	{
+    		json = "";
+    	    logger.debug("Null payload");
+    	} else if (input instanceof String) 
+    	{
+    		json = (String)input;
+    	    logger.debug("Passed String rest object: [{}]", json);
+    	} else
+    	{
+    	    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    	    json = ow.writeValueAsString(input);
+    	    logger.debug("Converted rest object: {}", json);
+    	}
+
+    	body = RequestBody.create(JSON_MEDIA_TYPE, json);
+    }
 
     okhttp3.Request.Builder builder = new Request.Builder();
-    builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
+    builder.url(url).addHeader("X-Atlassian-Token", "no-check").
+    	addHeader("Accept", "application/json");
     
     if (HTTP_VERB.PUT.equals(verb))
     {
@@ -227,30 +267,36 @@ public class RestClient {
     CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    String username = userDetails.getUsername();
-    String password = manager.getUserPassword();
+//    String username = userDetails.getUsername();
+//    String password = manager.getUserPassword();
+
+    Map<String, String> params = new HashMap<>();
+    params.put("j_username", userDetails.getUsername());
+    params.put("j_password", manager.getUserPassword());
     
-    RequestBody body =
-        new FormBody.Builder().add("j_username", username).add("j_password", password).build();
-    Request request = new Request.Builder()
-        .url(url).post(body)
-        .build();
-    Response response = null;
-    try 
-    {
-    	response = getClient(null).newCall(request).execute();
-    	if (response.isSuccessful()) 
-    	{
-    		logger.debug("Successful form based auth");
-    	} else {
-    		throw new IOException("Could not authenticate: " + username + 
-    			" : " + response.body());
-    	}
-    }
-    finally {
-    	if (response != null)
-    		response.close();
-    }
+//    RequestBody body =
+//        new FormBody.Builder().add("j_username", username).add("j_password", password).build();
+//    Request request = new Request.Builder()
+//        .url(url).post(body)
+//        .build();
+//    Response response = null;
+//    try 
+//    {
+//    	response = getClient(null).newCall(request).execute();
+//    	if (response.isSuccessful()) 
+//    	{
+//    		logger.debug("Successful form based auth");
+//    	} else {
+//    		throw new IOException("Could not authenticate: " + username + 
+//    			" : " + response.body());
+//    	}
+//    }
+//    finally {
+//    	if (response != null)
+//    		response.close();
+//    }
+     callHttpInternal(url, params, null, true, HTTP_VERB.POST, 
+    	null, null, HTTP_POST_TYPE.FORM);
   }
 
 

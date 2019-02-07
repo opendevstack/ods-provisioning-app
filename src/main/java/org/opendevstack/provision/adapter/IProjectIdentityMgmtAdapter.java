@@ -39,7 +39,8 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
  * 
  * @author utschig
  */
-public interface IProjectIdentityMgmtAdapter {
+public interface IProjectIdentityMgmtAdapter extends IServiceAdapter 
+{
 
 	/**
 	 * Verify if a given group exists - in case it's passed down from the initial

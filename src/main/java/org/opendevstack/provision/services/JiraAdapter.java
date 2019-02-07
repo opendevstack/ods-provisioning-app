@@ -106,14 +106,11 @@ public class JiraAdapter {
       Preconditions.checkNotNull(project.key);
       Preconditions.checkNotNull(project.name);
       
-      CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookieValue);
-      project.admins.add(new BasicUser(null, details.getUsername(), details.getFullName()));
-      
-      if (project.createpermissionset && project.admin != null && project.admin.length() > 0) 
+      if (!project.createpermissionset || project.admin == null || project.admin.trim().length() == 0) 
       {
-    	  //first one will be the lead!
-    	  project.admins.clear();
-          project.admins.add(new BasicUser(null, project.admin, project.admin));
+    	  // set in any case - otherwise jira will be annoyed.
+          CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookieValue);
+    	  project.admin = details.getUsername();
       }
       
       FullJiraProject toBeCreated = 
@@ -142,7 +139,6 @@ public class JiraAdapter {
           
       logger.debug("Created project: {}", created);
       project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
-      project.jiraId = created.id;
       
       if (project.createpermissionset) {
         createPermissions(project,crowdCookieValue);
@@ -159,7 +155,8 @@ public class JiraAdapter {
   public FullJiraProject getProject(String id, String crowdCookieValue) {
     String url = String.format(URL_PATTERN, jiraUri, jiraApiPath, id);
       try {
-    	  return client.callHttp(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, FullJiraProject.class);
+    	  return client.callHttp(url, null, crowdCookieValue, false, 
+    		RestClient.HTTP_VERB.GET, FullJiraProject.class);
       } catch (IOException eGetProjects) 
       {
         logger.error("Error getting projects: {}", eGetProjects);
@@ -258,9 +255,10 @@ public class JiraAdapter {
       return updatedPermissions;
   }
   
-  protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
-    BasicUser lead = s.admins.get(0);
-
+  protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) 
+  {
+	BasicUser lead = new BasicUser(null, s.admin, s.admin);
+	  
     String jiratemplateKeyPrefix = "jira.project.template.key.";
     String jiratemplateTypePrefix = "jira.project.template.type.";
     

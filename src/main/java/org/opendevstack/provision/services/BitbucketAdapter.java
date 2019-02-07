@@ -14,22 +14,13 @@
 
 package org.opendevstack.provision.services;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import okhttp3.Credentials;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+
+import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.ProjectData;
@@ -38,7 +29,6 @@ import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.Webhook;
-import org.opendevstack.provision.util.CrowdCookieJar;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
@@ -48,6 +38,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+
+
 /**
  * Service to interact with Bitbucket and to create projects and repositories
  *
@@ -55,7 +49,8 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class BitbucketAdapter {
+public class BitbucketAdapter 
+{
 
   private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapter.class);
 
@@ -289,14 +284,12 @@ public class BitbucketAdapter {
       String crowdCookieValue, PROJECT_PERMISSIONS rights) throws IOException {
     String basePath = buildBasePath();
     String url = String.format("%s/%s/permissions/%s", basePath, data.getKey(), pathFragment);
-    // http://192.168.56.31:7990/rest/api/1.0/projects/{projectKey}/permissions/groups
-    HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-    // utschig - allow group to create new repos (rather than just read / write)
-    urlBuilder.addQueryParameter("permission", rights.toString());
-    urlBuilder.addQueryParameter("name", groupOrUser);
-//    this.put(urlBuilder.build(), crowdCookieValue);
-    client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
-    	RestClient.HTTP_VERB.PUT, String.class);
+
+    Map <String, String> urlParams = new HashMap<>();
+    urlParams.put("permission", rights.toString());
+    urlParams.put("name", groupOrUser);
+    
+    client.callHttpPut(url, urlParams, crowdCookieValue, true);
   }
 
   protected void setRepositoryPermissions(RepositoryData data, String key, String userOrGroup,
@@ -304,13 +297,11 @@ public class BitbucketAdapter {
     String basePath = buildBasePath();
     String url = String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
 
-    HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-    // allow people to modify settings (webhooks)
-    urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
-    urlBuilder.addQueryParameter("name", groupOrUser);
+    Map <String, String> urlParams = new HashMap<>();
+    urlParams.put("permission", "REPO_ADMIN");
+    urlParams.put("name", groupOrUser);
     
-    client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
-    	RestClient.HTTP_VERB.PUT, String.class);
+    client.callHttpPut(url, urlParams, crowdCookieValue, true);
   }
 
   protected String buildBasePath() {
@@ -334,5 +325,4 @@ public class BitbucketAdapter {
   public String getEndpointUri() {
     return buildBasePath();
   }
-
 }

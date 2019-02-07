@@ -162,4 +162,18 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			throw new IdMgmtException(eAddGroup);
 		}
 	}
+
+	@Override
+	public String getAdapterApiUri() 
+	{
+		return manager.getSecurityServerClient().
+			getSoapClientProperties().getBaseURL();
+	}
+
+	@Override
+	public Map<String, String> getProjects(String filter, String crowdCookieValue)
+	{
+		return new HashMap<>();
+	}
+	
 }

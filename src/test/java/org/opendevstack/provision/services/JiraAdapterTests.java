@@ -55,7 +55,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -314,10 +313,6 @@ public class JiraAdapterTests {
   
   public static ProjectData getTestProject(String name) {
     ProjectData apiInput = new ProjectData();
-    BasicUser admin = new BasicUser(null, "testuser", "test user");
-
-    apiInput.admins = new ArrayList<BasicUser>();
-    apiInput.admins.add(admin);
     apiInput.name = name;
     apiInput.description = "Test Description";
     apiInput.key = "TESTP";

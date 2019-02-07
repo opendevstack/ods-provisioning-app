@@ -14,12 +14,10 @@
 
 package org.opendevstack.provision.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.opendevstack.provision.model.bitbucket.Link;
-import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -30,12 +28,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectData {
-  public List<BasicUser> admins = new ArrayList<>();
+ // public List<BasicUser> admins = new ArrayList<>();
   public String name = null;
   public String description = null;
   public String key = null;
-  public String jiraId = null;
-  public List<String> tags = new ArrayList<>();
   public List<Map<String, String>> quickstart = null;
   public boolean jiraconfluencespace = true;
   public boolean openshiftproject = true;

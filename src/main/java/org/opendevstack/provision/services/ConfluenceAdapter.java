@@ -134,7 +134,6 @@ public class ConfluenceAdapter {
     context.setNoPageTitlePrefix("true");
     context.setJiraServer(jiraServerId);
     context.setJiraServerId(jiraServerId);
-    context.setJiraProject(project.jiraId);
     context.setProjectKey(project.key);
     context.setProjectName(project.name);
     context.setDescription(project.description);
