@@ -14,7 +14,9 @@
 
 package org.opendevstack.provision.util;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import okhttp3.OkHttpClient;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +34,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
 import static org.junit.Assert.assertNotNull;
@@ -134,15 +138,23 @@ public class RestClientTest {
   { 
 	  client.callHttpBasicFormAuthenticate(null);
   }
-  
-  @Test (expected = SocketTimeoutException.class)
-  public void callRealClientWrongPort () throws Exception
-  { 
+
+  @Test
+  public void callRealClientWrongPort ()
+  {
 	  RestClient spyAdapter = Mockito.spy(client);
-	  
-	  spyAdapter.callHttp(
-		String.format("http://localhost:%d", 1000),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+
+      try {
+          spyAdapter.callHttp(
+            String.format("http://localhost:%d", 1000),
+            "ClemensTest", null, false, HTTP_VERB.GET, String.class);
+      } catch (SocketTimeoutException se) {
+            // expected in local env
+      } catch (ConnectException ce) {
+          // expected in jenkins
+      } catch (IOException e) {
+          Assert.fail(e.getMessage());
+      }
   }
   
 }
