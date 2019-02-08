@@ -14,9 +14,13 @@
 
 package org.opendevstack.provision.util;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.JsonMappingException;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
+=======
+import okhttp3.OkHttpClient;
+>>>>>>> upgrades to spring boot 2
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +41,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+<<<<<<< HEAD
 import java.net.ConnectException;
+=======
+>>>>>>> upgrades to spring boot 2
 import java.net.SocketTimeoutException;
 
 import static org.junit.Assert.assertNotNull;
@@ -51,8 +58,11 @@ import static org.junit.Assert.assertTrue;
 @DirtiesContext
 public class RestClientTest {
 
+<<<<<<< HEAD
   private static final Logger logger = LoggerFactory.getLogger(RestClientTest.class);
 
+=======
+>>>>>>> upgrades to spring boot 2
   @Value("${local.server.port}")
   private int randomServerPort;
 

@@ -14,11 +14,30 @@
 
 package org.opendevstack.provision.services;
 
+<<<<<<< HEAD
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+=======
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.text.AbstractDocument.Content;
+
+>>>>>>> upgrades to spring boot 2
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -243,7 +262,7 @@ public class RundeckAdapterTest {
     projectData.adminGroup = "agroup";
     projectData.userGroup = "ugroup";
     projectData.readonlyGroup = "rgroup";
-  
+
     spyAdapter = Mockito.spy(rundeckAdapter);
         
     Mockito.doNothing().when(spyAdapter).authenticate();
@@ -256,10 +275,10 @@ public class RundeckAdapterTest {
     Mockito.verify(crowdUserDetailsService, Mockito.never()).loadUserByToken(crowdCookie); 
 
     Mockito.verify(client).callHttp
-    	(Matchers.any(), captor.capture(), Matchers.any(), Matchers.anyBoolean(), 
-    		Matchers.eq(RestClient.HTTP_VERB.POST),
-    		Matchers.any());
-    
+            (Matchers.any(), captor.capture(), Matchers.any(), Matchers.anyBoolean(),
+                    Matchers.eq(RestClient.HTTP_VERB.POST),
+                    Matchers.any());
+
     Execution execVerify = (Execution)captor.getValue();
     assertNotNull(execVerify);
     assertEquals(execVerify.getOptions().get("project_id"), projectData.key);
@@ -268,8 +287,8 @@ public class RundeckAdapterTest {
     assertNotNull(groups);
     System.out.println(groups);
     assertTrue(groups.contains("ADMINGROUP=" + projectData.adminGroup) &&
-    		groups.contains("USERGROUP=" + projectData.userGroup) &&
-    		groups.contains("READONLYGROUP=" + projectData.readonlyGroup)); 
+            groups.contains("USERGROUP=" + projectData.userGroup) &&
+            groups.contains("READONLYGROUP=" + projectData.readonlyGroup));
   }
   
   @Test

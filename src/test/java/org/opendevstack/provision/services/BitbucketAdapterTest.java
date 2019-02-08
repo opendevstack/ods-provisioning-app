@@ -236,7 +236,7 @@ public class BitbucketAdapterTest {
     assertEquals(expected, actual);
   }
 
-
+  @Test
   public void callCreateRepoApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
     spyAdapter.client = client;
