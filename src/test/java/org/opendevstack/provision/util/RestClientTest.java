@@ -14,31 +14,27 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-
+import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Torsten Jaeschke
@@ -48,8 +44,8 @@ import okhttp3.OkHttpClient;
 @DirtiesContext
 public class RestClientTest {
 
-  @LocalServerPort
-  int randomServerPort;
+  @Value("${local.server.port}")
+  private int randomServerPort;
 
   private RestClient client;
 

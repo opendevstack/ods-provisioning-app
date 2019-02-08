@@ -16,8 +16,11 @@ package org.opendevstack.provision.services;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +63,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 @DirtiesContext
 public class RundeckAdapterTest {
 
-  private static final String COMPONENT_ID_KEY = "component_id";
   private static final String COMPONENT_ID = "2";
   private static final String PROJECT_ID = "1";
   private static final String PROJECT_KEY = "123key";
@@ -121,7 +123,7 @@ public class RundeckAdapterTest {
     job.setId(PROJECT_ID);
 
     Map<String, String> testjob = new HashMap<String, String>();
-    testjob.put(COMPONENT_ID_KEY, COMPONENT_ID);
+    testjob.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
 
     List<Map<String, String>> quickstart = new ArrayList<Map<String, String>>();
 
@@ -132,18 +134,22 @@ public class RundeckAdapterTest {
     String json = objectToJson(exec);
 
     Mockito.doNothing().when(spyAdapter).authenticate();
-    doReturn(job).when(jobStore).getJob(Matchers.anyString());
 
-    doReturn(Mockito.mock(ExecutionsData.class)).when(client).
-		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
-			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
-			Matchers.eq(ExecutionsData.class));    
-    
+    when(jobStore.getJob(anyString())).thenReturn(job);
+
+    mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
+
     int expectedExecutionsSize = 1;
     
     int actualExecutionsSize = spyAdapter.executeJobs(project).size();
 
     assertEquals(expectedExecutionsSize, actualExecutionsSize);
+  }
+
+  private void mockRestClientToReturnExecutionData(Class input, Class output) throws java.io.IOException {
+    Object data = mock(output);
+    when(client.callHttp(anyString(), any(input), eq(null), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+            any())).thenReturn(data);
   }
 
   @Test
@@ -168,17 +174,13 @@ public class RundeckAdapterTest {
     String userNameFromCrowd = "crowdUsername";
     
     CrowdUserDetails details = Mockito.mock(CrowdUserDetails.class);
-    Mockito.when(crowdUserDetailsService.loadUserByToken(crowdCookie)).thenReturn(details);
-    Mockito.when(details.getUsername()).thenReturn(userNameFromCrowd);
+    when(crowdUserDetailsService.loadUserByToken(crowdCookie)).thenReturn(details);
+    when(details.getUsername()).thenReturn(userNameFromCrowd);
 
     doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
 
-    doReturn(execData).when(client).
-		callHttp(Matchers.anyString(), Matchers.isA(Execution.class), 
-			Matchers.anyString(), Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), 
-			Matchers.eq(ExecutionsData.class));
-    
-    
+    mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
+
     ProjectData expectedProjectData = generateDefaultProjectData();
 
     ProjectData createdProjectData = spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
@@ -285,7 +287,7 @@ public class RundeckAdapterTest {
   private Execution generateDefaultExecution() {
     Execution exec = new Execution();
     Map<String, String> options = new HashMap<>();
-    options.put(COMPONENT_ID_KEY, COMPONENT_ID);
+    options.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
     options.put("group_id", String.format("org.opendevstack.%s", PROJECT_KEY));
     options.put("project_id", PROJECT_KEY);
     options.put("package_name", String.format("org.opendevstack.%s.%s", PROJECT_KEY, COMPONENT_ID));

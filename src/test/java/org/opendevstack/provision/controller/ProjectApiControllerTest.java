@@ -14,35 +14,15 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.ProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +30,25 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
  * @author Torsten Jaeschke
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
 public class ProjectApiControllerTest {

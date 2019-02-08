@@ -18,6 +18,10 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
@@ -68,8 +72,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 public class JiraAdapterTests {
 
   @Mock
-  CustomAuthenticationManager manager;
-  @Mock
   CrowdUserDetailsService service;
   
   List<FullJiraProject> projects = new ArrayList<>();
@@ -114,18 +116,18 @@ public class JiraAdapterTests {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // get authentication mock
-    Mockito.when(authentication.getPrincipal()).thenReturn(details);
+    when(authentication.getPrincipal()).thenReturn(details);
 
-    Mockito.when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
+    when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
     
     Mockito.doNothing().when(client).getSessionId(null);
     
-    Mockito.when(details.getUsername()).thenReturn("achmed");
-    Mockito.when(details.getFullName()).thenReturn("achmed meyer");
+    when(details.getUsername()).thenReturn("achmed");
+    when(details.getFullName()).thenReturn("achmed meyer");
 
-    Mockito.doReturn(getReturnProject()).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));    
-    
+    when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+            eq(FullJiraProject.class))).thenReturn(getReturnProject());
+
     ProjectData createdProject =
         spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);   
     
@@ -154,10 +156,10 @@ public class JiraAdapterTests {
     {
         HttpException ioEx = new HttpException(300, "testerror");
         
-        Mockito.doThrow(ioEx).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
-                Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
-        
-        spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);  
+        when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), any(RestClient.HTTP_VERB.class),
+              eq(FullJiraProject.class))).thenThrow(ioEx);
+
+      spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);
     } catch (HttpException e) 
     {
     	thrownEx = e;
@@ -172,9 +174,9 @@ public class JiraAdapterTests {
     String crowdCookieValue = "value";
     FullJiraProject expectedProject = new FullJiraProject();
 
-    Mockito.doReturn(expectedProject).when(client).callHttp(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.anyBoolean(), Matchers.any(RestClient.HTTP_VERB.class), Matchers.any(FullJiraProject.class.getClass()));
-    
+    when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+            eq(FullJiraProject.class))).thenReturn(expectedProject);
+
     FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject, crowdCookieValue);
 
     assertEquals(expectedProject, createdProject);
@@ -262,22 +264,22 @@ public class JiraAdapterTests {
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
     
-    Mockito.when(client.callHttp(Matchers.anyString(),
+    when(client.callHttp(anyString(),
             Matchers.anyObject(),
-            Matchers.anyString(), Matchers.anyBoolean(),
+            anyString(), anyBoolean(),
             Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class))).
     	thenReturn(scheme);
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
+    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
             Matchers.anyObject(),
-            Matchers.anyString(), Matchers.anyBoolean(),
+            anyString(), anyBoolean(),
             Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class));
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(Matchers.anyString(),
+    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
             Matchers.anyObject(),
-            Matchers.anyString(), Matchers.anyBoolean(),
+            anyString(), anyBoolean(),
             Matchers.eq(RestClient.HTTP_VERB.PUT), Matchers.eq(FullJiraProject.class));
     
     assertEquals(1, updates);
@@ -294,9 +296,9 @@ public class JiraAdapterTests {
     
     assertEquals(5, shortcutsAdded);
     
-    Mockito.verify(client, Mockito.times(5)).callHttp(Matchers.anyString(),
+    Mockito.verify(client, Mockito.times(5)).callHttp(anyString(),
         Matchers.anyObject(),
-        Matchers.anyString(), Matchers.anyBoolean(),
+        anyString(), anyBoolean(),
         Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
     
     apiInput.jiraconfluencespace = false;
@@ -305,9 +307,9 @@ public class JiraAdapterTests {
     shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
     assertEquals(-1, shortcutsAdded);
         
-    Mockito.verify(mocked.client, Mockito.never()).callHttp(Matchers.anyString(),
+    Mockito.verify(mocked.client, Mockito.never()).callHttp(anyString(),
         Matchers.anyObject(),
-        Matchers.anyString(), Matchers.anyBoolean(),
+        anyString(), anyBoolean(),
         Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
     
   }

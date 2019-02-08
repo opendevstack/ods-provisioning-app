@@ -51,8 +51,11 @@ public class RundeckAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
 
+  public static final String COMPONENT_ID_KEY = "component_id";
+
   @Autowired
-  protected RundeckJobStore jobStore;
+  private RundeckJobStore jobStore;
+
   @Autowired
   private CrowdUserDetailsService crowdUserDetailsService;
 
@@ -105,7 +108,7 @@ public class RundeckAdapter {
   private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
   
   @Autowired
-  RestClient client;
+  private RestClient client;
 
   @Autowired
   CustomAuthenticationManager manager;
@@ -126,7 +129,7 @@ public class RundeckAdapter {
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
       for (Map<String, String> options : project.quickstart) {
-        Job job = jobStore.getJob(options.get("component_type"));
+        Job job = jobStore.getJob(options.get(COMPONENT_ID_KEY));
 
         String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
