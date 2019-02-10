@@ -14,19 +14,7 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Matchers.eq;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.junit.Assert;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -49,7 +37,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Matchers.eq;
 
 /**
  * @author Torsten Jaeschke
@@ -230,7 +227,7 @@ public class BitbucketAdapterTest {
 		  eq (RestClient.HTTP_VERB.POST), eq(BitbucketData.class));
     
     // once for each group
-    Mockito.verify(spyAdapter, Mockito.times(5)).setProjectPermissions(eq(expected), eq("groups"),
+    Mockito.verify(spyAdapter, Mockito.times(4)).setProjectPermissions(eq(expected), eq("groups"),
         any(), eq(crowdCookieValue), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
     // one for the tech user!
     Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(eq(expected), eq("users"),
@@ -269,7 +266,7 @@ public class BitbucketAdapterTest {
 
     Mockito.verify(spyAdapter).setRepositoryPermissions(eq(expected), eq(projectKey), eq("users"), any(),
             eq(crowdCookieValue));
-    
+
     Mockito.verify(client).callHttp(eq(uri), eq(repo), eq(crowdCookieValue), anyBoolean(),
             eq(RestClient.HTTP_VERB.POST), any());
     
