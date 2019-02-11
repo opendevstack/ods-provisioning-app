@@ -24,6 +24,8 @@ objects:
       server.port:8080
       server.use-forward-headers=true
 
+      project.template.default.key=default
+
       global.keyuser.role.name=${KEYUSER_GROUP}
 
       #JIRA properties
