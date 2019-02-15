@@ -25,6 +25,8 @@ objects:
       server.use-forward-headers=true
 
       project.template.default.key=default
+      jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+      jira.project.template.type=software
 
       global.keyuser.role.name=${KEYUSER_GROUP}
 
