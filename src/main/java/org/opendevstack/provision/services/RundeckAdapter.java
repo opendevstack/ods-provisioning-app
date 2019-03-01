@@ -14,12 +14,9 @@
 
 package org.opendevstack.provision.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import okhttp3.HttpUrl;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -31,14 +28,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.core.type.TypeReference;
 
-import okhttp3.HttpUrl;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service to interact with rundeck
@@ -130,11 +128,7 @@ public class RundeckAdapter {
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
       for (Map<String, String> options : project.quickstart) {
-<<<<<<< HEAD
         Job job = jobStore.getJob(options.get(COMPONENT_TYPE_KEY));
-=======
-        Job job = jobStore.getJob(options.get(COMPONENT_ID_KEY));
->>>>>>> upgrades to spring boot 2
 
         String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
