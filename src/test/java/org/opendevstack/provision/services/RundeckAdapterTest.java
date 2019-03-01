@@ -124,6 +124,7 @@ public class RundeckAdapterTest {
 
     Map<String, String> testjob = new HashMap<String, String>();
     testjob.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
+    testjob.put(RundeckAdapter.COMPONENT_TYPE_KEY, COMPONENT_ID);
 
     List<Map<String, String>> quickstart = new ArrayList<Map<String, String>>();
 

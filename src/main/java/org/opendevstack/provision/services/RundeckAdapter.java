@@ -52,6 +52,7 @@ public class RundeckAdapter {
   private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
 
   public static final String COMPONENT_ID_KEY = "component_id";
+  public static final String COMPONENT_TYPE_KEY = "component_type";
 
   @Autowired
   private RundeckJobStore jobStore;
@@ -129,7 +130,7 @@ public class RundeckAdapter {
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
       for (Map<String, String> options : project.quickstart) {
-        Job job = jobStore.getJob(options.get(COMPONENT_ID_KEY));
+        Job job = jobStore.getJob(options.get(COMPONENT_TYPE_KEY));
 
         String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');

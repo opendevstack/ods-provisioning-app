@@ -24,8 +24,11 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.storage.LocalStorageTest;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +50,8 @@ import static org.junit.Assert.assertTrue;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
 @DirtiesContext
 public class RestClientTest {
+
+  private static final Logger logger = LoggerFactory.getLogger(RestClientTest.class);
 
   @Value("${local.server.port}")
   private int randomServerPort;
@@ -149,9 +154,9 @@ public class RestClientTest {
             String.format("http://localhost:%d", 1000),
             "ClemensTest", null, false, HTTP_VERB.GET, String.class);
       } catch (SocketTimeoutException se) {
-            // expected in local env
+          logger.info("Expected exception in local env: {}", se.getMessage());
       } catch (ConnectException ce) {
-          // expected in jenkins
+          logger.info("Expected exception in jenkins: {}", ce.getMessage());
       } catch (IOException e) {
           Assert.fail(e.getMessage());
       }

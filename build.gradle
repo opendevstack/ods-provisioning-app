@@ -153,19 +153,6 @@ dependencyManagement {
     }
 }
 
-//uploadArchives {
-//    repositories{
-//        mavenDeployer {
-//            repository(url: "${nexus_url}/repository/candidates/") {
-//                authentication(userName: "${nexus_user}", password: "${nexus_pw}")
-//            }
-//            pom.artifactId = 'prov-app'
-//            pom.groupId = 'org.opendevstack.prov'
-//            pom.version="${System.getenv("TAGVERSION")}" // we will get a TAGVERSION from environment
-//        }
-//    }
-//}
-
 bootJar {
 // springb 2.0.5 replace w bootJar {
     archiveName     "app.jar"
