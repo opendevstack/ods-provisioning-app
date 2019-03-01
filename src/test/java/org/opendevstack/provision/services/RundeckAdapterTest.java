@@ -122,17 +122,16 @@ public class RundeckAdapterTest {
     Job job = new Job();
     job.setId(PROJECT_ID);
 
-    Map<String, String> testjob = new HashMap<String, String>();
+    Map<String, String> testjob = new HashMap<>();
     testjob.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
     testjob.put(RundeckAdapter.COMPONENT_TYPE_KEY, COMPONENT_ID);
 
-    List<Map<String, String>> quickstart = new ArrayList<Map<String, String>>();
+    List<Map<String, String>> quickstart = new ArrayList<>();
 
     quickstart.add(testjob);
     project.quickstart = quickstart;
 
     Execution exec = generateDefaultExecution();
-    String json = objectToJson(exec);
 
     Mockito.doNothing().when(spyAdapter).authenticate();
 
