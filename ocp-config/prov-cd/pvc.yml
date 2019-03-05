@@ -33,7 +33,7 @@ objects:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: ${STORAGE_CLASS_NAME}
+    storageClassName: ${STORAGE_CLASS_DATA}
 parameters:	
 - name: STORAGE_PROVISIONER
 - name: STORAGE_CLASS_DATA
