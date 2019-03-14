@@ -49,6 +49,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * @author Torsten Jaeschke
@@ -245,6 +247,7 @@ public class BitbucketAdapterTest {
   @Test
   public void callCreateProjectApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    spyAdapter.client = client;
 
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
@@ -265,16 +268,21 @@ public class BitbucketAdapterTest {
     expected.setKey("testkey");
     expected.setId("13231");
 
-    Mockito.doReturn(expected).when(spyAdapter).post(Matchers.any(), Matchers.any(), Matchers.any(),
-        Matchers.any());
+	Mockito.doReturn(expected).when(client).callHttp(
+		Matchers.anyString(), Matchers.anyString(), Matchers.eq(crowdCookieValue),
+		Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any());
+    
     Mockito.doNothing().when(spyAdapter).setProjectPermissions(Matchers.any(), Matchers.any(),
         Matchers.any(), Matchers.any(), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
+    
     Mockito.doReturn(uri).when(spyAdapter).buildBasePath();
 
     BitbucketData actual = spyAdapter.callCreateProjectApi(data, crowdCookieValue);
 
-    Mockito.verify(spyAdapter).post(Matchers.eq(uri), Matchers.eq(json),
-        Matchers.eq(crowdCookieValue), Matchers.any());
+    Mockito.verify(client).callHttp(
+		Matchers.anyString(), Matchers.anyString(), Matchers.same(crowdCookieValue),
+		Matchers.anyBoolean(), Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any());
+    
     // only for the keyuser Group
     Mockito.verify(spyAdapter, Mockito.times(1)).setProjectPermissions(Matchers.eq(expected), Matchers.eq("groups"),
         Matchers.any(), Matchers.eq(crowdCookieValue), Matchers.any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
