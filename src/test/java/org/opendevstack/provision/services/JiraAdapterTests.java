@@ -103,6 +103,8 @@ public class JiraAdapterTests {
   public void createJiraProjectForProject() throws Exception {
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
+    
+    assertEquals("10000", spyAdapter.jiraNotificationSchemeId);
 
     // delete in case it already exists
     String name = "TestProject";
@@ -327,6 +329,6 @@ public class JiraAdapterTests {
 
   private FullJiraProject getReturnProject() {
     return new FullJiraProject(URI.create("http://localhost"), "TESTP", null, null, null, null,
-        null, null, null, null, null, null);
+        null, null, null, null, null, null, null);
   }
 }
