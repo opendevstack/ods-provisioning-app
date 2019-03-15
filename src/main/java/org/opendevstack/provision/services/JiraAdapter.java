@@ -58,6 +58,9 @@ public class JiraAdapter {
   @Value("${jira.project.template.key}")
   String jiraTemplateKey;
   
+  @Value("${jira.project.notification.scheme.id:10000}")
+  String jiraNotificationSchemeId;
+  
   //Pattern to use for project with id
   private static String URL_PATTERN = "%s%s/project/%s";
 
@@ -156,7 +159,7 @@ public class JiraAdapter {
     FullJiraProject created = this.callHttp(path, json, crowdCookieValue, FullJiraProject.class, false, HTTP_VERB.POST);
     FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
         jiraProject.getName(), jiraProject.getDescription(), null, null, null, null, null, null,
-        null, null);
+        null, null, null);
     returnProject.id = created.id;
     return returnProject;
   }
@@ -288,7 +291,7 @@ public class JiraAdapter {
     String type = "software";
 
     return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
-    	jiraTemplateKey, type);
+    	jiraTemplateKey, type, jiraNotificationSchemeId);
   }
 
   public String buildProjectKey(String name) {
@@ -345,7 +348,7 @@ public class JiraAdapter {
       // if for some odd reason serialization fails ... 
       List<FullJiraProject> returnList = new ArrayList<>();
       returnList.add(new FullJiraProject
-    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null));
+    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null, null));
     				  
       return returnList;
     } catch (IOException e) {
