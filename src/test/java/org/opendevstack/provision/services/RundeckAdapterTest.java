@@ -14,28 +14,15 @@
 
 package org.opendevstack.provision.services;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.text.AbstractDocument.Content;
-
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -46,14 +33,23 @@ import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
 
 /**
  * @author Torsten Jaeschke
@@ -79,6 +75,9 @@ public class RundeckAdapterTest {
 
   @Mock
   RestClient client;
+  
+  @Captor
+  private ArgumentCaptor<Object> captor;
   
   @Before
   public void setup() {
@@ -213,6 +212,12 @@ public class RundeckAdapterTest {
     		createdProjectData.openshiftJenkinsUrl);
   }
 
+  @Test (expected = IOException.class)
+  public void createNullOCProject() throws Exception {
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    spyAdapter.createOpenshiftProjects(null, null);
+  }
+
   @Test
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
@@ -235,6 +240,9 @@ public class RundeckAdapterTest {
     // create special permissionset - here crowd userdetails should never be called
     projectData.createpermissionset = true;
     projectData.admin = "clemens";
+    projectData.adminGroup = "agroup";
+    projectData.userGroup = "ugroup";
+    projectData.readonlyGroup = "rgroup";
   
     spyAdapter = Mockito.spy(rundeckAdapter);
         
@@ -247,17 +255,21 @@ public class RundeckAdapterTest {
     spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
     Mockito.verify(crowdUserDetailsService, Mockito.never()).loadUserByToken(crowdCookie); 
 
-
-    Execution execution = new Execution();
-    Map<String, String> options = new HashMap<>();
-    	options.put("project_id", projectData.key);
-    	options.put("project_admin", projectData.admin);
-    execution.setOptions(options);
-    
     Mockito.verify(client).callHttp
-    	(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
+    	(Matchers.any(), captor.capture(), Matchers.any(), Matchers.anyBoolean(), 
     		Matchers.eq(RestClient.HTTP_VERB.POST),
     		Matchers.any());
+    
+    Execution execVerify = (Execution)captor.getValue();
+    assertNotNull(execVerify);
+    assertEquals(execVerify.getOptions().get("project_id"), projectData.key);
+    assertEquals(execVerify.getOptions().get("project_admin"), projectData.admin);
+    String groups = execVerify.getOptions().get("project_groups");
+    assertNotNull(groups);
+    System.out.println(groups);
+    assertTrue(groups.contains("ADMINGROUP=" + projectData.adminGroup) &&
+    		groups.contains("USERGROUP=" + projectData.userGroup) &&
+    		groups.contains("READONLYGROUP=" + projectData.readonlyGroup)); 
   }
   
   @Test

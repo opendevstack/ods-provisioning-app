@@ -80,7 +80,7 @@ The base configuration map /as well as the deployment yamls can be found in /ocp
 
 # Frontend Code
 
-The frontend UI - is based on jquery and thymeleaf. All (posting to the API)[src/main/resources/static/js/client.js] happens out of java script (client.js)
+The frontend UI - is based on jquery and thymeleaf. All [posting to the API](src/main/resources/static/js/client.js) happens out of java script (client.js)
  
 # Backend Code
 

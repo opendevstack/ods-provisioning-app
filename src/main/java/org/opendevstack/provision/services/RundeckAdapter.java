@@ -166,6 +166,10 @@ public class RundeckAdapter {
   public ProjectData createOpenshiftProjects(ProjectData project, String crowdCookie)
       throws IOException {
 
+	if (project == null) {
+		throw new IOException("Cannot create null project");
+	}
+	  
     try {
       List<Job> jobs = getJobs(projectOpenshiftGroup);
       for (Job job : jobs) {
@@ -176,8 +180,17 @@ public class RundeckAdapter {
           options.put("project_id", project.key.toLowerCase());
           if (project.createpermissionset) 
           {
-              logger.info("project id: " + project.key + " passed project owner: " + project.admin);
+          	  String entitlementGroups =
+          		"ADMINGROUP=" + project.adminGroup + "," + 
+          		"USERGROUP=" + project.userGroup + "," +
+          		"READONLYGROUP=" + project.readonlyGroup;
+          	  
+              logger.info("project id: " + project.key + 
+            	" passed project owner: " + project.admin + 
+            	" passed groups: " + entitlementGroups);
+              
               options.put("project_admin", project.admin);
+              options.put("project_groups", entitlementGroups);
           }
           else 
           {
