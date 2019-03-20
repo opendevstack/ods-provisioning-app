@@ -1,20 +1,21 @@
 # OpenDevStack Provisioning Application
 
-This application creates new opendevstack digital projects. It delegates the tasks required to several services such as jira, confluence, bitbucket and openshift (thru rundeck).
+This application creates new opendevstack digital projects. It is the central entrypoint to get started with a new project / or new component. 
+It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
-Basic idea:
-1. Admin (user in `crowd.admin.group`) creates new project
-    - Jira Space (name based on project key & name)
-    - Confluence Space (name based on project key)
-    - Openshift projects named key-dev *-test *-cd - based on property `openshiftproject : boolean`
-    - Bitbucket Project (name based on project key) - in case `openshiftproject` == true
+## Basic idea & usage:
+1. An admin (user in a group defined in property `crowd.admin.group`) creates new ODS project. This creates 
+    - a Jira Project (name based on project `key` & `name`)
+    - a Confluence Space (name based on project's `key`)
+    - the required Openshift projects named `key`-dev `key`-test and `key`-cd - in case `openshiftproject == true`. Internally this is done thru a rest call to rundeck triggering the [create-projects rundeck job](https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml)
+    - a Bitbucket Project (name based on project `key`) - in case `openshiftproject == true`
 
-2. Normal user(user in `crowd.user.group`) creates all resources required for a working component
-    - jenkins pipeline
-    - Bitbucket repository
-    - Openshift components based on the chose boilerplate
+2. A normal user (user in a group defined in property `crowd.user.group`) creates all resources required for a working component - 
+this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter. Internally this is done thru a rest call to rundeck - with the picked job as parameter - [here](https://github.com/opendevstack/ods-project-quickstarters/tree/master/rundeck-jobs/quickstarts)
+    - Bitbucket repository within the chosen project named `key`-`boilerplate name`
+    - Openshift components based on the chosen boilerplate, coming from [ods-quickstarters](https://github.com/opendevstack/ods-project-quickstarters)
 
-3. The involved people receive an email with the setup, URLs etc - in case `mail.enabled` == true 
+3. The involved people receive an email with the setup, URLs etc - in case `mail.enabled == true` 
 
 # Permission sets
 
@@ -58,9 +59,15 @@ and add the new <name> into the existing property
 project.template.key.names=default,<name>
 ```
 
-# Project setup
+# Internal architecture
 
-The Project is based on Spring Boot, using several techs which can be seen in the [build.gradle](build.gradle).
+The Project is based on Spring Boot, using several technologies which can be seen in the [build.gradle](build.gradle).
+
+The provision app is merely an orchestrator - that does rest calls to Crowd, Jira, Confluence, Bitbucket and
+Rundeck (for openshift interaction).
+
+The APIs exposed for direct usage, and also for the UI are in the [controller package](tree/master/src/main/java/org/opendevstack/provision/controller). 
+The connectors to the various tools to create resources are in the [services package](tree/master/src/main/java/org/opendevstack/provision/services)
 
 If you want to build locally - create gradle.properties in the root 
 
