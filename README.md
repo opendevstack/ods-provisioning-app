@@ -1,6 +1,6 @@
 # OpenDevStack Provisioning Application
 
-This application creates new opendevstack digital projects. It is the central entrypoint to get started with a new project / or new component based on quickstarters.
+This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on quickstarters.
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
 ## Basic idea & usage:
@@ -33,7 +33,7 @@ The configuration for the permission sets are configured:
 3. Bitbucket Project is provisioned with tight read & write roles
 
 # Project types
-The default jira / confluence projects to be created are defined in [src/main/resources/application.properties](src/main/resources/application.properties) - and correspondingly in the config maps
+The default jira / confluence project' types are defined in [src/main/resources/application.properties](src/main/resources/application.properties) - and correspondingly in the config maps
 
 ```
 project.template.key.names=default
@@ -78,7 +78,7 @@ If you want to build locally - create gradle.properties in the root
     - nexus_pw=<NEXUS_PW> 
  
 ```bash
-#to run the server execute
+# to run the server execute
 gradle bootRun
 ```
 
@@ -114,6 +114,10 @@ The process for new operations to be called is:
 
 - [Generating POJOs from JSON Schemas](http://www.jsonschema2pojo.org/) very helpful for the Atlassian API Docs
 
+- [OKHttp3](https://square.github.io/okhttp)
+
+- [Mockito](https://site.mockito.org)
+
 **Atlassian API's**
 
 - [Jira API](https://docs.atlassian.com/jira/REST/server/#api/2/fullJiraProject-createProject)
@@ -121,5 +125,4 @@ The process for new operations to be called is:
 - [Bitbucket API](https://developer.atlassian.com/server/bitbucket/reference/rest-api/)
 - [Crowd API](https://developer.atlassian.com/server/crowd/crowd-rest-apis/)
 - [Rundeck API](https://rundeck.org/docs/api/)
-- [Mockito](https://site.mockito.org)
-- [OKHttp3](https://square.github.io/okhttp)
+
