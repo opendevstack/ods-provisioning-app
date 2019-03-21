@@ -4,11 +4,11 @@ This application creates new OpenDevStack digital projects. It is the central en
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
 ## Basic idea & usage:
-1. An admin (user in a group defined in property `crowd.admin.group`) creates new ODS project. This creates 
+1. An admin (user in a group defined in property `crowd.admin.group`) creates new ODS project. This in turn creates 
     - a Jira Project (name based on project `key` & `name`)
     - a Confluence Space (name based on project's `key`)
     - the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `openshiftproject == true`. Internally this is done thru a rest call to rundeck triggering the [create-projects rundeck job](https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml)
-    - a Bitbucket Project (name based on project `key`) - in case `openshiftproject == true`
+    - a Bitbucket Project (name based on project `key`) - in case `openshiftproject == true`. Within this project two default repositories are created `key`-oc-config-artifacts for all `yaml` resources as well as `key`-design for any design artifacts (e.g. sketches)
 
 2. A normal user (user in a group defined in property `crowd.user.group`) creates all resources required for a working component - 
 this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter. Internally this is done thru a rest call to rundeck - with the picked job as parameter - [here](https://github.com/opendevstack/ods-project-quickstarters/tree/master/rundeck-jobs/quickstarts)
@@ -17,7 +17,19 @@ this happens thru the user interface - in going to modify project / picking your
 
 3. The involved people receive an email with the setup, URLs to components etc. - in case `mail.enabled == true` 
 
-# Permissions
+## Integration with Bitbucket (webhooks)
+
+Next to the provision app creating the bitbucket repository for a chosen quickstarter - it also creates a webhook on that repo, which triggers on three events
+```
+    List<String> events = new ArrayList<String>();
+        events.add("repo:refs_changed");
+        events.add("pr:merged");
+        events.add("pr:declined");
+    webhook.setEvents(events);
+```
+This webhook calls the [webhook proxy](https://github.com/opendevstack/ods-core/tree/master/jenkins/webhook-proxy) which in turn creates an openshift `build config` of type `pipeline` in the `name`-cd project and executes it.
+
+##  Permissions
 
 By default no special permissions are set on either confluence / jira / bitbucket or openshift, only system-wide settings are inherited.
 
@@ -31,8 +43,9 @@ The configuration for the permission sets are configured:
 1. JIRA Project is provisioned with its own permissionset [defined in src/main/resources/permission-templates/jira.permission.all.txt](src/main/resources/permission-templates/jira.permission.all.txt)
 2. Confluence Project is provisioned with special permission set [defined in src/main/resources/permission-templates/confluence.permission.*](src/main/resources/permission-templates)
 3. Bitbucket Project is provisioned with tight read & write roles
+4. Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
-# Project types
+## Project/Space types based on templates
 The default jira / confluence project' types are defined in [src/main/resources/application.properties](src/main/resources/application.properties) - and correspondingly in the config maps
 
 ```
@@ -57,7 +70,45 @@ confluence.blueprint.key.<name>=com.atlassian.confluence.plugins.confluence-soft
 and add the new <name> from above to the existing property `project.template.key.names`
 
 ```
+# list of templates surfaced to the UI and API
 project.template.key.names=default,<name>
+```
+
+## Using the provision application via API
+
+``` bash 
+PROVISION_API_HOST=<host name>
+
+curl -D headers.txt -k -H "Content-Type: application/x-www-form-urlencoded" -X POST ${PROVISION_API_HOST}/j_security_check \
+-d username=<username> -d password=<password>
+
+# grab the login status, and exit if error
+login_status=$(cat headers.txt | grep ${PROVISION_API_HOST}/login?error)
+
+if [[ $login_status != "" ]]; then echo "Login Error"; exit 1; fi;
+
+# grab the needed IDs and bake the cookies
+JSESSION_ID=$(cat headers.txt | grep "Set-Cookie: JSESSION" | cut -d ';' -f1 | cut -d ":" -f2)";" 
+CROWD_COOKIE=$(cat headers.txt | grep "Set-Cookie: crowd" | cut -d ';' -f1 | cut -d ":" -f2)
+
+COOKIES=${JSESSION_ID}${CROWD_COOKIE}
+
+# sample provision file >> create.txt
+{
+  "name" : "<Mandatory name>",
+  "key" : "<Mandatory key>",
+  "createpermissionset" : true
+  "jiraconfluencespace" : true,
+  "admin" : "<admin user>",
+  "adminGroup" : "<admin group>",
+  "userGroup" : "<user group>",
+  "readonlyGroup" : "<readonly group>",
+  "openshiftproject" : false,
+}
+
+provisionfile=create.txt
+
+curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" -H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v1/project
 ```
 
 # Internal architecture
@@ -70,7 +121,7 @@ Rundeck (for openshift interaction).
 The APIs exposed for direct usage, and also for the UI are in the [controller package](src/main/java/org/opendevstack/provision/controller). 
 The connectors to the various tools to create resources are in the [services package](src/main/java/org/opendevstack/provision/services)
 
-If you want to build locally - create gradle.properties in the root 
+If you want to build locally - create gradle.properties in the root to configure connectivity to OpenDevStack NEXUS
 
     - nexus_url=<NEXUS HOST>
     - nexus_folder=candidates
@@ -82,16 +133,18 @@ If you want to build locally - create gradle.properties in the root
 gradle bootRun
 ```
 
-If you want to overwrite the provided [application.properties](src/main/resources/application.properties) just create a configmap out of them and inject the key into /config/application.properties in the container - voila, you can overwrite the config.
-The base configuration map /as well as the deployment yamls can be found in [ocp-config](ocp-config/prov-app/cm.yml), and overwrite parameters from application.
+To overwrite the provided [application.properties](src/main/resources/application.properties) a configmap is created out of them and injected into /config/application.properties within the container.
+The base configuration map as well as the deployment yamls can be found in [ocp-config](ocp-config/prov-app/cm.yml), and overwrite parameters from application.
 
-# Frontend Code
+## Frontend Code
 
-The frontend UI - is based on jquery and thymeleaf. All [posting to the API](src/main/resources/static/js/client.js) happens out of java script (client.js)
+The frontend is based on jquery and thymeleaf. All [posting to the API](src/main/resources/static/js/client.js) happens out of java script (client.js)
  
-# Backend Code
+## Backend Code
 
-The backend is based on Spring Boot, and authenticates against Atlassian Crowd. Both frontend (html) and backend are tested thru Mockito 
+The backend is based on Spring Boot, authenticates against Atlassian Crowd and exposes consumable APIs (`api/v1/project`). 
+Storage of created projects happens on the filesystem thru the [StorageAdapter](src/main/java/org/opendevstack/provision/storage/LocalStorage.java).
+Both frontend (html) and backend are tested thru Junit & Mockito
  
 ## Consuming REST APIs in Java
 
