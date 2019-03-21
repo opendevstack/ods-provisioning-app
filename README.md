@@ -96,7 +96,7 @@ The backend is based on Spring Boot, and authenticates against Atlassian Crowd. 
 ## Consuming REST APIs in Java
 
 Generally this is a pain. To ease development, a few tools are in use:
-- Jackson
+- Jackson (see link below)
 - OKTTP3 Client (see link below)
 - jsonschema2pojo generator (see link below)
 
@@ -104,19 +104,16 @@ The process for new operations to be called is:
 1. Look up the API call that you intend to make
 2. see if there is a JSON Schema available
 3. Generate (a) Pojo('s) for the Endpoint
-4. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3
+4. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's [RestClient](src/main/java/org/opendevstack/provision/util/RestClient.java)
  
 ## Link collection
 
 - [Mkyong spring boot + security + thymeleaf example](http://www.mkyong.com/spring-boot/spring-boot-spring-security-thymeleaf-example/)
-
 - [Getting more Webjars](http://www.webjars.org/)
-
 - [Generating POJOs from JSON Schemas](http://www.jsonschema2pojo.org/) very helpful for the Atlassian API Docs
-
 - [OKHttp3](https://square.github.io/okhttp)
-
 - [Mockito](https://site.mockito.org)
+- [Jackson](https://github.com/FasterXML/jackson)
 
 **Atlassian API's**
 
