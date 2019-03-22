@@ -79,7 +79,8 @@ project.template.key.names=default,<name>
 ``` bash 
 PROVISION_API_HOST=<host name>
 
-curl -D headers.txt -k -H "Content-Type: application/x-www-form-urlencoded" -X POST ${PROVISION_API_HOST}/j_security_check \
+curl -D headers.txt -k -H "Content-Type: application/x-www-form-urlencoded" \
+-X POST ${PROVISION_API_HOST}/j_security_check \
 -d username=<username> -d password=<password>
 
 # grab the login status, and exit if error
@@ -97,18 +98,20 @@ COOKIES=${JSESSION_ID}${CROWD_COOKIE}
 {
   "name" : "<Mandatory name>",
   "key" : "<Mandatory key>",
-  "createpermissionset" : true
+  "createpermissionset" : true,
   "jiraconfluencespace" : true,
   "admin" : "<admin user>",
   "adminGroup" : "<admin group>",
   "userGroup" : "<user group>",
   "readonlyGroup" : "<readonly group>",
-  "openshiftproject" : false,
+  "openshiftproject" : false
 }
 
 provisionfile=create.txt
 
-curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" -H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v1/project
+# invoke the provision API to create a new project
+curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
+-H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v1/project
 ```
 
 # Internal architecture
@@ -121,7 +124,7 @@ Rundeck (for openshift interaction).
 The APIs exposed for direct usage, and also for the UI are in the [controller package](src/main/java/org/opendevstack/provision/controller). 
 The connectors to the various tools to create resources are in the [services package](src/main/java/org/opendevstack/provision/services)
 
-If you want to build locally - create gradle.properties in the root to configure connectivity to OpenDevStack NEXUS
+If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
 
     - nexus_url=<NEXUS HOST>
     - nexus_folder=candidates
@@ -176,3 +179,21 @@ The process for new operations to be called is:
 - [Crowd API](https://developer.atlassian.com/server/crowd/crowd-rest-apis/)
 - [Rundeck API](https://rundeck.org/docs/api/)
 
+# FAQ:
+
+1. Where is the provision app deployed?<BR>
+A. the provision application is deployed on openshift, in both `prov-dev` and `prov-test`. `prov-dev` is the development environment in case you want to change / enhance the application, while the production version of the application is deployed in `prov-test`. The URL to get to the provision application, is defined thru a route. Ít's `https://prov-app-test.`<openshift application domains>.
+
+1. Why are three Openshift projects created when I provision a new project?<br>
+A: The `project-name`-dev & -test ones are runtime namespaces. Depending on which branch you merge / commit your code into, images will be built & deployed in one of the two (further information on how this is done - can be found in the [jenkins-shared-library](https://github.com/opendevstack/ods-jenkins-shared-library) <br> 
+In contrast to this, the `project-name`-cd namespace hosts a project specific instance of the [ODS Jenkins](https://github.com/opendevstack/ods-core/tree/master/jenkins) and also of the [Webhook Proxy](https://github.com/opendevstack/ods-core/tree/master/jenkins/webhook-proxy). When a built is triggered, builder pods (=deployments of [Jenkins slaves](https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves)) are created in this project.<BR>
+This was a cautious design choice to give a project team as much power as possible - when it comes to configuration of jenkins.
+
+1. What is `RUNDECK` used for?<br>
+A: Rundeck is used as orchestration engine when the provision application triggers provision jobs (e.g. create new projects, create components). This architecture is *subject to change* likely in release 2.0, to dramatically reduce complexity in multi cluster scenarios.
+
+1. Where do I find the logs, if something went wrong? <BR>
+A. Within the pod of the provision app - in `/opt/provision/history/logs` a logfile is created per `project`
+    
+1. Where is the real configuration of the provision application? <BR>
+A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
