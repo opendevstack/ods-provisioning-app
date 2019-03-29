@@ -74,7 +74,7 @@ and add the new <name> from above to the existing property `project.template.key
 project.template.key.names=default,<name>
 ```
 
-## Using the provision application via API
+## Using the provision application via API / thru direct REST calls
 
 ``` bash 
 PROVISION_API_HOST=<host name>
@@ -193,7 +193,7 @@ This was a cautious design choice to give a project team as much power as possib
 A: Rundeck is used as orchestration engine when the provision application triggers provision jobs (e.g. create new projects, create components). This architecture is *subject to change* likely in release 2.0, to dramatically reduce complexity in multi cluster scenarios.
 
 1. Where do I find the logs, if something went wrong? <BR>
-A. Within the pod of the provision app - in `/opt/provision/history/logs` a logfile is created per `project`
+A. Within the Openshift `pod` of the provision app (in `project`dev/test, namely in `/opt/provision/history/logs` a logfile is created per `project`)
     
 1. Where is the real configuration of the provision application? <BR>
 A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
