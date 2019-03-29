@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- No Default Notification Scheme assigned into Jira projects upon creation ([#90](https://github.com/opendevstack/ods-provisioning-app/issues/90))
+- Incorrect storageClassName param name ([#92](https://github.com/opendevstack/ods-provisioning-app/issues/92))
+- Remove default user group (admin rights) on created BB project when `createpermissionset==true` ([#87](https://github.com/opendevstack/ods-provisioning-app/issues/87))
+- Provision app fails with 401 not authenticated in case crowd's sso cookie name was changed ([#81](https://github.com/opendevstack/ods-provisioning-app/issues/81))
 
 ## [1.0.1] - 2019-01-25
 
