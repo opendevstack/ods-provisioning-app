@@ -11,6 +11,8 @@ groups are now passed to openshift and set with appropriate rights (view / edit 
 ### Changed
 - Refactoring of http call logic - centralized in RestClient now ([#84](https://github.com/opendevstack/ods-provisioning-app/issues/84))
 
+## [1.0.2] - 2019-04-02
+ 
 ### Fixed
 - Attachment permission was missing for all groups ([#78](https://github.com/opendevstack/ods-provisioning-app/issues/78))
 - Browse_project permission was missing for readonly groups ([#85](https://github.com/opendevstack/ods-provisioning-app/issues/85))
