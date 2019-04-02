@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2019-04-02
+
 ### Fixed
 
 - No Default Notification Scheme assigned into Jira projects upon creation ([#90](https://github.com/opendevstack/ods-provisioning-app/issues/90))
