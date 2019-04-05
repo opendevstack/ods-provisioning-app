@@ -21,10 +21,10 @@
             <fieldset class="form-group">
                 <legend class="col-form-legend">Choose an option</legend>
                 <div class="radio" sec:authorize="hasAuthority(#vars.crowdUserGroup) or hasAuthority(#vars.crowdAdminGroup)">
-                    <label><input type="radio" name="optradio" id="optExistingInitiave" />Modifiy existing initiave</label>
+                    <label><input type="radio" name="optradio" id="optExistingInitiave" />Modify existing project</label>
                 </div>
                 <div class="radio" sec:authorize="hasAuthority(#vars.crowdAdminGroup)">
-                    <label><input type="radio" name="optradio" id="optNewProject" />Create new initiave</label>
+                    <label><input type="radio" name="optradio" id="optNewProject" />Create new project</label>
                 </div>
             </fieldset>
         </form>
@@ -135,6 +135,13 @@
                     <textarea class="form-control" id="description" name="description" placeholder="Provide a project description"
                               rows="3" maxlength="100"></textarea>
                 </div>
+                <!-- cutschig user and admin group --> 
+                <div class="form-group" id="projectTypeDiv">
+                    <label for="projectType"  class="control-label">Project Type</label>
+                    <select class="form-control projectType-chooser" name="projectType">
+                    	<option th:each="pType : ${projectTypes}" th:value="${pType}" th:text="${pType}" />
+                    </select>
+                </div>                
                 <!-- cutschig user and admin group --> 
                 <div class="form-group hidden" id="auserdiv">
                     <label for="adminuser"  class="control-label">Admin user</label>

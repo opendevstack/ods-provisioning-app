@@ -45,6 +45,7 @@ public class FullJiraProject extends Project {
   public String projectTypeKey; // eg business or software
   public String id;
   public String permissionScheme; // the permissionSchemeId
+  public String notificationScheme; // the notificationSchemeId
 
   public FullJiraProject() {
     super(null, null, null, null, null, null, null, null, null, null);
@@ -53,10 +54,11 @@ public class FullJiraProject extends Project {
   public FullJiraProject(URI self, String key, String name, String description, BasicUser lead,
       URI uri, Collection<Version> versions, Collection<BasicComponent> components,
       OptionalIterable<IssueType> issueTypes, Collection<BasicProjectRole> projectRoles,
-      String projectTemplateKey, String projectTypeKey) {
+      String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
     super(self, key, name, description, lead, uri, versions, components, issueTypes, projectRoles);
     this.projectTemplateKey = projectTemplateKey;
     this.projectTypeKey = projectTypeKey;
+    this.notificationScheme = notificationSchemeId;
   }
 
   // needed because Jira API doesn't want the whole user but rather just the unique ID/name of the

@@ -15,6 +15,7 @@
 package org.opendevstack.provision.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +27,8 @@ import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -71,6 +74,12 @@ public class DefaultController {
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
   
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdCookieKey;
+  
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:home.html";
@@ -86,7 +95,8 @@ public class DefaultController {
   }
 
     @RequestMapping("/provision")
-    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie){
+    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
+    {
         if(!isAuthenticated()) {
             return LOGIN_REDIRECT;
         } else {
@@ -95,6 +105,7 @@ public class DefaultController {
             model.addAttribute("crowdUserGroup", crowdUserGroup);
             model.addAttribute("crowdAdminGroup", crowdAdminGroup);
             model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
+            model.addAttribute("projectTypes", projectTemplateKeyNames);
         }
         model.addAttribute("classActiveNew", ACTIVE);
         return "provision";
