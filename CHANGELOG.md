@@ -4,14 +4,19 @@
 
 ### Added
 - Define templates & allow pick of project templates for jira / confluence projects ([#26](https://github.com/opendevstack/ods-provisioning-app/issues/26))
+- With `special permissionset` set true and openshift project to be created, 
+groups are now passed to openshift and set with appropriate rights (view / edit / admin)
 
 ### Changed
-- Refactoring of http call logic - centralized in RestClient now ([#84](https://github.com/opendevstack/ods-provisioning-app/issues/64))
+- Refactoring of http call logic - centralized in RestClient now ([#84](https://github.com/opendevstack/ods-provisioning-app/issues/84))
 
+## [1.0.2] - 2019-04-02
+ 
 ### Fixed
+- Default notification scheme (ID 10000) now attached to a provisioned JIRA project ([#90](https://github.com/opendevstack/ods-provisioning-app/issues/90))
 - Attachment permission was missing for all groups ([#78](https://github.com/opendevstack/ods-provisioning-app/issues/78))
 - Browse_project permission was missing for readonly groups ([#85](https://github.com/opendevstack/ods-provisioning-app/issues/85))
-
+- Tighten bitbucket project rights with `special permissionset` ([#87](https://github.com/opendevstack/ods-provisioning-app/issues/87))
 
 ## [1.0.1] - 2019-01-25
 
