@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.eq;
 
+
 /**
  * @author Torsten Jaeschke
  */
@@ -59,6 +60,7 @@ import static org.mockito.Mockito.eq;
 @DirtiesContext
 public class RundeckAdapterTest {
 
+  private static final String COMPONENT_ID_KEY = "component_id";
   private static final String COMPONENT_ID = "2";
   private static final String PROJECT_ID = "1";
   private static final String PROJECT_KEY = "123key";
@@ -78,7 +80,7 @@ public class RundeckAdapterTest {
   
   @Captor
   private ArgumentCaptor<Object> captor;
-  
+
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
@@ -240,6 +242,10 @@ public class RundeckAdapterTest {
     // create special permissionset - here crowd userdetails should never be called
     projectData.createpermissionset = true;
     projectData.admin = "clemens";
+    projectData.adminGroup = "agroup";
+    projectData.userGroup = "ugroup";
+    projectData.readonlyGroup = "rgroup";
+
     projectData.adminGroup = "agroup";
     projectData.userGroup = "ugroup";
     projectData.readonlyGroup = "rgroup";
