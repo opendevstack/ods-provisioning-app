@@ -19,10 +19,31 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServi
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.text.AbstractDocument.Content;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -246,9 +267,9 @@ public class RundeckAdapterTest {
     projectData.userGroup = "ugroup";
     projectData.readonlyGroup = "rgroup";
 
-    projectData.adminGroup = "agroup";
-    projectData.userGroup = "ugroup";
-    projectData.readonlyGroup = "rgroup";
+//    projectData.adminGroup = "agroup";
+//    projectData.userGroup = "ugroup";
+//    projectData.readonlyGroup = "rgroup";
 
     spyAdapter = Mockito.spy(rundeckAdapter);
         
