@@ -1,8 +1,7 @@
 buildscript {
 	 
     ext {
-//        springBootVersion = '2.1.2.RELEASE'
-		 springBootVersion = '2.0.5.RELEASE'
+		 springBootVersion = '2.0.9.RELEASE'
         // fix for not set system variable
 		nexus_url =  "${project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')}"
 		nexus_user =  "${project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')}"
