@@ -19,8 +19,6 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -267,22 +265,22 @@ public class JiraAdapterTests {
     scheme.setId("permScheme1");
     
     when(client.callHttp(anyString(),
-            Matchers.anyObject(),
+            any(),
             anyString(), anyBoolean(),
-            Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class))).
+            eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class))).
     	thenReturn(scheme);
     
 	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
     Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-            Matchers.anyObject(),
+            any(),
             anyString(), anyBoolean(),
-            Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(PermissionScheme.class));
+            eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class));
 
     Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-            Matchers.anyObject(),
+            any(),
             anyString(), anyBoolean(),
-            Matchers.eq(RestClient.HTTP_VERB.PUT), Matchers.eq(FullJiraProject.class));
+            eq(RestClient.HTTP_VERB.PUT), eq(FullJiraProject.class));
     
     assertEquals(1, updates);
   }
@@ -299,9 +297,9 @@ public class JiraAdapterTests {
     assertEquals(5, shortcutsAdded);
     
     Mockito.verify(client, Mockito.times(5)).callHttp(anyString(),
-        Matchers.anyObject(),
+        any(),
         anyString(), anyBoolean(),
-        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
+        eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
     
     apiInput.jiraconfluencespace = false;
     mocked = Mockito.spy(jiraAdapter);
@@ -310,9 +308,9 @@ public class JiraAdapterTests {
     assertEquals(-1, shortcutsAdded);
         
     Mockito.verify(mocked.client, Mockito.never()).callHttp(anyString(),
-        Matchers.anyObject(),
+        any(),
         anyString(), anyBoolean(),
-        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(Shortcut.class));
+        eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
     
   }
   

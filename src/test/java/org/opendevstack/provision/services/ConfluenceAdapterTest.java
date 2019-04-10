@@ -26,7 +26,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
@@ -84,8 +83,8 @@ public class ConfluenceAdapterTest {
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
-    doReturn(expectedSpaceData).when(client).callHttp(anyString(), Matchers.anyObject(),
-        anyString(), Matchers.anyBoolean(),
+    doReturn(expectedSpaceData).when(client).callHttp(anyString(), any(),
+        anyString(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
     
     SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space, "crowdCookieValue");
@@ -103,8 +102,8 @@ public class ConfluenceAdapterTest {
     
     spyAdapter.client = client;
 
-    doReturn(String.class).when(client).callHttp(anyString(), Matchers.anyObject(),
-        anyString(), Matchers.anyBoolean(),
+    doReturn(String.class).when(client).callHttp(anyString(), any(),
+        anyString(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), any(String.class.getClass()));
     
     int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
@@ -112,19 +111,19 @@ public class ConfluenceAdapterTest {
     // 3 permission sets
     Mockito.verify(client, Mockito.times(1)).callHttp
 		(anyString(), contains(project.adminGroup), anyString(),
-			Matchers.anyBoolean(), 
+			anyBoolean(),
 	        eq(RestClient.HTTP_VERB.POST),
 			any(String.class.getClass()));
     
     Mockito.verify(client, Mockito.times(1)).callHttp
 		(anyString(), contains(project.userGroup), anyString(),
-			Matchers.anyBoolean(), 
+			anyBoolean(),
 	        eq(RestClient.HTTP_VERB.POST),
 			any(String.class.getClass()));
 
     Mockito.verify(client, Mockito.times(1)).callHttp
 		(anyString(), contains(project.readonlyGroup), anyString(),
-			Matchers.anyBoolean(), 
+			anyBoolean(),
 	        eq(RestClient.HTTP_VERB.POST),
 			any(String.class.getClass()));
     

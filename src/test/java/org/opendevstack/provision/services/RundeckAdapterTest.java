@@ -113,7 +113,7 @@ public class RundeckAdapterTest {
     Job a = Mockito.mock(Job.class);
     List<Job> jobList = new ArrayList<Job>();
     jobList.add(a);
-    doReturn(jobList).when(spyAdapter).getJobs(Matchers.any());
+    doReturn(jobList).when(spyAdapter).getJobs(any());
     int expectedQuickstarterSize = 1;
     
     int actualQuickstarterSize = spyAdapter.getQuickstarter().size();
@@ -199,7 +199,7 @@ public class RundeckAdapterTest {
     when(crowdUserDetailsService.loadUserByToken(crowdCookie)).thenReturn(details);
     when(details.getUsername()).thenReturn(userNameFromCrowd);
 
-    doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
+    doReturn(jobs).when(spyAdapter).getJobs(any());
 
     mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
@@ -215,15 +215,15 @@ public class RundeckAdapterTest {
 
     // called once -positive
     Mockito.verify(client).callHttp
-    	(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
-			Matchers.eq(RestClient.HTTP_VERB.POST),
-			Matchers.any());
+    	(any(), refEq( execution), any(), anyBoolean(),
+			eq(RestClient.HTTP_VERB.POST),
+			any());
 
 	options.put("project_admin", "crowdUsername-WRONG");
     Mockito.verify(client, Mockito.never()).callHttp
-		(Matchers.any(), Matchers.refEq( execution), Matchers.any(), Matchers.anyBoolean(), 
-			Matchers.eq(RestClient.HTTP_VERB.POST),
-			Matchers.any());
+		(any(), refEq( execution), any(), anyBoolean(),
+			eq(RestClient.HTTP_VERB.POST),
+			any());
     
     assertEquals(expectedProjectData, createdProjectData);
     assertTrue(expectedProjectData.openshiftproject);
@@ -274,18 +274,18 @@ public class RundeckAdapterTest {
     spyAdapter = Mockito.spy(rundeckAdapter);
         
     Mockito.doNothing().when(spyAdapter).authenticate();
-    doReturn(jobs).when(spyAdapter).getJobs(Matchers.any());
-    doReturn(execData).when(client).callHttp(Matchers.anyString(), Matchers.any(), 
-    	Matchers.any(), Matchers.anyBoolean(),
-    	Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any());
+    doReturn(jobs).when(spyAdapter).getJobs(any());
+    doReturn(execData).when(client).callHttp(anyString(), any(),
+    	any(), anyBoolean(),
+    	eq(RestClient.HTTP_VERB.POST), any());
     
     spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
     Mockito.verify(crowdUserDetailsService, Mockito.never()).loadUserByToken(crowdCookie); 
 
     Mockito.verify(client).callHttp
-            (Matchers.any(), captor.capture(), Matchers.any(), Matchers.anyBoolean(),
-                    Matchers.eq(RestClient.HTTP_VERB.POST),
-                    Matchers.any());
+            (any(), captor.capture(), any(), anyBoolean(),
+                    eq(RestClient.HTTP_VERB.POST),
+                    any());
 
     Execution execVerify = (Execution)captor.getValue();
     assertNotNull(execVerify);
