@@ -1,29 +1,16 @@
 apiVersion: v1
 kind: Template
-metadata:
-  annotations: {}
-  creationTimestamp: null
-  name: prov-app-dev
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: prov-app
-      branch: feature
-      component: prov-app
-      env: dev
-      template: component-template
     name: prov-app
   spec:
     replicas: 1
     selector:
       app: prov-app
-      component: prov-app
-      deploymentconfig: prov-app
-      env: dev
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -36,12 +23,9 @@ objects:
         creationTimestamp: null
         labels:
           app: prov-app
-          component: prov-app
-          deploymentconfig: prov-app
-          env: dev
       spec:
         containers:
-        - image: prov-app-dev/prov-app:latest
+        - image: ${TAILOR_NAMESPACE}/prov-app:latest
           imagePullPolicy: IfNotPresent
           name: prov-app
           ports:
@@ -56,7 +40,7 @@ objects:
           terminationMessagePolicy: File
           volumeMounts:
           - mountPath: /opt/provision/history
-            name: volume-65x72
+            name: volume-history
           - mountPath: /config
             name: volume-ikfik
         dnsPolicy: ClusterFirst
@@ -65,7 +49,7 @@ objects:
         securityContext: {}
         terminationGracePeriodSeconds: 30
         volumes:
-        - name: volume-65x72
+        - name: volume-history
           persistentVolumeClaim:
             claimName: prov-history
         - configMap:
@@ -85,5 +69,8 @@ objects:
         from:
           kind: ImageStreamTag
           name: prov-app:latest
-          namespace: prov-dev
+          namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
+parameters:
+- name: TAILOR_NAMESPACE
+  required: true

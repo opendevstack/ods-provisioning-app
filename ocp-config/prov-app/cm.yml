@@ -1,14 +1,8 @@
 apiVersion: v1
 kind: Template
-metadata:
-  annotations: {}
-  creationTimestamp: null
-  name: prov-app-test
 objects:
 - kind: ConfigMap
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: prov-app
     name: application.properties
@@ -20,7 +14,8 @@ objects:
       logging.level.org.springframework=INFO
       logging.level.org.springframework.security=DEBUG
       logging.level.com.atlassian=INFO
-      logging.level.com.atlassian.crowd=INFO
+      logging.level.com.atlassian.crowd=${LOG_LEVEL_ATLASSIAN_CROWD}
+      logging.level.org.opendevstack=${LOG_LEVEL_OPENDEVSTACK}
 
       #log file
       logging.file=provision.log
@@ -34,18 +29,18 @@ objects:
       #JIRA properties
       jira.uri=${JIRA_URI}
       jira.api.path=/rest/api/latest
+      jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
 
       #Confluence properties
       confluence.uri=${CONFLUENCE_URI}
       confluence.api.path=/rest
+      confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
+      confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
 
       #Bitbucket properties
       bitbucket.uri=${BITBUCKET_URI}
       bitbucket.api.path=/rest/api/1.0
       bitbucket.repository.pattern=%s-%s
-      bitbucket.webhook.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-cd/buildconfigs/%s-%s/webhooks/secret101/generic
-      bitbucket.webhook.rshiny.url=${OPENSHIFT_API_HOST}/oapi/v1/namespaces/%s-%s/buildconfigs/%s/webhooks/secret101/generic
-      bitbucket.webhook.environments=dev,test
       bitbucket.default.user.group=${CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
@@ -57,6 +52,8 @@ objects:
       openshift.test.project.name.pattern=%s%s-test
       openshift.dev.project.name.pattern=%s%s-dev
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
+      openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
+      openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
 
       #Rundeck properties
       rundeck.uri=${RUNDECK_URI}
@@ -159,3 +156,12 @@ parameters:
 - name: KEYUSER_GROUP
   required: true
   description: The keyuser group name as in crowd used when creating a new permission scheme
+- name: PIPELINE_TRIGGER_SECRET
+  required: true
+  description: The trigger secret to pass to the webhook proxy
+- name: LOG_LEVEL_ATLASSIAN_CROWD
+  required: true
+  description: Log level of Atlassian crowd package
+- name: LOG_LEVEL_OPENDEVSTACK
+  required: true
+  description: Log level of OpenDevStack package

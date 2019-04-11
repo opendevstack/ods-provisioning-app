@@ -39,6 +39,8 @@ public class CrowdCookieJar implements CookieJar {
 
   String domain;
   private Set<Cookie> cookies = new HashSet<>();
+  
+  private String crowdSSOCookieName;
 
   /**
    * Save cookies from response
@@ -75,13 +77,18 @@ public class CrowdCookieJar implements CookieJar {
   public void addCrowdCookie(String cookieValue) {
     Cookie.Builder cookieBuilder = new Cookie.Builder();
     Cookie crowdCookie =
-        cookieBuilder.name("crowd.token_key").domain(domain).path("/").httpOnly().value(cookieValue).build();
+        cookieBuilder.name(crowdSSOCookieName).domain(domain).path("/").httpOnly().value(cookieValue).build();
     cookies.add(crowdCookie);
   }
 
   @Value("${atlassian.domain}")
   public void setDomain(String domain) {
     this.domain = domain;
+  }
+
+  @Value("${crowd.sso.cookie.name}")
+  public void setSSOCookieName (String cookieName) {
+	  crowdSSOCookieName = cookieName;
   }
   
   public void clear () {

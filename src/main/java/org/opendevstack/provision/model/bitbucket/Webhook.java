@@ -15,6 +15,9 @@ package org.opendevstack.provision.model.bitbucket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "active",

@@ -15,18 +15,26 @@
 package org.opendevstack.provision.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doReturn;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.SpaceData;
+import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
+import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,10 +48,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class ConfluenceAdapterTest {
 
+  @Mock
+  RestClient client;
+
   @Autowired
   @InjectMocks
   ConfluenceAdapter confluenceAdapter;
-
+  
+  @Value("${confluence.blueprint.key}")
+  private String confluenceBlueprintKey;
+  
   @Test
   public void createConfluenceSpaceForProject() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
@@ -51,7 +65,6 @@ public class ConfluenceAdapterTest {
     SpaceData spaceData = Mockito.mock(SpaceData.class);
     Space space = Mockito.mock(Space.class);
 
-    // Mockito.when(spyAdapter.callCreateSpaceApi(space, "crowdCookieValue").thenReturn(spaceData));
     doReturn(space).when(spyAdapter).createSpaceData(project);
     doReturn(spaceData).when(spyAdapter).callCreateSpaceApi(Matchers.any(Space.class),
         Matchers.anyString());
@@ -65,14 +78,88 @@ public class ConfluenceAdapterTest {
   @Test
   public void callCreateSpaceApi() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    spyAdapter.client = client;
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
-    doReturn(expectedSpaceData).when(spyAdapter).post(Matchers.anyString(), Matchers.anyString(),
-        Matchers.anyString(), Matchers.any(SpaceData.class.getClass()));
+    doReturn(expectedSpaceData).when(client).callHttp(Matchers.anyString(), Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(), 
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.eq(SpaceData.class));
     
     SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space, "crowdCookieValue");
 
     assertEquals(expectedSpaceData, createdSpaceData);
   }
+  
+  @Test
+  public void updateSpacePermissions() throws Exception {
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    ProjectData project = JiraAdapterTests.getTestProject("name");
+    project.adminGroup = "adminGroup";
+    project.userGroup = "userGroup";
+    project.readonlyGroup = "readGroup";
+    
+    spyAdapter.client = client;
+
+    doReturn(String.class).when(client).callHttp(Matchers.anyString(), Matchers.anyObject(),
+        Matchers.anyString(), Matchers.anyBoolean(), 
+        Matchers.eq(RestClient.HTTP_VERB.POST), Matchers.any(String.class.getClass()));
+    
+    int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
+
+    // 3 permission sets
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.adminGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
+    
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.userGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
+
+    Mockito.verify(client, Mockito.times(1)).callHttp
+		(Matchers.anyString(), Matchers.contains(project.readonlyGroup), Matchers.anyString(), 
+			Matchers.anyBoolean(), 
+	        Matchers.eq(RestClient.HTTP_VERB.POST),
+			Matchers.any(String.class.getClass()));
+    
+    assertEquals(3, permissionSets);
+  }
+  
+  @Test
+  public void testCreateSpaceData () throws Exception {
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    ProjectData project = JiraAdapterTests.getTestProject("name");
+    project.adminGroup = "adminGroup";
+    project.userGroup = "adminGroup";
+    project.readonlyGroup = "adminGroup";
+
+    List <Blueprint> blList = new ArrayList<>();
+    	Blueprint bPrint = new Blueprint();
+    	bPrint.setBlueprintModuleCompleteKey(confluenceBlueprintKey);
+    	bPrint.setContentBlueprintId("1234");
+    blList.add(bPrint);
+    
+    Mockito.doReturn(blList).when(spyAdapter).getList
+    	(Matchers.contains("space-blueprint"), Matchers.anyString(), Matchers.anyObject());
+
+    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getList
+		(Matchers.contains("jira"), Matchers.anyString(), Matchers.anyObject());
+    
+    Space space = spyAdapter.createSpaceData(project);
+
+    assertNotNull(space);
+    assertEquals(project.name, space.getName());
+    assertEquals(project.key, space.getSpaceKey());
+
+    assertNotNull(space.getContext());
+
+    assertEquals(project.name, space.getContext().getProjectName());
+    assertEquals(project.key, space.getContext().getProjectKey());
+
+  }
+  
 }

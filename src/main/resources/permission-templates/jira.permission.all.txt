@@ -40,6 +40,13 @@
         {
             "holder": {
                 "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "BROWSE_PROJECTS"
+        },
+        {
+            "holder": {
+                "type": "group",
                 "parameter": "adminGroup"
             },
             "permission": "VIEW_DEV_TOOLS"
@@ -47,7 +54,7 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "keyuserGroup"
+                "parameter": "userGroup"
             },
             "permission": "VIEW_DEV_TOOLS"
         },        
@@ -61,7 +68,7 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "keyuserGroup"
+                "parameter": "userGroup"
             },
             "permission": "VIEW_READONLY_WORKFLOW"
         },        
@@ -106,6 +113,20 @@
                 "parameter": "userGroup"
             },
             "permission": "EDIT_ISSUES"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "LINK_ISSUES"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "LINK_ISSUES"
         },        
         {
             "holder": {
@@ -135,7 +156,7 @@
             },
             "permission": "CLOSE_ISSUES"
         },	
-        		        {
+        {
             "holder": {
                 "type": "group",
                 "parameter": "userGroup"
@@ -229,7 +250,14 @@
         {
             "holder": {
                 "type": "group",
-                "parameter": "userGroup"
+                "parameter": "adminGroup"
+            },
+            "permission": "ADD_COMMENTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
             },
             "permission": "DELETE_OWN_COMMENTS"
         },          
@@ -238,7 +266,98 @@
                 "type": "group",
                 "parameter": "userGroup"
             },
+            "permission": "DELETE_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "DELETE_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
             "permission": "EDIT_OWN_COMMENTS"
-        }
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "EDIT_OWN_COMMENTS"
+        },          
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "EDIT_OWN_COMMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MANAGE_WATCHERS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "VIEW_VOTERS_AND_WATCHERS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "MODIFY_REPORTER"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "readonlyGroup"
+            },
+            "permission": "CREATE_ATTACHMENTS"
+        },        
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_ALL_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "adminGroup"
+            },
+            "permission": "DELETE_OWN_ATTACHMENTS"
+        },
+        {
+            "holder": {
+                "type": "group",
+                "parameter": "userGroup"
+            },
+            "permission": "DELETE_OWN_ATTACHMENTS"
+        }        
     ]
 }

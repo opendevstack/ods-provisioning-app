@@ -90,8 +90,8 @@ public class StorageAdapter {
 	 return filteredProjects;
   }  
   
-  public ProjectData getProject(String id) {
-    return null;
+  public ProjectData getProject(String key) {
+	return storage.getProject(key);
   }
 
   public AboutChangesData listAboutChangesData() {

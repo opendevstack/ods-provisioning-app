@@ -34,6 +34,21 @@
  	    "who" : "clemens",
  	    "when" : "2018-09-06",
  	    "what" : "addition of role model for visibility"
- 	  }  	  
+ 	  },  	  
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-10-31",
+ 	    "what" : "various role fixes"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2018-11-09",
+ 	    "what" : "surface junit results, and restructure logging"
+ 	  },
+ 	  {
+ 	    "who" : "clemens",
+ 	    "when" : "2019-01-24",
+ 	    "what" : "add project type"
+ 	  }   	  
   ]
 }

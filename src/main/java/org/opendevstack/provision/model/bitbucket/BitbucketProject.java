@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.model.bitbucket;
 
+import javax.annotation.Generated;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  * @author Torsten Jaeschke
  */
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BitbucketProject {
 

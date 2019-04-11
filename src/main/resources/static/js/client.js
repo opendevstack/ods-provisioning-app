@@ -32,7 +32,7 @@ var validatorOptions = {
     }
   },
   errors: {
-    unique: "This Device is already exist"
+    unique: "This component already exist"
   }
 };
 
@@ -185,6 +185,12 @@ $(document).ready(function(){
 
           // tick checkbox based on project created true false
           $('#openshiftProjectInfo').prop('checked',data.openshiftproject);
+          // only allow upgrade if modifyable == true
+          if (data.openshiftproject == false && $('#openshiftProjectInfo').prop('modifyable') == true) {
+        	  // allow people to change it - update will take care about this
+        	  $("#openshiftProjectInfo").removeClass("disable");
+        	  $("#openshiftProjectInfo").prop("disabled", false);
+          }
           
           // set description
           $('#projectDescription').val(data.description);
@@ -222,7 +228,7 @@ $(document).ready(function(){
         data:projectData,
         contentType:"application/json; charset=utf-8",
         dataType:"json",
-        timeout: 60000,
+        timeout: 120000,
         success: function(data, status, xhr){
 
           summarize(data);
@@ -365,8 +371,6 @@ function summarize(data) {
   	  $("#dataJiraUrlDiv").hide();
   	  $("#dataConfluenceUrlDiv").hide();
   }
-    
-  $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 
   if (data.lastJobs != null) {
 	 console.log("jobs found: " + data.lastJobs + " length: " + data.lastJobs.length);
@@ -387,10 +391,13 @@ function summarize(data) {
 
   if (data.openshiftproject) 
   {
+	  // this was moved, in case of jira / confluence only - no more bitbucket
+	  $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
 	  $("#dataJenkinsUrl").html("<a href='" + data.openshiftJenkinsUrl + "' target='_blank'>" + data.openshiftJenkinsUrl +"</a>");
   } else 
   {
   	  $("#dataJenkinsUrlDiv").hide();
+  	  $("#dataBitbucketUrlDiv").hide();
   }  
   
   $("#projectData").removeClass("hide");

@@ -15,11 +15,15 @@
 package org.opendevstack.provision.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.services.BitbucketAdapter;
+import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -27,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -45,9 +48,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class DefaultController {
 
-  private static final Logger logger = LoggerFactory
-      .getLogger(DefaultController.class);
-
   StorageAdapter storageAdapter;
 
   CustomAuthenticationManager manager;
@@ -57,6 +57,13 @@ public class DefaultController {
   private JiraAdapter jiraAdapter;
 
   private BitbucketAdapter bitbucketAdapter;
+
+  @Autowired
+  private ConfluenceAdapter confluenceAdapter;
+
+  private static final String LOGIN_REDIRECT = "redirect:/login";
+  
+  private static final String ACTIVE = "active";
   
   @Value("${crowd.user.group}")
   private String crowdUserGroup;
@@ -64,6 +71,15 @@ public class DefaultController {
   @Value("${crowd.admin.group}")
   private String crowdAdminGroup;
 
+  @Value("${openshift.project.upgrade}")
+  private boolean ocUpgradeAllowed;
+  
+  @Autowired
+  List<String> projectTemplateKeyNames;
+  
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdCookieKey;
+  
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:home.html";
@@ -72,23 +88,26 @@ public class DefaultController {
   @RequestMapping("/home")
   String home(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveHome", "active");
+    model.addAttribute("classActiveHome", ACTIVE);
     return "home";
   }
 
     @RequestMapping("/provision")
-    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie){
+    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
+    {
         if(!isAuthenticated()) {
-            return "redirect:/login";
+            return LOGIN_REDIRECT;
         } else {
             model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
             model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
             model.addAttribute("crowdUserGroup", crowdUserGroup);
             model.addAttribute("crowdAdminGroup", crowdAdminGroup);
+            model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
+            model.addAttribute("projectTypes", projectTemplateKeyNames);
         }
-        model.addAttribute("classActiveNew","active");
+        model.addAttribute("classActiveNew", ACTIVE);
         return "provision";
     }
 
@@ -100,9 +119,9 @@ public class DefaultController {
   @RequestMapping("/history")
   String history(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveHistory", "active");
+    model.addAttribute("classActiveHistory", ACTIVE);
     model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
     return "history";
   }
@@ -110,15 +129,17 @@ public class DefaultController {
   @RequestMapping("/about")
   String about(Model model) {
     if (!isAuthenticated()) {
-      return "redirect:/login";
+      return LOGIN_REDIRECT;
     }
-    model.addAttribute("classActiveAbout", "active");
+    model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
     // add endpoint map
     Map<String, String> endpoints = new HashMap<String, String>();
     endpoints.put("JIRA", jiraAdapter.getEndpointUri());
     endpoints.put("GIT", bitbucketAdapter.getEndpointUri());
+    endpoints.put("RUNDECK", rundeckAdapter.getRundeckAPIPath());
+    endpoints.put("CONFLUENCE", confluenceAdapter.getConfluenceAPIPath());
 
     model.addAttribute("endpointMap", endpoints);
 

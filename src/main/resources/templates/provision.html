@@ -21,10 +21,10 @@
             <fieldset class="form-group">
                 <legend class="col-form-legend">Choose an option</legend>
                 <div class="radio" sec:authorize="hasAuthority(#vars.crowdUserGroup) or hasAuthority(#vars.crowdAdminGroup)">
-                    <label><input type="radio" name="optradio" id="optExistingInitiave" />Modifiy existing initiave</label>
+                    <label><input type="radio" name="optradio" id="optExistingInitiave" />Modify existing project</label>
                 </div>
                 <div class="radio" sec:authorize="hasAuthority(#vars.crowdAdminGroup)">
-                    <label><input type="radio" name="optradio" id="optNewProject" />Create new initiave</label>
+                    <label><input type="radio" name="optradio" id="optNewProject" />Create new project</label>
                 </div>
             </fieldset>
         </form>
@@ -48,7 +48,7 @@
                     		</td>
                     		<td>
 			                    <textarea class="form-control" id="projectDescription" name="projectDescription" disabled="true"
-                              		rows="3"></textarea>
+                              		rows="2" size="40" maxlength="100"></textarea>
                             </td>
                         </tr>
                         <tr>
@@ -64,7 +64,7 @@
                             	Openshift Projects created?
                             </td>
                             <td>
-                    			<input type="checkbox" name="openshiftProjectInfo" id="openshiftProjectInfo" checked="true" disabled="false"/>
+                    			<input type="checkbox" th:attr="modifyable=${ocUpgradeAllowed}" name="openshiftProjectInfo" id="openshiftProjectInfo" checked="true" disabled="false"/>
                     		</td>
                     	</tr>
                     </table>
@@ -133,8 +133,15 @@
                 <div class="form-group">
                     <label for="description">Description</label>
                     <textarea class="form-control" id="description" name="description" placeholder="Provide a project description"
-                              rows="3"></textarea>
+                              rows="3" maxlength="100"></textarea>
                 </div>
+                <!-- cutschig user and admin group --> 
+                <div class="form-group" id="projectTypeDiv">
+                    <label for="projectType"  class="control-label">Project Type</label>
+                    <select class="form-control projectType-chooser" name="projectType">
+                    	<option th:each="pType : ${projectTypes}" th:value="${pType}" th:text="${pType}" />
+                    </select>
+                </div>                
                 <!-- cutschig user and admin group --> 
                 <div class="form-group hidden" id="auserdiv">
                     <label for="adminuser"  class="control-label">Admin user</label>
@@ -258,7 +265,7 @@
                                     </div>
                                     <div class="col-xs-4 col-sm-6" id="dataJenkinsUrl"></div>
                                 </div>
-                                <div class="row">
+                                <div class="row" id="dataBitbucketUrlDiv">
                                     <div class="col-xs-8 col-sm-6">
                                         Bitbucket project:
                                     </div>

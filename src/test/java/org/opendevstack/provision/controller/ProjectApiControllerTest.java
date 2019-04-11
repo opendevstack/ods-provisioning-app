@@ -14,9 +14,19 @@
 
 package org.opendevstack.provision.controller;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,9 +41,12 @@ import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.ProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -67,14 +80,21 @@ public class ProjectApiControllerTest {
 
   @Mock
   private RestClient client;
+
+  @Mock
+  private ProjectIdentityMgmtAdapter idm;
   
   @InjectMocks
+  @Autowired
   private ProjectApiController apiController;
-
+  
   private MockMvc mockMvc;
 
   private ProjectData data;
 
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+  
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -87,10 +107,58 @@ public class ProjectApiControllerTest {
     data.key = "KEY";
     data.name = "Name";
     data.description = "Description";
+
+    Map<String, String> someQuickstarter = new HashMap<>();
+    someQuickstarter.put("key", "value");
+    List<Map<String,String>> quickstart = new ArrayList<>();
+    quickstart.add(someQuickstarter);
+    data.quickstart = quickstart;
+    
+	data.openshiftproject = false;
+    data.createpermissionset = true;
+    data.admin = "clemens";
+    data.adminGroup = "group";
+    data.userGroup = "group";
+    data.readonlyGroup = "group";
   }
 
   @Test
-  public void addProject() throws Exception {
+  public void addProjectWithoutOCPosNeg() throws Exception {
+    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
+    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+    
+    Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
+    
+    mockMvc.perform(post("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+    
+    // rundeck should NOT have been called and neither bitbucket
+    Mockito.verify(rundeckAdapter, Mockito.never()).createOpenshiftProjects(
+    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    Mockito.verify(bitbucketAdapter, Mockito.never()).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    
+    // try with failing storage
+    Mockito.when(storage.storeProject(data)).thenThrow(IOException.class);
+    mockMvc.perform(post("/api/v1/project")
+        .content(asJsonString(data))
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is5xxServerError());
+  }
+
+  @Test
+  public void addProjectWithOC() throws Exception {
+	data.openshiftproject = true;	  
     Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
         Matchers.isNull(String.class))).thenReturn(data);
     Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
@@ -109,16 +177,27 @@ public class ProjectApiControllerTest {
     Mockito.when(storage.storeProject(data)).thenReturn("created");
     Mockito.doNothing().when(client).removeClient(Matchers.anyString());
     
+    Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
+    
     mockMvc.perform(post("/api/v1/project")
             .content(asJsonString(data))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
+    
+    // rundeck should have been called (and repo creation as well)
+    Mockito.verify(rundeckAdapter, Mockito.times(1)).createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class));
+    Mockito.verify(bitbucketAdapter, Mockito.times(1)).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    Mockito.verify(bitbucketAdapter, Mockito.times(1)).createRepositoriesForProject(
+            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class));
   }
-
+  
+  
   @Test
-  public void addProjectAnd5xxResult() throws Exception {
+  public void addProjectEmptyAndBadRequest() throws Exception {
 	Mockito.doNothing().when(client).removeClient(Matchers.anyString());
 
     mockMvc
@@ -126,16 +205,12 @@ public class ProjectApiControllerTest {
             .content("{}")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andDo(MockMvcResultHandlers.print());
   }
 
   @Test
-  public void addProjectAnd4xxClientResult() throws Exception {
-    ProjectData data = new ProjectData();
-    data.key = "KEY";
-    data.name = "Name";
-
+  public void addProjectNullAnd4xxClientResult() throws Exception {
     mockMvc
         .perform(post("/api/v1/project")
             .content("")
@@ -145,6 +220,22 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
   }
 
+  @Test
+  public void addProjectKeyOnlyAndExpectBadRequest() throws Exception {
+    ProjectData data = new ProjectData();
+    data.key = "KEY";
+    data.openshiftproject = true;
+
+    mockMvc
+        .perform(post("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andDo(MockMvcResultHandlers.print());
+  }
+
+  
   @Test
   public void validateProjectWithProjectExists() throws Exception {
     Mockito.when(
@@ -210,6 +301,184 @@ public class ProjectApiControllerTest {
             .andDo(MockMvcResultHandlers.print());
   }
 
+  @Test
+  public void getProject () throws Exception
+  {
+    // arbitrary number
+    mockMvc.perform(get("/api/v1/project/1")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
+        .andDo(MockMvcResultHandlers.print());
+        
+    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    
+    mockMvc.perform(get("/api/v1/project/1")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void getProjectTemplateKeys () throws Exception
+  {
+	  mockMvc.perform(get("/api/v1/project/templates")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.content().
+        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
+        .andDo(MockMvcResultHandlers.print());
+  }
+  
+  @Test
+  public void getProjects () throws Exception
+  {
+    mockMvc.perform(get("/api/v1/project/jira/all")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+
+    mockMvc.perform(get("/api/v1/project/xxxx/all")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void updateProjectWithAndWithoutOC() throws Exception {
+	data.openshiftproject = false;
+    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(bitbucketAdapter.createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(bitbucketAdapter.createRepositoriesForProject(
+            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class)))
+        .thenReturn(data);
+    Mockito.when(bitbucketAdapter.createAuxiliaryRepositoriesForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class),
+        Matchers.isNotNull(String[].class))).thenReturn(data);
+    Mockito.when(rundeckAdapter.createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
+        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
+    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+
+    // not existing
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isNotFound());
+    
+    // existing - store prior
+    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+
+    // upgrade to OC - with minimal set
+    ProjectData upgrade = new ProjectData();
+    upgrade.key = data.key;
+    upgrade.openshiftproject = true;
+    apiController.ocUpgradeAllowed = true;
+    
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(upgrade))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+
+    // rundeck should have been called (and repo creation as well)
+    Mockito.verify(rundeckAdapter, Mockito.times(1)).createOpenshiftProjects(
+    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    Mockito.verify(bitbucketAdapter, Mockito.times(1)).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    
+    // upgrade to OC with upgrade forbidden
+    data.openshiftproject = false;
+    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    upgrade.openshiftproject = true;
+    
+    apiController.ocUpgradeAllowed = false;
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(upgrade))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+        .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString("upgrade")))
+        .andDo(MockMvcResultHandlers.print());
+
+    
+    // now w/o upgrade
+    upgrade.openshiftproject = false;
+    
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+
+    // rundeck should NOT have been called (and repo creation as well)
+    Mockito.verify(rundeckAdapter).createOpenshiftProjects(
+    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    Mockito.verify(bitbucketAdapter).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+
+    // now w/o upgrade
+    data.openshiftproject = true;
+    upgrade.openshiftproject = false;
+    
+    mockMvc.perform(put("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+
+    // rundeck should have been called (and repo creation as well)
+    Mockito.verify(bitbucketAdapter, Mockito.times(2)).createBitbucketProjectsForProject(
+        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+  }
+  
+  @Test
+  public void testProjectDescLengh () throws Exception 
+  {
+        data.description = 
+          	"1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
+
+        ProjectData dataReturn = this.copyFromProject(data);
+        apiController.shortenDescription(dataReturn); 
+        
+	    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
+            Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
+            Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(dataReturn);
+        Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
+        Mockito.when(storage.storeProject(data)).thenReturn("created");
+        Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+        
+        Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
+                
+        mockMvc.perform(post("/api/v1/project")
+                .content(asJsonString(data))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(dataReturn.description + "\"")));
+        
+        // test with null
+        apiController.shortenDescription(null);
+        
+        // test with content
+        apiController.shortenDescription(data);
+        assertEquals(dataReturn.description, data.description);
+        
+        // test with null description
+        data.description = null;
+        apiController.shortenDescription(data);        
+  }
+  
   private String asJsonString(final Object obj) {
     try {
       final ObjectMapper mapper = new ObjectMapper();
@@ -219,4 +488,21 @@ public class ProjectApiControllerTest {
       throw new RuntimeException(e);
     }
   }
+
+  private ProjectData copyFromProject (ProjectData origin) {
+	  ProjectData data = new ProjectData();
+	  data.key = origin.key;
+	  data.name = origin.name;
+	  data.description = origin.description;
+	  data.openshiftproject = origin.openshiftproject;
+	  data.bitbucketUrl = origin.bitbucketUrl;
+	  data.quickstart = origin.quickstart;
+	  data.createpermissionset = origin.createpermissionset;
+	  data.admin = origin.admin;
+	  data.adminGroup = origin.adminGroup;
+	  data.userGroup = origin.userGroup;
+	  data.readonlyGroup = origin.readonlyGroup;
+	  return data;
+  }
+  
 }

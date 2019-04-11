@@ -73,16 +73,22 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    * @param response
    * @param authResult
    */
-  private void storeTokenIfCrowd(HttpServletRequest request, HttpServletResponse response,
+  boolean storeTokenIfCrowd(HttpServletRequest request, HttpServletResponse response,
       Authentication authResult) {
     if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
       try {
         httpAuthenticator.setPrincipalToken(request, response,
             authResult.getCredentials().toString());
+        return true;
       } catch (Exception e) {
         logger.error("Unable to set Crowd SSO token", e);
+        return false;
       }
     }
+    return false;
   }
 
+  public HttpAuthenticator getAuthenticator () {
+	  return httpAuthenticator;
+  }
 }

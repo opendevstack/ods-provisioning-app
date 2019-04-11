@@ -17,6 +17,7 @@ package org.opendevstack.provision.services;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.spel.SpelEvaluationException;
@@ -33,23 +34,27 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 /**
  * Service for mail interaction with the user in the provisioning app
  *
- *
  * @author Brokmeier, Pascal
  */
-
 @Service
 public class MailAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(MailAdapter.class);
+  private static final String STR_LOGFILE_KEY = "loggerFileName";
 
   private JavaMailSender mailSender;
 
   @Value("${provison.mail.sender}")
   private String mailSenderAddress;
 
+  // open because of testing
+  @Value("${mail.enabled:false}")
+  boolean isMailEnabled;
+  
   @Autowired
   private TemplateEngine templateEngine;
 
+  // testing only!
   CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
@@ -57,51 +62,53 @@ public class MailAdapter {
     this.mailSender = mailSender;
   }
 
-  private void prepareAndSend(String recipient, ProjectData data) {
-    MimeMessagePreparator messagePreparator = mimeMessage -> {
-      MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-      messageHelper.setFrom(mailSenderAddress);
-      messageHelper.setTo(recipient);
-      messageHelper.setSubject("Project provision");
-      messageHelper.setText(build(data), true);
-    };
-    
-    Thread sendThread = new Thread () {
-    	
-    	@Override
-    	public void run () 
-    	{
-		    try {
-		      mailSender.send(messagePreparator);
-		    } catch (MailException e) {
-		      logger.error("Error in sending mail for project: " + data.key, e);
-		    }
-    	}
-    };
-    
-    sendThread.start();
-  }
-
-  public void notifyUsersAboutProject(ProjectData data) throws Exception {
+  public void notifyUsersAboutProject(ProjectData data) {
+	if (!isMailEnabled) {
+		logger.debug("Email disabled, returning");
+		return;
+	}
     CrowdUserDetails userDetails = getCrowdUserDetails();
-
     String recipient = userDetails.getEmail();
-
-    prepareAndSend(recipient, data);
+    MimeMessagePreparator messagePreparator = mimeMessage -> {
+        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+        messageHelper.setFrom(mailSenderAddress);
+        messageHelper.setTo(recipient);
+        messageHelper.setSubject("ODS Project provision update");
+        messageHelper.setText(build(data), true);
+      };
+      
+      Thread sendThread = new Thread () {
+      	
+      	@Override
+      	public void run () 
+      	{
+  		    try {
+  		      MDC.put(STR_LOGFILE_KEY, data.key);
+  		      mailSender.send(messagePreparator);
+  		    } catch (MailException e) {
+  		      logger.error("Error in sending mail for project: " + data.key, e);
+  		    } finally {
+		      MDC.remove(STR_LOGFILE_KEY);
+  		    }
+      	}
+      };
+      
+      sendThread.start();
+      logger.debug("Mail for project: " + data.key + " sent");
   }
 
-  private String build(ProjectData data) {
+  String build(ProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);
       return templateEngine.process("mailTemplate", context);
     } catch (SpelEvaluationException ex) {
-      logger.error("Error in template", ex);
+      logger.error("Error in creating mail template", ex);
     }
     return "";
   }
 
-  public void setCrowdUserDetails(CrowdUserDetails details) {
+  void setCrowdUserDetails(CrowdUserDetails details) {
     this.crowdUserDetails = details;
   }
 
@@ -112,7 +119,7 @@ public class MailAdapter {
     return crowdUserDetails;
   }
 
-  protected CrowdUserDetails getCrowdUserDetailsFromContext() {
+  CrowdUserDetails getCrowdUserDetailsFromContext() {
     return (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   }
 }

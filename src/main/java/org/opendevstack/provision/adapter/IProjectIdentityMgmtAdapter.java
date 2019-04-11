@@ -13,6 +13,7 @@
  */
 package org.opendevstack.provision.adapter;
 
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
@@ -62,7 +63,7 @@ public interface IProjectIdentityMgmtAdapter {
 	 * @return the user groups name to be configured into artifacts
 	 * @throws Exception in case something goes wrong
 	 */
-	public String createUserGroup (String projectName) throws Exception;
+	public String createUserGroup (String projectName) throws IdMgmtException;
 
 	/**
 	 * Create the admin group
@@ -70,7 +71,7 @@ public interface IProjectIdentityMgmtAdapter {
 	 * @return the admin groups name to be configured into artifacts
 	 * @throws Exception in case something goes wrong
 	 */	
-	public String createAdminGroup (String projectName) throws Exception;
+	public String createAdminGroup (String projectName) throws IdMgmtException;
 	
 	/**
 	 * Create the readonly group
@@ -78,13 +79,13 @@ public interface IProjectIdentityMgmtAdapter {
 	 * @return the admin groups name to be configured into artifacts
 	 * @throws Exception in case something goes wrong
 	 */
-	public String createReadonlyGroup(String projectName) throws Exception; 	
+	public String createReadonlyGroup(String projectName) throws IdMgmtException; 	
 	
 	/**
 	 * Validate project group settings
 	 * @param project the project with the groups set
 	 * @throws Exception in case one or more groups cannot be found
 	 */
-    public void validateIdSettingsOfProject (ProjectData project) throws Exception; 
+    public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException; 
 	
 }
