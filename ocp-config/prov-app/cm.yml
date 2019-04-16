@@ -25,6 +25,8 @@ objects:
       server.use-forward-headers=true
 
       global.keyuser.role.name=${KEYUSER_GROUP}
+      # project types, these two are configured in the src/main/resources/application.properties
+      project.template.key.names=default,kanban
 
       #JIRA properties
       jira.uri=${JIRA_URI}

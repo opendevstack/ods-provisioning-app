@@ -60,11 +60,14 @@ public class JiraAdapter {
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
 
+  public static final String jiratemplateKeyPrefix = "jira.project.template.key.";
+  public static final String jiratemplateTypePrefix = "jira.project.template.type.";
+  
   @Value("${jira.project.template.key}")
-  String jiraTemplateKey;
+  public String jiraTemplateKey;
   
   @Value("${jira.project.template.type}")
-  String jiraTemplateType;
+  public String jiraTemplateType;
 
   @Value("${jira.project.notification.scheme.id:10000}")
   String jiraNotificationSchemeId;
@@ -264,9 +267,6 @@ public class JiraAdapter {
   protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) {
     BasicUser lead = s.admins.get(0);
 
-    String jiratemplateKeyPrefix = "jira.project.template.key.";
-    String jiratemplateTypePrefix = "jira.project.template.type.";
-    
     String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
         (s, jiratemplateKeyPrefix, jiraTemplateKey);
     		
@@ -416,7 +416,7 @@ public class JiraAdapter {
 	return createdShortcuts;
   }
 
-  String calculateJiraProjectTypeAndTemplateFromProjectType 
+  public String calculateJiraProjectTypeAndTemplateFromProjectType 
   	(ProjectData project, String templatePrefix, String defaultValue) 
   {
 	  Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
