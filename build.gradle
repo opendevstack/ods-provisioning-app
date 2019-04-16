@@ -84,7 +84,6 @@ ext {
 }
 
 dependencies {
-    runtime("org.springframework.boot:spring-boot-properties-migrator") // REMOVE after migration to SB2
     compile('org.springframework.boot:spring-boot-starter-actuator')                //bunch of prod tools
     compile('org.springframework.boot:spring-boot-starter-aop')
     compile('org.springframework.boot:spring-boot-starter-data-rest')               //data rest exposed
