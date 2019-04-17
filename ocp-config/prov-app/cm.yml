@@ -24,6 +24,15 @@ objects:
       server.port:8080
       server.use-forward-headers=true
 
+      # TODO: this properties seems that were added to application.properties but not to this file. To review!
+      project.template.default.key=default
+      openshift.project.upgrade=false
+      jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+      jira.project.template.type=software
+      crowd.local.directory=LocalDirectory
+      crowd.sso.cookie.name=crowd.token_key
+      mail.enabled=true
+
       global.keyuser.role.name=${KEYUSER_GROUP}
 
       #JIRA properties

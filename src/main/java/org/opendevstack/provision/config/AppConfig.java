@@ -22,9 +22,9 @@ import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
-import org.thymeleaf.spring4.SpringTemplateEngine;
-import org.thymeleaf.templateresolver.TemplateResolver;
+import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 /**
  * Represents basic bean configurations not related to security
@@ -38,7 +38,7 @@ public class AppConfig {
   String[] projectTemplateKeyNames;
 	
   @Bean
-  public SpringTemplateEngine templateEngine(TemplateResolver templateResolver) {
+  public SpringTemplateEngine templateEngine(ITemplateResolver templateResolver) {
     SpringTemplateEngine templateEngine = new SpringTemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     templateEngine.addDialect(new SpringSecurityDialect());

@@ -1,8 +1,7 @@
 buildscript {
 	 
     ext {
-        springBootVersion = '1.5.15.RELEASE'
-		// springBootVersion = '2.0.5.RELEASE'
+		 springBootVersion = '2.0.9.RELEASE'
         // fix for not set system variable
 		nexus_url =  "${project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')}"
 		nexus_user =  "${project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')}"
@@ -43,6 +42,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: "jacoco"
 apply plugin: 'org.sonarqube'
 // springb 2.05
@@ -103,8 +103,8 @@ dependencies {
 
     //add security dialect for thymeleaf
 	// springb 2.0.5 remove
-    compile("org.thymeleaf:thymeleaf-spring4")
-    compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity4")
+    compile("org.thymeleaf:thymeleaf-spring5")
+    compile group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-springsecurity5', version: '3.0.4.RELEASE'
 
     //frontend webjars
     compile 'org.webjars.bower:bootstrap:3.3.7'
@@ -119,7 +119,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
 
     //encryption library for properties 
-    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '1.13'
+    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '1.18'
 	// springb 2.0.5 compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.0.0'
 	
     //easy http calls to atlassian JSON APIs
@@ -133,7 +133,7 @@ dependencies {
 	
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version:'2.6.6'
     compile group: 'joda-time', name: 'joda-time', version:'2.8.2'
-    compile(group: 'javax.validation', name: 'validation-api', version:'1.1.0.Final')
+    compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
 	// springb 2.0.5 compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
 	compile(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.11')
     compile(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
@@ -151,20 +151,7 @@ dependencyManagement {
     }
 }
 
-uploadArchives {
-    repositories{
-        mavenDeployer {
-            repository(url: "${nexus_url}/repository/candidates/") {
-                authentication(userName: "${nexus_user}", password: "${nexus_pw}")
-            }
-            pom.artifactId = 'prov-app'
-            pom.groupId = 'org.opendevstack.prov'
-            pom.version="${System.getenv("TAGVERSION")}" // we will get a TAGVERSION from environment
-        }
-    }
-}
-
-jar {
+bootJar {
 // springb 2.0.5 replace w bootJar {
     archiveName     "app.jar"
 	destinationDir  file("$buildDir/../docker")
