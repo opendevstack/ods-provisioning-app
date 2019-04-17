@@ -14,31 +14,31 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-
+import okhttp3.OkHttpClient;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Torsten Jaeschke
@@ -48,8 +48,10 @@ import okhttp3.OkHttpClient;
 @DirtiesContext
 public class RestClientTest {
 
-  @LocalServerPort
-  int randomServerPort;
+  private static final Logger logger = LoggerFactory.getLogger(RestClientTest.class);
+
+  @Value("${local.server.port}")
+  private int randomServerPort;
 
   private RestClient client;
 
@@ -138,15 +140,23 @@ public class RestClientTest {
   { 
 	  client.callHttpBasicFormAuthenticate(null);
   }
-  
-  @Test (expected = SocketTimeoutException.class)
-  public void callRealClientWrongPort () throws Exception
-  { 
+
+  @Test
+  public void callRealClientWrongPort ()
+  {
 	  RestClient spyAdapter = Mockito.spy(client);
-	  
-	  spyAdapter.callHttp(
-		String.format("http://localhost:%d", 1000),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+
+      try {
+          spyAdapter.callHttp(
+            String.format("http://localhost:%d", 1000),
+            "ClemensTest", null, false, HTTP_VERB.GET, String.class);
+      } catch (SocketTimeoutException se) {
+            // expected in local env
+      } catch (ConnectException ce) {
+          // expected in jenkins
+      } catch (IOException e) {
+          Assert.fail(e.getMessage());
+      }
   }
   
 }

@@ -16,6 +16,7 @@ package org.opendevstack.provision.services;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
 
 import javax.mail.internet.MimeMessage;
 import org.junit.Before;
@@ -62,7 +63,7 @@ public class MailAdapterTest {
   @Test
   public void notifyUsersAboutProject() throws Exception {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-    Mockito.doNothing().when(mailSender).send(Matchers.any(MimeMessage.class));
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
     Mockito.when(details.getEmail()).thenReturn("test@example.com");
     spyAdapter = new MailAdapter(mailSender);
     spyAdapter.setCrowdUserDetails(details);
@@ -74,7 +75,7 @@ public class MailAdapterTest {
   public void notifyUsersMailDisabled() throws Exception {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     spyAdapter.isMailEnabled = false;
-    Mockito.verify(mailSender, Mockito.never()).send(Matchers.any(MimeMessage.class));
+    Mockito.verify(mailSender, Mockito.never()).send(any(MimeMessage.class));
   }
   
   @Test
@@ -83,7 +84,7 @@ public class MailAdapterTest {
     spyAdapter.setCrowdUserDetails(null);
     Mockito.doReturn(details).when(spyAdapter).getCrowdUserDetailsFromContext();
     Mockito.when(details.getEmail()).thenReturn("test@example.com");
-    Mockito.doNothing().when(mailSender).send(Matchers.any(MimeMessage.class));
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
 
     spyAdapter.notifyUsersAboutProject(new ProjectData());
 
@@ -92,7 +93,7 @@ public class MailAdapterTest {
   
   @Test
   public void testMailBuild () throws Exception {
-    Mockito.doNothing().when(mailSender).send(Matchers.any(MimeMessage.class));
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
     Mockito.when(details.getEmail()).thenReturn("test@example.com");
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     spyAdapter.setCrowdUserDetails(details);
