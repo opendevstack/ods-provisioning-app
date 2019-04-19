@@ -14,35 +14,15 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.ProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +30,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.ArgumentMatchers.*;
 
 /**
  * @author Torsten Jaeschke
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
 public class ProjectApiControllerTest {
@@ -96,7 +85,7 @@ public class ProjectApiControllerTest {
   private String defaultProjectKey;
   
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     MockitoAnnotations.initMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     initProjectData();
@@ -124,13 +113,13 @@ public class ProjectApiControllerTest {
 
   @Test
   public void addProjectWithoutOCPosNeg() throws Exception {
-    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(jiraAdapter.createJiraProjectForProject(isNotNull(),
+        isNull())).thenReturn(data);
     Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+    Mockito.doNothing().when(client).removeClient(anyString());
     
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
     
@@ -143,9 +132,9 @@ public class ProjectApiControllerTest {
     
     // rundeck should NOT have been called and neither bitbucket
     Mockito.verify(rundeckAdapter, Mockito.never()).createOpenshiftProjects(
-    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    	isNotNull(), isNull());
     Mockito.verify(bitbucketAdapter, Mockito.never()).createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+        isNotNull(), isNull());
     
     // try with failing storage
     Mockito.when(storage.storeProject(data)).thenThrow(IOException.class);
@@ -159,23 +148,23 @@ public class ProjectApiControllerTest {
   @Test
   public void addProjectWithOC() throws Exception {
 	data.openshiftproject = true;	  
-    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(jiraAdapter.createJiraProjectForProject(isNotNull(),
+        isNull())).thenReturn(data);
     Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull())).thenReturn(data);
     Mockito.when(bitbucketAdapter.createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull())).thenReturn(data);
     Mockito.when(bitbucketAdapter.createRepositoriesForProject(
-            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class)))
+            isNotNull(),isNull()))
         .thenReturn(data);
     Mockito.when(bitbucketAdapter.createAuxiliaryRepositoriesForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class),
-        Matchers.isNotNull(String[].class))).thenReturn(data);
-    Mockito.when(rundeckAdapter.createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull(),
+        isNotNull())).thenReturn(data);
+    Mockito.when(rundeckAdapter.createOpenshiftProjects(isNotNull(),
+        isNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+    Mockito.doNothing().when(client).removeClient(anyString());
     
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
     
@@ -187,18 +176,18 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
     
     // rundeck should have been called (and repo creation as well)
-    Mockito.verify(rundeckAdapter, Mockito.times(1)).createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class));
+    Mockito.verify(rundeckAdapter, Mockito.times(1)).createOpenshiftProjects(isNotNull(),
+        isNull());
     Mockito.verify(bitbucketAdapter, Mockito.times(1)).createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+        isNotNull(), isNull());
     Mockito.verify(bitbucketAdapter, Mockito.times(1)).createRepositoriesForProject(
-            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class));
+            isNotNull(),isNull());
   }
   
   
   @Test
   public void addProjectEmptyAndBadRequest() throws Exception {
-	Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+	Mockito.doNothing().when(client).removeClient(anyString());
 
     mockMvc
         .perform(post("/api/v1/project")
@@ -239,7 +228,7 @@ public class ProjectApiControllerTest {
   @Test
   public void validateProjectWithProjectExists() throws Exception {
     Mockito.when(
-        jiraAdapter.keyExists(Matchers.isNotNull(String.class), Matchers.isNull(String.class)))
+        jiraAdapter.keyExists(isNotNull(String.class), isNull()))
         .thenReturn(true);
 
     mockMvc.perform(get("/api/v1/project/validate")
@@ -252,7 +241,7 @@ public class ProjectApiControllerTest {
   @Test
   public void validateProjectWithProjectNotExists() throws Exception {
     Mockito.when(
-        jiraAdapter.keyExists(Matchers.isNotNull(String.class), Matchers.isNull(String.class)))
+        jiraAdapter.keyExists(isNotNull(String.class), isNull()))
         .thenReturn(false);
    
     mockMvc.perform(get("/api/v1/project/validate")
@@ -266,7 +255,7 @@ public class ProjectApiControllerTest {
   public void validateKeyWithKeyExists() throws Exception {
     Mockito
         .when(
-            jiraAdapter.keyExists(Matchers.isNotNull(String.class), Matchers.isNull(String.class)))
+            jiraAdapter.keyExists(isNotNull(String.class), isNull()))
         .thenReturn(true);
     mockMvc
         .perform(get("/api/v1/project/key/validate")
@@ -279,7 +268,7 @@ public class ProjectApiControllerTest {
   @Test
   public void validateKeyWithKeyNotExists() throws Exception {
     Mockito.when(
-            jiraAdapter.keyExists(Matchers.isNotNull(String.class), Matchers.isNull(String.class)))
+            jiraAdapter.keyExists(isNotNull(String.class), isNull()))
         .thenReturn(false);
     
     mockMvc.perform(get("/api/v1/project/key/validate")
@@ -291,7 +280,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void generateKey() throws Exception {
-    Mockito.when(jiraAdapter.buildProjectKey(Matchers.isNotNull(String.class))).thenReturn("PROJ");
+    Mockito.when(jiraAdapter.buildProjectKey(isNotNull(String.class))).thenReturn("PROJ");
     
     mockMvc
         .perform(get("/api/v1/project/key/generate")
@@ -310,7 +299,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andDo(MockMvcResultHandlers.print());
         
-    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    Mockito.when(storage.getProject(anyString())).thenReturn(data);
     
     mockMvc.perform(get("/api/v1/project/1")
             .accept(MediaType.APPLICATION_JSON))
@@ -346,23 +335,23 @@ public class ProjectApiControllerTest {
   @Test
   public void updateProjectWithAndWithoutOC() throws Exception {
 	data.openshiftproject = false;
-    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class))).thenReturn(data);
+    Mockito.when(jiraAdapter.createJiraProjectForProject(isNotNull(),
+        isNull())).thenReturn(data);
     Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull())).thenReturn(data);
     Mockito.when(bitbucketAdapter.createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull())).thenReturn(data);
     Mockito.when(bitbucketAdapter.createRepositoriesForProject(
-            Matchers.isNotNull(ProjectData.class),Matchers.isNull(String.class)))
+            isNotNull(),isNull()))
         .thenReturn(data);
     Mockito.when(bitbucketAdapter.createAuxiliaryRepositoriesForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class),
-        Matchers.isNotNull(String[].class))).thenReturn(data);
-    Mockito.when(rundeckAdapter.createOpenshiftProjects(Matchers.isNotNull(ProjectData.class),
-        Matchers.isNull(String.class))).thenReturn(data);
+        isNotNull(), isNull(),
+        isNotNull())).thenReturn(data);
+    Mockito.when(rundeckAdapter.createOpenshiftProjects(isNotNull(),
+        isNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+    Mockito.doNothing().when(client).removeClient(anyString());
 
     // not existing
     mockMvc.perform(put("/api/v1/project")
@@ -372,7 +361,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isNotFound());
     
     // existing - store prior
-    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    Mockito.when(storage.getProject(anyString())).thenReturn(data);
 
     // upgrade to OC - with minimal set
     ProjectData upgrade = new ProjectData();
@@ -389,13 +378,13 @@ public class ProjectApiControllerTest {
 
     // rundeck should have been called (and repo creation as well)
     Mockito.verify(rundeckAdapter, Mockito.times(1)).createOpenshiftProjects(
-    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    	isNotNull(), isNull());
     Mockito.verify(bitbucketAdapter, Mockito.times(1)).createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+        isNotNull(), isNull());
     
     // upgrade to OC with upgrade forbidden
     data.openshiftproject = false;
-    Mockito.when(storage.getProject(Matchers.anyString())).thenReturn(data);
+    Mockito.when(storage.getProject(anyString())).thenReturn(data);
     upgrade.openshiftproject = true;
     
     apiController.ocUpgradeAllowed = false;
@@ -420,9 +409,9 @@ public class ProjectApiControllerTest {
 
     // rundeck should NOT have been called (and repo creation as well)
     Mockito.verify(rundeckAdapter).createOpenshiftProjects(
-    	Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+    	isNotNull(), isNull());
     Mockito.verify(bitbucketAdapter).createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+        isNotNull(), isNull());
 
     // now w/o upgrade
     data.openshiftproject = true;
@@ -437,7 +426,7 @@ public class ProjectApiControllerTest {
 
     // rundeck should have been called (and repo creation as well)
     Mockito.verify(bitbucketAdapter, Mockito.times(2)).createBitbucketProjectsForProject(
-        Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class));
+        isNotNull(), isNull());
   }
   
   @Test
@@ -449,13 +438,13 @@ public class ProjectApiControllerTest {
         ProjectData dataReturn = this.copyFromProject(data);
         apiController.shortenDescription(dataReturn); 
         
-	    Mockito.when(jiraAdapter.createJiraProjectForProject(Matchers.isNotNull(ProjectData.class),
-            Matchers.isNull(String.class))).thenReturn(dataReturn);
+	    Mockito.when(jiraAdapter.createJiraProjectForProject(isNotNull(),
+            isNull())).thenReturn(dataReturn);
         Mockito.when(confluenceAdapter.createConfluenceSpaceForProject(
-            Matchers.isNotNull(ProjectData.class), Matchers.isNull(String.class))).thenReturn(dataReturn);
+            isNotNull(), isNull())).thenReturn(dataReturn);
         Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
         Mockito.when(storage.storeProject(data)).thenReturn("created");
-        Mockito.doNothing().when(client).removeClient(Matchers.anyString());
+        Mockito.doNothing().when(client).removeClient(anyString());
         
         Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
                 
