@@ -69,9 +69,9 @@ public class ProjectApiController {
   private static final String STR_LOGFILE_KEY = "loggerFileName";
   
   @Autowired
-  public JiraAdapter jiraAdapter;
+  JiraAdapter jiraAdapter;
   @Autowired
-  private ConfluenceAdapter confluenceAdapter;
+  ConfluenceAdapter confluenceAdapter;
   @Autowired
   private BitbucketAdapter bitbucketAdapter;
   @Autowired
@@ -401,14 +401,21 @@ public class ProjectApiController {
 	
 	ProjectData project = new ProjectData();
 	project.projectType = key;
-	templatesForKey.put("jiraTemplate", 
+	
+	String projectTypeKey = jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
+		(project, JiraAdapter.jiratemplateKeyPrefix, jiraAdapter.jiraTemplateKey);
+
+	String projectTypeTemplateKey = 
 		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-	    (project, JiraAdapter.jiratemplateKeyPrefix, jiraAdapter.jiraTemplateKey));
-	        		
-	templatesForKey.put("jiraTemplateType", 
-		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-		(project, JiraAdapter.jiratemplateTypePrefix, jiraAdapter.jiraTemplateType));
+		(project, JiraAdapter.jiratemplateTypePrefix, jiraAdapter.jiraTemplateType);
+			
+	templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" +
+		projectTypeKey);
 	        
+	templatesForKey.put("collabSpaceTemplate", 
+		confluenceAdapter.calculateConfluenceSpaceTypeAndTemplateFromProjectType
+		(project.key));
+	
 	return ResponseEntity.ok(templatesForKey);
   }
   

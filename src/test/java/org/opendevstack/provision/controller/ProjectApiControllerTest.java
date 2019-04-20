@@ -87,6 +87,9 @@ public class ProjectApiControllerTest {
   @Autowired
   private JiraAdapter realJiraAdapter;
   
+  @Autowired
+  ConfluenceAdapter realConfluenceAdapter;
+  
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
@@ -327,24 +330,25 @@ public class ProjectApiControllerTest {
   public void getProjectTypeTemplatesForKey () throws Exception 
   {
 	  apiController.jiraAdapter = realJiraAdapter;
+	  apiController.confluenceAdapter = realConfluenceAdapter;
 	  
       mockMvc.perform(get("/api/v1/project/template/default")
       .accept(MediaType.APPLICATION_JSON))
       .andDo(MockMvcResultHandlers.print())
       .andExpect(MockMvcResultMatchers.status().isOk())
       .andExpect(MockMvcResultMatchers.content().string(
-    	CoreMatchers.containsString("jiraTemplate\":\"com.pyxis.greenhopper.jira:gh-scrum-template\"")))
+    	CoreMatchers.containsString("bugTrackerTemplate\":\"software#com.pyxis.greenhopper.jira:gh-scrum-template\"")))
       .andExpect(MockMvcResultMatchers.content().string(
-    	CoreMatchers.containsString("jiraTemplateType\":\"software")));
+    	CoreMatchers.containsString("collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
 
       mockMvc.perform(get("/api/v1/project/template/nonExistant")
       .accept(MediaType.APPLICATION_JSON))
       .andDo(MockMvcResultHandlers.print())
       .andExpect(MockMvcResultMatchers.status().isOk())
       .andExpect(MockMvcResultMatchers.content().string(
-    	CoreMatchers.containsString("jiraTemplate\":\"com.pyxis.greenhopper.jira:gh-scrum-template\"")))
+    	CoreMatchers.containsString("bugTrackerTemplate\":\"software#com.pyxis.greenhopper.jira:gh-scrum-template\"")))
       .andExpect(MockMvcResultMatchers.content().string(
-    	CoreMatchers.containsString("jiraTemplateType\":\"software")));
+    	CoreMatchers.containsString("collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
       
       mockMvc.perform(get("/api/v1/project/template/")
       .accept(MediaType.APPLICATION_JSON))
