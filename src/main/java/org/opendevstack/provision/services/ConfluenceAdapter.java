@@ -163,15 +163,8 @@ public class ConfluenceAdapter {
     List<Object> blueprints =
         getList(url, crowdCookieValue, new TypeReference<List<Blueprint>>() {});
     
-//    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
-//
     String template =
     	calculateConfluenceSpaceTypeAndTemplateFromProjectType(projectTypeKey);
-//    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
-//    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
-//    		projectTemplateKeyNames.contains(projectTypeKey)) ?
-//    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
-//    			confluenceBlueprintKey;
     
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
