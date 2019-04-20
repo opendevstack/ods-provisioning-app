@@ -14,22 +14,12 @@
 
 package org.opendevstack.provision.services;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import okhttp3.Credentials;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.ProjectData;
@@ -38,7 +28,6 @@ import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.Webhook;
-import org.opendevstack.provision.util.CrowdCookieJar;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
@@ -47,6 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+
+import okhttp3.HttpUrl;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -152,7 +146,7 @@ public class BitbucketAdapter {
           
           try {
             RepositoryData result = callCreateRepoApi(project.key, repo, crowdCookieValue);
-            createWebHooksForRepository(result, project, option.get(COMPONENT_ID_KEY), crowdCookieValue);
+            createWebHooksForRepository(result, project, crowdCookieValue);
             Map<String, List<Link>> links = result.getLinks();
             if(links != null) {
               repoLinks.put(result.getName(), result.getLinks());
@@ -217,20 +211,20 @@ public class BitbucketAdapter {
 
   // Create webhook for CI (using webhook proxy)
   protected void createWebHooksForRepository(RepositoryData repo, ProjectData project,
-    String component, String crowdCookie) 
+     String crowdCookie) 
   {
 
     // projectOpenshiftJenkinsWebhookProxyNamePattern is e.g. "webhook-proxy-%s-cd%s"
     String webhookProxyHost = String.format(projectOpenshiftJenkinsWebhookProxyNamePattern, project.key.toLowerCase(), projectOpenshiftBaseDomain);
     String webhookProxyUrl = "https://" + webhookProxyHost + "?trigger_secret=" + projectOpenshiftJenkinsTriggerSecret;
     Webhook webhook = new Webhook();
-    webhook.setName("Jenkins");
-    webhook.setActive(true);
-    webhook.setUrl(webhookProxyUrl);
+	    webhook.setName("Jenkins");
+	    webhook.setActive(true);
+	    webhook.setUrl(webhookProxyUrl);
     List<String> events = new ArrayList<String>();
-    events.add("repo:refs_changed");
-    events.add("pr:merged");
-    events.add("pr:declined");
+	    events.add("repo:refs_changed");
+	    events.add("pr:merged");
+	    events.add("pr:declined");
     webhook.setEvents(events);
 
     // projects/CLE200/repos/cle200-be-node-express/webhooks
