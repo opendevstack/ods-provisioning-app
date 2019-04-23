@@ -163,14 +163,8 @@ public class ConfluenceAdapter {
     List<Object> blueprints =
         getList(url, crowdCookieValue, new TypeReference<List<Blueprint>>() {});
     
-    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
-
     String template =
-    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
-    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
-    		projectTemplateKeyNames.contains(projectTypeKey)) ?
-    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
-    			confluenceBlueprintKey;
+    	calculateConfluenceSpaceTypeAndTemplateFromProjectType(projectTypeKey);
     
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
@@ -247,6 +241,21 @@ public class ConfluenceAdapter {
   
   public String getConfluenceAPIPath () {
 	  return confluenceUri + confluenceApiPath;
+  }
+
+  public String calculateConfluenceSpaceTypeAndTemplateFromProjectType
+	(String projectTypeKey) 
+  {
+	    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
+
+	    String template =
+	    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
+	    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
+	    		projectTemplateKeyNames.contains(projectTypeKey)) ?
+	    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
+	    			confluenceBlueprintKey;
+	    		
+	    return template;
   }
   
 }

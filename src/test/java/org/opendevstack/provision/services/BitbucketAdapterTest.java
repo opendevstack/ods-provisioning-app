@@ -103,14 +103,14 @@ public class BitbucketAdapterTest {
     ProjectData projectData = getReturnProjectData();    
     RepositoryData repoData = getReturnRepoData();
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any(), eq(null));
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), eq(null));
 
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class), eq(null));
 
     ProjectData result = spyAdapter.createRepositoriesForProject(projectData, crowdCookieValue);
 
     Mockito.verify(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        projectData.quickstart.get(0).get("component_id"), crowdCookieValue);
+       crowdCookieValue);
     for (Entry<String, Map<String, List<Link>>> entry : result.repositories.entrySet()) {
       Map<String, List<Link>> resultLinkMap = entry.getValue();
       assertEquals(repoData.getLinks(), resultLinkMap);
@@ -144,7 +144,7 @@ public class BitbucketAdapterTest {
     projectData.key = "testkey";
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        quickstart.get("component_id"), crowdCookieValue);
+        crowdCookieValue);
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(),
         any(Repository.class), any());
 
@@ -180,7 +180,7 @@ public class BitbucketAdapterTest {
     links.put("clone", linkList);
     repoData.setLinks(links);
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(),
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), 
         any(), any());
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(),
         any(Repository.class), anyString());
@@ -376,7 +376,7 @@ public class BitbucketAdapterTest {
 		anyString(), anyString(), anyString(),
 		anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     
-    spyAdapter.createWebHooksForRepository(repoData1, projectData, "someComponent", "crowdCookie");
+    spyAdapter.createWebHooksForRepository(repoData1, projectData, "crowdCookie");
   }
 
 

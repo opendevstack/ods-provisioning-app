@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -68,9 +69,9 @@ public class ProjectApiController {
   private static final String STR_LOGFILE_KEY = "loggerFileName";
   
   @Autowired
-  private JiraAdapter jiraAdapter;
+  JiraAdapter jiraAdapter;
   @Autowired
-  private ConfluenceAdapter confluenceAdapter;
+  ConfluenceAdapter confluenceAdapter;
   @Autowired
   private BitbucketAdapter bitbucketAdapter;
   @Autowired
@@ -387,6 +388,35 @@ public class ProjectApiController {
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) 
   {
     return ResponseEntity.ok(projectTemplateKeyNames);
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
+  public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey
+  	(HttpServletRequest request, @PathVariable String key)
+  {
+	Map<String,String> templatesForKey = new HashMap<>();
+	logger.debug("retrieving templates for key: " + key);
+	
+	Preconditions.checkNotNull(key, "Null template key is not allowed");
+	
+	ProjectData project = new ProjectData();
+	project.projectType = key;
+	
+	String projectTypeKey = jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
+		(project, JiraAdapter.jiratemplateKeyPrefix, jiraAdapter.jiraTemplateKey);
+
+	String projectTypeTemplateKey = 
+		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
+		(project, JiraAdapter.jiratemplateTypePrefix, jiraAdapter.jiraTemplateType);
+			
+	templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" +
+		projectTypeKey);
+	        
+	templatesForKey.put("collabSpaceTemplate", 
+		confluenceAdapter.calculateConfluenceSpaceTypeAndTemplateFromProjectType
+		(project.key));
+	
+	return ResponseEntity.ok(templatesForKey);
   }
   
   /**
