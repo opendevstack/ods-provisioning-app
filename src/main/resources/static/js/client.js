@@ -95,6 +95,19 @@ $(document).ready(function(){
     nameCompare = {};
   });
 
+  $("#resButton").click(function() {
+	  var value = $("#resButton").attr('name');
+	  console.log("button clicked: " +  value);
+	  if (value == "success") 
+	  {
+		console.log("reloading ... ");
+		location.reload(true);
+	  } else 
+	  {
+		$("#resButton").attr('name', 'result');  
+	  }
+  });
+		  
   $("#createpermissionset").change(function() {
     if ( $( "#createpermissionset" )[0] .checked)
     {
@@ -239,6 +252,8 @@ $(document).ready(function(){
           console.log("successfully created...");
           console.log( data );
           
+          // add success flag, this way we know when to reload.
+          $("#resButton").attr('name', 'success');
           $("#resButton").button("reset");
           $("#createProject").trigger("reset");
           $("#createProject").show();

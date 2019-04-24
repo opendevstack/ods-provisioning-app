@@ -17,6 +17,7 @@ package org.opendevstack.provision.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -51,6 +53,7 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+
 import net.sf.ehcache.CacheManager;
 
 /**
@@ -79,6 +82,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .antMatchers("/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico",
             "/login")
         .permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll()
+        .defaultSuccessUrl("/home")
         .and().logout().addLogoutHandler(crowdLogoutHandler()).permitAll();
   }
 
@@ -282,7 +286,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
     cusd.setGroupMembershipManager(new CachingGroupMembershipManager(securityServerClient(),
-        userManager(), groupManager(), getCache()));
+            userManager(), groupManager(), getCache()));
     cusd.setAuthorityPrefix("");
     return cusd;
   }
