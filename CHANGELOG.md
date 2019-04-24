@@ -9,7 +9,7 @@ groups are now passed to openshift and set with appropriate rights (view / edit 
 - Add kanban project template - based on `com.pyxis.greenhopper.jira:gh-kanban-template` ([#109](https://github.com/opendevstack/ods-provisioning-app/issues/109))
  
 ### Fixed
-- Upon successfull creation of an initiative, the new project does not show up in modify list ([#96](https://github.com/opendevstack/ods-provisioning-app/issues/96))
+- Upon successful creation of an initiative, the new project does not show up in modify list without a deep refresh ([#94](https://github.com/opendevstack/ods-provisioning-app/issues/94))
 
 ### Changed
 - Refactoring of http call logic - centralized in RestClient now ([#84](https://github.com/opendevstack/ods-provisioning-app/issues/84))
