@@ -205,33 +205,29 @@ public class ConfluenceAdapter {
       for (Resource permissionFile : permissionFiles) {
           String permissionFilename = permissionFile.getFilename();
 
-          BufferedReader reader = new BufferedReader(new InputStreamReader(permissionFile.getInputStream()));
-          String permissionset = null;
-          try {
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(permissionFile.getInputStream()))) {
+              String permissionset;
+
               // we know it's a singular pseudo json line
               permissionset = reader.readLine();
-          } finally {
-              //sq finding
-              reader.close();
+              permissionset = permissionset.replace("SPACE_NAME", data.key);
+
+              if (permissionFilename.contains("adminGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
+              } else if (permissionFilename.contains("userGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
+              } else if (permissionFilename.contains("readonlyGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);
+              } else if (permissionFilename.contains("keyuserGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);
+              }
+
+              String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
+
+              client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
+
+              updatedPermissions++;
           }
-
-          permissionset = permissionset.replace("SPACE_NAME", data.key);
-
-          if (permissionFilename.contains("adminGroup")) {
-              permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
-          } else if (permissionFilename.contains("userGroup")) {
-              permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
-          } else if (permissionFilename.contains("readonlyGroup")) {
-              permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);
-          } else if (permissionFilename.contains("keyuserGroup")) {
-              permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);
-          }
-
-          String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
-
-          client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
-
-          updatedPermissions++;
       }
       return updatedPermissions;
   }
