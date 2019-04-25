@@ -1,6 +1,9 @@
 language: java
 install: true
 
+env:
+  - NO_NEXUS=true
+
 jdk:
   - oraclejdk8
 
