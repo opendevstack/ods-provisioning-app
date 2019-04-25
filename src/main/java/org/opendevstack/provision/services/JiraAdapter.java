@@ -196,56 +196,53 @@ public class JiraAdapter {
 	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
 	      
 	      logger.debug("Found permissionsets: "+ permissionFiles.length);
-	      
-	      for (int i = 0; i < permissionFiles.length; i++)
-	      {
-		      PermissionScheme singleScheme = 
-		         new ObjectMapper().readValue(
-		    		permissionFiles[i].getInputStream(), PermissionScheme.class);
-		      
-		      String permissionSchemeName = project.key + " PERMISSION SCHEME";
-		      
-		      singleScheme.setName(permissionSchemeName);
-		      
-		      String description = project.description;
-		      if (description != null && description.length() > 0) {
-		    	  singleScheme.setDescription(description);
-		      } else 
-		      {
-		    	  singleScheme.setDescription(permissionSchemeName);
-		      }
-		      
-		      // replace group with real group
-		      for (Permission permission : singleScheme.getPermissions()) 
-		      {
-		    	  String group = permission.getHolder().getParameter();
-		    	  
-		    	  if ("adminGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.adminGroup);
-		    	  } else if ("userGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.userGroup);
-		    	  } else if ("readonlyGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.readonlyGroup);
-		    	  } else if ("keyuserGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(globalKeyuserRoleName);
-		    	  } 
-		      }
-		      logger.debug("Update permissionScheme " + permissionSchemeName +
-		    	" location: " + permissionFiles[i].getFilename());
-		      
-		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-		      singleScheme = 
-		    		client.callHttp(path, singleScheme, crowdCookieValue, true, 
-		    			RestClient.HTTP_VERB.POST, PermissionScheme.class);
-		      
-		      // update jira project
-		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-		      PermissionScheme small = new PermissionScheme();
-		      small.setId(singleScheme.getId());
-		      client.callHttp(path, small, crowdCookieValue, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
-		      
-		      updatedPermissions++;
-	      }
+
+          for (Resource permissionFile : permissionFiles) {
+              PermissionScheme singleScheme =
+                      new ObjectMapper().readValue(
+                              permissionFile.getInputStream(), PermissionScheme.class);
+
+              String permissionSchemeName = project.key + " PERMISSION SCHEME";
+
+              singleScheme.setName(permissionSchemeName);
+
+              String description = project.description;
+              if (description != null && description.length() > 0) {
+                  singleScheme.setDescription(description);
+              } else {
+                  singleScheme.setDescription(permissionSchemeName);
+              }
+
+              // replace group with real group
+              for (Permission permission : singleScheme.getPermissions()) {
+                  String group = permission.getHolder().getParameter();
+
+                  if ("adminGroup".equals(group)) {
+                      permission.getHolder().setParameter(project.adminGroup);
+                  } else if ("userGroup".equals(group)) {
+                      permission.getHolder().setParameter(project.userGroup);
+                  } else if ("readonlyGroup".equals(group)) {
+                      permission.getHolder().setParameter(project.readonlyGroup);
+                  } else if ("keyuserGroup".equals(group)) {
+                      permission.getHolder().setParameter(globalKeyuserRoleName);
+                  }
+              }
+              logger.debug("Update permissionScheme " + permissionSchemeName +
+                      " location: " + permissionFile.getFilename());
+
+              String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
+              singleScheme =
+                      client.callHttp(path, singleScheme, crowdCookieValue, true,
+                              RestClient.HTTP_VERB.POST, PermissionScheme.class);
+
+              // update jira project
+              path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
+              PermissionScheme small = new PermissionScheme();
+              small.setId(singleScheme.getId());
+              client.callHttp(path, small, crowdCookieValue, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
+
+              updatedPermissions++;
+          }
     	} catch (Exception createPermissions) 
     	{
   	    	// continue - we are ok if permissions fail, because the admin has access, and create the set
