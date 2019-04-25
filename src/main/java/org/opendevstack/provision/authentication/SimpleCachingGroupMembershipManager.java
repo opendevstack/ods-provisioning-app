@@ -68,6 +68,10 @@ public class SimpleCachingGroupMembershipManager extends
 			String [] groupMemberships = 
 				securityServerClient.findGroupMemberships(user);
 			
+			if (groupMemberships == null) {
+				return new ArrayList<>();
+			}
+			
 			for (String group : groupMemberships) 
 			{
 				basicCache.addGroupToUser(user, group);
