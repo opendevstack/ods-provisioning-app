@@ -159,7 +159,7 @@ public class JiraAdapter {
     	  return client.callHttp(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, FullJiraProject.class);
       } catch (IOException eGetProjects) 
       {
-        logger.error("Error getting projects: {}", eGetProjects);
+        logger.error("Error getting projects:", eGetProjects);
         return null;
       }
 

@@ -169,7 +169,7 @@ public class ProjectApiController {
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
-      logger.error("An error occured while provisioning project: {}", ex);
+      logger.error("An error occured while provisioning project:", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);

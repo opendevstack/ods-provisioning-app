@@ -95,7 +95,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		} catch (Exception eSecurity) 
 		{
 			if (!(eSecurity instanceof GroupNotFoundException)) {
-				logger.error("GroupFind call failed with: {}", eSecurity);
+				logger.error("GroupFind call failed with:", eSecurity);
 			}
 			return false;
 		} finally 
@@ -120,7 +120,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		} catch (Exception eSecurity) 
 		{
 			if (!(eSecurity instanceof UsernameNotFoundException)) {
-				logger.error("UserFind call failed with: {}", eSecurity);
+				logger.error("UserFind call failed with:", eSecurity);
 			}
 			return false;
 		} finally 
