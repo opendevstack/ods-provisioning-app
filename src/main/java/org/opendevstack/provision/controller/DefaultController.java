@@ -82,7 +82,7 @@ public class DefaultController {
   
   @RequestMapping("/")
   String rootRedirect() {
-    return "redirect:home.html";
+    return "redirect:/home";
   }
 
   @RequestMapping("/home")
