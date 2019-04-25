@@ -36,16 +36,16 @@ public class ProjectDataTest {
 		ProjectData dataCheck = new ProjectData();
 		dataCheck.key = "key";
 		dataCheck.name = "name";
-		
-		assertFalse(dataCheck.equals(null));
-		
-		assertTrue(dataCheck.equals(data));
+
+		assertNotEquals(null, dataCheck);
+
+		assertEquals(dataCheck, data);
 		
 		data.name = null;
-		assertFalse(dataCheck.equals(data));
+		assertNotEquals(dataCheck, data);
 		
 		dataCheck.name = null;
-		assertTrue(dataCheck.equals(data));
+		assertEquals(dataCheck, data);
 	}
 
 	
