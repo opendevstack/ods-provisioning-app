@@ -51,7 +51,7 @@ public class ProjectDataTest {
 	
 	@Test
 	public void testHashcode() {
-		List<ProjectData> dataL = new ArrayList<ProjectData>();
+		List<ProjectData> dataL = new ArrayList<>();
 		
 		ProjectData data = new ProjectData();
 		data.key = "key";

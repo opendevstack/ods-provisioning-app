@@ -305,7 +305,7 @@ public class ProjectApiController {
     project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
 
     if (project.lastJobs == null) {
-    	project.lastJobs = new ArrayList<String>();
+    	project.lastJobs = new ArrayList<>();
     }
     List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
     for (ExecutionsData exec : execs) {

@@ -54,7 +54,7 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 
     public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException 
     {
-    	Map<String, String> projectCheckStatus = new HashMap<String, String>();
+    	Map<String, String> projectCheckStatus = new HashMap<>();
     	
 		long startTime = System.currentTimeMillis();
 

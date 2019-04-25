@@ -221,7 +221,7 @@ public class BitbucketAdapter {
 	    webhook.setName("Jenkins");
 	    webhook.setActive(true);
 	    webhook.setUrl(webhookProxyUrl);
-    List<String> events = new ArrayList<String>();
+    List<String> events = new ArrayList<>();
 	    events.add("repo:refs_changed");
 	    events.add("pr:merged");
 	    events.add("pr:declined");

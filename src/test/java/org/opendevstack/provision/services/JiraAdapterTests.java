@@ -96,7 +96,7 @@ public class JiraAdapterTests {
   @Before
   public void initTests() {
     MockitoAnnotations.initMocks(this);
-    projects = new ArrayList<FullJiraProject>();
+    projects = new ArrayList<>();
   }
 
   @Test
@@ -318,7 +318,7 @@ public class JiraAdapterTests {
     ProjectData apiInput = new ProjectData();
     BasicUser admin = new BasicUser(null, "testuser", "test user");
 
-    apiInput.admins = new ArrayList<BasicUser>();
+    apiInput.admins = new ArrayList<>();
     apiInput.admins.add(admin);
     apiInput.name = name;
     apiInput.description = "Test Description";

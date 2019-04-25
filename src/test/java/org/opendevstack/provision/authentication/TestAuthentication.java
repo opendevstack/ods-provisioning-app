@@ -20,7 +20,7 @@ public class TestAuthentication implements Authentication {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		List <GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
+		List <GrantedAuthority> auths = new ArrayList<>();
 		auths.add(new TestAuthority());
 		return auths;
 	}

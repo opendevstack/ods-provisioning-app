@@ -215,7 +215,7 @@ public class RundeckAdapter {
           project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
               projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
 
-          project.lastJobs = new ArrayList<String>();
+          project.lastJobs = new ArrayList<>();
           project.lastJobs.add(data.getPermalink());
           
           return project;

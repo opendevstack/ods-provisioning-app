@@ -135,7 +135,7 @@ public class DefaultController {
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
     // add endpoint map
-    Map<String, String> endpoints = new HashMap<String, String>();
+    Map<String, String> endpoints = new HashMap<>();
     endpoints.put("JIRA", jiraAdapter.getEndpointUri());
     endpoints.put("GIT", bitbucketAdapter.getEndpointUri());
     endpoints.put("RUNDECK", rundeckAdapter.getRundeckAPIPath());

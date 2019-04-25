@@ -111,7 +111,7 @@ public class RundeckAdapterTest {
   public void getQuickstarter() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
     Job a = Mockito.mock(Job.class);
-    List<Job> jobList = new ArrayList<Job>();
+    List<Job> jobList = new ArrayList<>();
     jobList.add(a);
     doReturn(jobList).when(spyAdapter).getJobs(any());
     int expectedQuickstarterSize = 1;

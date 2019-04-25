@@ -320,7 +320,7 @@ public class JiraAdapter {
     	  logger.error("Error in getting projects", e);
       }
       // if for nothing else - 
-      return new ArrayList<FullJiraProject>();
+      return new ArrayList<>();
     }
   }
 
