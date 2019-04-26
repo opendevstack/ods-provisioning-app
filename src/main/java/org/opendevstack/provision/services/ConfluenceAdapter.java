@@ -66,10 +66,10 @@ public class ConfluenceAdapter {
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
 
-  private static String SPACE_PATTERN = "%s%s/create-dialog/1.0/space-blueprint/create-space";
-  private static String BLUEPRINT_PATTERN =
+  private static final String SPACE_PATTERN = "%s%s/create-dialog/1.0/space-blueprint/create-space";
+  private static final String BLUEPRINT_PATTERN =
       "%s%s/create-dialog/1.0/space-blueprint/dialog/web-items";
-  private static String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
+  private static final String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
   
   private static final String SPACE_GROUP = "SPACE_GROUP";
 
