@@ -61,14 +61,14 @@ public class StorageAdapter {
 	 Map<String, ProjectData> filteredProjects = new HashMap<>();
 	 
 	 Collection <GrantedAuthority> authorities = userDetails.getAuthorities();
-     logger.debug("User: "+ userDetails.getUsername() + "\n" + authorities);
+     logger.debug("User: {} \n {}", userDetails.getUsername(), authorities);
 	 
 	 for (Map.Entry<String, ProjectData> project : allProjects.entrySet()) 
 	 {
 		 ProjectData projectData = project.getValue();
-		 logger.debug("Project: " + projectData.key + 
-			 " groups: " + projectData.adminGroup + "," + projectData.userGroup + 
-			 " > " + projectData.createpermissionset);
+		 logger.debug("Project: {} groups: {},{} > {}",
+				 projectData.key, projectData.adminGroup,
+				 projectData.userGroup,  projectData.createpermissionset);
 		 
 		 if (!projectData.createpermissionset)
 		 {

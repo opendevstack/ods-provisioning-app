@@ -62,8 +62,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     		projectCheckStatus.put("admin", project.admin);
     	}
 
-    	logger.debug("identityCheck Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+    	logger.debug("identityCheck Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
     	
     	if (!projectCheckStatus.isEmpty()) {
     		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
@@ -91,8 +91,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			return false;
 		} finally 
 		{
-			logger.debug("findGroupByName by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findGroupByName by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 
@@ -116,8 +116,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			return false;
 		} finally 
 		{
-			logger.debug("findPrincipal by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findPrincipal by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 

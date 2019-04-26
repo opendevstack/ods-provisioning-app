@@ -183,9 +183,8 @@ public class RundeckAdapter {
           		"USERGROUP=" + project.userGroup + "," +
           		"READONLYGROUP=" + project.readonlyGroup;
           	  
-              logger.info("project id: " + project.key + 
-            	" passed project owner: " + project.admin + 
-            	" passed groups: " + entitlementGroups);
+              logger.info("project id: {} passed project owner: {} passed groups: {}",
+                      project.key, project.admin, entitlementGroups);
               
               options.put("project_admin", project.admin);
               options.put("project_groups", entitlementGroups);
@@ -194,7 +193,7 @@ public class RundeckAdapter {
           {
         	// someone is always logged in :)
         	UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);  
-            logger.info("project id: " + project.key + " details: " + details);
+            logger.info("project id: {} details: {}", project.key, details);
             options.put("project_admin", details.getUsername());
           } 
           execution.setOptions(options);

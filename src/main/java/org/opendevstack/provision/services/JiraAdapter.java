@@ -195,7 +195,7 @@ public class JiraAdapter {
       {
 	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
 	      
-	      logger.debug("Found permissionsets: "+ permissionFiles.length);
+	      logger.debug("Found permissionsets: {}", permissionFiles.length);
 
           for (Resource permissionFile : permissionFiles) {
               PermissionScheme singleScheme =
@@ -227,8 +227,8 @@ public class JiraAdapter {
                       permission.getHolder().setParameter(globalKeyuserRoleName);
                   }
               }
-              logger.debug("Update permissionScheme " + permissionSchemeName +
-                      " location: " + permissionFile.getFilename());
+              logger.debug("Update permissionScheme {} location: {}",
+                      permissionSchemeName, permissionFile.getFilename());
 
               String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
               singleScheme =
@@ -266,7 +266,7 @@ public class JiraAdapter {
     	s.projectType = defaultProjectKey;
     }
     		
-    logger.debug("Creating project of type: " + templateKey + " for project: "  + s.key);
+    logger.debug("Creating project of type: {} for project: {}", templateKey, s.key);
 
     return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
     	templateKey, templateType, jiraNotificationSchemeId);
@@ -389,8 +389,8 @@ public class JiraAdapter {
 	    	
 	for (Shortcut shortcut : shortcuts) 
 	{
-		logger.debug("Attempting to create shortcut (" + shortcut.getId()
-			+ ") for: " + shortcut.getName());
+		logger.debug("Attempting to create shortcut ({}) for: {}",
+                shortcut.getId(), shortcut.getName());
 		try 
 		{
 			client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);
