@@ -147,7 +147,7 @@ public class ConfluenceAdapter {
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
     for (Object obj : server) {
-      logger.debug(obj.toString());
+      logger.debug("Server: {}", obj);
       JiraServer jiraServer = (JiraServer) obj;
       if (jiraServer.getUrl().equals(jiraUri)) {
         jiraServerId = jiraServer.getId();
@@ -168,8 +168,7 @@ public class ConfluenceAdapter {
     
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
-      logger.debug("Blueprint: " + blueprint.getBlueprintModuleCompleteKey() + 
-    		 " searchKey: " +template);
+      logger.debug("Blueprint: {} searchKey: {}", blueprint.getBlueprintModuleCompleteKey(), template);
       if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
         bluePrintId = blueprint.getContentBlueprintId();
         break;
@@ -200,7 +199,7 @@ public class ConfluenceAdapter {
       
       int updatedPermissions = 0;
 
-      logger.debug("Found permissionsets: "+ permissionFiles.length);
+      logger.debug("Found permission sets: {}", permissionFiles.length);
 
       for (Resource permissionFile : permissionFiles) {
           String permissionFilename = permissionFile.getFilename();
