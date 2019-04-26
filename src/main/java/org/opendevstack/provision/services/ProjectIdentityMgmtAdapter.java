@@ -37,21 +37,12 @@ import com.atlassian.crowd.integration.soap.SOAPGroup;
  */
 @Service
 public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter  
-{
-    @Value("${crowd.user.group:}")
-    private String crowdUserGroup;
-	  
-	@Value("${crowd.admin.group:}")
-	private String crowdAdminGroup;
-	
+{	
     private static final Logger logger = LoggerFactory.getLogger(ProjectIdentityMgmtAdapter.class);
 	
 	@Autowired
 	CustomAuthenticationManager manager;
 	 
-    @Value("${crowd.local.directory}")
-	String crowdLocalDirectory;
-
     public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException 
     {
     	Map<String, String> projectCheckStatus = new HashMap<String, String>();
