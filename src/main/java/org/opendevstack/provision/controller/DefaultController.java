@@ -102,8 +102,8 @@ public class DefaultController {
         } else {
             model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
             model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
-            model.addAttribute("crowdUserGroup", crowdUserGroup);
-            model.addAttribute("crowdAdminGroup", crowdAdminGroup);
+            model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
+            model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
             model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
             model.addAttribute("projectTypes", projectTemplateKeyNames);
         }
@@ -143,8 +143,8 @@ public class DefaultController {
 
     model.addAttribute("endpointMap", endpoints);
 
-    model.addAttribute("crowdUserGroup", crowdUserGroup);
-    model.addAttribute("crowdAdminGroup", crowdAdminGroup);
+    model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
+    model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
     return "about";
   }
 
