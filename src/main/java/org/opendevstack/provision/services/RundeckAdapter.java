@@ -242,9 +242,10 @@ public class RundeckAdapter {
     try 
     {
     	response = client.getClient().newCall(request).execute();
-    	if (response.isSuccessful()) {
-    		logger.debug("successful rundeck auth");
-    	} else {
+    	// dear rundeck team - thank you very much :(
+    	if (!response.isSuccessful() || 
+    		response.body().string().contains("Invalid username and password")) 
+    	{
     		throw new IOException("Could not authenticate: " + username + " : " + response.body());
     	}
     }
