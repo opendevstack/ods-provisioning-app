@@ -14,9 +14,6 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +26,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Torsten Jaeschke
@@ -67,16 +66,16 @@ public class RundeckJobStoreTest {
     List<Job> jobs = generateTestJobs();
     jobStore.addJobs(jobs);
     jobStore.removeJob("1");
-    
-    assertTrue(jobStore.getJob("1") == null);
+
+    assertNull(jobStore.getJob("1"));
   }
 
   @Test
   public void getJob() throws Exception {
     List<Job> jobs = generateTestJobs();
     jobStore.addJob(jobs.get(0));
-    
-    assertTrue(jobStore.getJob("1") != null);
+
+    assertNotNull(jobStore.getJob("1"));
   }
 
   @Test

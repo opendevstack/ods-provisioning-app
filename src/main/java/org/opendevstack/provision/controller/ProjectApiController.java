@@ -169,7 +169,7 @@ public class ProjectApiController {
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
-      logger.error("An error occured while provisioning project: {}", ex);
+      logger.error("An error occured while provisioning project:", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
@@ -305,7 +305,7 @@ public class ProjectApiController {
     project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
 
     if (project.lastJobs == null) {
-    	project.lastJobs = new ArrayList<String>();
+    	project.lastJobs = new ArrayList<>();
     }
     List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
     for (ExecutionsData exec : execs) {

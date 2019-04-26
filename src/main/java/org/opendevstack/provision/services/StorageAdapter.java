@@ -46,7 +46,7 @@ public class StorageAdapter {
   public Map<String, ProjectData> listProjectHistory() {
 	 
 	 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-    	 return new HashMap<String, ProjectData>();
+    	 return new HashMap<>();
 	 }
 	  
      CrowdUserDetails userDetails =
@@ -54,11 +54,11 @@ public class StorageAdapter {
 	 
      // security!
      if (userDetails == null) {
-    	 return new HashMap<String, ProjectData>();
+    	 return new HashMap<>();
      }
      
 	 Map<String, ProjectData> allProjects = storage.listProjectHistory();
-	 Map<String, ProjectData> filteredProjects = new HashMap<String, ProjectData>();
+	 Map<String, ProjectData> filteredProjects = new HashMap<>();
 	 
 	 Collection <GrantedAuthority> authorities = userDetails.getAuthorities();
      logger.debug("User: "+ userDetails.getUsername() + "\n" + authorities);

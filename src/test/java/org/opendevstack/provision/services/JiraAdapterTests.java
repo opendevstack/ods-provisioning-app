@@ -31,14 +31,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
@@ -96,7 +94,7 @@ public class JiraAdapterTests {
   @Before
   public void initTests() {
     MockitoAnnotations.initMocks(this);
-    projects = new ArrayList<FullJiraProject>();
+    projects = new ArrayList<>();
   }
 
   @Test
@@ -318,7 +316,7 @@ public class JiraAdapterTests {
     ProjectData apiInput = new ProjectData();
     BasicUser admin = new BasicUser(null, "testuser", "test user");
 
-    apiInput.admins = new ArrayList<BasicUser>();
+    apiInput.admins = new ArrayList<>();
     apiInput.admins.add(admin);
     apiInput.name = name;
     apiInput.description = "Test Description";

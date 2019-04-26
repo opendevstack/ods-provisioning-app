@@ -215,7 +215,7 @@ public class RundeckAdapter {
           project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
               projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
 
-          project.lastJobs = new ArrayList<String>();
+          project.lastJobs = new ArrayList<>();
           project.lastJobs.add(data.getPermalink());
           
           return project;
@@ -252,7 +252,7 @@ public class RundeckAdapter {
     	client.callHttpTypeRef(urlBuilder.toString(), null, null, false, RestClient.HTTP_VERB.GET,
     		new TypeReference<List<Job>>() {});
     
-    enabledJobs = jobs.stream().filter(x -> x.isEnabled()).collect(Collectors.toList());
+    enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
     jobStore.addJobs(enabledJobs);
     return enabledJobs;
   }

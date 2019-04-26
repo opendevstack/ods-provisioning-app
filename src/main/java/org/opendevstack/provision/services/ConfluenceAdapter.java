@@ -66,10 +66,10 @@ public class ConfluenceAdapter {
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
 
-  private static String SPACE_PATTERN = "%s%s/create-dialog/1.0/space-blueprint/create-space";
-  private static String BLUEPRINT_PATTERN =
+  private static final String SPACE_PATTERN = "%s%s/create-dialog/1.0/space-blueprint/create-space";
+  private static final String BLUEPRINT_PATTERN =
       "%s%s/create-dialog/1.0/space-blueprint/dialog/web-items";
-  private static String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
+  private static final String JIRA_SERVER = "%s%s/jiraanywhere/1.0/servers";
   
   private static final String SPACE_GROUP = "SPACE_GROUP";
 
@@ -147,7 +147,7 @@ public class ConfluenceAdapter {
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
     for (Object obj : server) {
-      logger.debug(obj.toString());
+      logger.debug("Server: {}", obj);
       JiraServer jiraServer = (JiraServer) obj;
       if (jiraServer.getUrl().equals(jiraUri)) {
         jiraServerId = jiraServer.getId();
@@ -168,8 +168,7 @@ public class ConfluenceAdapter {
     
     for (Object obj : blueprints) {
       Blueprint blueprint = (Blueprint) obj;
-      logger.debug("Blueprint: " + blueprint.getBlueprintModuleCompleteKey() + 
-    		 " searchKey: " +template);
+      logger.debug("Blueprint: {} searchKey: {}", blueprint.getBlueprintModuleCompleteKey(), template);
       if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
         bluePrintId = blueprint.getContentBlueprintId();
         break;
@@ -200,41 +199,34 @@ public class ConfluenceAdapter {
       
       int updatedPermissions = 0;
 
-      logger.debug("Found permissionsets: "+ permissionFiles.length);
-      
-      for (int i = 0; i < permissionFiles.length; i++)
-      {
-    	  String permissionFilename = permissionFiles[i].getFilename();
-    	  
-    	  BufferedReader reader = new BufferedReader (new InputStreamReader(permissionFiles[i].getInputStream()));
-    	  String permissionset = null;
-    	  try 
-    	  {
-    		  // we know it's a singular pseudo json line
-    		  permissionset = reader.readLine();
-    	  } finally 
-    	  {
-    		  //sq finding
-    		  reader.close();
-    	  }
-    	  
-    	  permissionset = permissionset.replace("SPACE_NAME", data.key);
-    	  
-    	  if (permissionFilename.contains("adminGroup")) {
-    		  permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
-    	  } else if (permissionFilename.contains("userGroup")) {
-    		  permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
-      	  } else if (permissionFilename.contains("readonlyGroup")) {
-    		  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);  
-      	  } else if (permissionFilename.contains("keyuserGroup")) {
-    		  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);  
-      	  } 
-    	  
-    	  String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
-    	  
-    	  client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
-    	  
-	      updatedPermissions++;
+      logger.debug("Found permission sets: {}", permissionFiles.length);
+
+      for (Resource permissionFile : permissionFiles) {
+          String permissionFilename = permissionFile.getFilename();
+
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(permissionFile.getInputStream()))) {
+              String permissionset;
+
+              // we know it's a singular pseudo json line
+              permissionset = reader.readLine();
+              permissionset = permissionset.replace("SPACE_NAME", data.key);
+
+              if (permissionFilename.contains("adminGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.adminGroup);
+              } else if (permissionFilename.contains("userGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.userGroup);
+              } else if (permissionFilename.contains("readonlyGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, data.readonlyGroup);
+              } else if (permissionFilename.contains("keyuserGroup")) {
+                  permissionset = permissionset.replace(SPACE_GROUP, globalKeyuserRoleName);
+              }
+
+              String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
+
+              client.callHttp(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST, String.class);
+
+              updatedPermissions++;
+          }
       }
       return updatedPermissions;
   }

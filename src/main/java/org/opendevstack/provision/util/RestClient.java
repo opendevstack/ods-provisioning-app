@@ -235,10 +235,8 @@ public class RestClient {
     Request request = new Request.Builder()
         .url(url).post(body)
         .build();
-    Response response = null;
-    try 
+    try (Response response = getClient(null).newCall(request).execute();)
     {
-    	response = getClient(null).newCall(request).execute();
     	if (response.isSuccessful()) 
     	{
     		logger.debug("Successful form based auth");
@@ -246,10 +244,6 @@ public class RestClient {
     		throw new IOException("Could not authenticate: " + username + 
     			" : " + response.body());
     	}
-    }
-    finally {
-    	if (response != null)
-    		response.close();
     }
   }
 
