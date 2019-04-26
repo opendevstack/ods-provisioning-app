@@ -117,27 +117,9 @@ public class JiraAdapter {
     		  this.buildJiraProjectPojoFromApiProject(project);
       
       FullJiraProject created = null;
-      try {
-    	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue); 
-      } catch (HttpException jiracreateException) 
-      {
-          logger.debug("error creating project with template {}: {}", 
-        		  toBeCreated.projectTemplateKey,
-        		  jiracreateException.getMessage());
-    	  if (jiracreateException.getResponseCode() == 400) {
-    		  logger.info("Template {} did not work, falling back to default {}", 
-    				 toBeCreated.projectTemplateKey, jiraTemplateKey);
-    		  toBeCreated.projectTypeKey = jiraTemplateType;
-    		  toBeCreated.projectTemplateKey = jiraTemplateKey;
-        	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
-        	  project.projectType = defaultProjectKey;
-    	  } else 
-    	  {
-    		  throw jiracreateException;
-    	  }
-      }
-          
-      logger.debug("Created project: {}", created);
+        created = createProjectInJira(project, crowdCookieValue, toBeCreated);
+
+        logger.debug("Created project: {}", created);
       project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
       project.jiraId = created.id;
       
@@ -153,7 +135,31 @@ public class JiraAdapter {
 
   }
 
-  public FullJiraProject getProject(String id, String crowdCookieValue) {
+    private FullJiraProject createProjectInJira(ProjectData project, String crowdCookieValue, FullJiraProject toBeCreated) throws IOException {
+        FullJiraProject created;
+        try {
+            created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
+        } catch (HttpException jiracreateException)
+        {
+            logger.debug("error creating project with template {}: {}",
+                    toBeCreated.projectTemplateKey,
+                    jiracreateException.getMessage());
+            if (jiracreateException.getResponseCode() == 400) {
+                logger.info("Template {} did not work, falling back to default {}",
+                       toBeCreated.projectTemplateKey, jiraTemplateKey);
+                toBeCreated.projectTypeKey = jiraTemplateType;
+                toBeCreated.projectTemplateKey = jiraTemplateKey;
+                created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
+                project.projectType = defaultProjectKey;
+            } else
+            {
+                throw jiracreateException;
+            }
+        }
+        return created;
+    }
+
+    public FullJiraProject getProject(String id, String crowdCookieValue) {
     String url = String.format(URL_PATTERN, jiraUri, jiraApiPath, id);
       try {
     	  return client.callHttp(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, FullJiraProject.class);
