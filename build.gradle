@@ -9,25 +9,30 @@ buildscript {
     }
 	
     repositories {
-		maven () {
-			url "${nexus_url}/repository/jcenter/"
-			credentials () {
-				username = "${nexus_user}"
-				password = "${nexus_pw}"
-			}
-		}
-		maven () {
-			url "${nexus_url}/repository/maven-public/"
-			credentials () {
-				username = "${nexus_user}"
-				password = "${nexus_pw}"
-			}
-		}
-        maven () {
-            url "${nexus_url}/repository/atlassian_public/"
-            credentials {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
+        if(System.getenv('NO_NEXUS')) {
+            jcenter()
+            mavenCentral()
+        } else {
+            maven () {
+                url "${nexus_url}/repository/jcenter/"
+                credentials () {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+            }
+            maven () {
+                url "${nexus_url}/repository/maven-public/"
+                credentials () {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+            }
+            maven () {
+                url "${nexus_url}/repository/atlassian_public/"
+                credentials {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
             }
         }
     }
@@ -51,31 +56,33 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-	maven () {
-		url "${nexus_url}/repository/jcenter/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
-
-	maven () {
-		url "${nexus_url}/repository/maven-public/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
-
-	maven () {
-		url "${nexus_url}/repository/atlassian_public/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
+    if(System.getenv('NO_NEXUS')) {
+        jcenter()
+        mavenCentral()
+    } else {
+        maven () {
+            url "${nexus_url}/repository/jcenter/"
+            credentials () {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven () {
+            url "${nexus_url}/repository/maven-public/"
+            credentials () {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven () {
+            url "${nexus_url}/repository/atlassian_public/"
+            credentials {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+    }
 }
-
 
 ext {
     springCloudVersion = 'Dalston.SR1'
