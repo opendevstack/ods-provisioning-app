@@ -37,7 +37,7 @@
                     <label for="projects">Select existing project:</label>
                     <select class="form-control" id="projects" name="key">
                         <option value=""></option>
-                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.name}">Project name</option>
+                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.key + ' - ' + jiraProject.value.name}">Project name</option>
                     </select>
                 </div>
                 <div class="table-responsive hidden" id="infoProjectTable">

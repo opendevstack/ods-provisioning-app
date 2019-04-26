@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -47,7 +48,6 @@ import com.atlassian.crowd.service.UserManager;
 import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.cache.CacheImpl;
 import com.atlassian.crowd.service.cache.CachingGroupManager;
-import com.atlassian.crowd.service.cache.CachingGroupMembershipManager;
 import com.atlassian.crowd.service.cache.CachingUserManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
@@ -285,8 +285,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
-    cusd.setGroupMembershipManager(new CachingGroupMembershipManager(securityServerClient(),
-            userManager(), groupManager(), getCache()));
+    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient(),
+        userManager(), groupManager(), getCache()));
     cusd.setAuthorityPrefix("");
     return cusd;
   }
