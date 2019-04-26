@@ -116,7 +116,7 @@ public class JiraAdapter {
       FullJiraProject toBeCreated = 
     		  this.buildJiraProjectPojoFromApiProject(project);
       
-      FullJiraProject created = null;
+      FullJiraProject created;
         created = createProjectInJira(project, crowdCookieValue, toBeCreated);
 
         logger.debug("Created project: {}", created);
@@ -284,7 +284,7 @@ public class JiraAdapter {
     key = key.toUpperCase();
     key = key.replaceAll("\\s+", "");
     key = key.replaceAll("-", "_");
-    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2, key.length())) : key;
+    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2)) : key;
     return key;
   }
 
