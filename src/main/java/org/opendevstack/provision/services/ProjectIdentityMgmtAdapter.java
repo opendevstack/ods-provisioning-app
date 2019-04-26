@@ -23,7 +23,6 @@ import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -62,8 +61,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     		projectCheckStatus.put("admin", project.admin);
     	}
 
-    	logger.debug("identityCheck Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+    	logger.debug("identityCheck Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
     	
     	if (!projectCheckStatus.isEmpty()) {
     		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
@@ -91,8 +90,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			return false;
 		} finally 
 		{
-			logger.debug("findGroupByName by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findGroupByName by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 
@@ -116,8 +115,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 			return false;
 		} finally 
 		{
-			logger.debug("findPrincipal by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findPrincipal by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 

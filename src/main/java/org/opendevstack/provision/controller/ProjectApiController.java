@@ -403,11 +403,11 @@ public class ProjectApiController {
 	project.projectType = key;
 	
 	String projectTypeKey = jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-		(project, JiraAdapter.jiratemplateKeyPrefix, jiraAdapter.jiraTemplateKey);
+		(project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraAdapter.jiraTemplateKey);
 
 	String projectTypeTemplateKey = 
 		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-		(project, JiraAdapter.jiratemplateTypePrefix, jiraAdapter.jiraTemplateType);
+		(project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraAdapter.jiraTemplateType);
 			
 	templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" +
 		projectTypeKey);

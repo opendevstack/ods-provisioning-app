@@ -51,8 +51,8 @@ public class JiraAdapter {
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
 
-  public static final String jiratemplateKeyPrefix = "jira.project.template.key.";
-  public static final String jiratemplateTypePrefix = "jira.project.template.type.";
+  public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
+  public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
   
   @Value("${jira.project.template.key}")
   public String jiraTemplateKey;
@@ -64,7 +64,7 @@ public class JiraAdapter {
   String jiraNotificationSchemeId;
   
   //Pattern to use for project with id
-  private static String URL_PATTERN = "%s%s/project/%s";
+  private static final String URL_PATTERN = "%s%s/project/%s";
 
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
@@ -116,28 +116,10 @@ public class JiraAdapter {
       FullJiraProject toBeCreated = 
     		  this.buildJiraProjectPojoFromApiProject(project);
       
-      FullJiraProject created = null;
-      try {
-    	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue); 
-      } catch (HttpException jiracreateException) 
-      {
-          logger.debug("error creating project with template {}: {}", 
-        		  toBeCreated.projectTemplateKey,
-        		  jiracreateException.getMessage());
-    	  if (jiracreateException.getResponseCode() == 400) {
-    		  logger.info("Template {} did not work, falling back to default {}", 
-    				 toBeCreated.projectTemplateKey, jiraTemplateKey);
-    		  toBeCreated.projectTypeKey = jiraTemplateType;
-    		  toBeCreated.projectTemplateKey = jiraTemplateKey;
-        	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
-        	  project.projectType = defaultProjectKey;
-    	  } else 
-    	  {
-    		  throw jiracreateException;
-    	  }
-      }
-          
-      logger.debug("Created project: {}", created);
+      FullJiraProject created;
+        created = createProjectInJira(project, crowdCookieValue, toBeCreated);
+
+        logger.debug("Created project: {}", created);
       project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
       project.jiraId = created.id;
       
@@ -153,7 +135,31 @@ public class JiraAdapter {
 
   }
 
-  public FullJiraProject getProject(String id, String crowdCookieValue) {
+    private FullJiraProject createProjectInJira(ProjectData project, String crowdCookieValue, FullJiraProject toBeCreated) throws IOException {
+        FullJiraProject created;
+        try {
+            created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
+        } catch (HttpException jiracreateException)
+        {
+            logger.debug("error creating project with template {}: {}",
+                    toBeCreated.projectTemplateKey,
+                    jiracreateException.getMessage());
+            if (jiracreateException.getResponseCode() == 400) {
+                logger.info("Template {} did not work, falling back to default {}",
+                       toBeCreated.projectTemplateKey, jiraTemplateKey);
+                toBeCreated.projectTypeKey = jiraTemplateType;
+                toBeCreated.projectTemplateKey = jiraTemplateKey;
+                created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
+                project.projectType = defaultProjectKey;
+            } else
+            {
+                throw jiracreateException;
+            }
+        }
+        return created;
+    }
+
+    public FullJiraProject getProject(String id, String crowdCookieValue) {
     String url = String.format(URL_PATTERN, jiraUri, jiraApiPath, id);
       try {
     	  return client.callHttp(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, FullJiraProject.class);
@@ -195,7 +201,7 @@ public class JiraAdapter {
       {
 	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
 	      
-	      logger.debug("Found permissionsets: "+ permissionFiles.length);
+	      logger.debug("Found permissionsets: {}", permissionFiles.length);
 
           for (Resource permissionFile : permissionFiles) {
               PermissionScheme singleScheme =
@@ -227,8 +233,8 @@ public class JiraAdapter {
                       permission.getHolder().setParameter(globalKeyuserRoleName);
                   }
               }
-              logger.debug("Update permissionScheme " + permissionSchemeName +
-                      " location: " + permissionFile.getFilename());
+              logger.debug("Update permissionScheme {} location: {}",
+                      permissionSchemeName, permissionFile.getFilename());
 
               String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
               singleScheme =
@@ -256,17 +262,17 @@ public class JiraAdapter {
     BasicUser lead = s.admins.get(0);
 
     String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
-        (s, jiratemplateKeyPrefix, jiraTemplateKey);
+        (s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
     		
     String templateType = calculateJiraProjectTypeAndTemplateFromProjectType
-    	(s, jiratemplateTypePrefix, jiraTemplateType);
+    	(s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
     
     if (jiraTemplateKey.equals(templateKey)) 
     {
     	s.projectType = defaultProjectKey;
     }
     		
-    logger.debug("Creating project of type: " + templateKey + " for project: "  + s.key);
+    logger.debug("Creating project of type: {} for project: {}", templateKey, s.key);
 
     return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
     	templateKey, templateType, jiraNotificationSchemeId);
@@ -278,7 +284,7 @@ public class JiraAdapter {
     key = key.toUpperCase();
     key = key.replaceAll("\\s+", "");
     key = key.replaceAll("-", "_");
-    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2, key.length())) : key;
+    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2)) : key;
     return key;
   }
 
@@ -296,32 +302,32 @@ public class JiraAdapter {
   }
 
   // refactor - to only look for the project by key that is to be created!
-  public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
-  {
-    getSessionId();
-    logger.debug("Getting jira projects with filter {}", filter);
-    String url = 
-    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
-        String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
-    try {
-    	return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, 
-    		new TypeReference<List<FullJiraProject>>() {});
-    } catch (JsonMappingException e) {
-      // if for some odd reason serialization fails ... 
-      List<FullJiraProject> returnList = new ArrayList<>();
-      returnList.add(new FullJiraProject
-    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null, null));
-    				  
-      return returnList;
-    } catch (IOException e) 
-    {
-      if (e instanceof HttpException && ((HttpException)e).getResponseCode() != 404)
-      {
-    	  logger.error("Error in getting projects", e);
+  public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) {
+      getSessionId();
+      logger.debug("Getting jira projects with filter {}", filter);
+      String url =
+              filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
+                      String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
+      try {
+          return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET,
+                  new TypeReference<List<FullJiraProject>>() {
+                  });
+      } catch (JsonMappingException e) {
+          // if for some odd reason serialization fails ...
+          List<FullJiraProject> returnList = new ArrayList<>();
+          returnList.add(new FullJiraProject
+                  (null, filter, filter, filter, null, null, null, null, null, null, null, null, null));
+
+          return returnList;
+      } catch (HttpException e) {
+          if (e.getResponseCode() != 404) {
+              logger.error("Error in getting projects", e);
+          }
+          // if for nothing else -
+          return new ArrayList<>();
+      } catch (IOException e) {
+          return new ArrayList<>();
       }
-      // if for nothing else - 
-      return new ArrayList<>();
-    }
   }
 
   private void getSessionId() {
@@ -389,8 +395,8 @@ public class JiraAdapter {
 	    	
 	for (Shortcut shortcut : shortcuts) 
 	{
-		logger.debug("Attempting to create shortcut (" + shortcut.getId()
-			+ ") for: " + shortcut.getName());
+		logger.debug("Attempting to create shortcut ({}) for: {}",
+                shortcut.getId(), shortcut.getName());
 		try 
 		{
 			client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);

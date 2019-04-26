@@ -93,7 +93,7 @@ public class BitbucketAdapter {
   @Autowired
   CustomAuthenticationManager manager;
     
-  private static String PROJECT_PATTERN = "%s%s/projects";
+  private static final String PROJECT_PATTERN = "%s%s/projects";
 
   private static final String COMPONENT_ID_KEY = "component_id";
   
@@ -126,10 +126,10 @@ public class BitbucketAdapter {
       List<Map<String, String>> newOptions = new ArrayList<>();
       if(project.quickstart != null) {
     	  
-    	  logger.debug("new quickstarters: " + project.quickstart.size());
+    	  logger.debug("new quickstarters: {}", project.quickstart.size());
     	  
     	  for(Map<String, String> option : project.quickstart) {
-          logger.debug("create repo for quickstarter: " + option.get(COMPONENT_ID_KEY) + " in " + project.key);
+          logger.debug("create repo for quickstarter: {}  in {}", option.get(COMPONENT_ID_KEY), project.key);
 
           String repoName = (String.format("%s-%s", project.key, option.get(COMPONENT_ID_KEY))).toLowerCase().replace('_','-');
           Repository repo = new Repository();
@@ -234,7 +234,7 @@ public class BitbucketAdapter {
     try 
     {
     	client.callHttp(url, webhook, crowdCookie, false, RestClient.HTTP_VERB.POST, Webhook.class);
-      logger.info("created hook: " + webhook.getUrl());
+      logger.info("created hook: {}", webhook.getUrl());
     } catch (IOException ex) {
       logger.error("Error in webhook call", ex);
     }

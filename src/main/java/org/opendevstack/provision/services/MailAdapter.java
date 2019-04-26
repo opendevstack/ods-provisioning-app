@@ -55,7 +55,7 @@ public class MailAdapter {
   private TemplateEngine templateEngine;
 
   // testing only!
-  CrowdUserDetails crowdUserDetails = null;
+  private CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
   public MailAdapter(JavaMailSender mailSender) {
@@ -89,7 +89,7 @@ public class MailAdapter {
       });
       
       sendThread.start();
-      logger.debug("Mail for project: " + data.key + " sent");
+      logger.debug("Mail for project: {} sent", data.key );
   }
 
   String build(ProjectData data) {
