@@ -205,7 +205,7 @@ public class RundeckAdapter {
           // access link to openshift app domain
           project.openshiftJenkinsUrl =
               "https://" + String.format(projectOpenshiftJenkinsProjectPattern,
-                  project.key.toLowerCase(), projectOpenshiftBaseDomain);;
+                  project.key.toLowerCase(), projectOpenshiftBaseDomain);
 
           // we can only add the console based links - as no routes are created per default
           project.openshiftConsoleDevEnvUrl = String.format(projectOpenshiftDevProjectPattern,
