@@ -93,7 +93,7 @@ public class BitbucketAdapter {
   @Autowired
   CustomAuthenticationManager manager;
     
-  private static String PROJECT_PATTERN = "%s%s/projects";
+  private static final String PROJECT_PATTERN = "%s%s/projects";
 
   private static final String COMPONENT_ID_KEY = "component_id";
   

@@ -51,8 +51,8 @@ public class JiraAdapter {
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
 
-  public static final String jiratemplateKeyPrefix = "jira.project.template.key.";
-  public static final String jiratemplateTypePrefix = "jira.project.template.type.";
+  public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
+  public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
   
   @Value("${jira.project.template.key}")
   public String jiraTemplateKey;
@@ -64,7 +64,7 @@ public class JiraAdapter {
   String jiraNotificationSchemeId;
   
   //Pattern to use for project with id
-  private static String URL_PATTERN = "%s%s/project/%s";
+  private static final String URL_PATTERN = "%s%s/project/%s";
 
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
@@ -256,10 +256,10 @@ public class JiraAdapter {
     BasicUser lead = s.admins.get(0);
 
     String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
-        (s, jiratemplateKeyPrefix, jiraTemplateKey);
+        (s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
     		
     String templateType = calculateJiraProjectTypeAndTemplateFromProjectType
-    	(s, jiratemplateTypePrefix, jiraTemplateType);
+    	(s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
     
     if (jiraTemplateKey.equals(templateKey)) 
     {
@@ -302,7 +302,7 @@ public class JiraAdapter {
     logger.debug("Getting jira projects with filter {}", filter);
     String url = 
     	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
-        String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
+        String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
     try {
     	return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, 
     		new TypeReference<List<FullJiraProject>>() {});

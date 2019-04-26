@@ -134,7 +134,7 @@ public class RundeckAdapter {
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
         String packageName =
             String.format("%s.%s", String.format(groupPattern, project.key.toLowerCase()),
-                options.get("component_id").replace('-', '_'));
+                options.get(COMPONENT_ID_KEY).replace('-', '_'));
         Execution execution = new Execution();
 
         options.put("group_id", groupId);
