@@ -237,10 +237,9 @@ public class RestClient {
         .build();
     try (Response response = getClient(null).newCall(request).execute();)
     {
-    	if (response.isSuccessful()) 
+    	if (!response.isSuccessful() || 
+            response.body().string().contains("Invalid username and password")) 
     	{
-    		logger.debug("Successful form based auth");
-    	} else {
     		throw new IOException("Could not authenticate: " + username + 
     			" : " + response.body());
     	}
