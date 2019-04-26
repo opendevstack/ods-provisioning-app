@@ -296,32 +296,32 @@ public class JiraAdapter {
   }
 
   // refactor - to only look for the project by key that is to be created!
-  public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
-  {
-    getSessionId();
-    logger.debug("Getting jira projects with filter {}", filter);
-    String url = 
-    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
-        String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
-    try {
-    	return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, 
-    		new TypeReference<List<FullJiraProject>>() {});
-    } catch (JsonMappingException e) {
-      // if for some odd reason serialization fails ... 
-      List<FullJiraProject> returnList = new ArrayList<>();
-      returnList.add(new FullJiraProject
-    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null, null));
-    				  
-      return returnList;
-    } catch (IOException e) 
-    {
-      if (e instanceof HttpException && ((HttpException)e).getResponseCode() != 404)
-      {
-    	  logger.error("Error in getting projects", e);
+  public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) {
+      getSessionId();
+      logger.debug("Getting jira projects with filter {}", filter);
+      String url =
+              filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
+                      String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
+      try {
+          return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET,
+                  new TypeReference<List<FullJiraProject>>() {
+                  });
+      } catch (JsonMappingException e) {
+          // if for some odd reason serialization fails ...
+          List<FullJiraProject> returnList = new ArrayList<>();
+          returnList.add(new FullJiraProject
+                  (null, filter, filter, filter, null, null, null, null, null, null, null, null, null));
+
+          return returnList;
+      } catch (HttpException e) {
+          if (e.getResponseCode() != 404) {
+              logger.error("Error in getting projects", e);
+          }
+          // if for nothing else -
+          return new ArrayList<>();
+      } catch (IOException e) {
+          return new ArrayList<>();
       }
-      // if for nothing else - 
-      return new ArrayList<>();
-    }
   }
 
   private void getSessionId() {
