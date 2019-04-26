@@ -55,7 +55,7 @@ public class MailAdapter {
   private TemplateEngine templateEngine;
 
   // testing only!
-  CrowdUserDetails crowdUserDetails = null;
+  private CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
   public MailAdapter(JavaMailSender mailSender) {

@@ -142,7 +142,7 @@ public class ConfluenceAdapter {
     return space;
   }
 
-  protected String getJiraServerId() throws IOException {
+  private String getJiraServerId() throws IOException {
     String jiraServerId = null;
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
     List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
@@ -156,7 +156,7 @@ public class ConfluenceAdapter {
     return jiraServerId;
   }
 
-  protected String getBluePrintId(String projectTypeKey) throws IOException 
+  private String getBluePrintId(String projectTypeKey) throws IOException
   {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
