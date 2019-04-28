@@ -1,5 +1,7 @@
 # OpenDevStack Provisioning Application
 
+[![Build Status](https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master)](https://travis-ci.com/opendevstack/ods-provisioning-app)
+
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on quickstarters.
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
