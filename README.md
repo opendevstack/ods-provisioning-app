@@ -129,7 +129,6 @@ The connectors to the various tools to create resources are in the [services pac
 If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
 
     - nexus_url=<NEXUS HOST>
-    - nexus_folder=candidates
     - nexus_user=<NEXUS USER>
     - nexus_pw=<NEXUS_PW> 
     
