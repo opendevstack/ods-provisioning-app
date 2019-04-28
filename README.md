@@ -132,7 +132,24 @@ If you want to build / run locally - create `gradle.properties` in the project's
     - nexus_folder=candidates
     - nexus_user=<NEXUS USER>
     - nexus_pw=<NEXUS_PW> 
- 
+    
+If you want to build / run locally without a NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
+
+```properties
+no_nexus=true
+```
+
+Alternatively you can also configure the build using environment variables:
+
+| Gradle property | Environment variable |
+| --------------- | -------------------- |
+| nexus_url       | NEXUS_HOST           |
+| nexus_user      | NEXUS_USERNAME       |
+| nexus_pw        | NEXUS_PASSWORD       |
+| no_nexus        | NO_NEXUS             |
+
+You can start the application with the following command:
+
 ```bash
 # to run the server execute
 gradle bootRun
