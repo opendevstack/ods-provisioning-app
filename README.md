@@ -132,13 +132,13 @@ If you want to build / run locally - create `gradle.properties` in the project's
     - nexus_user=<NEXUS USER>
     - nexus_pw=<NEXUS_PW> 
     
-If you want to build / run locally without a NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
+If you want to build / run locally without NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
 
 ```properties
 no_nexus=true
 ```
 
-Alternatively you can also configure the build using environment variables:
+Alternatively, you can also configure the build using environment variables:
 
 | Gradle property | Environment variable |
 | --------------- | -------------------- |
