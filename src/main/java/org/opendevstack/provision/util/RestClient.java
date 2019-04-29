@@ -121,14 +121,34 @@ public class RestClient {
 		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  try 
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  } catch (HttpException httpException) {
+		  if (httpException.getResponseCode() == 401 || httpException.getResponseCode() == 500) {
+			  logger.debug("401 - retrying with direct auth");
+			  return callHttpInternal(url, input, crowdCookieValue, true, verb, returnType, null);
+		  } else {
+			  throw httpException;
+		  }
+	  }
   }
 
   public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  try
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  } catch (HttpException httpException) {
+	  if (httpException.getResponseCode() == 401 || httpException.getResponseCode() == 500) {
+		  logger.debug("401 - retrying with direct auth");
+		  return callHttpInternal(url, input, crowdCookieValue, true, verb, null, returnType);
+	  } else {
+		  throw httpException;
+	  }
+  }
   }
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
