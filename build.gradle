@@ -14,6 +14,9 @@ buildscript {
             jcenter()
             mavenCentral()
         } else {
+            if (!nexus_url) {
+                throw new GradleException('Nexus URL not specified!')
+            }
             maven () {
                 url "${nexus_url}/repository/jcenter/"
                 credentials () {
