@@ -37,6 +37,10 @@ objects:
       jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
       jira.project.template.type=software
 
+      # kanban project type
+      jira.project.template.key.kanban=com.pyxis.greenhopper.jira:gh-kanban-template
+      jira.project.template.type.kanban=software
+
       #Confluence properties
       confluence.uri=${CONFLUENCE_URI}
       confluence.api.path=/rest

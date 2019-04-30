@@ -199,10 +199,12 @@ public class RestClient {
     Response response = null;
     if (directAuth)
     {
+    	String currentUser = 
+    		SecurityContextHolder.getContext().getAuthentication().getName();
+    	logger.debug("Authenticating rest call with {}", currentUser);
     	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.
-				loadUserByToken(crowdCookieValue).getUsername(),
-				manager.getUserPassword());
+			Credentials.basic(
+				currentUser, manager.getUserPassword());
     	builder = builder.addHeader("Authorization", credentials);
     	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     }
