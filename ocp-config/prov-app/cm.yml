@@ -20,6 +20,12 @@ objects:
       #log file
       logging.file=provision.log
 
+      # atlassian API calls take sooo long
+      server.servlet.session.timeout=240
+      server.connection-timeout=90000
+      spring.session.timeout=240
+      spring.mvc.async.request-timeout=90000
+      
       #server port
       server.port:8080
       server.use-forward-headers=true
