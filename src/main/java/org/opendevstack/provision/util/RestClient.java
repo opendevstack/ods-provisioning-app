@@ -14,7 +14,10 @@
 package org.opendevstack.provision.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -66,6 +69,9 @@ public class RestClient {
   
   private Map<String, OkHttpClient> cache = new HashMap<>();
 
+  private static final List<Integer> RETRY_HTTP_CODES = 
+	new ArrayList<>(Arrays.asList(401, 403, 500));
+  
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
 
@@ -110,8 +116,10 @@ public class RestClient {
 	  {
 		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
 	  } catch (HttpException httpX) {
-		  if (httpX.getResponseCode() != 401) 
+		  if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
 		  {
+			  callHttpInternal(url, null, null, true, HTTP_VERB.HEAD, null, null);
+		  } else {
 			  throw httpX;
 		  }
 	  }
@@ -121,14 +129,36 @@ public class RestClient {
 		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  try 
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  } catch (HttpException httpException) {
+		  if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
+		  {
+			  logger.debug("401 - retrying with direct auth");
+			  return callHttpInternal(url, input, crowdCookieValue, true, verb, returnType, null);
+		  } else {
+			  throw httpException;
+		  }
+	  }
   }
 
   public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
 			      throws JsonMappingException, HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  try
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  } catch (HttpException httpException) {
+	    if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
+	    {
+		  logger.debug("401 - retrying with direct auth");
+		  return callHttpInternal(url, input, crowdCookieValue, true, verb, null, returnType);
+	    } else {
+		  throw httpException;
+	    }
+      }
   }
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
@@ -179,10 +209,12 @@ public class RestClient {
     Response response = null;
     if (directAuth)
     {
+    	String currentUser = 
+    		SecurityContextHolder.getContext().getAuthentication().getName();
+    	logger.debug("Authenticating rest call with {}", currentUser);
     	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.
-				loadUserByToken(crowdCookieValue).getUsername(),
-				manager.getUserPassword());
+			Credentials.basic(
+				currentUser, manager.getUserPassword());
     	builder = builder.addHeader("Authorization", credentials);
     	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     }
