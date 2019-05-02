@@ -102,30 +102,25 @@ public class ConfluenceAdapterTest {
     
     spyAdapter.client = client;
 
-    doReturn(String.class).when(client).callHttp(anyString(), any(),
-        anyString(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), any(String.class.getClass()));
+    doReturn("").when(client).callHttpForString(anyString(), any(), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST));
     
     int permissionSets = spyAdapter.updateSpacePermissions(project, "crowdCookieValue");
 
     // 3 permission sets
-    Mockito.verify(client, Mockito.times(1)).callHttp
+    Mockito.verify(client, Mockito.times(1)).callHttpForString
 		(anyString(), contains(project.adminGroup), anyString(),
 			anyBoolean(),
-	        eq(RestClient.HTTP_VERB.POST),
-			any(String.class.getClass()));
+	        eq(RestClient.HTTP_VERB.POST));
     
-    Mockito.verify(client, Mockito.times(1)).callHttp
+    Mockito.verify(client, Mockito.times(1)).callHttpForString
 		(anyString(), contains(project.userGroup), anyString(),
 			anyBoolean(),
-	        eq(RestClient.HTTP_VERB.POST),
-			any(String.class.getClass()));
+	        eq(RestClient.HTTP_VERB.POST));
 
-    Mockito.verify(client, Mockito.times(1)).callHttp
+    Mockito.verify(client, Mockito.times(1)).callHttpForString
 		(anyString(), contains(project.readonlyGroup), anyString(),
 			anyBoolean(),
-	        eq(RestClient.HTTP_VERB.POST),
-			any(String.class.getClass()));
+	        eq(RestClient.HTTP_VERB.POST));
     
     assertEquals(3, permissionSets);
   }

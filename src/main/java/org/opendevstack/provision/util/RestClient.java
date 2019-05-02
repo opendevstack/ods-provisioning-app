@@ -31,7 +31,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -71,12 +70,9 @@ public class RestClient {
 
   private static final List<Integer> RETRY_HTTP_CODES = 
 	new ArrayList<>(Arrays.asList(401, 403, 500));
-  
-  @Autowired
-  CrowdUserDetailsService crowdUserDetailsService;
 
   @Autowired
-  CustomAuthenticationManager manager;
+  private CustomAuthenticationManager manager;
 
   public enum HTTP_VERB {
 	  PUT, 
@@ -104,7 +100,7 @@ public class RestClient {
     return client;
   }  
 
-  public OkHttpClient getClientFresh(String crowdCookie) {
+  private OkHttpClient getClientFresh(String crowdCookie) {
 	cache.remove(crowdCookie);
     cookieJar.clear();
     return getClient(null);
@@ -125,11 +121,9 @@ public class RestClient {
 	public <T> T callHttp(String url, Object input, String crowdCookieValue,
 						  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
 			throws IOException {
-		String respBody = callHttpInternalForString(url, input, crowdCookieValue, directAuth, verb);
+		String respBody = callHttpForString(url, input, crowdCookieValue, directAuth, verb);
 		if (respBody == null || returnType == null) {
 			return null;
-		} else if (returnType.isAssignableFrom(String.class)) {
-			return (T) respBody;
 		}
 		return new ObjectMapper().readValue(respBody, returnType);
 	}
@@ -137,14 +131,14 @@ public class RestClient {
 	public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue,
 								 boolean directAuth, HTTP_VERB verb, TypeReference<T> returnTypeRef)
 			throws IOException {
-		String respBody = callHttpInternalForString(url, input, crowdCookieValue, directAuth, verb);
+		String respBody = callHttpForString(url, input, crowdCookieValue, directAuth, verb);
 		if (respBody == null || returnTypeRef == null) {
 			return null;
 		}
 		return new ObjectMapper().readValue(respBody, returnTypeRef);
 	}
 
-	private String callHttpInternalForString(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
+	public String callHttpForString(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
 		String respBody;
 		try {
 			respBody = executeHttpCall(url, input, crowdCookieValue, directAuth, verb);

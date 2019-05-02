@@ -99,17 +99,17 @@ public class RestClientTest {
   @Test
   public void callHttpGreen () throws Exception
   { 
-	  String response = client.callHttp(
+	  String response = client.callHttpForString(
 		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
+		"ClemensTest", null, false, HTTP_VERB.GET);
 	  
 	  assertNotNull(response);
 	  
 	  ProjectData data = new ProjectData();
 	  
-	  response = client.callHttp(
+	  response = client.callHttpForString(
 		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
+		"ClemensTest", null, false, HTTP_VERB.POST);
 	  
 	  assertNotNull(response);  
   }
@@ -117,15 +117,15 @@ public class RestClientTest {
   @Test (expected = NullPointerException.class)
   public void callHttpMissingVerb () throws Exception
   { 
-	  client.callHttp(
+	  client.callHttpForString(
 		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, null, String.class);
+		"ClemensTest", null, false, null);
   }  
   
   @Test (expected = NullPointerException.class)
   public void callHttpMissingUrl () throws Exception
   { 
-	  client.callHttp(null, "ClemensTest", null, false, null, String.class);
+	  client.callHttpForString(null, "ClemensTest", null, false, null);
   }   
 
   @Test (expected = NullPointerException.class)
@@ -147,9 +147,9 @@ public class RestClientTest {
 	  RestClient spyAdapter = Mockito.spy(client);
 
       try {
-          spyAdapter.callHttp(
+          spyAdapter.callHttpForString(
             String.format("http://localhost:%d", 1000),
-            "ClemensTest", null, false, HTTP_VERB.GET, String.class);
+            "ClemensTest", null, false, HTTP_VERB.GET);
       } catch (SocketTimeoutException se) {
             // expected in local env
       } catch (ConnectException ce) {
