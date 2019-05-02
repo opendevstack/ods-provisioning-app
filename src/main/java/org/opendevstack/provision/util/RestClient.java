@@ -78,7 +78,7 @@ public class RestClient {
   @Autowired
   CustomAuthenticationManager manager;
 
-  public static enum HTTP_VERB {
+  public enum HTTP_VERB {
 	  PUT, 
 	  POST,
 	  GET,
@@ -127,7 +127,7 @@ public class RestClient {
 
   public <T> T callHttp(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
+			      throws HttpException, IOException
   {
 	  try 
 	  {
@@ -145,7 +145,7 @@ public class RestClient {
 
   public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
+			      throws HttpException, IOException
   {
 	  try
 	  {
@@ -163,7 +163,7 @@ public class RestClient {
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef)
-      throws JsonMappingException, HttpException, IOException
+      throws HttpException, IOException
   {
 	Preconditions.checkNotNull(url, "Url cannot be null");
 	Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
@@ -192,18 +192,22 @@ public class RestClient {
     okhttp3.Request.Builder builder = new Request.Builder();
     builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
     
-    if (HTTP_VERB.PUT.equals(verb))
-    {
-        builder = builder.put(body);
-    } else if (HTTP_VERB.GET.equals(verb))
-    {
-    	builder = builder.get();
-    } else if (HTTP_VERB.POST.equals(verb))
-    {
-    	builder = builder.post(body);
-    } else if (HTTP_VERB.HEAD.equals(verb))
-    {
-    	builder = builder.head();
+    switch (verb) {
+    	case PUT:
+            builder = builder.put(body);
+            break;
+    	case GET:
+    		builder = builder.get();
+    		break;
+    	case POST:
+        	builder = builder.post(body);
+        	break;
+    	case HEAD:
+        	builder = builder.head();
+        	break;
+        default:
+        	builder = builder.head();
+        	break;
     }
     
     Response response = null;
@@ -242,7 +246,7 @@ public class RestClient {
     {
     	if (returnType.isAssignableFrom(String.class)) 
     	{
-    		return (T)new String(respBody);
+    		return (T)respBody;
     	}
     	return (T)new ObjectMapper().readValue(respBody, returnType);
     } else

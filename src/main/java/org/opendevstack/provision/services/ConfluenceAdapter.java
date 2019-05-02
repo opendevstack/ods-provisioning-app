@@ -240,14 +240,12 @@ public class ConfluenceAdapter {
   {
 	    String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
 
-	    String template =
+	    return
 	    	(projectTypeKey != null && !projectTypeKey.equals(defaultProjectKey) && 
 	    		environment.containsProperty(confluencetemplateKeyPrefix + projectTypeKey) && 
 	    		projectTemplateKeyNames.contains(projectTypeKey)) ?
 	    		environment.getProperty(confluencetemplateKeyPrefix + projectTypeKey) : 
 	    			confluenceBlueprintKey;
-	    		
-	    return template;
   }
   
 }
