@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
@@ -32,7 +33,6 @@ import org.springframework.stereotype.Component;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
@@ -61,11 +61,11 @@ public class RestClient {
   private static final MediaType JSON_MEDIA_TYPE = MediaType
 	      .parse("application/json; charset=utf-8");
 
-  CrowdCookieJar cookieJar;
+  private CrowdCookieJar cookieJar;
 
-  int connectTimeout = 30;
+  private int connectTimeout = 30;
 
-  int readTimeout = 60;
+  private int readTimeout = 60;
   
   private Map<String, OkHttpClient> cache = new HashMap<>();
 
@@ -78,7 +78,7 @@ public class RestClient {
   @Autowired
   CustomAuthenticationManager manager;
 
-  public static enum HTTP_VERB {
+  public enum HTTP_VERB {
 	  PUT, 
 	  POST,
 	  GET,
@@ -108,150 +108,135 @@ public class RestClient {
 	cache.remove(crowdCookie);
     cookieJar.clear();
     return getClient(null);
-  }  
-  
-  public void getSessionId(String url) throws IOException 
-  {
-	  try 
-	  {
-		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
-	  } catch (HttpException httpX) {
-		  if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
-		  {
-			  callHttpInternal(url, null, null, true, HTTP_VERB.HEAD, null, null);
-		  } else {
-			  throw httpX;
-		  }
-	  }
   }
 
-  public <T> T callHttp(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
-  {
-	  try 
-	  {
-		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
-	  } catch (HttpException httpException) {
-		  if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
-		  {
-			  logger.debug("401 - retrying with direct auth");
-			  return callHttpInternal(url, input, crowdCookieValue, true, verb, returnType, null);
-		  } else {
-			  throw httpException;
-		  }
-	  }
-  }
-
-  public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
-  {
-	  try
-	  {
-		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
-	  } catch (HttpException httpException) {
-	    if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
-	    {
-		  logger.debug("401 - retrying with direct auth");
-		  return callHttpInternal(url, input, crowdCookieValue, true, verb, null, returnType);
-	    } else {
-		  throw httpException;
-	    }
-      }
-  }
-  
-  private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef)
-      throws JsonMappingException, HttpException, IOException
-  {
-	Preconditions.checkNotNull(url, "Url cannot be null");
-	Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
-	  
-	String json = null;
-
-	logger.debug("Calling url: " + url);
-	
-	if (input == null) 
-	{
-		json = "";
-	    logger.debug("Null payload");
-	} else if (input instanceof String) 
-	{
-		json = (String)input;
-	    logger.debug("Passed String rest object: [{}]", json);
-	} else
-	{
-	    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-	    json = ow.writeValueAsString(input);
-	    logger.debug("Converted rest object: {}", json);
+	public void getSessionId(String url) throws IOException {
+		try {
+			executeHttpCall(url, null, null, false, HTTP_VERB.HEAD);
+		} catch (HttpException httpX) {
+			if (RETRY_HTTP_CODES.contains(httpX.getResponseCode())) {
+				executeHttpCall(url, null, null, false, HTTP_VERB.HEAD);
+			} else {
+				throw httpX;
+			}
+		}
 	}
-	  
-    RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
 
-    okhttp3.Request.Builder builder = new Request.Builder();
-    builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
-    
-    if (HTTP_VERB.PUT.equals(verb))
-    {
-        builder = builder.put(body);
-    } else if (HTTP_VERB.GET.equals(verb))
-    {
-    	builder = builder.get();
-    } else if (HTTP_VERB.POST.equals(verb))
-    {
-    	builder = builder.post(body);
-    } else if (HTTP_VERB.HEAD.equals(verb))
-    {
-    	builder = builder.head();
-    }
-    
-    Response response = null;
-    if (directAuth)
-    {
-    	String currentUser = 
-    		SecurityContextHolder.getContext().getAuthentication().getName();
-    	logger.debug("Authenticating rest call with {}", currentUser);
-    	String credentials =
-			Credentials.basic(
-				currentUser, manager.getUserPassword());
-    	builder = builder.addHeader("Authorization", credentials);
-    	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-    }
-    else 
-    {
-    	response = getClient(crowdCookieValue).newCall(builder.build()).execute();	
-    }
-    	    
-    String respBody = response.body().string();
-    response.close();
-    logger.debug(url + " > " + response.code() + 
-    	(respBody == null || respBody.trim().length() == 0 ?
-    		"" : (": \n" + respBody  )) + " : " + verb);
-    
-    if (response.code() < 200 || response.code() >= 300)
-    {
-      throw new HttpException(response.code(), 
-    	"Could not " + verb + " > "  + url + " : " + respBody);
-    }
+	public <T> T callHttp(String url, Object input, String crowdCookieValue,
+						  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
+			throws IOException {
+		String respBody = callHttpInternalForString(url, input, crowdCookieValue, directAuth, verb);
+		if (respBody == null || returnType == null) {
+			return null;
+		} else if (returnType.isAssignableFrom(String.class)) {
+			return (T) respBody;
+		}
+		return new ObjectMapper().readValue(respBody, returnType);
+	}
 
-    if (returnType == null && returnTypeRef == null) 
-    {
-    	return null;
-    } else if (returnType != null) 
-    {
-    	if (returnType.isAssignableFrom(String.class)) 
-    	{
-    		return (T)new String(respBody);
-    	}
-    	return (T)new ObjectMapper().readValue(respBody, returnType);
-    } else
-    {
-    	return (T)new ObjectMapper().readValue(respBody, returnTypeRef);
-    }
-  }
+	public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue,
+								 boolean directAuth, HTTP_VERB verb, TypeReference<T> returnTypeRef)
+			throws IOException {
+		String respBody = callHttpInternalForString(url, input, crowdCookieValue, directAuth, verb);
+		if (respBody == null || returnTypeRef == null) {
+			return null;
+		}
+		return new ObjectMapper().readValue(respBody, returnTypeRef);
+	}
 
-  public void callHttpBasicFormAuthenticate(String url) throws IOException 
+	private String callHttpInternalForString(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
+		String respBody;
+		try {
+			respBody = executeHttpCall(url, input, crowdCookieValue, directAuth, verb);
+
+		} catch (HttpException httpException) {
+			if (RETRY_HTTP_CODES.contains(httpException.getResponseCode())) {
+				logger.debug("401 - retrying with direct auth");
+				respBody = executeHttpCall(url, input, crowdCookieValue, true, verb);
+			} else {
+				throw httpException;
+			}
+		}
+		return respBody;
+	}
+
+	private String executeHttpCall(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
+		Preconditions.checkNotNull(url, "Url cannot be null");
+		Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
+
+		String json = null;
+
+		logger.debug("Calling url: {}", url);
+
+		if (input == null) {
+			json = "";
+			logger.debug("Null payload");
+		} else if (input instanceof String) {
+			json = (String) input;
+			logger.debug("Passed String rest object: [{}]", json);
+		} else {
+			ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+			json = ow.writeValueAsString(input);
+			logger.debug("Converted rest object: {}", json);
+		}
+
+		RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
+
+		Request.Builder builder = createRequestBuilder(url, verb, body);
+
+		Response response;
+		if (directAuth && SecurityContextHolder.getContext().getAuthentication() != null) {
+			String currentUser =
+					SecurityContextHolder.getContext().getAuthentication().getName();
+			logger.debug("Authenticating rest call with {}", currentUser);
+			String credentials =
+					Credentials.basic(
+							currentUser, manager.getUserPassword());
+			builder = builder.addHeader("Authorization", credentials);
+			response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
+		} else {
+			response = getClient(crowdCookieValue).newCall(builder.build()).execute();
+		}
+
+		String respBody;
+		if (response.body() != null) {
+			respBody = response.body().string();
+		} else {
+			respBody = null;
+		}
+		response.close();
+		if (logger.isDebugEnabled()) {
+			if (StringUtils.isBlank(respBody)) {
+				logger.debug("{}{} > {}", verb, url, response.code());
+			} else {
+				logger.debug(" {} {} > {}: \n{}", verb, url, response.code(), respBody);
+			}
+		}
+
+		if (response.code() < 200 || response.code() >= 300) {
+			throw new HttpException(response.code(),
+					"Could not " + verb + " > " + url + " : " + respBody);
+		}
+		return respBody;
+	}
+
+	private Request.Builder createRequestBuilder(String url, HTTP_VERB verb, RequestBody body) {
+		Request.Builder builder = new Request.Builder();
+		builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
+
+		if (HTTP_VERB.PUT.equals(verb)) {
+			builder = builder.put(body);
+		} else if (HTTP_VERB.GET.equals(verb)) {
+			builder = builder.get();
+		} else if (HTTP_VERB.POST.equals(verb)) {
+			builder = builder.post(body);
+		} else if (HTTP_VERB.HEAD.equals(verb)) {
+			builder = builder.head();
+		}
+		return builder;
+	}
+
+	public void callHttpBasicFormAuthenticate(String url) throws IOException
   {
 	Preconditions.checkNotNull(url, "Url cannot be null");
 	Preconditions.checkNotNull(SecurityContextHolder.getContext().getAuthentication(),
