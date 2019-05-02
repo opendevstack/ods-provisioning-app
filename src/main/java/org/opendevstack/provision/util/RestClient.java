@@ -179,7 +179,7 @@ public class RestClient {
 		Request.Builder builder = createRequestBuilder(url, verb, body);
 
 		Response response;
-		if (directAuth && SecurityContextHolder.getContext().getAuthentication() != null) {
+		if (directAuth) {
 			String currentUser =
 					SecurityContextHolder.getContext().getAuthentication().getName();
 			logger.debug("Authenticating rest call with {}", currentUser);
