@@ -99,7 +99,7 @@ public class RestClientTest {
   @Test
   public void callHttpGreen () throws Exception
   { 
-	  String response = client.callHttpForString(
+	  String response = client.callHttpString(
 		String.format("http://localhost:%d", randomServerPort),
 		"ClemensTest", null, false, HTTP_VERB.GET);
 	  
@@ -107,7 +107,7 @@ public class RestClientTest {
 	  
 	  ProjectData data = new ProjectData();
 	  
-	  response = client.callHttpForString(
+	  response = client.callHttpString(
 		String.format("http://localhost:%d", randomServerPort),
 		"ClemensTest", null, false, HTTP_VERB.POST);
 	  
@@ -117,7 +117,7 @@ public class RestClientTest {
   @Test (expected = NullPointerException.class)
   public void callHttpMissingVerb () throws Exception
   { 
-	  client.callHttpForString(
+	  client.callHttpString(
 		String.format("http://localhost:%d", randomServerPort),
 		"ClemensTest", null, false, null);
   }  
@@ -125,7 +125,7 @@ public class RestClientTest {
   @Test (expected = NullPointerException.class)
   public void callHttpMissingUrl () throws Exception
   { 
-	  client.callHttpForString(null, "ClemensTest", null, false, null);
+	  client.callHttpString(null, "ClemensTest", null, false, null);
   }   
 
   @Test (expected = NullPointerException.class)
@@ -147,7 +147,7 @@ public class RestClientTest {
 	  RestClient spyAdapter = Mockito.spy(client);
 
       try {
-          spyAdapter.callHttpForString(
+          spyAdapter.callHttpString(
             String.format("http://localhost:%d", 1000),
             "ClemensTest", null, false, HTTP_VERB.GET);
       } catch (SocketTimeoutException se) {

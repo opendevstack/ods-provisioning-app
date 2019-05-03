@@ -223,7 +223,7 @@ public class ConfluenceAdapter {
 
               String path = String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
 
-              client.callHttpForString(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST);
+              client.callHttpString(path, permissionset, crowdCookieValue, false, RestClient.HTTP_VERB.POST);
 
               updatedPermissions++;
           }

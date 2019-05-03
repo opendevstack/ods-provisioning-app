@@ -290,7 +290,7 @@ public class BitbucketAdapter {
     urlBuilder.addQueryParameter("permission", rights.toString());
     urlBuilder.addQueryParameter("name", groupOrUser);
 //    this.put(urlBuilder.build(), crowdCookieValue);
-    client.callHttpForString(urlBuilder.toString(), null, crowdCookieValue, true,
+    client.callHttpString(urlBuilder.toString(), null, crowdCookieValue, true,
     	RestClient.HTTP_VERB.PUT);
   }
 
@@ -304,7 +304,7 @@ public class BitbucketAdapter {
     urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
     urlBuilder.addQueryParameter("name", groupOrUser);
     
-    client.callHttpForString(urlBuilder.toString(), null, crowdCookieValue, true,
+    client.callHttpString(urlBuilder.toString(), null, crowdCookieValue, true,
     	RestClient.HTTP_VERB.PUT);
   }
 

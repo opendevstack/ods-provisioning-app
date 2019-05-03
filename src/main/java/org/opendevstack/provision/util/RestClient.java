@@ -121,7 +121,7 @@ public class RestClient {
 	public <T> T callHttp(String url, Object input, String crowdCookieValue,
 						  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
 			throws IOException {
-		String respBody = callHttpForString(url, input, crowdCookieValue, directAuth, verb);
+		String respBody = callHttpString(url, input, crowdCookieValue, directAuth, verb);
 		if (respBody == null || returnType == null) {
 			return null;
 		}
@@ -131,14 +131,14 @@ public class RestClient {
 	public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue,
 								 boolean directAuth, HTTP_VERB verb, TypeReference<T> returnTypeRef)
 			throws IOException {
-		String respBody = callHttpForString(url, input, crowdCookieValue, directAuth, verb);
+		String respBody = callHttpString(url, input, crowdCookieValue, directAuth, verb);
 		if (respBody == null || returnTypeRef == null) {
 			return null;
 		}
 		return new ObjectMapper().readValue(respBody, returnTypeRef);
 	}
 
-	public String callHttpForString(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
+	public String callHttpString(String url, Object input, String crowdCookieValue, boolean directAuth, HTTP_VERB verb) throws IOException {
 		String respBody;
 		try {
 			respBody = executeHttpCall(url, input, crowdCookieValue, directAuth, verb);
