@@ -201,9 +201,9 @@ public class RestClient {
 		response.close();
 		if (logger.isDebugEnabled()) {
 			if (StringUtils.isBlank(respBody)) {
-				logger.debug("{}{} > {}", verb, url, response.code());
+				logger.debug("{} {} > {}", verb, url, response.code());
 			} else {
-				logger.debug(" {} {} > {}: \n{}", verb, url, response.code(), respBody);
+				logger.debug("{} {} > {}: \n{}", verb, url, response.code(), respBody);
 			}
 		}
 
