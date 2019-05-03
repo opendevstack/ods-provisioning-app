@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
@@ -228,10 +227,8 @@ public class RestClient {
     }
     	    
     String respBody = response.body().string();
-    response.close();
-    logger.debug(url + " > " + response.code() + 
-    	(respBody == null || respBody.trim().length() == 0 ?
-    		"" : (": \n" + respBody  )) + " : " + verb);
+    logger.debug(url + " > " + verb + " >> " + response.code() + 
+    	": \n" + respBody);
     
     if (response.code() < 200 || response.code() >= 300)
     {
