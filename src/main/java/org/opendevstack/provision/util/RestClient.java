@@ -158,7 +158,7 @@ public class RestClient {
 		Preconditions.checkNotNull(url, "Url cannot be null");
 		Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
 
-		String json = null;
+		String json;
 
 		logger.debug("Calling url: {}", url);
 
@@ -248,12 +248,10 @@ public class RestClient {
         .build();
     try (Response response = getClient(null).newCall(request).execute();)
     {
-    	if (!response.isSuccessful() || 
-            response.body().string().contains("Invalid username and password")) 
-    	{
-    		throw new IOException("Could not authenticate: " + username + 
-    			" : " + response.body());
-    	}
+		if (!response.isSuccessful() || (response.body() != null && response.body().string().contains("Invalid username and password"))) {
+			throw new IOException("Could not authenticate: " + username +
+					" : " + response.body());
+		}
     }
   }
 
