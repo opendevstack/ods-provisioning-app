@@ -289,7 +289,6 @@ public class BitbucketAdapter {
     // utschig - allow group to create new repos (rather than just read / write)
     urlBuilder.addQueryParameter("permission", rights.toString());
     urlBuilder.addQueryParameter("name", groupOrUser);
-//    this.put(urlBuilder.build(), crowdCookieValue);
     client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
     	RestClient.HTTP_VERB.PUT, String.class);
   }

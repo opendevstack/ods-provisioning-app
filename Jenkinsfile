@@ -22,7 +22,7 @@ odsPipeline(
     'production': 'test',
     '*': 'dev'
   ],
-  sonarQubeBranch: 'production'
+  sonarQubeBranch: '*'
 ) { context ->
   stageBuild(context)
   stageScanForSonarqube(context)

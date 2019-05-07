@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.ws.http.HTTPException;
-
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
@@ -403,14 +401,19 @@ public class JiraAdapter {
 		{
 			client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);
 		    createdShortcuts++;
+		} catch (HttpException httpEx) 
+		{
+			if (httpEx.getResponseCode() == 401) 
+			{
+				logger.error("Could not create shortcut for: " + shortcut.getName() + 
+					" Error: " + httpEx.getMessage());
+				// if you get a 401 here - we can't reach the project, so stop
+				break;
+			}
 		} catch (IOException shortcutEx) 
 		{
 			logger.error("Could not create shortcut for: " + shortcut.getName() + 
 				" Error: " + shortcutEx.getMessage());
-			if (shortcutEx instanceof HttpException && 
-				(((HttpException)shortcutEx).getResponseCode() == 401)) {
-				break;
-			}
 		}
 	}
 	return createdShortcuts;
