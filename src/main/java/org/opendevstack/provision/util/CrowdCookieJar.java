@@ -37,7 +37,7 @@ import okhttp3.HttpUrl;
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class CrowdCookieJar implements CookieJar {
 
-  String domain;
+  private String domain;
   private Set<Cookie> cookies = new HashSet<>();
   
   private String crowdSSOCookieName;
@@ -45,8 +45,8 @@ public class CrowdCookieJar implements CookieJar {
   /**
    * Save cookies from response
    *
-   * @param url
-   * @param cookies
+   * @param url Request URL
+   * @param cookies Cookies returned by the server
    */
   @Override
   public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
@@ -57,8 +57,8 @@ public class CrowdCookieJar implements CookieJar {
   /**
    * Load cookies to include in request
    *
-   * @param url
-   * @return
+   * @param url Request URL
+   * @return A list of cookies belonging to the URL
    */
   @Override
   public List<Cookie> loadForRequest(HttpUrl url) {
@@ -72,7 +72,7 @@ public class CrowdCookieJar implements CookieJar {
   /**
    * Add a custom crwod cookie
    *
-   * @param cookieValue
+   * @param cookieValue Crowed Cookie value to add
    */
   public void addCrowdCookie(String cookieValue) {
     Cookie.Builder cookieBuilder = new Cookie.Builder();
