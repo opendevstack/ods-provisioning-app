@@ -14,7 +14,6 @@
 package org.opendevstack.provision.util;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,10 +65,9 @@ public class RestClient {
 
   private int readTimeout = 60;
   
-  private Map<String, OkHttpClient> cache = new HashMap<>();
+  private final Map<String, OkHttpClient> cache = new HashMap<>();
 
-  private static final List<Integer> RETRY_HTTP_CODES = 
-	new ArrayList<>(Arrays.asList(401, 403, 500));
+  private static final List<Integer> RETRY_HTTP_CODES = Arrays.asList(401, 403, 500);
 
   @Autowired
   private CustomAuthenticationManager manager;
@@ -246,7 +244,7 @@ public class RestClient {
     Request request = new Request.Builder()
         .url(url).post(body)
         .build();
-    try (Response response = getClient(null).newCall(request).execute();)
+    try (Response response = getClient(null).newCall(request).execute())
     {
 		if (!response.isSuccessful() || (response.body() != null && response.body().string().contains("Invalid username and password"))) {
 			throw new IOException("Could not authenticate: " + username +
