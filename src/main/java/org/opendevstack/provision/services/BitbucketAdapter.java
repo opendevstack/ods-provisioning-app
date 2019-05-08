@@ -291,7 +291,9 @@ public class BitbucketAdapter {
     urlBuilder.addQueryParameter("name", groupOrUser);
 
     client.callHttpString(urlBuilder.toString(), null, crowdCookieValue, true,
-    	RestClient.HTTP_VERB.PUT);
+            RestClient.HTTP_VERB.PUT);
+
+  }
 
   protected void setRepositoryPermissions(RepositoryData data, String key, String userOrGroup,
       String groupOrUser, String crowdCookieValue) throws IOException {
