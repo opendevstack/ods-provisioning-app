@@ -145,10 +145,10 @@ public class ConfluenceAdapter {
   private String getJiraServerId() throws IOException {
     String jiraServerId = null;
     String url = String.format(JIRA_SERVER, confluenceUri, confluenceApiPath);
-    List<Object> server = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {});
-    for (Object obj : server) {
-      logger.debug("Server: {}", obj);
-      JiraServer jiraServer = (JiraServer) obj;
+    List<JiraServer> jiraServers = getList(url, crowdCookieValue, new TypeReference<List<JiraServer>>() {
+    });
+    for (JiraServer jiraServer : jiraServers) {
+      logger.debug("Server: {}", jiraServer);
       if (jiraServer.getUrl().equals(jiraUri)) {
         jiraServerId = jiraServer.getId();
       }
@@ -160,14 +160,13 @@ public class ConfluenceAdapter {
   {
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
-    List<Object> blueprints =
+    List<Blueprint> blueprints =
         getList(url, crowdCookieValue, new TypeReference<List<Blueprint>>() {});
     
     String template =
     	calculateConfluenceSpaceTypeAndTemplateFromProjectType(projectTypeKey);
     
-    for (Object obj : blueprints) {
-      Blueprint blueprint = (Blueprint) obj;
+    for (Blueprint blueprint : blueprints) {
       logger.debug("Blueprint: {} searchKey: {}", blueprint.getBlueprintModuleCompleteKey(), template);
       if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
         bluePrintId = blueprint.getContentBlueprintId();
@@ -183,11 +182,11 @@ public class ConfluenceAdapter {
   }
 
 
-  List<Object> getList(String url, String crowdCookieValue, TypeReference reference)
+  <T> T getList(String url, String crowdCookieValue, TypeReference<T> reference)
       throws IOException {
     client.getSessionId(confluenceUri);
     
-    return (List<Object>) client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, reference);
+    return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, reference);
   }
 
   int updateSpacePermissions (ProjectData data, String crowdCookieValue) throws IOException 
