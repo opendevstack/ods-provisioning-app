@@ -70,9 +70,9 @@ public class CrowdCookieJar implements CookieJar {
   }
 
   /**
-   * Add a custom crwod cookie
+   * Add a custom crowd cookie
    *
-   * @param cookieValue Crowed Cookie value to add
+   * @param cookieValue Crowd Cookie value to add
    */
   public void addCrowdCookie(String cookieValue) {
     Cookie.Builder cookieBuilder = new Cookie.Builder();
