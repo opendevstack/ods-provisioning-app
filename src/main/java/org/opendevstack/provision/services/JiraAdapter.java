@@ -401,8 +401,8 @@ public class JiraAdapter {
             client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);
             createdShortcuts++;
         } catch (HttpException shortcutEx) {
-            logger.error("Could not create shortcut for: {} Error: {}", shortcut.getName(), shortcutEx.getMessage());
             if (shortcutEx.getResponseCode() == 401) {
+                logger.error("Could not create shortcut for: {} Error: {}", shortcut.getName(), shortcutEx.getMessage());
                 break;
             }
 		} catch (IOException shortcutEx) {
