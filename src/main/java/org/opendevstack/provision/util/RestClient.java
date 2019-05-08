@@ -216,15 +216,23 @@ public class RestClient {
 		Request.Builder builder = new Request.Builder();
 		builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
 
-		if (HTTP_VERB.PUT.equals(verb)) {
-			builder = builder.put(body);
-		} else if (HTTP_VERB.GET.equals(verb)) {
-			builder = builder.get();
-		} else if (HTTP_VERB.POST.equals(verb)) {
-			builder = builder.post(body);
-		} else if (HTTP_VERB.HEAD.equals(verb)) {
-			builder = builder.head();
-		}
+        switch (verb) {
+            case PUT:
+                builder = builder.put(body);
+                break;
+            case GET:
+                builder = builder.get();
+                break;
+            case POST:
+                builder = builder.post(body);
+                break;
+            case HEAD:
+                builder = builder.head();
+                break;
+            default:
+                builder = builder.head();
+                break;
+        }
 		return builder;
 	}
 

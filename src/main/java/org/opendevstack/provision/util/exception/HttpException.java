@@ -21,7 +21,7 @@ import java.io.IOException;
  */
 public class HttpException extends IOException 
 {
-	private int httpResponseCode = -1;
+	private final int httpResponseCode;
 
 	public HttpException(int code, String message) {
 		super(message);
