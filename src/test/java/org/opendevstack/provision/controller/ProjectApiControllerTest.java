@@ -81,8 +81,14 @@ public class ProjectApiControllerTest {
 
   private ProjectData data;
 
-  @Value("${project.template.default.key}")
-  private String defaultProjectKey;
+  @Value("${project.template.key.names}")
+  private String projectKeys;
+  
+  @Autowired
+  private JiraAdapter realJiraAdapter;
+  
+  @Autowired
+  ConfluenceAdapter realConfluenceAdapter;
   
   @Before
   public void setUp() {
@@ -310,12 +316,44 @@ public class ProjectApiControllerTest {
   @Test
   public void getProjectTemplateKeys () throws Exception
   {
+	  // list of keys - that we need to jsonify
+	  projectKeys = projectKeys.replace(",", "\",\"");
 	  mockMvc.perform(get("/api/v1/project/templates")
         .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(MockMvcResultMatchers.content().
-        		string(CoreMatchers.containsString("[\"" + defaultProjectKey + "\"]")))
+        		string(CoreMatchers.containsString("[\"" + projectKeys + "\"]")))
         .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void getProjectTypeTemplatesForKey () throws Exception 
+  {
+	  apiController.jiraAdapter = realJiraAdapter;
+	  apiController.confluenceAdapter = realConfluenceAdapter;
+	  
+      mockMvc.perform(get("/api/v1/project/template/default")
+      .accept(MediaType.APPLICATION_JSON))
+      .andDo(MockMvcResultHandlers.print())
+      .andExpect(MockMvcResultMatchers.status().isOk())
+      .andExpect(MockMvcResultMatchers.content().string(
+    	CoreMatchers.containsString("bugTrackerTemplate\":\"software#com.pyxis.greenhopper.jira:gh-scrum-template\"")))
+      .andExpect(MockMvcResultMatchers.content().string(
+    	CoreMatchers.containsString("collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
+
+      mockMvc.perform(get("/api/v1/project/template/nonExistant")
+      .accept(MediaType.APPLICATION_JSON))
+      .andDo(MockMvcResultHandlers.print())
+      .andExpect(MockMvcResultMatchers.status().isOk())
+      .andExpect(MockMvcResultMatchers.content().string(
+    	CoreMatchers.containsString("bugTrackerTemplate\":\"software#com.pyxis.greenhopper.jira:gh-scrum-template\"")))
+      .andExpect(MockMvcResultMatchers.content().string(
+    	CoreMatchers.containsString("collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
+      
+      mockMvc.perform(get("/api/v1/project/template/")
+      .accept(MediaType.APPLICATION_JSON))
+      .andDo(MockMvcResultHandlers.print())
+      .andExpect(MockMvcResultMatchers.status().is4xxClientError());
   }
   
   @Test

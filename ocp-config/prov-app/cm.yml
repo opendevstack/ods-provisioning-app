@@ -20,25 +20,32 @@ objects:
       #log file
       logging.file=provision.log
 
+      # atlassian API calls take sooo long
+      server.servlet.session.timeout=240
+      server.connection-timeout=90000
+      spring.session.timeout=240
+      spring.mvc.async.request-timeout=90000
+      
       #server port
       server.port:8080
       server.use-forward-headers=true
 
-      # TODO: this properties seems that were added to application.properties but not to this file. To review!
-      project.template.default.key=default
-      openshift.project.upgrade=false
-      jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
-      jira.project.template.type=software
-      crowd.local.directory=LocalDirectory
-      crowd.sso.cookie.name=crowd.token_key
-      mail.enabled=true
-
       global.keyuser.role.name=${KEYUSER_GROUP}
+      # project types, these two are configured in the src/main/resources/application.properties
+      project.template.key.names=default,kanban
 
       #JIRA properties
       jira.uri=${JIRA_URI}
       jira.api.path=/rest/api/latest
       jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
+
+      #JIRA default project templates
+      jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+      jira.project.template.type=software
+
+      # kanban project type
+      jira.project.template.key.kanban=com.pyxis.greenhopper.jira:gh-kanban-template
+      jira.project.template.type.kanban=software
 
       #Confluence properties
       confluence.uri=${CONFLUENCE_URI}
@@ -56,6 +63,9 @@ objects:
       #openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
+
+      # allow /or disallow a jira only project to be upgraded to a full OCP project
+      openshift.project.upgrade=false
 
       #openshift project name patterns
       openshift.test.project.name.pattern=%s%s-test
@@ -82,12 +92,16 @@ objects:
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
 
       #crowd properties
+      crowd.local.directory=LocalDirectory
       crowd.application.name=provision
       crowd.application.password=${CROWD_PASSWORD}
       crowd.server.url=${CROWD_URL}/crowd/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
       crowd.user.group=${CROWD_USER_GROUP}
       crowd.admin.group=${CROWD_ADMIN_GROUP}
+      
+      # crowd sso cookie keyname
+      crowd.sso.cookie.name=crowd.token_key
 
       #local storage
       project.storage.local=/opt/provision/history/
@@ -95,6 +109,10 @@ objects:
       jasypt.encryptor.password=${JASYPT_PASSWORD}
 
       #mail properties
+      
+      # enable mail sendout with project details
+      mail.enabled=true
+      
       spring.mail.host=${MAIL_HOST}
       spring.mail.port=587
       spring.mail.protocol=smtp

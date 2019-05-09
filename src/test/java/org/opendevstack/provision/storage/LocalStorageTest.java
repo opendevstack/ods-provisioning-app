@@ -116,7 +116,7 @@ public class LocalStorageTest {
     single.when = "2017-17-21";
     single.what = "test";
 
-    data.aboutDataList = new ArrayList<AboutChangesData.AboutRecordData>();
+    data.aboutDataList = new ArrayList<>();
     data.aboutDataList.add(single);
     data.aboutDataList.add(single2);
 

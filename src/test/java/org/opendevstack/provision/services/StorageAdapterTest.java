@@ -62,7 +62,7 @@ public class StorageAdapterTest {
   @Test
   public void listProjectHistoryNoAuth() throws Exception 
   {
-	  Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<String, ProjectData>());
+	  Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<>());
 	  adapter.setStorage(storage);
 	  
 	  assertTrue(adapter.listProjectHistory().isEmpty());
@@ -100,7 +100,7 @@ public class StorageAdapterTest {
 		  dataProtectedCase.adminGroup = "testGroup";
 		  dataProtectedCase.createpermissionset = true;
 		  
-		  Map<String, ProjectData> projects = new HashMap<String, ProjectData>();
+		  Map<String, ProjectData> projects = new HashMap<>();
 		  projects.put(data.key, data);
 		  projects.put(dataProtected.key, dataProtected);
 		  projects.put(dataProtectedWrong.key, dataProtectedWrong);
