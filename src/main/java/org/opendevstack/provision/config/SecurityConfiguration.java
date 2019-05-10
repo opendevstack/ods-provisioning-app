@@ -226,6 +226,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
    * @return
    * @throws IOException
    */
+  @Bean(name = "customAuthenticationManager")
   public AuthenticationManager crowdAuthenticationManager() throws IOException {
     return new CustomAuthenticationManager(securityServerClient());
   }
