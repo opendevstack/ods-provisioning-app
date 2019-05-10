@@ -126,6 +126,7 @@ objects:
       spring.mail.username=${MAIL_USERNAME}
       spring.mail.password=${MAIL_PASSWORD}
       provison.mail.sender=provision@${MAIL_HOST}
+      spring.main.allow-bean-definition-overriding=true
 parameters:
 - name: JIRA_URI
   required: true
