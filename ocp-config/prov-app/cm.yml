@@ -27,7 +27,7 @@ objects:
       spring.mvc.async.request-timeout=90000
       
       #server port
-      server.port:8080
+      server.port=8080
       server.use-forward-headers=true
 
       global.keyuser.role.name=${KEYUSER_GROUP}
