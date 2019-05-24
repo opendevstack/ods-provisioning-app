@@ -138,6 +138,7 @@ dependencies {
     // Required if generating equals, hashCode, or toString methods
     compile 'commons-lang:commons-lang:2.6'
 	
+    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version:'2.6.6'
     compile group: 'joda-time', name: 'joda-time', version:'2.8.2'
     compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
@@ -154,8 +155,7 @@ dependencies {
         exclude group: 'org.aspectj', module: 'aspectjweaver'
         exclude group: 'com.google.guava', module: 'guava'
     }
-    // Includes latest version of excluded libs
-    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.0'
+    // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
     compile group: 'org.apache.struts', name: 'struts2-core', version: '2.5.20'
     compile group: 'org.apache.struts.xwork', name: 'xwork-core', version: '2.3.37'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
