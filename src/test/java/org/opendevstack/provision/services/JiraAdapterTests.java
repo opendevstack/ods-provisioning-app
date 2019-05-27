@@ -211,7 +211,6 @@ public class JiraAdapterTests {
     
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     
-    System.out.println(ow.writeValueAsString(fullJiraProject));
   }
 
   @Test

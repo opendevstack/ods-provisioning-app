@@ -269,7 +269,6 @@ public class RundeckAdapterTest {
     assertEquals(execVerify.getOptions().get("project_admin"), projectData.admin);
     String groups = execVerify.getOptions().get("project_groups");
     assertNotNull(groups);
-    System.out.println(groups);
     assertTrue(groups.contains("ADMINGROUP=" + projectData.adminGroup) &&
             groups.contains("USERGROUP=" + projectData.userGroup) &&
             groups.contains("READONLYGROUP=" + projectData.readonlyGroup));
