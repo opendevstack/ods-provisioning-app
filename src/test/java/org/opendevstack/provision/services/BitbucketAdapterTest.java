@@ -371,6 +371,8 @@ public class BitbucketAdapterTest {
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    
+    spyAdapter.client = client;
 
 	Mockito.doReturn(repoData1).when(client).callHttp(
 		anyString(), anyString(), anyString(),

@@ -25,7 +25,7 @@ objects:
       server.connection-timeout=90000
       spring.session.timeout=240
       spring.mvc.async.request-timeout=90000
-      
+
       #server port
       server.port=8080
       server.use-forward-headers=true
@@ -33,7 +33,6 @@ objects:
       global.keyuser.role.name=${KEYUSER_GROUP}
 
       project.template.default.key=default
-
       # project types, these two are configured in the src/main/resources/application.properties
       project.template.key.names=${project.template.default.key},kanban
 
