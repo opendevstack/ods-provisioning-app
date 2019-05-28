@@ -14,9 +14,9 @@ groups are now passed to openshift and set with appropriate rights (view / edit 
 - Upon successful creation of an initiative, the new project does not show up in `modify initiative` list without a deep refresh ([#94](https://github.com/opendevstack/ods-provisioning-app/issues/94))
 - Severe performance degregation during login based on amount of groups configured in crowd ([#106](https://github.com/opendevstack/ods-provisioning-app/issues/106))
 - NON SSO crowd setup (e.g. SAML enabled) breaks provision app ([#131](https://github.com/opendevstack/ods-provisioning-app/issues/131))
-- Without (deep) refreshing page newly created initiative is not showing up in picklist on "modify initiative" ([#94])(https://github.com/opendevstack/ods-provisioning-app/issues/94)
-- Rundeck integration returns "auth successful" - although login failed (e.g. timeout .. ) ([#126])(https://github.com/opendevstack/ods-provisioning-app/issues/126)
-- Modify initiative should show project key and name ([#121])(https://github.com/opendevstack/ods-provisioning-app/issues/121)
+- Without (deep) refreshing page newly created initiative is not showing up in picklist on "modify initiative" ([#94](https://github.com/opendevstack/ods-provisioning-app/issues/94))
+- Rundeck integration returns "auth successful" - although login failed (e.g. timeout .. ) ([#126](https://github.com/opendevstack/ods-provisioning-app/issues/126))
+- Modify initiative should show project key and name ([#121](https://github.com/opendevstack/ods-provisioning-app/issues/121))
 
 
 ### Changed
