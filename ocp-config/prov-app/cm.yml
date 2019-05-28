@@ -33,6 +33,7 @@ objects:
       global.keyuser.role.name=${KEYUSER_GROUP}
 
       project.template.default.key=default
+
       # project types, these two are configured in the src/main/resources/application.properties
       project.template.key.names=${project.template.default.key},kanban
 
