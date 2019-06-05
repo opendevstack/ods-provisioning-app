@@ -77,7 +77,7 @@ public class SimpleCachingGroupMembershipManager extends
 				basicCache.addGroupToUser(user, group);
 				logger.debug("add to user: " +  user + " > " + group);
 			}
-			logger.info("add to cache (" +user+ ") took: " + 
+			logger.debug("add to cache (" +user+ ") took: " + 
 				(System.currentTimeMillis() - startTime) + "ms");
 			return new ArrayList<>(Arrays.asList(groupMemberships));
 		} else 
@@ -87,7 +87,7 @@ public class SimpleCachingGroupMembershipManager extends
 			{
 				logger.debug("retrieve for user: " +  user + " > " + group);
 			}
-			logger.info("retrieve for (" +user+ ") took: " + 
+			logger.debug("retrieve for (" +user+ ") took: " + 
 				(System.currentTimeMillis() - startTime) + "ms");
 			return groupsForUser;
 		}
