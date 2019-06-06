@@ -75,20 +75,21 @@ public class SimpleCachingGroupMembershipManager extends
 			for (String group : groupMemberships) 
 			{
 				basicCache.addGroupToUser(user, group);
-				logger.debug("add to user: " +  user + " > " + group);
+				logger.debug("add group/user to cache ({} / {})", user, group);
 			}
-			logger.info("add to cache (" +user+ ") took: " + 
-				(System.currentTimeMillis() - startTime) + "ms");
+			logger.debug("add to cache ({}) took: {} ms", user, 
+					(System.currentTimeMillis() - startTime));
+
 			return new ArrayList<>(Arrays.asList(groupMemberships));
 		} else 
 		{
 			long startTime = System.currentTimeMillis();
 			for (String group : groupsForUser) 
 			{
-				logger.debug("retrieve for user: " +  user + " > " + group);
+				logger.debug("retrieve from cache ({} / {})", user, group);
 			}
-			logger.info("retrieve for (" +user+ ") took: " + 
-				(System.currentTimeMillis() - startTime) + "ms");
+			logger.debug("retrieve from cache ({}) took: {} ms", user, 
+				(System.currentTimeMillis() - startTime));
 			return groupsForUser;
 		}
 	}
