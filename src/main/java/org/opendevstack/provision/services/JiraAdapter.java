@@ -479,15 +479,19 @@ public class JiraAdapter {
 			{
 				if (httpEx.getResponseCode() == 401) 
 				{
-					logger.error("Could not create component for: " + component.getName() + 
-						" Error: " + httpEx.getMessage());
+					String error = 
+						String.format("Could not create jira component for %s - error %s",
+							component.getName(), httpEx.getMessage());
+					logger.error(error);
 					// if you get a 401 here - we can't reach the project, so stop
 					break;
 				}
-			} catch (IOException shortcutEx) 
+			} catch (IOException componentEx) 
 			{
-				logger.error("Could not create shortcut for: " + component.getName() + 
-					" Error: " + shortcutEx.getMessage());
+				String error = 
+					String.format("Could not create jira component for %s - error %s",
+						component.getName(), componentEx.getMessage());
+					logger.error(error);
 			}
 		}
 	  }
