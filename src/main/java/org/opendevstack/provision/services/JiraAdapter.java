@@ -2,10 +2,15 @@ package org.opendevstack.provision.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.model.Component;
 import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
@@ -435,6 +440,58 @@ public class JiraAdapter {
     		projectTemplateKeyNames.contains(project.projectType)) ?
     		environment.getProperty(templatePrefix + project.projectType) : defaultValue;
 	  
+  }
+  
+  public Map<String, String> createComponentsForProjectRepositories 
+  	(ProjectData data, String crowdCookieValue) 
+  {
+	  Preconditions.checkNotNull(data, "data input cannot be null");
+	  Preconditions.checkNotNull(data.key, "project key cannot be null");
+	  String path = String.format("%s%s/component", jiraUri, jiraApiPath);
+	  
+	  Map<String, String> createdComponents = new HashMap<>();
+	  
+	  Map<String, Map<String, List<Link>>> repositories = data.repositories;
+	  if (repositories != null) 
+	  {
+		for (Entry<String, Map<String, List<Link>>> repo : repositories.entrySet()) 
+		{
+			String href = null;
+			for (Link link : repo.getValue().get("self")) 
+			{
+				href = link.getHref();
+				break;
+			}
+			
+			logger.debug("Repo {} {} for project {} ", repo.getKey(), href, data.key);
+						
+			Component component = new Component();
+				component.setName(String.format("Technology%s", 
+					repo.getKey().replace(data.key, "")));
+				component.setProject(data.key);
+				component.setDescription(
+					String.format("Technology component %s stored at %s", repo.getKey(), href));
+			try 
+			{
+				client.callHttp(path, component, crowdCookieValue, false, RestClient.HTTP_VERB.POST, null);
+				createdComponents.put(component.getName(), component.getDescription());
+			} catch (HttpException httpEx) 
+			{
+				if (httpEx.getResponseCode() == 401) 
+				{
+					logger.error("Could not create component for: " + component.getName() + 
+						" Error: " + httpEx.getMessage());
+					// if you get a 401 here - we can't reach the project, so stop
+					break;
+				}
+			} catch (IOException shortcutEx) 
+			{
+				logger.error("Could not create shortcut for: " + component.getName() + 
+					" Error: " + shortcutEx.getMessage());
+			}
+		}
+	  }
+	  return createdComponents;
   }
   
 }
