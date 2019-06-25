@@ -280,13 +280,13 @@ public class JiraAdapterTests
         Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
                 projectNameTrue);
 
-        assertTrue(mocked.keyExists(projectNameTrue, "CookieValue"));
+        assertTrue(mocked.projectKeyExists(projectNameTrue, "CookieValue"));
 
         projects.clear();
         Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
                 projectNameFalse);
         assertFalse(
-                mocked.keyExists(projectNameFalse, "CookieValue"));
+                mocked.projectKeyExists(projectNameFalse, "CookieValue"));
     }
 
     @Test

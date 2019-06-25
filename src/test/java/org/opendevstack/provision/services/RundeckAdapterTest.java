@@ -197,7 +197,7 @@ public class RundeckAdapterTest
         ProjectData expectedProjectData = generateDefaultProjectData();
 
         ProjectData createdProjectData = spyAdapter
-                .createOpenshiftProjects(projectData, crowdCookie);
+                .createPlatformProjects(projectData, crowdCookie);
 
         Execution execution = new Execution();
         Map<String, String> options = new HashMap<>();
@@ -229,7 +229,7 @@ public class RundeckAdapterTest
     public void createNullOCProject() throws Exception
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
-        spyAdapter.createOpenshiftProjects(null, null);
+        spyAdapter.createPlatformProjects(null, null);
     }
 
     @Test
@@ -272,7 +272,7 @@ public class RundeckAdapterTest
                 any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any());
 
-        spyAdapter.createOpenshiftProjects(projectData, crowdCookie);
+        spyAdapter.createPlatformProjects(projectData, crowdCookie);
         Mockito.verify(crowdUserDetailsService, Mockito.never())
                 .loadUserByToken(crowdCookie);
 

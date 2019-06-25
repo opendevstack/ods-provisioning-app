@@ -24,57 +24,41 @@ import org.opendevstack.provision.model.ProjectData;
  */
 public interface ISCMAdapter extends IServiceAdapter
 {
-
     /**
-     * Create a project space in the target SCM
-     * 
-     * @param projectKey
-     *            the unique key of the project, never null
-     * @param projectName
-     *            the unique name of the project, never null
-     * @param projectDescription
-     *            the description of the project, may be null
-     * @param crowdCookieValue
-     *            contains the crowd sso cookie as value
-     * @param permissions
-     *            map with permissions, can be null
-     * @return the URI to the newly created project
-     * @throws IOException
-     *             in case something goes wrong
+     * Create an SCM project / container for various repositories
+     * created later thru {@link #createAuxiliaryRepositoriesForODSProject(ProjectData, String, String[])} and
+     * {@link #createComponentRepositoriesForODSProject(ProjectData, String)}
+     * @param project the project including the project's name and key 
+     * {@link ProjectData#key} and {@link ProjectData#name}
+     * @param crowdCookie the sso cookie
+     * @return the project, filled with {@link ProjectData#bitbucketUrl}
+     * @throws IOException in case the project / space cannot be created
      */
     public ProjectData createSCMProjectForODSProject(
             ProjectData project, String crowdCookie)
             throws IOException;
 
     /**
-     * Called to create auxiliary repos, oc-config & design
-     * 
-     * @param projectKey
-     *            the project key
-     * @param crowdCookieValue
-     *            contains the crowd sso cookie as value
-     * @param auxiliaryRepos
-     *            the list of repo names to be created
-     * @return the list of created repositories
+     * Called to create auxiliary repos, e.g for design artifacts
+     * @param project the project including the project's name and key 
+     * {@link ProjectData#key} and {@link ProjectData#name}
+     * @param crowdCookie the sso cookie
+     * @param auxRepos the list of auxiliary repositories
+     * @return the project
+     * @throws IOException in case something goes wrong during creating
+     * these repositories
      */
     public ProjectData createAuxiliaryRepositoriesForODSProject(
             ProjectData project, String crowdCookie,
             String[] auxRepos) throws IOException;
 
     /**
-     * Called to create quickstarter repositories
-     * 
-     * @param permissions
-     *            map with permissions, can be null
-     * @param quickstarterRepos
-     *            the list of repo names to be created
-     * @param projectKey
-     *            the project key
-     * @param crowdCookieValue
-     *            contains the crowd sso cookie as value
-     * @return
-     * @throws IOException
-     *             in case something goes wrong
+     * Create repositories based on passed {@link ProjectData#quickstart}
+     * @param project the project containing quickstarters - 
+     * to derive the names from
+     * @param crowdCookie the sso cookie
+     * @return the project with filled {@link ProjectData#repositories}
+     * @throws IOException in case the repositories cannot be created
      */
     public ProjectData createComponentRepositoriesForODSProject(
             ProjectData project, String crowdCookie)

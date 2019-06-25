@@ -33,9 +33,7 @@ import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
@@ -358,7 +356,7 @@ public class ProjectApiController
                     .createAuxiliaryRepositoriesForODSProject(project,
                             crowdCookie, auxiliaryRepositories);
             // provision OpenShift project via rundeck
-            project = rundeckAdapter.createOpenshiftProjects(project,
+            project = rundeckAdapter.createPlatformProjects(project,
                     crowdCookie);
         }
 
@@ -432,7 +430,7 @@ public class ProjectApiController
             @RequestParam(value = "name") String name,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
-        if (jiraAdapter.keyExists(name, crowdCookie))
+        if (jiraAdapter.projectKeyExists(name, crowdCookie))
         {
             HashMap<String, Object> result = new HashMap<>();
             result.put("error", true);
@@ -497,7 +495,7 @@ public class ProjectApiController
             @RequestParam(value = "key") String name,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
-        if (jiraAdapter.keyExists(name, crowdCookie))
+        if (jiraAdapter.projectKeyExists(name, crowdCookie))
         {
             HashMap<String, Object> result = new HashMap<>();
             result.put("error", true);

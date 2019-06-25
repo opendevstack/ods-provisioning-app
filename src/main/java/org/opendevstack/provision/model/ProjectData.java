@@ -17,6 +17,9 @@ package org.opendevstack.provision.model;
 import java.util.List;
 import java.util.Map;
 
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
+import org.opendevstack.provision.adapter.ICollaborationAdapter;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.model.bitbucket.Link;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -29,32 +32,91 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProjectData
 {
-    // public List<BasicUser> admins = new ArrayList<>();
+    /**
+     * The unique name of the project, must not be null
+     */
     public String name = null;
+    /**
+     * Description of the project, can be null
+     */
     public String description = null;
+    /**
+     * The unique key of the project, must not be null
+     */
     public String key = null;
     public List<Map<String, String>> quickstart = null;
+    /**
+     * create spaces thru 
+     * {@link IBugtrackerAdapter} and {@link ICollaborationAdapter}
+     */
     public boolean jiraconfluencespace = true;
+    /**
+     * Create Platform projects thru
+     * {@link IJobExecutionAdapter}
+     */
     public boolean openshiftproject = true;
+    /**
+     * The url of the bugtracker project
+     */
     public String jiraUrl = null;
+    /**
+     * The url of the collaboration space
+     */
     public String confluenceUrl = null;
+    /**
+     * The url of the SCM project
+     */
     public String bitbucketUrl = null;
     public Map<String, Map<String, List<Link>>> repositories = null;
+    /**
+     * The url of the jenkins / build engine
+     */
     public String openshiftJenkinsUrl = null;
+    /**
+     * The url of the dev environment
+     */
     public String openshiftConsoleDevEnvUrl = null;
+    /**
+     * The url of the test environment
+     */
     public String openshiftConsoleTestEnvUrl = null;
 
     // permissions
+    /**
+     * The admin group - with admin rights to the project
+     */
     public String adminGroup = null;
+    /**
+     * the user group, needs WRITE access to repositories
+     */
     public String userGroup = null;
+    /**
+     * The admin user of the spaces / projects created
+     * never NULL
+     */
     public String admin = null;
+    /**
+     * Name of the readonly group, can be null
+     */
     public String readonlyGroup = null;
 
+    /** 
+     * Create a permission set within the
+     * spaces / projects / repositories
+     */
     public boolean createpermissionset = false;
 
+    /**
+     * The last jobs that where triggered by
+     * {@link IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or
+     * {@link IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
+     */
     @JsonIgnoreProperties({ "lastJobs" })
     public List<String> lastJobs = null;
 
+    /**
+     * The type of project(s) that should be created, used for templating
+     */
     public String projectType = null;
 
     @Override

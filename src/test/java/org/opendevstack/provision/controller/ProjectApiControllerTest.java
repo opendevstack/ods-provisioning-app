@@ -152,7 +152,7 @@ public class ProjectApiControllerTest
 
         // rundeck should NOT have been called and neither bitbucket
         Mockito.verify(rundeckAdapter, Mockito.never())
-                .createOpenshiftProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull(), isNull());
         Mockito.verify(bitbucketAdapter, Mockito.never())
                 .createSCMProjectForODSProject(isNotNull(), isNull());
 
@@ -189,7 +189,7 @@ public class ProjectApiControllerTest
                         isNull(), isNotNull()))
                 .thenReturn(data);
         Mockito.when(rundeckAdapter
-                .createOpenshiftProjects(isNotNull(), isNull()))
+                .createPlatformProjects(isNotNull(), isNull()))
                 .thenReturn(data);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
@@ -209,7 +209,7 @@ public class ProjectApiControllerTest
 
         // rundeck should have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter, Mockito.times(1))
-                .createOpenshiftProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull(), isNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
                 .createSCMProjectForODSProject(isNotNull(), isNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
@@ -261,7 +261,7 @@ public class ProjectApiControllerTest
     @Test
     public void validateProjectWithProjectExists() throws Exception
     {
-        Mockito.when(jiraAdapter.keyExists(isNotNull(String.class),
+        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(true);
 
         mockMvc.perform(get("/api/v1/project/validate")
@@ -275,7 +275,7 @@ public class ProjectApiControllerTest
     @Test
     public void validateProjectWithProjectNotExists() throws Exception
     {
-        Mockito.when(jiraAdapter.keyExists(isNotNull(String.class),
+        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(false);
 
         mockMvc.perform(get("/api/v1/project/validate")
@@ -288,7 +288,7 @@ public class ProjectApiControllerTest
     @Test
     public void validateKeyWithKeyExists() throws Exception
     {
-        Mockito.when(jiraAdapter.keyExists(isNotNull(String.class),
+        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(true);
         mockMvc.perform(get("/api/v1/project/key/validate")
                 .param("key", "project")
@@ -301,7 +301,7 @@ public class ProjectApiControllerTest
     @Test
     public void validateKeyWithKeyNotExists() throws Exception
     {
-        Mockito.when(jiraAdapter.keyExists(isNotNull(String.class),
+        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(false);
 
         mockMvc.perform(get("/api/v1/project/key/validate")
@@ -415,7 +415,7 @@ public class ProjectApiControllerTest
                         isNull(), isNotNull()))
                 .thenReturn(data);
         Mockito.when(rundeckAdapter
-                .createOpenshiftProjects(isNotNull(), isNull()))
+                .createPlatformProjects(isNotNull(), isNull()))
                 .thenReturn(data);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
@@ -450,7 +450,7 @@ public class ProjectApiControllerTest
 
         // rundeck should have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter, Mockito.times(1))
-                .createOpenshiftProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull(), isNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
                 .createSCMProjectForODSProject(isNotNull(), isNull());
 
@@ -483,7 +483,7 @@ public class ProjectApiControllerTest
 
         // rundeck should NOT have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter)
-                .createOpenshiftProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull(), isNull());
         Mockito.verify(bitbucketAdapter)
                 .createSCMProjectForODSProject(isNotNull(), isNull());
 

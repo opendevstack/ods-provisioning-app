@@ -288,7 +288,7 @@ public class JiraAdapter implements IBugtrackerAdapter
         return key;
     }
 
-    public boolean keyExists(String key, String crowdCookieValue)
+    public boolean projectKeyExists(String key, String crowdCookieValue)
     {
         Preconditions.checkNotNull(key,
                 "Key for keyExists cannot be null");

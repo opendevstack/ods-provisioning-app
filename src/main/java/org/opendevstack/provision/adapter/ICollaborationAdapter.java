@@ -19,13 +19,32 @@ import java.util.Map;
 
 import org.opendevstack.provision.model.ProjectData;
 
+/**
+ * Interface for collaboration adapter implementations, e.g for confluence
+ * @author utschig
+ *
+ */
 public interface ICollaborationAdapter extends IServiceAdapter
 {
 
+    /**
+     * Called to create a collaboration space
+     * @param project the project with {@link ProjectData#name} & 
+     * {@link ProjectData#key} filled 
+     * @param crowdCookie the sso cookie
+     * @return the project filled with {@link ProjectData#confluenceUrl}
+     * @throws IOException in case the space cannot be created
+     */
     public ProjectData createCollaborationSpaceForODSProject(
             ProjectData project, String crowdCookie)
             throws IOException;
 
+    /**
+     * In case templates are used return template(s) based on 
+     * {@link ProjectData#projectType}
+     * @param project the project with filled projectType
+     * @return the template(s) keys
+     */
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
             ProjectData project);
 

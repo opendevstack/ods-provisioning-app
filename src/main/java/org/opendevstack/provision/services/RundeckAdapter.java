@@ -186,7 +186,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
         return executionList;
     }
 
-    public ProjectData createOpenshiftProjects(ProjectData project,
+    public ProjectData createPlatformProjects(ProjectData project,
             String crowdCookie) throws IOException
     {
 

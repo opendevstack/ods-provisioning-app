@@ -19,20 +19,56 @@ import java.util.Map;
 
 import org.opendevstack.provision.model.ProjectData;
 
+/**
+ * Service interface for a bugtracker
+ * @author utschig
+ */
 public interface IBugtrackerAdapter extends IServiceAdapter
 {
-
+    /**
+     * Create a bugtracker project based on name and key
+     * @param project the project including the project's name and key 
+     * {@link ProjectData#key} and {@link ProjectData#name}
+     * @param crowdCookie the sso cookie
+     * @return the project filled with {@link ProjectData#jiraUrl}
+     * @throws IOException in case something occurs during the outbound 
+     * call to the bugtracker
+     */
     public ProjectData createBugtrackerProjectForODSProject(
             ProjectData project, String crowdCookieValue)
             throws IOException;
 
-    public int addShortcutsToProject(ProjectData data,
+    /**
+     * Add shortcuts / links to other tools used based on the 
+     * {@link ProjectData} fields, e.g. openshift URLs
+     * @param project the project filled with all available information
+     * @param crowdCookieValue the SSO cookie
+     * @return the number of shortcuts created
+     */
+    public int addShortcutsToProject(ProjectData project,
             String crowdCookieValue);
 
-    public boolean keyExists(String key, String crowdCookieValue);
+    /**
+     * Verify if a project key & name exists
+     * @param projectKeyName the name or key of a given project
+     * @param crowdCookieValue the SSO cookie
+     * @return true in case it exists, otherwise false
+     */
+    public boolean projectKeyExists(String projectKeyName, String crowdCookieValue);
 
-    public String buildProjectKey(String name);
+    /**
+     * Build the project key - e.g. uppercase it, strip special chars
+     * @param proposedProjectKey the key to derive the final key from
+     * @return the clean key to be used 
+     */
+    public String buildProjectKey(String proposedProjectKey);
 
+    /**
+     * In case templates are used return template(s) based on 
+     * {@link ProjectData#projectType}
+     * @param project the project with filled projectType
+     * @return the template(s) keys
+     */
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
             ProjectData project);
 
