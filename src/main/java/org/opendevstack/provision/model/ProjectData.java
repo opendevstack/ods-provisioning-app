@@ -27,79 +27,88 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProjectData {
- // public List<BasicUser> admins = new ArrayList<>();
-  public String name = null;
-  public String description = null;
-  public String key = null;
-  public List<Map<String, String>> quickstart = null;
-  public boolean jiraconfluencespace = true;
-  public boolean openshiftproject = true;
-  public String jiraUrl = null;
-  public String confluenceUrl = null;
-  public String bitbucketUrl = null;
-  public Map<String, Map<String, List<Link>>> repositories = null;
-  public String openshiftJenkinsUrl = null;
-  public String openshiftConsoleDevEnvUrl = null;
-  public String openshiftConsoleTestEnvUrl = null;
-  
-  // permissions
-  public String adminGroup = null;
-  public String userGroup = null;
-  public String admin = null;
-  public String readonlyGroup = null;
+public class ProjectData
+{
+    // public List<BasicUser> admins = new ArrayList<>();
+    public String name = null;
+    public String description = null;
+    public String key = null;
+    public List<Map<String, String>> quickstart = null;
+    public boolean jiraconfluencespace = true;
+    public boolean openshiftproject = true;
+    public String jiraUrl = null;
+    public String confluenceUrl = null;
+    public String bitbucketUrl = null;
+    public Map<String, Map<String, List<Link>>> repositories = null;
+    public String openshiftJenkinsUrl = null;
+    public String openshiftConsoleDevEnvUrl = null;
+    public String openshiftConsoleTestEnvUrl = null;
 
-  public boolean createpermissionset = false;
-  
-  @JsonIgnoreProperties ({"lastJobs"})
-  public List<String> lastJobs = null;
-  
-  public String projectType = null;
-  
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((key == null) ? 0 : key.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    return result;
-  }
+    // permissions
+    public String adminGroup = null;
+    public String userGroup = null;
+    public String admin = null;
+    public String readonlyGroup = null;
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
+    public boolean createpermissionset = false;
+
+    @JsonIgnoreProperties({ "lastJobs" })
+    public List<String> lastJobs = null;
+
+    public String projectType = null;
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((key == null) ? 0 : key.hashCode());
+        result = prime * result
+                + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        ProjectData other = (ProjectData) obj;
+
+        if (key == null)
+        {
+            if (other.key != null)
+            {
+                return false;
+            }
+        } else if (!key.equals(other.key))
+        {
+            return false;
+        }
+
+        if (name == null)
+        {
+            if (other.name != null)
+            {
+                return false;
+            }
+        } else if (!name.equals(other.name))
+        {
+            return false;
+        }
+
         return true;
     }
-    if (obj == null) {
-        return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    ProjectData other = (ProjectData) obj;
-
-    if (key == null) {
-      if (other.key != null) {
-        return false;
-      }
-    } else if (!key.equals(other.key)) 
-    {
-      return false;
-    }
-    
-    if (name == null) 
-    {
-      if (other.name != null)
-      {
-        return false;
-      }
-    } else if (!name.equals(other.name)) {
-        return false;
-    }
-
-    return true;
-  }
-
-
 
 }

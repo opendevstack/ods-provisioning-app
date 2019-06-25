@@ -20,55 +20,63 @@ import java.util.Map;
 import org.opendevstack.provision.model.rundeck.Job;
 
 /**
- * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevent unnecessary calls
- * to rundeck API
+ * Jobstore that will be created as bean to store rundeck Jobs centrally.
+ * Prevent unnecessary calls to rundeck API
  *
  * @author Torsten Jaeschke
  */
 
-public class RundeckJobStore {
-  private Map<String, Job> jobs = new HashMap<>();
+public class RundeckJobStore
+{
+    private Map<String, Job> jobs = new HashMap<>();
 
-  public void addJob(Job job) {
-    this.jobs.put(job.getId(), job);
-  }
-
-  public void addJobs(List<Job> jobs) {
-    for (Job job : jobs) {
-      this.jobs.put(job.getId(), job);
+    public void addJob(Job job)
+    {
+        this.jobs.put(job.getId(), job);
     }
-  }
 
-  /**
-   * remove a specified job from the store
-   *
-   * @param id
-   */
-  public void removeJob(String id) {
-    this.jobs.remove(id);
-  }
-
-  /**
-   * retrieve a specified job
-   *
-   * @param id
-   * @return
-   */
-  public Job getJob(String id) {
-    return jobs.get(id);
-  }
-
-  /**
-   * get a job list specified with their IDs
-   * 
-   * @param jobIds
-   * @return
-   */
-  public List<Job> getJobs(List<String> jobIds) {
-    ArrayList<Job> jobList = new ArrayList<>();
-    for (String id : jobIds) {
-      jobList.add(jobs.get(id));
+    public void addJobs(List<Job> jobs)
+    {
+        for (Job job : jobs)
+        {
+            this.jobs.put(job.getId(), job);
+        }
     }
-    return jobList;
-  }
+
+    /**
+     * remove a specified job from the store
+     *
+     * @param id
+     */
+    public void removeJob(String id)
+    {
+        this.jobs.remove(id);
+    }
+
+    /**
+     * retrieve a specified job
+     *
+     * @param id
+     * @return
+     */
+    public Job getJob(String id)
+    {
+        return jobs.get(id);
+    }
+
+    /**
+     * get a job list specified with their IDs
+     * 
+     * @param jobIds
+     * @return
+     */
+    public List<Job> getJobs(List<String> jobIds)
+    {
+        ArrayList<Job> jobList = new ArrayList<>();
+        for (String id : jobIds)
+        {
+            jobList.add(jobs.get(id));
+        }
+        return jobList;
+    }
 }

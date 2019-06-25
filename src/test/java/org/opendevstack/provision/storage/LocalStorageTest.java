@@ -43,107 +43,120 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class LocalStorageTest {
+public class LocalStorageTest
+{
 
-  private LocalStorage localStorage;
+    private LocalStorage localStorage;
 
-  private static final Logger logger = LoggerFactory.getLogger(LocalStorageTest.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(LocalStorageTest.class);
 
-  @Before
-  public void setUp() {
-    localStorage = new LocalStorage();
-    localStorage.setLocalStoragePath("src/test/resources/");
-  }
+    @Before
+    public void setUp()
+    {
+        localStorage = new LocalStorage();
+        localStorage.setLocalStoragePath("src/test/resources/");
+    }
 
-  @Test(expected = IOException.class)
-  public void storeProjectNoKey() throws Exception {
-    ProjectData project = new ProjectData();
-    localStorage.storeProject(project);
-  }
+    @Test(expected = IOException.class)
+    public void storeProjectNoKey() throws Exception
+    {
+        ProjectData project = new ProjectData();
+        localStorage.storeProject(project);
+    }
 
-  @Test
-  public void storeProject() throws Exception {
-    ProjectData project = new ProjectData();
-    project.key = "clemens";
-    String filePath = localStorage.storeProject(project);
+    @Test
+    public void storeProject() throws Exception
+    {
+        ProjectData project = new ProjectData();
+        project.key = "clemens";
+        String filePath = localStorage.storeProject(project);
 
-    assertNotNull(filePath);
+        assertNotNull(filePath);
 
-    project = localStorage.getProject(project.key);
+        project = localStorage.getProject(project.key);
 
-    assertNotNull(project);
-    assertTrue(project.jiraconfluencespace);
-    assertEquals("clemens", project.key);
+        assertNotNull(project);
+        assertTrue(project.jiraconfluencespace);
+        assertEquals("clemens", project.key);
 
-    // try the new field
-    project.jiraconfluencespace = false;
-    localStorage.updateStoredProject(project);
-    project = localStorage.getProject(project.key);
+        // try the new field
+        project.jiraconfluencespace = false;
+        localStorage.updateStoredProject(project);
+        project = localStorage.getProject(project.key);
 
-    assertNotNull(project);
-    assertFalse(project.jiraconfluencespace);
+        assertNotNull(project);
+        assertFalse(project.jiraconfluencespace);
 
-    (new File(filePath)).delete();
-  }
+        (new File(filePath)).delete();
+    }
 
-  @Test(expected = IOException.class)
-  public void storeProjectWithException() throws Exception {
-    ProjectData project = new ProjectData();
-    localStorage.setLocalStoragePath("/to/some/non/existant/folder/");
-    localStorage.storeProject(project);
-  }
+    @Test(expected = IOException.class)
+    public void storeProjectWithException() throws Exception
+    {
+        ProjectData project = new ProjectData();
+        localStorage
+                .setLocalStoragePath("/to/some/non/existant/folder/");
+        localStorage.storeProject(project);
+    }
 
-  @Test
-  public void listProjectHistory() throws Exception {
-    Map<String, ProjectData> history = localStorage.listProjectHistory();
+    @Test
+    public void listProjectHistory() throws Exception
+    {
+        Map<String, ProjectData> history = localStorage
+                .listProjectHistory();
 
-    assertFalse(history.isEmpty());
-  }
+        assertFalse(history.isEmpty());
+    }
 
-  @Test
-  public void writeAboutChangesData() throws Exception {
-    AboutChangesData data = new AboutChangesData();
+    @Test
+    public void writeAboutChangesData() throws Exception
+    {
+        AboutChangesData data = new AboutChangesData();
 
-    AboutChangesData.AboutRecordData single = new AboutChangesData.AboutRecordData();
+        AboutChangesData.AboutRecordData single = new AboutChangesData.AboutRecordData();
 
-    single.who = "clemens";
-    single.when = "2017-17-21";
-    single.what = "test";
+        single.who = "clemens";
+        single.when = "2017-17-21";
+        single.what = "test";
 
-    AboutChangesData.AboutRecordData single2 = new AboutChangesData.AboutRecordData();
+        AboutChangesData.AboutRecordData single2 = new AboutChangesData.AboutRecordData();
 
-    single.who = "clemens";
-    single.when = "2017-17-21";
-    single.what = "test";
+        single.who = "clemens";
+        single.when = "2017-17-21";
+        single.what = "test";
 
-    data.aboutDataList = new ArrayList<AboutChangesData.AboutRecordData>();
-    data.aboutDataList.add(single);
-    data.aboutDataList.add(single2);
+        data.aboutDataList = new ArrayList<>();
+        data.aboutDataList.add(single);
+        data.aboutDataList.add(single2);
 
-    String testWrite = localStorage.storeAboutChangesData(data);
-    logger.debug("AboutChanges: " + testWrite);
+        String testWrite = localStorage.storeAboutChangesData(data);
+        logger.debug("AboutChanges: " + testWrite);
 
-    assertTrue(testWrite.contains(single.who));
-    assertTrue(testWrite.contains(single.what));
-    assertTrue(testWrite.contains(single.when));
-  }
+        assertTrue(testWrite.contains(single.who));
+        assertTrue(testWrite.contains(single.what));
+        assertTrue(testWrite.contains(single.when));
+    }
 
-  @Test
-  public void listAboutChangesData() throws Exception {
-    AboutChangesData data = localStorage.listAboutChangesData();
+    @Test
+    public void listAboutChangesData() throws Exception
+    {
+        AboutChangesData data = localStorage.listAboutChangesData();
 
-    assertNotNull(data);
-    assertNotNull(data.aboutDataList);
-    assertTrue(data.aboutDataList.size() > 0);
+        assertNotNull(data);
+        assertNotNull(data.aboutDataList);
+        assertTrue(data.aboutDataList.size() > 0);
 
-    AboutChangesData.AboutRecordData single = data.aboutDataList.get(0);
+        AboutChangesData.AboutRecordData single = data.aboutDataList
+                .get(0);
 
-    assertEquals("clemens", single.who);
-  }
+        assertEquals("clemens", single.who);
+    }
 
-  @Test
-  public void getProjectWithNull() throws Exception {
-     assertNull(localStorage.getProject(null));
-  }
+    @Test
+    public void getProjectWithNull() throws Exception
+    {
+        assertNull(localStorage.getProject(null));
+    }
 
 }

@@ -17,24 +17,27 @@ import java.io.IOException;
 
 /**
  * Simple exception to wrap an HTTP non 2xx
+ * 
  * @author utschig
  */
-public class HttpException extends IOException 
+public class HttpException extends IOException
 {
-	private int httpResponseCode = -1;
+    private final int httpResponseCode;
 
-	public HttpException(int code, String message) {
-		super(message);
-		httpResponseCode = code;
-	}
-	
-	public int getResponseCode () {
-		return httpResponseCode;
-	}
-	
-	@Override
-	public String getMessage () 
-	{
-		return super.getMessage() + " Errorcode: " + httpResponseCode;
-	}
+    public HttpException(int code, String message)
+    {
+        super(message);
+        httpResponseCode = code;
+    }
+
+    public int getResponseCode()
+    {
+        return httpResponseCode;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return super.getMessage() + " Errorcode: " + httpResponseCode;
+    }
 }

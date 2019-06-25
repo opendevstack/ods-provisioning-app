@@ -21,14 +21,12 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
+import org.opendevstack.provision.adapter.ICollaborationAdapter;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -41,150 +39,187 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Default controller for navigating the page. Autowiring per setter because of testability
+ * Default controller for navigating the page. Autowiring per setter because of
+ * testability
  *
  * @author Brokmeier, Pascal
  */
 @Controller
-public class DefaultController {
+public class DefaultController
+{
 
-  StorageAdapter storageAdapter;
+    StorageAdapter storageAdapter;
 
-  CustomAuthenticationManager manager;
+    CustomAuthenticationManager manager;
 
-  private RundeckAdapter rundeckAdapter;
+    private IJobExecutionAdapter rundeckAdapter;
 
-  private JiraAdapter jiraAdapter;
+    private IBugtrackerAdapter jiraAdapter;
 
-  private BitbucketAdapter bitbucketAdapter;
+    private ISCMAdapter bitbucketAdapter;
 
-  @Autowired
-  private ConfluenceAdapter confluenceAdapter;
+    @Autowired
+    private ICollaborationAdapter confluenceAdapter;
 
-  private static final String LOGIN_REDIRECT = "redirect:/login";
-  
-  private static final String ACTIVE = "active";
-  
-  @Value("${crowd.user.group}")
-  private String crowdUserGroup;
-  
-  @Value("${crowd.admin.group}")
-  private String crowdAdminGroup;
+    private static final String LOGIN_REDIRECT = "redirect:/login";
 
-  @Value("${openshift.project.upgrade}")
-  private boolean ocUpgradeAllowed;
-  
-  @Autowired
-  List<String> projectTemplateKeyNames;
-  
-  @Value("${crowd.sso.cookie.name}")
-  private String crowdCookieKey;
-  
-  @RequestMapping("/")
-  String rootRedirect() {
-    return "redirect:home.html";
-  }
+    private static final String ACTIVE = "active";
 
-  @RequestMapping("/home")
-  String home(Model model) {
-    if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+    @Value("${crowd.user.group}")
+    private String crowdUserGroup;
+
+    @Value("${crowd.admin.group}")
+    private String crowdAdminGroup;
+
+    @Value("${openshift.project.upgrade}")
+    private boolean ocUpgradeAllowed;
+
+    @Autowired
+    List<String> projectTemplateKeyNames;
+
+    @Value("${crowd.sso.cookie.name}")
+    private String crowdCookieKey;
+
+    @RequestMapping("/")
+    String rootRedirect()
+    {
+        return "redirect:/home";
     }
-    model.addAttribute("classActiveHome", ACTIVE);
-    return "home";
-  }
+
+    @RequestMapping("/home")
+    String home(Model model)
+    {
+        if (!isAuthenticated())
+        {
+            return LOGIN_REDIRECT;
+        }
+        model.addAttribute("classActiveHome", ACTIVE);
+        return "home";
+    }
 
     @RequestMapping("/provision")
-    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
+    String provisionProject(Model model,
+            Authentication authentication,
+            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie,
+            HttpServletRequest request)
     {
-        if(!isAuthenticated()) {
+        if (!isAuthenticated())
+        {
             return LOGIN_REDIRECT;
-        } else {
-            model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
-            model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
-            model.addAttribute("crowdUserGroup", crowdUserGroup);
-            model.addAttribute("crowdAdminGroup", crowdAdminGroup);
+        } else
+        {
+            model.addAttribute("jiraProjects",
+                    storageAdapter.listProjectHistory());
+            model.addAttribute("quickStarter",
+                    rundeckAdapter.getQuickstarters());
+            model.addAttribute("crowdUserGroup",
+                    crowdUserGroup.toLowerCase());
+            model.addAttribute("crowdAdminGroup",
+                    crowdAdminGroup.toLowerCase());
             model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
-            model.addAttribute("projectTypes", projectTemplateKeyNames);
+            model.addAttribute("projectTypes",
+                    projectTemplateKeyNames);
         }
         model.addAttribute("classActiveNew", ACTIVE);
         return "provision";
     }
 
-  @RequestMapping("/login")
-  String login(Model model) {
-    return "login";
-  }
-
-  @RequestMapping("/history")
-  String history(Model model) {
-    if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+    @RequestMapping("/login")
+    String login(Model model)
+    {
+        return "login";
     }
-    model.addAttribute("classActiveHistory", ACTIVE);
-    model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
-    return "history";
-  }
 
-  @RequestMapping("/about")
-  String about(Model model) {
-    if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+    @RequestMapping("/history")
+    String history(Model model)
+    {
+        if (!isAuthenticated())
+        {
+            return LOGIN_REDIRECT;
+        }
+        model.addAttribute("classActiveHistory", ACTIVE);
+        model.addAttribute("projectHistory",
+                storageAdapter.listProjectHistory());
+        return "history";
     }
-    model.addAttribute("classActiveAbout", ACTIVE);
-    model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
-    // add endpoint map
-    Map<String, String> endpoints = new HashMap<String, String>();
-    endpoints.put("JIRA", jiraAdapter.getEndpointUri());
-    endpoints.put("GIT", bitbucketAdapter.getEndpointUri());
-    endpoints.put("RUNDECK", rundeckAdapter.getRundeckAPIPath());
-    endpoints.put("CONFLUENCE", confluenceAdapter.getConfluenceAPIPath());
+    @RequestMapping("/about")
+    String about(Model model)
+    {
+        if (!isAuthenticated())
+        {
+            return LOGIN_REDIRECT;
+        }
+        model.addAttribute("classActiveAbout", ACTIVE);
+        model.addAttribute("aboutChanges",
+                storageAdapter.listAboutChangesData().aboutDataList);
 
-    model.addAttribute("endpointMap", endpoints);
+        // add endpoint map
+        Map<String, String> endpoints = new HashMap<>();
+        endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
+        endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
+        endpoints.put("RUNDECK", rundeckAdapter.getAdapterApiUri());
+        endpoints.put("CONFLUENCE",
+                confluenceAdapter.getAdapterApiUri());
 
-    model.addAttribute("crowdUserGroup", crowdUserGroup);
-    model.addAttribute("crowdAdminGroup", crowdAdminGroup);
-    return "about";
-  }
+        model.addAttribute("endpointMap", endpoints);
 
-  @RequestMapping(value = "/logout", method = RequestMethod.GET)
-  public String logoutPage(HttpServletRequest request, HttpServletResponse response) {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth != null) {
-      manager.setUserPassword(null);
-      new SecurityContextLogoutHandler().logout(request, response, auth);
+        model.addAttribute("crowdUserGroup",
+                crowdUserGroup.toLowerCase());
+        model.addAttribute("crowdAdminGroup",
+                crowdAdminGroup.toLowerCase());
+        return "about";
     }
-    return "redirect:/login?logout";
-  }
 
-  private boolean isAuthenticated() {
-    return (manager.getUserPassword() != null);
-  }
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public String logoutPage(HttpServletRequest request,
+            HttpServletResponse response)
+    {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth != null)
+        {
+            manager.setUserPassword(null);
+            new SecurityContextLogoutHandler().logout(request,
+                    response, auth);
+        }
+        return "redirect:/login?logout";
+    }
 
-  @Autowired
-  public void setCustomAuthenticationManager(CustomAuthenticationManager manager) {
-    this.manager = manager;
-  }
+    private boolean isAuthenticated()
+    {
+        return (manager.getUserPassword() != null);
+    }
 
-  @Autowired
-  public void setRundeckAdapter(RundeckAdapter rundeckAdapter) {
-    this.rundeckAdapter = rundeckAdapter;
+    @Autowired
+    public void setCustomAuthenticationManager(
+            CustomAuthenticationManager manager)
+    {
+        this.manager = manager;
+    }
 
-  }
+    @Autowired
+    public void setRundeckAdapter(IJobExecutionAdapter rundeckAdapter)
+    {
+        this.rundeckAdapter = rundeckAdapter;
 
-  @Autowired
-  public void setStorageAdapter(StorageAdapter storageAdapter) {
-    this.storageAdapter = storageAdapter;
-  }
+    }
 
-  @Autowired
-  public void setJiraAdapter(JiraAdapter jiraAdapter) {
-    this.jiraAdapter = jiraAdapter;
-  }
+    @Autowired
+    public void setStorageAdapter(StorageAdapter storageAdapter)
+    {
+        this.storageAdapter = storageAdapter;
+    }
 
-  @Autowired
-  public void setBitbucketAdapter(BitbucketAdapter bitbucketAdapter) {
-    this.bitbucketAdapter = bitbucketAdapter;
-  }
+    @Autowired
+    public void setBugTrackerAdapter(IBugtrackerAdapter jiraAdapter)
+    {
+        this.jiraAdapter = jiraAdapter;
+    }
+
+    @Autowired
+    public void setSCMAdapter(ISCMAdapter bitbucketAdapter)
+    {
+        this.bitbucketAdapter = bitbucketAdapter;
+    }
 }

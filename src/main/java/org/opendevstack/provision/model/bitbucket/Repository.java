@@ -23,91 +23,107 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  *
  * @author Torsten Jaeschke
  */
-@Generated(value = {"JSON-to-Pojo-Generator"})
+@Generated(value = { "JSON-to-Pojo-Generator" })
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Repository {
+public class Repository
+{
 
-  private String name;
-  private String scmId = "git";
-  private boolean forkable = true;
+    private String name;
+    private String scmId = "git";
+    private boolean forkable = true;
 
-  @JsonIgnoreProperties({"adminGroup", "userGroup"})
-  String adminGroup;
-  String userGroup;
-    
-  public String getName() {
-    return name;
-  }
+    @JsonIgnoreProperties({ "adminGroup", "userGroup" })
+    String adminGroup;
+    String userGroup;
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  public String getScmId() {
-    return scmId;
-  }
+    public void setName(String name)
+    {
+        this.name = name;
+    }
 
-  public void setScmId(String scmId) {
-    this.scmId = scmId;
-  }
+    public String getScmId()
+    {
+        return scmId;
+    }
 
-  public boolean isForkable() {
-    return forkable;
-  }
+    public void setScmId(String scmId)
+    {
+        this.scmId = scmId;
+    }
 
-  public void setForkable(boolean forkable) {
-    this.forkable = forkable;
-  }
+    public boolean isForkable()
+    {
+        return forkable;
+    }
 
-  public void setAdminGroup(String adminGroup) {
-	this.adminGroup = adminGroup;
-  }
+    public void setForkable(boolean forkable)
+    {
+        this.forkable = forkable;
+    }
 
-  public String getAdminGroup() {
-	return this.adminGroup;
-  }
+    public void setAdminGroup(String adminGroup)
+    {
+        this.adminGroup = adminGroup;
+    }
 
-  public void setUserGroup(String userGroup) {
-	this.userGroup = userGroup;
-  }
+    public String getAdminGroup()
+    {
+        return this.adminGroup;
+    }
 
-  public String getUserGroup() {
-	return this.userGroup;
-  }
+    public void setUserGroup(String userGroup)
+    {
+        this.userGroup = userGroup;
+    }
 
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (forkable ? 1231 : 1237);
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + ((scmId == null) ? 0 : scmId.hashCode());
-    return result;
-  }
+    public String getUserGroup()
+    {
+        return this.userGroup;
+    }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Repository other = (Repository) obj;
-    if (forkable != other.forkable)
-      return false;
-    if (name == null) {
-      if (other.name != null)
-        return false;
-    } else if (!name.equals(other.name))
-      return false;
-    if (scmId == null) {
-      if (other.scmId != null)
-        return false;
-    } else if (!scmId.equals(other.scmId))
-      return false;
-    return true;
-  }
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (forkable ? 1231 : 1237);
+        result = prime * result
+                + ((name == null) ? 0 : name.hashCode());
+        result = prime * result
+                + ((scmId == null) ? 0 : scmId.hashCode());
+        return result;
+    }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Repository other = (Repository) obj;
+        if (forkable != other.forkable)
+            return false;
+        if (name == null)
+        {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        if (scmId == null)
+        {
+            if (other.scmId != null)
+                return false;
+        } else if (!scmId.equals(other.scmId))
+            return false;
+        return true;
+    }
 
 }

@@ -24,15 +24,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class SessionAwarePasswordHolder {
+public class SessionAwarePasswordHolder
+{
 
-  private String password = null;
+    private String password = null;
 
-  public String getPassword() {
-    return password;
-  }
+    public String getPassword()
+    {
+        return password;
+    }
 
-  public void setPassword(String password) {
-    this.password = password;
-  }
+    public void setPassword(String password)
+    {
+        this.password = password;
+    }
 }

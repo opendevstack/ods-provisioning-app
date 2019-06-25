@@ -17,10 +17,10 @@ package org.opendevstack.provision.controller;
 import java.io.IOException;
 import java.util.List;
 
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.services.RundeckAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,33 +29,39 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Restcontroller to communicate with the Rundeck API and handle the quickstarters and related jobs
+ * Restcontroller to communicate with the Rundeck API and handle the
+ * quickstarters and related jobs
  *
  * @author Torsten Jaeschke
  */
 @RestController
 @RequestMapping(value = "api/v1/quickstarter")
-public class QuickstarterApiController {
+public class QuickstarterApiController
+{
 
-  @Autowired
-  private RundeckAdapter rundeckAdapter;
+    @Autowired
+    private IJobExecutionAdapter rundeckAdapter;
 
-  /**
-   * Call to get the available quickstarters
-   *
-   * @return JSON string
-   */
-  @RequestMapping(produces = {"application/json"}, method = RequestMethod.GET)
-  public ResponseEntity<List<Job>> getTechTemplates() {
-    return ResponseEntity.ok().body(rundeckAdapter.getQuickstarter());
-  }
+    /**
+     * Call to get the available quickstarters
+     *
+     * @return JSON string
+     */
+    @RequestMapping(produces = {
+            "application/json" }, method = RequestMethod.GET)
+    public ResponseEntity<List<Job>> getTechTemplates()
+    {
+        return ResponseEntity.ok()
+                .body(rundeckAdapter.getQuickstarters());
+    }
 
-  @RequestMapping(value = "/provision", produces = {"application/json"},
-      method = RequestMethod.POST)
-  public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project) 
-		  throws IOException 
-  {
-    List<ExecutionsData> executions = rundeckAdapter.executeJobs(project);
-    return ResponseEntity.ok(executions);
-  }
+    @RequestMapping(value = "/provision", produces = {
+            "application/json" }, method = RequestMethod.POST)
+    public ResponseEntity<List<ExecutionsData>> runJobs(
+            @RequestBody ProjectData project) throws IOException
+    {
+        List<ExecutionsData> executions = rundeckAdapter
+                .provisionComponentsBasedOnQuickstarters(project);
+        return ResponseEntity.ok(executions);
+    }
 }

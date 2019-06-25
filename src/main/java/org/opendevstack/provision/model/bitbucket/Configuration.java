@@ -25,12 +25,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = {"JSON-to-Pojo-Generator"})
+@Generated(value = { "JSON-to-Pojo-Generator" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "secret"
-})
-public class Configuration {
+@JsonPropertyOrder({ "secret" })
+public class Configuration
+{
 
     @JsonProperty("secret")
     private String secret;
@@ -38,22 +37,26 @@ public class Configuration {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("secret")
-    public String getSecret() {
+    public String getSecret()
+    {
         return secret;
     }
 
     @JsonProperty("secret")
-    public void setSecret(String secret) {
+    public void setSecret(String secret)
+    {
         this.secret = secret;
     }
 
     @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
+    public Map<String, Object> getAdditionalProperties()
+    {
         return this.additionalProperties;
     }
 
     @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
+    public void setAdditionalProperty(String name, Object value)
+    {
         this.additionalProperties.put(name, value);
     }
 

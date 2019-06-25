@@ -17,7 +17,9 @@ package org.opendevstack.provision.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -32,6 +34,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -45,17 +48,18 @@ import com.atlassian.crowd.service.UserManager;
 import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.cache.CacheImpl;
 import com.atlassian.crowd.service.cache.CachingGroupManager;
-import com.atlassian.crowd.service.cache.CachingGroupMembershipManager;
 import com.atlassian.crowd.service.cache.CachingUserManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+
 import net.sf.ehcache.CacheManager;
 
 /**
  *
- * Class for setting the security configuration and security related configurations
+ * Class for setting the security configuration and security related
+ * configurations
  *
  * @author Brokmeier, Pascal
  */
@@ -63,239 +67,280 @@ import net.sf.ehcache.CacheManager;
 @EnableWebSecurity
 @EnableCaching
 @EnableEncryptableProperties
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration
+        extends WebSecurityConfigurerAdapter
+{
 
-  /**
-   * Configure the security for the spring application
-   *
-   * @param http
-   * @throws Exception
-   */
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http.authenticationProvider(crowdAuthenticationProvider()).headers()
-        .httpStrictTransportSecurity().disable().and().cors().disable().csrf().disable()
-        .addFilter(crowdSSOAuthenticationProcessingFilter()).authorizeRequests()
-        .antMatchers("/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico",
-            "/login")
-        .permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll()
-        .and().logout().addLogoutHandler(crowdLogoutHandler()).permitAll();
-  }
-
-  @Value("${crowd.application.name}")
-  String crowdApplicationName;
-
-  @Value("${crowd.application.password}")
-  String crowdApplicationPassword;
-
-  @Value("${crowd.server.url}")
-  String crowdServerUrl;
-
-  @Value("${crowd.cookie.domain}")
-  String cookieDomain;
-
-
-  /**
-   * Get the properties used for crowd authentication
-   *
-   * @return
-   * @throws IOException
-   */
-  public Properties getProps() throws IOException {
-
-    Properties prop = new Properties();
-    try (InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream("crowd.properties")) {
-      prop.load(in);
+    /**
+     * Configure the security for the spring application
+     *
+     * @param http
+     * @throws Exception
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception
+    {
+        http.authenticationProvider(crowdAuthenticationProvider())
+                .headers().httpStrictTransportSecurity().disable()
+                .and().cors().disable().csrf().disable()
+                .addFilter(crowdSSOAuthenticationProcessingFilter())
+                .authorizeRequests()
+                .antMatchers("/", "/fragments/**", "/webjars/**",
+                        "/js/**", "/json/**", "/favicon.ico",
+                        "/login")
+                .permitAll().anyRequest().authenticated().and()
+                .formLogin().loginPage("/login").permitAll()
+                .defaultSuccessUrl("/home").and().logout()
+                .addLogoutHandler(crowdLogoutHandler()).permitAll();
     }
-    prop.setProperty("application.name", crowdApplicationName);
-    prop.setProperty("application.password", crowdApplicationPassword);
-    prop.setProperty("crowd.server.url", crowdServerUrl);
-    prop.setProperty("cookie.domain", cookieDomain);
-    return prop;
-  }
 
-  /**
-   * Define a logout handler to perform a clean crowd logout
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
-    CrowdLogoutHandler clh = new CrowdLogoutHandler();
-    clh.setHttpAuthenticator(httpAuthenticator());
-    return clh;
-  }
+    @Value("${crowd.application.name}")
+    String crowdApplicationName;
 
-  /**
-   * Set a filter intercepting the login form to process a crowd authentication
-   *
-   * @return
-   * @throws Exception
-   */
-  @Bean
-  public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter() throws Exception {
-    SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
-    filter.setHttpAuthenticator(httpAuthenticator());
-    filter.setAuthenticationManager(authenticationManager());
-    filter.setFilterProcessesUrl("/j_security_check");
-    filter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
-    filter.setAuthenticationFailureHandler(authenticationFailureHandler());
-    filter.setUsernameParameter("username");
-    filter.setPasswordParameter("password");
-    return filter;
-  }
+    @Value("${crowd.application.password}")
+    String crowdApplicationPassword;
 
-  /**
-   * Define a success handler to proceed after a crowd authentication, if it has been successful
-   *
-   * @return
-   */
-  @Bean
-  public AuthenticationSuccessHandler authenticationSuccessHandler() {
-    SavedRequestAwareAuthenticationSuccessHandler successHandler =
-        new SavedRequestAwareAuthenticationSuccessHandler();
-    successHandler.setDefaultTargetUrl("/home");
-    successHandler.setUseReferer(true);
-    successHandler.setAlwaysUseDefaultTargetUrl(true);
-    return successHandler;
-  }
+    @Value("${crowd.server.url}")
+    String crowdServerUrl;
 
-  /**
-   * define an failure handler in case of an authentication failure
-   *
-   * @return
-   */
-  @Bean
-  public AuthenticationFailureHandler authenticationFailureHandler() {
-    UsernameStoringAuthenticationFailureHandler failureHandler =
-        new UsernameStoringAuthenticationFailureHandler();
-    failureHandler.setDefaultFailureUrl("/login?error=true");
-    failureHandler.setUseForward(true);
-    return failureHandler;
-  }
+    @Value("${crowd.cookie.domain}")
+    String cookieDomain;
 
-  /**
-   * Define a bean for the soap client used to authenticate against crowd
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public SecurityServerClient securityServerClient() throws IOException {
-    return new SecurityServerClientImpl(
-        SoapClientPropertiesImpl.newInstanceFromProperties(getProps()));
-  }
+    /**
+     * Get the properties used for crowd authentication
+     *
+     * @return
+     * @throws IOException
+     */
+    public Properties getProps() throws IOException
+    {
 
-  /**
-   * Define a basic cache for userdata caching
-   * 
-   * @return
-   */
-  @Bean
-  public BasicCache getCache() {
-    return new CacheImpl(getCacheManager());
-  }
+        Properties prop = new Properties();
+        try (InputStream in = Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream("crowd.properties"))
+        {
+            prop.load(in);
+        }
+        prop.setProperty("application.name", crowdApplicationName);
+        prop.setProperty("application.password",
+                crowdApplicationPassword);
+        prop.setProperty("crowd.server.url", crowdServerUrl);
+        prop.setProperty("cookie.domain", cookieDomain);
+        return prop;
+    }
 
+    /**
+     * Define a logout handler to perform a clean crowd logout
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public CrowdLogoutHandler crowdLogoutHandler() throws IOException
+    {
+        CrowdLogoutHandler clh = new CrowdLogoutHandler();
+        clh.setHttpAuthenticator(httpAuthenticator());
+        return clh;
+    }
 
-  /**
-   * Define a cache manager for eh-cache
-   * 
-   * @return
-   */
-  @Bean
-  public CacheManager getCacheManager() {
-    return getEhCacheFactory().getObject();
-  }
+    /**
+     * Set a filter intercepting the login form to process a crowd authentication
+     *
+     * @return
+     * @throws Exception
+     */
+    @Bean
+    public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter()
+            throws Exception
+    {
+        SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
+        filter.setHttpAuthenticator(httpAuthenticator());
+        filter.setAuthenticationManager(authenticationManager());
+        filter.setFilterProcessesUrl("/j_security_check");
+        filter.setAuthenticationSuccessHandler(
+                authenticationSuccessHandler());
+        filter.setAuthenticationFailureHandler(
+                authenticationFailureHandler());
+        filter.setUsernameParameter("username");
+        filter.setPasswordParameter("password");
+        return filter;
+    }
 
-  @Bean
-  public EhCacheManagerFactoryBean getEhCacheFactory() {
-    EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-    factoryBean.setConfigLocation(new ClassPathResource("crowd-ehcache.xml"));
-    return factoryBean;
-  }
+    /**
+     * Define a success handler to proceed after a crowd authentication, if it has
+     * been successful
+     *
+     * @return
+     */
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler()
+    {
+        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+        successHandler.setDefaultTargetUrl("/home");
+        successHandler.setUseReferer(true);
+        successHandler.setAlwaysUseDefaultTargetUrl(true);
+        return successHandler;
+    }
 
-  /**
-   * define a custom authentication manager, which is able to hold the password for rundeck
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean(name = "customAuthenticationManager")
-  public AuthenticationManager crowdAuthenticationManager() throws IOException {
-    return new CustomAuthenticationManager(securityServerClient());
-  }
+    /**
+     * define an failure handler in case of an authentication failure
+     *
+     * @return
+     */
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler()
+    {
+        UsernameStoringAuthenticationFailureHandler failureHandler = new UsernameStoringAuthenticationFailureHandler();
+        failureHandler.setDefaultFailureUrl("/login?error=true");
+        failureHandler.setUseForward(true);
+        return failureHandler;
+    }
 
-  /**
-   * Define the authenticator for the secure client
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public HttpAuthenticator httpAuthenticator() throws IOException {
-    return new HttpAuthenticatorImpl(crowdAuthenticationManager());
-  }
+    /**
+     * Define a bean for the soap client used to authenticate against crowd
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public SecurityServerClient securityServerClient()
+            throws IOException
+    {
+        return new SecurityServerClientImpl(SoapClientPropertiesImpl
+                .newInstanceFromProperties(getProps()));
+    }
 
-  /**
-   * Define a custom user manager for handling crowd users
-   * 
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public UserManager userManager() throws IOException {
-    return new CachingUserManager(securityServerClient(), getCache());
-  }
+    /**
+     * Define a basic cache for userdata caching
+     * 
+     * @return
+     */
+    @Bean
+    public BasicCache getCache()
+    {
+        return new CacheImpl(getCacheManager());
+    }
 
-  /**
-   * Define a manager for handling crowd groups
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public GroupManager groupManager() throws IOException {
-    return new CachingGroupManager(securityServerClient(), getCache());
-  }
+    /**
+     * Define a cache manager for eh-cache
+     * 
+     * @return
+     */
+    @Bean
+    public CacheManager getCacheManager()
+    {
+        return getEhCacheFactory().getObject();
+    }
 
-  /**
-   * Configure the manager uses for the authentication provider
-   *
-   * @param auth
-   * @throws Exception
-   */
-  @Override
-  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.authenticationProvider(crowdAuthenticationProvider());
-  }
+    @Bean
+    public EhCacheManagerFactoryBean getEhCacheFactory()
+    {
+        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
+        factoryBean.setConfigLocation(
+                new ClassPathResource("crowd-ehcache.xml"));
+        return factoryBean;
+    }
 
-  /**
-   * Define crowd user details for usage in security context
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
-    CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
-    cusd.setUserManager(userManager());
-    cusd.setGroupMembershipManager(new CachingGroupMembershipManager(securityServerClient(),
-        userManager(), groupManager(), getCache()));
-    cusd.setAuthorityPrefix("");
-    return cusd;
-  }
+    /**
+     * define a custom authentication manager, which is able to hold the password
+     * for rundeck
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean(name = "customAuthenticationManager")
+    public AuthenticationManager crowdAuthenticationManager()
+            throws IOException
+    {
+        return new CustomAuthenticationManager(
+                securityServerClient());
+    }
 
-  /**
-   * Define the crowd authentication provider
-   *
-   * @return
-   * @throws IOException
-   */
-  @Bean
-  RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
-    return new RemoteCrowdAuthenticationProvider(crowdAuthenticationManager(), httpAuthenticator(),
-        crowdUserDetailsService());
-  }
+    /**
+     * Define the authenticator for the secure client
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public HttpAuthenticator httpAuthenticator() throws IOException
+    {
+        return new HttpAuthenticatorImpl(
+                crowdAuthenticationManager());
+    }
+
+    /**
+     * Define a custom user manager for handling crowd users
+     * 
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public UserManager userManager() throws IOException
+    {
+        return new CachingUserManager(securityServerClient(),
+                getCache());
+    }
+
+    /**
+     * Define a manager for handling crowd groups
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public GroupManager groupManager() throws IOException
+    {
+        return new CachingGroupManager(securityServerClient(),
+                getCache());
+    }
+
+    /**
+     * Configure the manager uses for the authentication provider
+     *
+     * @param auth
+     * @throws Exception
+     */
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth)
+            throws Exception
+    {
+        auth.authenticationProvider(crowdAuthenticationProvider());
+    }
+
+    /**
+     * Define crowd user details for usage in security context
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public CrowdUserDetailsService crowdUserDetailsService()
+            throws IOException
+    {
+        CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
+        cusd.setUserManager(userManager());
+        cusd.setGroupMembershipManager(
+                new SimpleCachingGroupMembershipManager(
+                        securityServerClient(), userManager(),
+                        groupManager(), getCache()));
+        cusd.setAuthorityPrefix("");
+        return cusd;
+    }
+
+    /**
+     * Define the crowd authentication provider
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    RemoteCrowdAuthenticationProvider crowdAuthenticationProvider()
+            throws IOException
+    {
+        return new RemoteCrowdAuthenticationProvider(
+                crowdAuthenticationManager(), httpAuthenticator(),
+                crowdUserDetailsService());
+    }
 }

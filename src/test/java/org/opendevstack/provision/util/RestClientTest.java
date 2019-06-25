@@ -14,31 +14,31 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-
+import okhttp3.OkHttpClient;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Torsten Jaeschke
@@ -46,107 +46,136 @@ import okhttp3.OkHttpClient;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
 @DirtiesContext
-public class RestClientTest {
+public class RestClientTest
+{
 
-  @LocalServerPort
-  int randomServerPort;
+    private static final Logger logger = LoggerFactory
+            .getLogger(RestClientTest.class);
 
-  private RestClient client;
+    @Value("${local.server.port}")
+    private int randomServerPort;
 
-  @Value("${crowd.sso.cookie.name}")
-  private String crowdSSOCookieName;
-  
-  @Autowired
-  CustomAuthenticationManager manager;
-  
-  @Autowired
-  RestClient realClient;
+    private RestClient client;
 
-  @Before
-  public void setUp() {
-    client = new RestClient();
-    client.setConnectTimeout(1);
-    client.setReadTimeout(1);
-    CrowdCookieJar cookieJar = new CrowdCookieJar();
-    cookieJar.setDomain("localhost");
-    cookieJar.setSSOCookieName(crowdSSOCookieName);
-    client.setCookieJar(cookieJar);
-  }
+    @Value("${crowd.sso.cookie.name}")
+    private String crowdSSOCookieName;
 
+    @Autowired
+    CustomAuthenticationManager manager;
 
-  @Test
-  public void getClient() throws Exception {
-    assertTrue(client.getClient(null) instanceof OkHttpClient);
-  }
+    @Autowired
+    RestClient realClient;
 
-  @Test
-  public void getClientWithCrowdCookie() throws Exception {
-    assertTrue(client.getClient("test") instanceof OkHttpClient);
-  }
+    @Before
+    public void setUp()
+    {
+        client = new RestClient();
+        client.setConnectTimeout(1);
+        client.setReadTimeout(1);
+        CrowdCookieJar cookieJar = new CrowdCookieJar();
+        cookieJar.setDomain("localhost");
+        cookieJar.setSSOCookieName(crowdSSOCookieName);
+        client.setCookieJar(cookieJar);
+    }
 
-  @Test
-  public void getSessionId() throws Exception {
-    client.getSessionId(String.format("http://localhost:%d", randomServerPort));
-  }
+    @Test
+    public void getClient() throws Exception
+    {
+        assertTrue(client.getClient(null) instanceof OkHttpClient);
+    }
 
-  @Test(expected = IOException.class)
-  public void getSessionIdWithException() throws Exception {
-    client.getSessionId(String.format("http://invalid_address", randomServerPort));
-  }
+    @Test
+    public void getClientWithCrowdCookie() throws Exception
+    {
+        assertTrue(client.getClient("test") instanceof OkHttpClient);
+    }
 
-  @Test
-  public void callHttpGreen () throws Exception
-  { 
-	  String response = client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
-	  
-	  assertNotNull(response);
-	  
-	  ProjectData data = new ProjectData();
-	  
-	  response = client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
-	  
-	  assertNotNull(response);  
-  }
-  
-  @Test (expected = NullPointerException.class)
-  public void callHttpMissingVerb () throws Exception
-  { 
-	  client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, null, String.class);
-  }  
-  
-  @Test (expected = NullPointerException.class)
-  public void callHttpMissingUrl () throws Exception
-  { 
-	  client.callHttp(null, "ClemensTest", null, false, null, String.class);
-  }   
+    @Test
+    public void getSessionId() throws Exception
+    {
+        client.getSessionId(String.format("http://localhost:%d",
+                randomServerPort));
+    }
 
-  @Test (expected = NullPointerException.class)
-  public void callAuthWithoutCredentials () throws Exception
-  { 
-	  client.callHttpBasicFormAuthenticate(
-			 String.format("http://localhost:%d", randomServerPort));
-  }
+    @Test(expected = IOException.class)
+    public void getSessionIdWithException() throws Exception
+    {
+        client.getSessionId(String.format("http://invalid_address",
+                randomServerPort));
+    }
 
-  @Test (expected = NullPointerException.class)
-  public void callAuthWithoutUrl () throws Exception
-  { 
-	  client.callHttpBasicFormAuthenticate(null);
-  }
-  
-  @Test (expected = SocketTimeoutException.class)
-  public void callRealClientWrongPort () throws Exception
-  { 
-	  RestClient spyAdapter = Mockito.spy(client);
-	  
-	  spyAdapter.callHttp(
-		String.format("http://localhost:%d", 1000),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
-  }
-  
+    @Test
+    public void callHttpGreen() throws Exception
+    {
+        String response = client.callHttp(
+                String.format("http://localhost:%d",
+                        randomServerPort),
+                "ClemensTest", null, false, HTTP_VERB.GET,
+                String.class);
+
+        assertNotNull(response);
+
+        ProjectData data = new ProjectData();
+
+        response = client.callHttp(
+                String.format("http://localhost:%d",
+                        randomServerPort),
+                "ClemensTest", null, false, HTTP_VERB.POST,
+                String.class);
+
+        assertNotNull(response);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void callHttpMissingVerb() throws Exception
+    {
+        client.callHttp(
+                String.format("http://localhost:%d",
+                        randomServerPort),
+                "ClemensTest", null, false, null, String.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void callHttpMissingUrl() throws Exception
+    {
+        client.callHttp(null, "ClemensTest", null, false, null,
+                String.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void callAuthWithoutCredentials() throws Exception
+    {
+        client.callHttpBasicFormAuthenticate(String
+                .format("http://localhost:%d", randomServerPort));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void callAuthWithoutUrl() throws Exception
+    {
+        client.callHttpBasicFormAuthenticate(null);
+    }
+
+    @Test
+    public void callRealClientWrongPort()
+    {
+        RestClient spyAdapter = Mockito.spy(client);
+
+        try
+        {
+            spyAdapter.callHttp(
+                    String.format("http://localhost:%d", 1000),
+                    "ClemensTest", null, false, HTTP_VERB.GET,
+                    String.class);
+        } catch (SocketTimeoutException se)
+        {
+            // expected in local env
+        } catch (ConnectException ce)
+        {
+            // expected in jenkins
+        } catch (IOException e)
+        {
+            Assert.fail(e.getMessage());
+        }
+    }
+
 }

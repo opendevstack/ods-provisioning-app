@@ -22,9 +22,9 @@ import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
-import org.thymeleaf.spring4.SpringTemplateEngine;
-import org.thymeleaf.templateresolver.TemplateResolver;
+import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 /**
  * Represents basic bean configurations not related to security
@@ -32,27 +32,32 @@ import org.thymeleaf.templateresolver.TemplateResolver;
  * @author Brokmeier, Pascal
  */
 @Configuration
-public class AppConfig {
+public class AppConfig
+{
 
-  @Value("${project.template.key.names:default}")
-  String[] projectTemplateKeyNames;
-	
-  @Bean
-  public SpringTemplateEngine templateEngine(TemplateResolver templateResolver) {
-    SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-    templateEngine.setTemplateResolver(templateResolver);
-    templateEngine.addDialect(new SpringSecurityDialect());
-    return templateEngine;
-  }
+    @Value("${project.template.key.names:default}")
+    String[] projectTemplateKeyNames;
 
-  @Bean
-  public RundeckJobStore jobStore() {
-    return new RundeckJobStore();
-  }
-  
-  @Bean (name = "projectKeys")
-  public List<String> globalProjectKeys () 
-  {
-	return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));  
-  }
+    @Bean
+    public SpringTemplateEngine templateEngine(
+            ITemplateResolver templateResolver)
+    {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver);
+        templateEngine.addDialect(new SpringSecurityDialect());
+        return templateEngine;
+    }
+
+    @Bean
+    public RundeckJobStore jobStore()
+    {
+        return new RundeckJobStore();
+    }
+
+    @Bean(name = "projectKeys")
+    public List<String> globalProjectKeys()
+    {
+        return new ArrayList<>(
+                Arrays.asList(projectTemplateKeyNames));
+    }
 }

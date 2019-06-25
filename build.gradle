@@ -1,34 +1,42 @@
 buildscript {
 	 
     ext {
-        springBootVersion = '1.5.15.RELEASE'
-		// springBootVersion = '2.0.5.RELEASE'
+        springBootVersion = '2.1.4.RELEASE'
         // fix for not set system variable
-		nexus_url =  "${project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')}"
-		nexus_user =  "${project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')}"
-		nexus_pw =  "${project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')}"
+		nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+		nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
+		nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+        no_nexus = project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS')
     }
 	
     repositories {
-		maven () {
-			url "${nexus_url}/repository/jcenter/"
-			credentials () {
-				username = "${nexus_user}"
-				password = "${nexus_pw}"
-			}
-		}
-		maven () {
-			url "${nexus_url}/repository/maven-public/"
-			credentials () {
-				username = "${nexus_user}"
-				password = "${nexus_pw}"
-			}
-		}
-        maven () {
-            url "${nexus_url}/repository/atlassian_public/"
-            credentials {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
+        if(no_nexus) {
+            jcenter()
+            mavenCentral()
+        } else {
+            if (!nexus_url) {
+                throw new GradleException('Nexus URL not specified!')
+            }
+            maven () {
+                url "${nexus_url}/repository/jcenter/"
+                credentials () {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+            }
+            maven () {
+                url "${nexus_url}/repository/maven-public/"
+                credentials () {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+            }
+            maven () {
+                url "${nexus_url}/repository/atlassian_public/"
+                credentials {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
             }
         }
     }
@@ -38,73 +46,75 @@ buildscript {
     }
 }
 
+plugins {
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id 'java'
+    id 'eclipse'
+    id 'maven'
+    id 'jacoco'
+    id 'org.sonarqube' version "2.7"
+}
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'maven'
-apply plugin: 'org.springframework.boot'
-apply plugin: "jacoco"
-apply plugin: 'org.sonarqube'
-// springb 2.05
-// apply plugin: 'io.spring.dependency-management'
+apply plugin: 'io.spring.dependency-management'
 
 group = 'prov'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-	maven () {
-		url "${nexus_url}/repository/jcenter/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
-
-	maven () {
-		url "${nexus_url}/repository/maven-public/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
-
-	maven () {
-		url "${nexus_url}/repository/atlassian_public/"
-		credentials {
-			username = "${nexus_user}"
-			password = "${nexus_pw}"
-		}
-	}
+    if(no_nexus) {
+        jcenter()
+        mavenCentral()
+    } else {
+        maven () {
+            url "${nexus_url}/repository/jcenter/"
+            credentials () {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven () {
+            url "${nexus_url}/repository/maven-public/"
+            credentials () {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+        maven () {
+            url "${nexus_url}/repository/atlassian_public/"
+            credentials {
+                username = "${nexus_user}"
+                password = "${nexus_pw}"
+            }
+        }
+    }
 }
 
-
-ext {
-    springCloudVersion = 'Dalston.SR1'
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter-actuator')                //bunch of prod tools
-    compile('org.springframework.boot:spring-boot-starter-aop')
-    compile('org.springframework.boot:spring-boot-starter-data-rest')               //data rest exposed
-    compile('org.springframework.boot:spring-boot-starter-hateoas')
-    compile('org.springframework.boot:spring-boot-starter-integration')
-    compile('org.springframework.boot:spring-boot-starter-jersey')
-    compile('org.springframework.boot:spring-boot-starter-mail')
-    compile('org.springframework.boot:spring-boot-starter-security')                //security frameowork
-    compile('org.springframework.boot:spring-boot-starter-thymeleaf')               //templating for frontend
-    compile('org.springframework.boot:spring-boot-starter-web')
-    runtime('org.springframework.boot:spring-boot-devtools')                        //hot reloading, disabling cache ...
+    implementation('org.springframework.boot:spring-boot-starter-actuator')                //bunch of prod tools
+    implementation('org.springframework.boot:spring-boot-starter-aop')
+    implementation('org.springframework.boot:spring-boot-starter-data-rest')               //data rest exposed
+    implementation('org.springframework.boot:spring-boot-starter-hateoas')
+    implementation('org.springframework.boot:spring-boot-starter-integration')
+    implementation('org.springframework.boot:spring-boot-starter-jersey')
+    implementation('org.springframework.boot:spring-boot-starter-mail')
+    implementation('org.springframework.boot:spring-boot-starter-security')                //security frameowork
+    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')               //templating for frontend
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    runtimeOnly('org.springframework.boot:spring-boot-devtools')                        //hot reloading, disabling cache ...
 
-    compileOnly('org.projectlombok:lombok')
+    annotationProcessor('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.restdocs:spring-restdocs-mockmvc')
     testCompile('org.springframework.security:spring-security-test')
 
-    //add security dialect for thymeleaf
-	// springb 2.0.5 remove
-    compile("org.thymeleaf:thymeleaf-spring4")
-    compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity4")
+    compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
 
     //frontend webjars
     compile 'org.webjars.bower:bootstrap:3.3.7'
@@ -119,8 +129,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
 
     //encryption library for properties 
-    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '1.13'
-	// springb 2.0.5 compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.0.0'
+    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
 	
     //easy http calls to atlassian JSON APIs
     compile "com.squareup.okhttp3:okhttp:3.8.0"
@@ -129,47 +138,39 @@ dependencies {
     // Required if generating equals, hashCode, or toString methods
     compile 'commons-lang:commons-lang:2.6'
 	
-	// springb 2.0.5 compile 'javax.servlet:javax.servlet-api:3.1.0'
-	
+    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version:'2.6.6'
     compile group: 'joda-time', name: 'joda-time', version:'2.8.2'
-    compile(group: 'javax.validation', name: 'validation-api', version:'1.1.0.Final')
-	// springb 2.0.5 compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
+    compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
 	compile(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.11')
     compile(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
         exclude group: 'commons-httpclient'
         exclude group: 'org.apache.ws.commons', module: 'XmlSchema'
+        // Explicity excludes vulnerable versions
+        exclude group: 'org.apache.struts', module: 'struts2-core'
+        exclude group: 'org.apache.struts.xwork', module: 'xwork-core'
+        exclude group: 'commons-collections', module: 'commons-collections'
+        exclude group: 'commons-fileupload', module: 'commons-fileupload'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'org.aspectj', module: 'aspectjweaver'
+        exclude group: 'com.google.guava', module: 'guava'
     }
-    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
-	
+    // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
+    compile group: 'org.apache.struts', name: 'struts2-core', version: '2.5.20'
+    compile group: 'org.apache.struts.xwork', name: 'xwork-core', version: '2.3.37'
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9'
+    compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.4'
+    compile group: 'com.google.guava', name: 'guava', version: '23.0'
+
 }
 
-// springb 2.0.5 - remove
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
-uploadArchives {
-    repositories{
-        mavenDeployer {
-            repository(url: "${nexus_url}/repository/candidates/") {
-                authentication(userName: "${nexus_user}", password: "${nexus_pw}")
-            }
-            pom.artifactId = 'prov-app'
-            pom.groupId = 'org.opendevstack.prov'
-            pom.version="${System.getenv("TAGVERSION")}" // we will get a TAGVERSION from environment
-        }
-    }
-}
-
-jar {
-// springb 2.0.5 replace w bootJar {
+bootJar {
     archiveName     "app.jar"
 	destinationDir  file("$buildDir/../docker")
 }
 
 jacoco {
-    toolVersion = "0.8.1"
+    toolVersion = "0.8.3"
 }

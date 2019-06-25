@@ -48,59 +48,69 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class QuickstarterApiControllerTest {
-  private MockMvc mockMvc;
+public class QuickstarterApiControllerTest
+{
+    private MockMvc mockMvc;
 
-  @Autowired
-  private WebApplicationContext context;
+    @Autowired
+    private WebApplicationContext context;
 
-  @MockBean
-  RundeckAdapter rundeckAdapter;
+    @MockBean
+    RundeckAdapter rundeckAdapter;
 
-  private List<Job> jobs;
-  private ProjectData project;
-  private List<ExecutionsData> executions = new ArrayList<>();
+    private List<Job> jobs;
+    private ProjectData project;
+    private List<ExecutionsData> executions = new ArrayList<>();
 
-  @Before
-  public void init() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();    
-    initJobs();
-  }
+    @Before
+    public void init()
+    {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        initJobs();
+    }
 
-  private void initJobs() {
-    project = new ProjectData();
-    project.key = "TST";
-    project.name = "name";
+    private void initJobs()
+    {
+        project = new ProjectData();
+        project.key = "TST";
+        project.name = "name";
 
-    jobs = new ArrayList<>();
-    Job job = new Job();
-    job.setName("Job");
-    job.setDescription("Description");
-    jobs.add(job);
-  }
+        jobs = new ArrayList<>();
+        Job job = new Job();
+        job.setName("Job");
+        job.setDescription("Description");
+        jobs.add(job);
+    }
 
-  @Test
-  public void getQuickstarters() throws Exception {
-    Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(jobs);
-    
-    mockMvc.perform(get("/api/v1/quickstarter"))
-        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
-  }
+    @Test
+    public void getQuickstarters() throws Exception
+    {
+        Mockito.when(rundeckAdapter.getQuickstarter())
+                .thenReturn(jobs);
 
-  @Test
-  public void executeJobs() throws Exception {
-    Mockito.when(rundeckAdapter.executeJobs(project)).thenReturn(executions);
-    
-    mockMvc.perform(post("/api/v1/quickstarter/provision")
-        .content(getBody())
-        .contentType(MediaType.APPLICATION_JSON))
-    .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-    .andReturn().getResponse().toString();
-  }
+        mockMvc.perform(get("/api/v1/quickstarter")).andExpect(
+                MockMvcResultMatchers.status().is2xxSuccessful());
+    }
 
-  private String getBody() throws Exception {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(project);
-    return json;
-  }
+    @Test
+    public void executeJobs() throws Exception
+    {
+        Mockito.when(rundeckAdapter.provisionComponents(project))
+                .thenReturn(executions);
+
+        mockMvc.perform(post("/api/v1/quickstarter/provision")
+                .content(getBody())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status()
+                        .is2xxSuccessful())
+                .andReturn().getResponse().toString();
+    }
+
+    private String getBody() throws Exception
+    {
+        ObjectWriter ow = new ObjectMapper().writer()
+                .withDefaultPrettyPrinter();
+        String json = ow.writeValueAsString(project);
+        return json;
+    }
 }

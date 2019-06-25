@@ -25,16 +25,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = {"JSON-to-Pojo-Generator"})
+@Generated(value = { "JSON-to-Pojo-Generator" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "active",
-    "events",
-    "configuration",
-    "name",
-    "url"
-})
-public class Webhook {
+@JsonPropertyOrder({ "active", "events", "configuration", "name",
+        "url" })
+public class Webhook
+{
 
     @JsonProperty("active")
     private Boolean active;
@@ -50,62 +46,74 @@ public class Webhook {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("active")
-    public Boolean getActive() {
+    public Boolean getActive()
+    {
         return active;
     }
 
     @JsonProperty("active")
-    public void setActive(Boolean active) {
+    public void setActive(Boolean active)
+    {
         this.active = active;
     }
 
     @JsonProperty("events")
-    public List<String> getEvents() {
+    public List<String> getEvents()
+    {
         return events;
     }
 
     @JsonProperty("events")
-    public void setEvents(List<String> events) {
+    public void setEvents(List<String> events)
+    {
         this.events = events;
     }
 
     @JsonProperty("configuration")
-    public Configuration getConfiguration() {
+    public Configuration getConfiguration()
+    {
         return configuration;
     }
 
     @JsonProperty("configuration")
-    public void setConfiguration(Configuration configuration) {
+    public void setConfiguration(Configuration configuration)
+    {
         this.configuration = configuration;
     }
 
     @JsonProperty("name")
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
     @JsonProperty("name")
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
     @JsonProperty("url")
-    public String getUrl() {
+    public String getUrl()
+    {
         return url;
     }
 
     @JsonProperty("url")
-    public void setUrl(String url) {
+    public void setUrl(String url)
+    {
         this.url = url;
     }
 
     @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
+    public Map<String, Object> getAdditionalProperties()
+    {
         return this.additionalProperties;
     }
 
     @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
+    public void setAdditionalProperty(String name, Object value)
+    {
         this.additionalProperties.put(name, value);
     }
 

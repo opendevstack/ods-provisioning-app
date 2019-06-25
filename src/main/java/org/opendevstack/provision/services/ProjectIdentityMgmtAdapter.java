@@ -23,7 +23,6 @@ import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -32,148 +31,164 @@ import com.atlassian.crowd.integration.soap.SOAPGroup;
 
 /**
  * Identity mgmt adapter to create / validate groups
+ * 
  * @author utschig
  *
  */
 @Service
-public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter  
+public class ProjectIdentityMgmtAdapter
+        implements IProjectIdentityMgmtAdapter
 {
-    @Value("${crowd.user.group:}")
-    private String crowdUserGroup;
-	  
-	@Value("${crowd.admin.group:}")
-	private String crowdAdminGroup;
-	
-    private static final Logger logger = LoggerFactory.getLogger(ProjectIdentityMgmtAdapter.class);
-	
-	@Autowired
-	CustomAuthenticationManager manager;
-	 
-    @Value("${crowd.local.directory}")
-	String crowdLocalDirectory;
+    private static final Logger logger = LoggerFactory
+            .getLogger(ProjectIdentityMgmtAdapter.class);
 
-    public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException 
+    @Autowired
+    CustomAuthenticationManager manager;
+
+    public void validateIdSettingsOfProject(ProjectData project)
+            throws IdMgmtException
     {
-    	Map<String, String> projectCheckStatus = new HashMap<String, String>();
-    	
-		long startTime = System.currentTimeMillis();
+        Map<String, String> projectCheckStatus = new HashMap<>();
 
-    	if (!groupExists(project.adminGroup)) {
-    		projectCheckStatus.put("adminGroup", project.adminGroup);
-    	}
-    	if (!groupExists(project.userGroup)) {
-    		projectCheckStatus.put("userGroup", project.userGroup);
-    	}
-    	if (!groupExists(project.readonlyGroup)) {
-    		projectCheckStatus.put("readonlyGroup", project.readonlyGroup);
-    	}
-    	if (!userExists(project.admin)) {
-    		projectCheckStatus.put("admin", project.admin);
-    	}
+        long startTime = System.currentTimeMillis();
 
-    	logger.debug("identityCheck Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
-    	
-    	if (!projectCheckStatus.isEmpty()) {
-    		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
-    				+ projectCheckStatus);
-    	}
+        if (!groupExists(project.adminGroup))
+        {
+            projectCheckStatus.put("adminGroup", project.adminGroup);
+        }
+        if (!groupExists(project.userGroup))
+        {
+            projectCheckStatus.put("userGroup", project.userGroup);
+        }
+        if (!groupExists(project.readonlyGroup))
+        {
+            projectCheckStatus.put("readonlyGroup",
+                    project.readonlyGroup);
+        }
+        if (!userExists(project.admin))
+        {
+            projectCheckStatus.put("admin", project.admin);
+        }
+
+        logger.debug("identityCheck Name took (ms): {}",
+                System.currentTimeMillis() - startTime);
+
+        if (!projectCheckStatus.isEmpty())
+        {
+            throw new IdMgmtException(
+                    "Identity check failed - these groups don't exist! "
+                            + projectCheckStatus);
+        }
     }
-    
-	@Override
-	@SuppressWarnings("squid:S1193")
-	public boolean groupExists(String groupName) 
-	{
-		if (groupName == null || groupName.trim().length() == 0) 
-			return true;
 
-		long startTime = System.currentTimeMillis();
-		try 
-		{
-			manager.getSecurityServerClient().findGroupByName(groupName);
-			return true;
-		} catch (Exception eSecurity) 
-		{
-			if (!(eSecurity instanceof GroupNotFoundException)) {
-				logger.error("GroupFind call failed with: {}", eSecurity);
-			}
-			return false;
-		} finally 
-		{
-			logger.debug("findGroupByName by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
-		}
-	}
+    @Override
+    @SuppressWarnings("squid:S1193")
+    public boolean groupExists(String groupName)
+    {
+        if (groupName == null || groupName.trim().length() == 0)
+            return true;
 
-	@Override
-	@SuppressWarnings("squid:S1193")
-	public boolean userExists(String userName) 
-	{
-		if (userName == null || userName.trim().length() == 0) 
-			return true;
-		
-		long startTime = System.currentTimeMillis();
-		try 
-		{
-			manager.getSecurityServerClient().findPrincipalByName(userName);
-			return true;
-		} catch (Exception eSecurity) 
-		{
-			if (!(eSecurity instanceof UsernameNotFoundException)) {
-				logger.error("UserFind call failed with: {}", eSecurity);
-			}
-			return false;
-		} finally 
-		{
-			logger.debug("findPrincipal by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
-		}
-	}
+        long startTime = System.currentTimeMillis();
+        try
+        {
+            manager.getSecurityServerClient()
+                    .findGroupByName(groupName);
+            return true;
+        } catch (Exception eSecurity)
+        {
+            if (!(eSecurity instanceof GroupNotFoundException))
+            {
+                logger.error("GroupFind call failed with:",
+                        eSecurity);
+            }
+            return false;
+        } finally
+        {
+            logger.debug("findGroupByName by Name took (ms): {}",
+                    System.currentTimeMillis() - startTime);
+        }
+    }
 
-	@Override
-	public String createUserGroup(String projectName) throws IdMgmtException 
-	{
-		return createGroupInternal(projectName);
-	}
+    @Override
+    @SuppressWarnings("squid:S1193")
+    public boolean userExists(String userName)
+    {
+        if (userName == null || userName.trim().length() == 0)
+            return true;
 
+        long startTime = System.currentTimeMillis();
+        try
+        {
+            manager.getSecurityServerClient()
+                    .findPrincipalByName(userName);
+            return true;
+        } catch (Exception eSecurity)
+        {
+            if (!(eSecurity instanceof UsernameNotFoundException))
+            {
+                logger.error("UserFind call failed with:", eSecurity);
+            }
+            return false;
+        } finally
+        {
+            logger.debug("findPrincipal by Name took (ms): {}",
+                    System.currentTimeMillis() - startTime);
+        }
+    }
 
-	@Override
-	public String createAdminGroup(String projectName) throws IdMgmtException {
-		return createGroupInternal(projectName);
-	}
+    @Override
+    public String createUserGroup(String projectName)
+            throws IdMgmtException
+    {
+        return createGroupInternal(projectName);
+    }
 
-	@Override
-	public String createReadonlyGroup(String projectName) throws IdMgmtException 
-	{
-		return createGroupInternal(projectName);
-	}
-		
-	String createGroupInternal (String groupName) throws IdMgmtException {
-		if (groupName == null || groupName.trim().length() == 0)
-			throw new IdMgmtException ("Cannot create a null group!");
-		
-		try 
-		{
-			return manager.getSecurityServerClient().
-				addGroup(new SOAPGroup(groupName, new String [] {})).getName();
-		} catch (Exception eAddGroup) 
-		{
-			logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
-			throw new IdMgmtException(eAddGroup);
-		}
-	}
+    @Override
+    public String createAdminGroup(String projectName)
+            throws IdMgmtException
+    {
+        return createGroupInternal(projectName);
+    }
 
-	@Override
-	public String getAdapterApiUri() 
-	{
-		return manager.getSecurityServerClient().
-			getSoapClientProperties().getBaseURL();
-	}
+    @Override
+    public String createReadonlyGroup(String projectName)
+            throws IdMgmtException
+    {
+        return createGroupInternal(projectName);
+    }
 
-	@Override
-	public Map<String, String> getProjects(String filter, String crowdCookieValue)
-	{
-		return new HashMap<>();
-	}
-	
+    String createGroupInternal(String groupName)
+            throws IdMgmtException
+    {
+        if (groupName == null || groupName.trim().length() == 0)
+            throw new IdMgmtException("Cannot create a null group!");
+
+        try
+        {
+            return manager.getSecurityServerClient()
+                    .addGroup(
+                            new SOAPGroup(groupName, new String[] {}))
+                    .getName();
+        } catch (Exception eAddGroup)
+        {
+            logger.error("Could not create group {}, error: {}",
+                    groupName, eAddGroup);
+            throw new IdMgmtException(eAddGroup);
+        }
+    }
+
+    @Override
+    public String getAdapterApiUri()
+    {
+        return manager.getSecurityServerClient()
+                .getSoapClientProperties().getBaseURL();
+    }
+
+    @Override
+    public Map<String, String> getProjects(String filter,
+            String crowdCookieValue)
+    {
+        return new HashMap<>();
+    }
+
 }

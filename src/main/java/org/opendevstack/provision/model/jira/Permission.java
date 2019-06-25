@@ -20,13 +20,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = {"JSON-to-Pojo-Generator"})
+@Generated(value = { "JSON-to-Pojo-Generator" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "holder",
-    "permission"
-})
-public class Permission {
+@JsonPropertyOrder({ "holder", "permission" })
+public class Permission
+{
 
     @JsonProperty("holder")
     private Holder holder;
@@ -34,22 +32,26 @@ public class Permission {
     private String permission;
 
     @JsonProperty("holder")
-    public Holder getHolder() {
+    public Holder getHolder()
+    {
         return holder;
     }
 
     @JsonProperty("holder")
-    public void setHolder(Holder holder) {
+    public void setHolder(Holder holder)
+    {
         this.holder = holder;
     }
 
     @JsonProperty("permission")
-    public String getPermission() {
+    public String getPermission()
+    {
         return permission;
     }
 
     @JsonProperty("permission")
-    public void setPermission(String permission) {
+    public void setPermission(String permission)
+    {
         this.permission = permission;
     }
 

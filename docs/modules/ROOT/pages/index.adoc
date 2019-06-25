@@ -1,0 +1,90 @@
+= OpenDevStack Provisioning Application
+
+This application creates new opendevstack digital projects. It delegates the tasks required to several services such as jira, confluence, bitbucket and openshift (thru rundeck).
+
+Basic idea:
+
+. Admin (user in `crowd.admin.group`) creates new project
+ ** Jira Space (name based on project key & name)
+ ** Confluence Space (name based on project key)
+ ** Openshift projects named key-dev *-test *-cd - based on property `openshiftproject : boolean`
+ ** Bitbucket Project (name based on project key) - in case `openshiftproject` == true
+. Normal user(user in `crowd.user.group`) creates all resources required for a working component
+ ** jenkins pipeline
+ ** Bitbucket repository
+ ** Openshift components based on the chose boilerplate
+. The involved people receive an email with the setup, URLs etc - in case `mail.enabled` == true
+
+== Permission sets
+
+There is a special knob to tighten security (which can be passed with the project input `createpermissionset : boolean`)  - based on three groups that need to be provided as part of the API call / from the userinterface.
+
+. admin group: admin rights on the generated projects / spaces / repositories
+. user group: read / write rights on the generated projects / spaces / repositories
+. readonly group: read rights on the generated projects / spaces / repositories
+
+The configuration for the permission sets are configured:
+
+. JIRA Project is provisioned with its own permissionset link:src/main/resources/permission-templates/jira.permission.all.txt[defined in src/main/resources/permission-templates/jira.permission.all.txt]
+. Confluence Project is provisioned with special permission set link:src/main/resources/permission-templates[defined in src/main/resources/permission-templates/confluence.permission.*]
+. Bitbucket Project is provisioned with tight read & write roles
+
+== Project setup
+
+The Project is based on Spring Boot, using several techs which can be seen in the build.gradle.
+
+If you want to build locally - create gradle.properties in the root
+
+....
+- nexus_url=<NEXUS HOST>
+- nexus_folder=candidates
+- nexus_user=<NEXUS USER>
+- nexus_pw=<NEXUS_PW>
+....
+[source,bash]
+----
+#to run the server execute
+gradle bootRun
+----
+
+If you want to overwrite the provided application.properties just create a configmap out of them and
+inject the key into /config/application.properties in the container - voila, you can overwrite the config.
+The base configuration map /as well as the deployment yamls can be found in /ocp-config, and overwrite parameters from application.
+
+== Frontend Code
+
+The frontend UI - is based on jquery and thymeleaf. All (posting to the API)[src/main/resources/static/js/client.js] happens out of java script (client.js)
+
+== Backend Code
+
+The backend is based on Spring Boot, and authenticates against Atlassian Crowd. Both frontend (html) and backend are tested thru Mockito
+
+=== Consuming REST APIs in Java
+
+Generally this is a pain. To ease development, a few tools are in use:
+
+* Jackson
+* OKTTP3 Client
+* jsonschema2pojo generator (see link below)
+
+The process for new operations to be called is:
+
+. Look up the API call that you intend to make
+. see if there is a JSON Schema available
+. Generate (a) Pojo('s) for the Endpoint
+. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3
+
+=== Link collection
+
+* http://www.mkyong.com/spring-boot/spring-boot-spring-security-thymeleaf-example/[Mkyong spring boot + security + thymeleaf example]
+* http://www.webjars.org/[Getting more Webjars]
+* http://www.jsonschema2pojo.org/[Generating POJOs from JSON Schemas] very helpful for the Atlassian API Docs
+
+*Atlassian API's*
+
+* https://docs.atlassian.com/jira/REST/server/#api/2/fullJiraProject-createProject[Jira API]
+* https://docs.atlassian.com/ConfluenceServer/rest/6.12.1/[Confluence API]
+* https://developer.atlassian.com/server/bitbucket/reference/rest-api/[Bitbucket API]
+* https://developer.atlassian.com/server/crowd/crowd-rest-apis/[Crowd API]
+* https://rundeck.org/docs/api/[Rundeck API]
+* https://site.mockito.org[Mockito]

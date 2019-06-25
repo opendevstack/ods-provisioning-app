@@ -22,14 +22,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * 
  * @author utschig
  */
-public class AboutChangesData {
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  public List<AboutRecordData> aboutDataList;
+public class AboutChangesData
+{
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public List<AboutRecordData> aboutDataList;
 
-  public static class AboutRecordData {
-    public String who;
-    public String when;
-    public String what;
-  }
+    public static class AboutRecordData
+    {
+        public String who;
+        public String when;
+        public String what;
+    }
 }
-

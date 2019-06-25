@@ -14,9 +14,6 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,74 +27,84 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Torsten Jaeschke
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class RundeckJobStoreTest {
+public class RundeckJobStoreTest
+{
 
-  RundeckJobStore jobStore;
+    RundeckJobStore jobStore;
 
-  @Before
-  public void setUp() {
-    jobStore = new RundeckJobStore();
-  }
+    @Before
+    public void setUp()
+    {
+        jobStore = new RundeckJobStore();
+    }
 
-  @Test
-  public void addJob() throws Exception {
-    Job job = generateTestJobs().get(0);
-    jobStore.addJob(generateTestJobs().get(0));
-    
-    assertEquals(jobStore.getJob("1").getId(), job.getId());
-  }
+    @Test
+    public void addJob() throws Exception
+    {
+        Job job = generateTestJobs().get(0);
+        jobStore.addJob(generateTestJobs().get(0));
 
-  @Test
-  public void addJobs() throws Exception {
-    List<Job> jobs = generateTestJobs();
-    List<String> ids = Arrays.asList("1", "2");
-    jobStore.addJobs(jobs);
-    
-    assertEquals(jobStore.getJobs(ids), jobs);
-  }
+        assertEquals(jobStore.getJob("1").getId(), job.getId());
+    }
 
-  @Test
-  public void removeJob() throws Exception {
-    List<Job> jobs = generateTestJobs();
-    jobStore.addJobs(jobs);
-    jobStore.removeJob("1");
-    
-    assertTrue(jobStore.getJob("1") == null);
-  }
+    @Test
+    public void addJobs() throws Exception
+    {
+        List<Job> jobs = generateTestJobs();
+        List<String> ids = Arrays.asList("1", "2");
+        jobStore.addJobs(jobs);
 
-  @Test
-  public void getJob() throws Exception {
-    List<Job> jobs = generateTestJobs();
-    jobStore.addJob(jobs.get(0));
-    
-    assertTrue(jobStore.getJob("1") != null);
-  }
+        assertEquals(jobStore.getJobs(ids), jobs);
+    }
 
-  @Test
-  public void getJobs() throws Exception {
-    List<Job> jobs = generateTestJobs();
-    List<String> ids = Arrays.asList("1", "2");
-    jobStore.addJobs(jobs);
-    
-    assertTrue(jobStore.getJobs(ids).size() > 0);
-  }
+    @Test
+    public void removeJob() throws Exception
+    {
+        List<Job> jobs = generateTestJobs();
+        jobStore.addJobs(jobs);
+        jobStore.removeJob("1");
 
-  private List<Job> generateTestJobs() {
-    List<Job> jobs = new ArrayList<>();
-    Job j1 = new Job();
-    j1.setName("j1");
-    j1.setId("1");
-    Job j2 = new Job();
-    j2.setName("j2");
-    j2.setId("2");
-    jobs.add(j1);
-    jobs.add(j2);
-    return jobs;
-  }
+        assertNull(jobStore.getJob("1"));
+    }
+
+    @Test
+    public void getJob() throws Exception
+    {
+        List<Job> jobs = generateTestJobs();
+        jobStore.addJob(jobs.get(0));
+
+        assertNotNull(jobStore.getJob("1"));
+    }
+
+    @Test
+    public void getJobs() throws Exception
+    {
+        List<Job> jobs = generateTestJobs();
+        List<String> ids = Arrays.asList("1", "2");
+        jobStore.addJobs(jobs);
+
+        assertTrue(jobStore.getJobs(ids).size() > 0);
+    }
+
+    private List<Job> generateTestJobs()
+    {
+        List<Job> jobs = new ArrayList<>();
+        Job j1 = new Job();
+        j1.setName("j1");
+        j1.setId("1");
+        Job j2 = new Job();
+        j2.setName("j2");
+        j2.setId("2");
+        jobs.add(j1);
+        jobs.add(j2);
+        return jobs;
+    }
 }

@@ -46,144 +46,173 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class ProjectIdentityMgmtAdapterTest {
+public class ProjectIdentityMgmtAdapterTest
+{
 
-	@Mock
-	CustomAuthenticationManager manager;
+    @Mock
+    CustomAuthenticationManager manager;
 
     @Autowired
     @InjectMocks
     ProjectIdentityMgmtAdapter idMgr;
 
     @Before
-    public void initTests() {
-      MockitoAnnotations.initMocks(this);
-      SecurityServerClient client = Mockito.mock(SecurityServerClient.class);
-	  Mockito.when(manager.getSecurityServerClient()).thenReturn(client);
+    public void initTests()
+    {
+        MockitoAnnotations.initMocks(this);
+        SecurityServerClient client = Mockito
+                .mock(SecurityServerClient.class);
+        Mockito.when(manager.getSecurityServerClient())
+                .thenReturn(client);
     }
-    
-	@Test
-	public void testGroupExists() throws Exception
-	{
-		SOAPGroup group = new SOAPGroup("xxx", null);
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(group.getName())).thenReturn(group);
-	    
-	    assertTrue(idMgr.groupExists(group.getName()));
 
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(group.getName())).thenReturn(null);
-	    assertTrue(idMgr.groupExists(group.getName()));
-	    
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(group.getName())).
-	    	thenThrow(new GroupNotFoundException("GroupNotFound"));
-	    
-	    assertFalse(idMgr.groupExists(group.getName()));
-	    assertTrue(idMgr.groupExists(null));
-	}
+    @Test
+    public void testGroupExists() throws Exception
+    {
+        SOAPGroup group = new SOAPGroup("xxx", null);
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(group.getName())).thenReturn(group);
 
+        assertTrue(idMgr.groupExists(group.getName()));
 
-	@Test
-	public void testUserExists() throws Exception
-	{
-		SOAPPrincipal principal = new SOAPPrincipal("user");
-	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).thenReturn(principal);
-	    
-	    assertTrue(idMgr.userExists(principal.getName()));
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(group.getName())).thenReturn(null);
+        assertTrue(idMgr.groupExists(group.getName()));
 
-	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).thenReturn(null);
-	    assertTrue(idMgr.userExists(principal.getName()));
-	    
-	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).
-	    	thenThrow(new UserNotFoundException(principal.getName()));
-		assertFalse(idMgr.userExists(principal.getName()));
-		
-	    assertTrue(idMgr.userExists(null));
-	}
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(group.getName())).thenThrow(
+                        new GroupNotFoundException("GroupNotFound"));
 
-	@Test
-	public void testCreateGroup () throws Exception 
-	{
-		SOAPGroup group = new SOAPGroup("xxx", null);
+        assertFalse(idMgr.groupExists(group.getName()));
+        assertTrue(idMgr.groupExists(null));
+    }
 
-		Mockito.when(manager.getSecurityServerClient().addGroup(group)).thenReturn(group);
-		assertEquals(group.getName(), idMgr.createGroupInternal(group.getName()));
+    @Test
+    public void testUserExists() throws Exception
+    {
+        SOAPPrincipal principal = new SOAPPrincipal("user");
+        Mockito.when(manager.getSecurityServerClient()
+                .findPrincipalByName(principal.getName()))
+                .thenReturn(principal);
 
-		assertEquals(group.getName(), idMgr.createAdminGroup(group.getName()));
-		assertEquals(group.getName(), idMgr.createUserGroup(group.getName()));
-		assertEquals(group.getName(), idMgr.createReadonlyGroup(group.getName()));
-	}
+        assertTrue(idMgr.userExists(principal.getName()));
 
-	
-	@Test (expected = IdMgmtException.class)
-	public void testCreateNullGroup () throws Exception 
-	{
-		idMgr.createGroupInternal(null);
-	}
-	
-	@Test (expected = IdMgmtException.class)
-	public void testCreateGroupSOAPErr () throws Exception 
-	{
-		SOAPGroup group = new SOAPGroup("xxx", null);
+        Mockito.when(manager.getSecurityServerClient()
+                .findPrincipalByName(principal.getName()))
+                .thenReturn(null);
+        assertTrue(idMgr.userExists(principal.getName()));
 
-		Mockito.when(manager.getSecurityServerClient().addGroup(group)).thenThrow(InvalidGroupException.class);
-		idMgr.createGroupInternal(group.getName());
-	}
-	
-	
-	@Test
-	public void testValidateProject () throws Exception
-	{
-		SOAPPrincipal principal = new SOAPPrincipal("user");
-	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).thenReturn(principal);
-	    
-		SOAPGroup group = new SOAPGroup("xxx", null);
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(group.getName())).thenReturn(group);
-	    
-	    ProjectData data = new ProjectData();
-	    data.adminGroup = group.getName();
-	    data.userGroup = group.getName();
-	    data.readonlyGroup = group.getName();
-	    data.admin = principal.getName();
-	    
-	    idMgr.validateIdSettingsOfProject(data);
-	    
-	    data.userGroup = "doesNotExistUG";
-	    data.adminGroup = "doesNotExistAD";
-	    data.readonlyGroup = "doesNotExistRO";
-	    
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.userGroup)).
-	    	thenThrow(new GroupNotFoundException(data.userGroup));
+        Mockito.when(manager.getSecurityServerClient()
+                .findPrincipalByName(principal.getName()))
+                .thenThrow(new UserNotFoundException(
+                        principal.getName()));
+        assertFalse(idMgr.userExists(principal.getName()));
 
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.adminGroup)).
-    		thenThrow(new GroupNotFoundException(data.adminGroup));
+        assertTrue(idMgr.userExists(null));
+    }
 
-	    Mockito.when(manager.getSecurityServerClient().findGroupByName(data.readonlyGroup)).
-	    	thenThrow(new GroupNotFoundException(data.readonlyGroup));
+    @Test
+    public void testCreateGroup() throws Exception
+    {
+        SOAPGroup group = new SOAPGroup("xxx", null);
 
-	    Exception testE = null;
-	    try 
-	    {
-	    	idMgr.validateIdSettingsOfProject(data);
-	    } catch (IdMgmtException idEx) {
-	    	testE = idEx;
-	    }
-	    assertNotNull(testE);
-	    assertTrue (testE.getMessage().contains(data.userGroup));
-	    assertTrue (testE.getMessage().contains(data.adminGroup));
-	    assertTrue (testE.getMessage().contains(data.readonlyGroup));
-	    
-	    Mockito.when(manager.getSecurityServerClient().findPrincipalByName(principal.getName())).
-    		thenThrow(new UserNotFoundException(principal.getName()));
+        Mockito.when(
+                manager.getSecurityServerClient().addGroup(group))
+                .thenReturn(group);
+        assertEquals(group.getName(),
+                idMgr.createGroupInternal(group.getName()));
 
-	    testE = null;
-	    try 
-	    {
-	    	idMgr.validateIdSettingsOfProject(data);
-	    } catch (IdMgmtException idEx) {
-	    	testE = idEx;
-	    }
-	    assertNotNull(testE);
-	    assertTrue (testE.getMessage().contains(data.userGroup));
-	    assertTrue (testE.getMessage().contains(data.admin));
-	    
-	}
+        assertEquals(group.getName(),
+                idMgr.createAdminGroup(group.getName()));
+        assertEquals(group.getName(),
+                idMgr.createUserGroup(group.getName()));
+        assertEquals(group.getName(),
+                idMgr.createReadonlyGroup(group.getName()));
+    }
+
+    @Test(expected = IdMgmtException.class)
+    public void testCreateNullGroup() throws Exception
+    {
+        idMgr.createGroupInternal(null);
+    }
+
+    @Test(expected = IdMgmtException.class)
+    public void testCreateGroupSOAPErr() throws Exception
+    {
+        SOAPGroup group = new SOAPGroup("xxx", null);
+
+        Mockito.when(
+                manager.getSecurityServerClient().addGroup(group))
+                .thenThrow(InvalidGroupException.class);
+        idMgr.createGroupInternal(group.getName());
+    }
+
+    @Test
+    public void testValidateProject() throws Exception
+    {
+        SOAPPrincipal principal = new SOAPPrincipal("user");
+        Mockito.when(manager.getSecurityServerClient()
+                .findPrincipalByName(principal.getName()))
+                .thenReturn(principal);
+
+        SOAPGroup group = new SOAPGroup("xxx", null);
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(group.getName())).thenReturn(group);
+
+        ProjectData data = new ProjectData();
+        data.adminGroup = group.getName();
+        data.userGroup = group.getName();
+        data.readonlyGroup = group.getName();
+        data.admin = principal.getName();
+
+        idMgr.validateIdSettingsOfProject(data);
+
+        data.userGroup = "doesNotExistUG";
+        data.adminGroup = "doesNotExistAD";
+        data.readonlyGroup = "doesNotExistRO";
+
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(data.userGroup)).thenThrow(
+                        new GroupNotFoundException(data.userGroup));
+
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(data.adminGroup)).thenThrow(
+                        new GroupNotFoundException(data.adminGroup));
+
+        Mockito.when(manager.getSecurityServerClient()
+                .findGroupByName(data.readonlyGroup))
+                .thenThrow(new GroupNotFoundException(
+                        data.readonlyGroup));
+
+        Exception testE = null;
+        try
+        {
+            idMgr.validateIdSettingsOfProject(data);
+        } catch (IdMgmtException idEx)
+        {
+            testE = idEx;
+        }
+        assertNotNull(testE);
+        assertTrue(testE.getMessage().contains(data.userGroup));
+        assertTrue(testE.getMessage().contains(data.adminGroup));
+        assertTrue(testE.getMessage().contains(data.readonlyGroup));
+
+        Mockito.when(manager.getSecurityServerClient()
+                .findPrincipalByName(principal.getName()))
+                .thenThrow(new UserNotFoundException(
+                        principal.getName()));
+
+        testE = null;
+        try
+        {
+            idMgr.validateIdSettingsOfProject(data);
+        } catch (IdMgmtException idEx)
+        {
+            testE = idEx;
+        }
+        assertNotNull(testE);
+        assertTrue(testE.getMessage().contains(data.userGroup));
+        assertTrue(testE.getMessage().contains(data.admin));
+
+    }
 }

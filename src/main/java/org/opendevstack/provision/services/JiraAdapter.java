@@ -1,25 +1,12 @@
 package org.opendevstack.provision.services;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.atlassian.jira.rest.client.domain.BasicUser;
-//import com.atlassian.jira.rest.client.domain.Project;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
 import java.util.ArrayList;
-//import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-//import okhttp3.Credentials;
-//import okhttp3.MediaType;
-//import okhttp3.Request;
-//import okhttp3.RequestBody;
-//import okhttp3.Response;
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
@@ -32,401 +19,528 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.atlassian.jira.rest.client.domain.BasicUser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+
 /**
- * created by:
- * OPITZ CONSULTING Deutschland GmbH
+ * created by: OPITZ CONSULTING Deutschland GmbH
  *
- * @author Brokmeier, Pascal <p> To communicate with Jira, we use the Jira REST API
- *         https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To ease the burden of
- *         working with a REST API, there is a jira client https://ecosystem.atlassian.net/wiki/display/JRJC/
+ * @author Brokmeier, Pascal
+ *         <p>
+ *         To communicate with Jira, we use the Jira REST API
+ *         https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To
+ *         ease the burden of working with a REST API, there is a jira client
+ *         https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
-public class JiraAdapter {
+public class JiraAdapter implements IBugtrackerAdapter
+{
 
-  private static final Logger logger = LoggerFactory.getLogger(JiraAdapter.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(JiraAdapter.class);
 
-  @Value("${jira.api.path}")
-  private String jiraApiPath;
+    @Value("${jira.api.path}")
+    private String jiraApiPath;
 
-  @Value("${jira.uri}")
-  private String jiraUri;
+    @Value("${jira.uri}")
+    private String jiraUri;
 
-  @Value("${jira.permission.filepattern}")
-  private String jiraPermissionFilePattern;
+    @Value("${jira.permission.filepattern}")
+    private String jiraPermissionFilePattern;
 
-  @Value("${jira.project.template.key}")
-  String jiraTemplateKey;
-  
-  @Value("${jira.project.template.type}")
-  String jiraTemplateType;
-  
-  //Pattern to use for project with id
-  private static String URL_PATTERN = "%s%s/project/%s";
+    public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
+    public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
 
-  @Autowired
-  CrowdUserDetailsService crowdUserDetailsService;
+    @Value("${jira.project.template.key}")
+    public String jiraTemplateKey;
 
-  @Autowired
-  CustomAuthenticationManager manager;
+    @Value("${jira.project.template.type}")
+    public String jiraTemplateType;
 
-  @Value("${global.keyuser.role.name}")
-  private String globalKeyuserRoleName;
-    
-  @Autowired
-  RestClient client;
+    @Value("${jira.project.notification.scheme.id:10000}")
+    String jiraNotificationSchemeId;
 
-  @Autowired
-  ConfigurableEnvironment environment;
+    // Pattern to use for project with id
+    private static final String URL_PATTERN = "%s%s/project/%s";
 
-  @Autowired
-  List<String> projectTemplateKeyNames;
+    @Autowired
+    CrowdUserDetailsService crowdUserDetailsService;
 
-  @Value("${project.template.default.key}")
-  private String defaultProjectKey;
-    
-  /**
-   * Based on the information in the project object we create a jira project
-   *
-   * @param project data from the frontend
-   * @param crowdCookieValue the value for the crowd cookie
-   */
-  public ProjectData createJiraProjectForProject(ProjectData project,
-      String crowdCookieValue) throws IOException {
-    try {
-      client.getSessionId(jiraUri);
+    @Autowired
+    CustomAuthenticationManager manager;
 
-      logger.debug("Creating new jira project");
+    @Value("${global.keyuser.role.name}")
+    private String globalKeyuserRoleName;
 
-      Preconditions.checkNotNull(project.key);
-      Preconditions.checkNotNull(project.name);
-      
-      if (!project.createpermissionset || project.admin == null || project.admin.trim().length() == 0) 
-      {
-    	  // set in any case - otherwise jira will be annoyed.
-          CrowdUserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookieValue);
-    	  project.admin = details.getUsername();
-      }
-      
-      FullJiraProject toBeCreated = 
-    		  this.buildJiraProjectPojoFromApiProject(project);
-      
-      FullJiraProject created = null;
-      try {
-    	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue); 
-      } catch (HttpException jiracreateException) 
-      {
-          logger.debug("error creating project with template {}: {}", 
-        		  toBeCreated.projectTemplateKey,
-        		  jiracreateException.getMessage());
-    	  if (jiracreateException.getResponseCode() == 400) {
-    		  logger.info("Template {} did not work, falling back to default {}", 
-    				 toBeCreated.projectTemplateKey, jiraTemplateKey);
-    		  toBeCreated.projectTypeKey = jiraTemplateType;
-    		  toBeCreated.projectTemplateKey = jiraTemplateKey;
-        	  created = this.callJiraCreateProjectApi(toBeCreated,crowdCookieValue);
-        	  project.projectType = defaultProjectKey;
-    	  } else 
-    	  {
-    		  throw jiracreateException;
-    	  }
-      }
-          
-      logger.debug("Created project: {}", created);
-      project.jiraUrl = String.format ("%s/browse/%s", jiraUri, created.getKey());
-      
-      if (project.createpermissionset) {
-        createPermissions(project,crowdCookieValue);
-      }
-      
-      return project;
-    } catch (IOException eCreationException) {
-      logger.error("Error in project creation", eCreationException);
-      throw eCreationException;
-    }
+    @Autowired
+    RestClient client;
 
-  }
+    @Autowired
+    ConfigurableEnvironment environment;
 
-  public FullJiraProject getProject(String id, String crowdCookieValue) {
-    String url = String.format(URL_PATTERN, jiraUri, jiraApiPath, id);
-      try {
-    	  return client.callHttp(url, null, crowdCookieValue, false, 
-    		RestClient.HTTP_VERB.GET, FullJiraProject.class);
-      } catch (IOException eGetProjects) 
-      {
-        logger.error("Error getting projects: {}", eGetProjects);
-        return null;
-      }
+    @Autowired
+    List<String> projectTemplateKeyNames;
 
-  }
+    @Value("${project.template.default.key}")
+    private String defaultProjectKey;
 
-  protected FullJiraProject callJiraCreateProjectApi(
-      FullJiraProject jiraProject, String crowdCookieValue)
-      throws IOException 
-  {
-    String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-	  
-	FullJiraProject created = client.callHttp(path, jiraProject, 
-			crowdCookieValue, false, RestClient.HTTP_VERB.POST, FullJiraProject.class);  
-    FullJiraProject returnProject = new FullJiraProject(created.getSelf(), created.getKey(),
-        jiraProject.getName(), jiraProject.getDescription(), null, null, null, null, null, null,
-        null, null);
-    returnProject.id = created.id;
-    return returnProject;
-  }
-
-  /**
-   * Create permission set for jira project
-   * @param project the project
-   * @param crowdCookieValue the crowd cookie
-   * @return the number of created permission sets
-   */
-  protected int createPermissions (ProjectData project, String crowdCookieValue) 
-  {
-      PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
-    	 Thread.currentThread().getContextClassLoader());
-      int updatedPermissions = 0;   
-      try 
-      {
-	      Resource [] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
-	      
-	      logger.debug("Found permissionsets: "+ permissionFiles.length);
-	      
-	      for (int i = 0; i < permissionFiles.length; i++)
-	      {
-		      PermissionScheme singleScheme = 
-		         new ObjectMapper().readValue(
-		    		permissionFiles[i].getInputStream(), PermissionScheme.class);
-		      
-		      String permissionSchemeName = project.key + " PERMISSION SCHEME";
-		      
-		      singleScheme.setName(permissionSchemeName);
-		      
-		      String description = project.description;
-		      if (description != null && description.length() > 0) {
-		    	  singleScheme.setDescription(description);
-		      } else 
-		      {
-		    	  singleScheme.setDescription(permissionSchemeName);
-		      }
-		      
-		      // replace group with real group
-		      for (Permission permission : singleScheme.getPermissions()) 
-		      {
-		    	  String group = permission.getHolder().getParameter();
-		    	  
-		    	  if ("adminGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.adminGroup);
-		    	  } else if ("userGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.userGroup);
-		    	  } else if ("readonlyGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(project.readonlyGroup);
-		    	  } else if ("keyuserGroup".equals(group)) {
-		    		  permission.getHolder().setParameter(globalKeyuserRoleName);
-		    	  } 
-		      }
-		      logger.debug("Update permissionScheme " + permissionSchemeName +
-		    	" location: " + permissionFiles[i].getFilename());
-		      
-		      String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-		      singleScheme = 
-		    		client.callHttp(path, singleScheme, crowdCookieValue, true, 
-		    			RestClient.HTTP_VERB.POST, PermissionScheme.class);
-		      
-		      // update jira project
-		      path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.key);
-		      PermissionScheme small = new PermissionScheme();
-		      small.setId(singleScheme.getId());
-		      client.callHttp(path, small, crowdCookieValue, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
-		      
-		      updatedPermissions++;
-	      }
-    	} catch (Exception createPermissions) 
-    	{
-  	    	// continue - we are ok if permissions fail, because the admin has access, and create the set
-    		logger.error("Could not update permissionset: " + project.key + "\n Exception: " 
-    				+ createPermissions.getMessage());
-    	}      
-      return updatedPermissions;
-  }
-  
-  protected FullJiraProject buildJiraProjectPojoFromApiProject(ProjectData s) 
-  {
-	BasicUser lead = new BasicUser(null, s.admin, s.admin);
-	  
-    String jiratemplateKeyPrefix = "jira.project.template.key.";
-    String jiratemplateTypePrefix = "jira.project.template.type.";
-    
-    String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType
-        (s, jiratemplateKeyPrefix, jiraTemplateKey);
-    		
-    String templateType = calculateJiraProjectTypeAndTemplateFromProjectType
-    	(s, jiratemplateTypePrefix, jiraTemplateType);
-    
-    if (jiraTemplateKey.equals(templateKey)) 
+    private FullJiraProject createProjectInJira(ProjectData project,
+            String crowdCookieValue, FullJiraProject toBeCreated)
+            throws IOException
     {
-    	s.projectType = defaultProjectKey;
+        FullJiraProject created;
+        try
+        {
+            created = this.callJiraCreateProjectApi(toBeCreated,
+                    crowdCookieValue);
+        } catch (HttpException jiracreateException)
+        {
+            logger.debug(
+                    "error creating project with template {}: {}",
+                    toBeCreated.projectTemplateKey,
+                    jiracreateException.getMessage());
+            if (jiracreateException.getResponseCode() == 400)
+            {
+                logger.info(
+                        "Template {} did not work, falling back to default {}",
+                        toBeCreated.projectTemplateKey,
+                        jiraTemplateKey);
+                toBeCreated.projectTypeKey = jiraTemplateType;
+                toBeCreated.projectTemplateKey = jiraTemplateKey;
+                created = this.callJiraCreateProjectApi(toBeCreated,
+                        crowdCookieValue);
+                project.projectType = defaultProjectKey;
+            } else
+            {
+                throw jiracreateException;
+            }
+        }
+        return created;
     }
-    		
-    logger.debug("Creating project of type: " + templateKey + " for project: "  + s.key);
 
-    return new FullJiraProject(null, s.key, s.name, s.description, lead, null, null, null, null, null,
-    		templateKey, templateType);
-  }
-
-  public String buildProjectKey(String name) {
-    //build key
-    String key = name;
-    key = key.toUpperCase();
-    key = key.replaceAll("\\s+", "");
-    key = key.replaceAll("-", "_");
-    key = key.length() > 5 ? (key.substring(0, 3) + key.substring(key.length()-2, key.length())) : key;
-    return key;
-  }
-
-  public boolean keyExists(String key, String crowdCookieValue) {
-    getSessionId();
-    List<FullJiraProject> projects = getProjects(crowdCookieValue, key);
-    for(FullJiraProject project : projects) {
-      String normalizedProject = project.getKey().trim();
-      String normalizedParam = key.trim();
-      if(normalizedParam.equalsIgnoreCase(normalizedProject)) {
-        return true;
-      }
-    }
-    return false; 
-  }
-
-  // refactor - to only look for the project by key that is to be created!
-  public List<FullJiraProject> getProjects(String crowdCookieValue, String filter) 
-  {
-    getSessionId();
-    logger.debug("Getting jira projects with filter {}", filter);
-    String url = 
-    	filter == null || filter.trim().length() == 0 ? String.format("%s%s/project", jiraUri, jiraApiPath) :
-        String.format("%s%s/project/%s", jiraUri, jiraApiPath, filter);
-    try {
-    	return client.callHttpTypeRef(url, null, crowdCookieValue, false, RestClient.HTTP_VERB.GET, 
-    		new TypeReference<List<FullJiraProject>>() {});
-    } catch (JsonMappingException e) {
-      // if for some odd reason serialization fails ... 
-      List<FullJiraProject> returnList = new ArrayList<>();
-      returnList.add(new FullJiraProject
-    		  (null, filter,filter,filter,null, null,null,null, null,null,null, null));
-    				  
-      return returnList;
-    } catch (IOException e) 
+    protected FullJiraProject callJiraCreateProjectApi(
+            FullJiraProject jiraProject, String crowdCookieValue)
+            throws IOException
     {
-      if (e instanceof HttpException && ((HttpException)e).getResponseCode() != 404)
-      {
-    	  logger.error("Error in getting projects", e);
-      }
-      // if for nothing else - 
-      return new ArrayList<FullJiraProject>();
+        String path = String.format("%s%s/project", jiraUri,
+                jiraApiPath);
+
+        FullJiraProject created = client.callHttp(path, jiraProject,
+                crowdCookieValue, false, RestClient.HTTP_VERB.POST,
+                FullJiraProject.class);
+        FullJiraProject returnProject = new FullJiraProject(
+                created.getSelf(), created.getKey(),
+                jiraProject.getName(), jiraProject.getDescription(),
+                null, null, null, null, null, null, null, null, null);
+        returnProject.id = created.id;
+        return returnProject;
     }
-  }
 
-  private void getSessionId() {
-    try {
-      client.getSessionId(jiraUri);
-    } catch(IOException ex) {
-      logger.error("Can not get session id", ex);
+    /**
+     * Create permission set for jira project
+     * 
+     * @param project
+     *            the project
+     * @param crowdCookieValue
+     *            the crowd cookie
+     * @return the number of created permission sets
+     */
+    protected int createPermissions(ProjectData project,
+            String crowdCookieValue)
+    {
+        PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
+                Thread.currentThread().getContextClassLoader());
+        int updatedPermissions = 0;
+        try
+        {
+            Resource[] permissionFiles = pmrl
+                    .getResources(jiraPermissionFilePattern);
+
+            logger.debug("Found permissionsets: {}",
+                    permissionFiles.length);
+
+            for (Resource permissionFile : permissionFiles)
+            {
+                PermissionScheme singleScheme = new ObjectMapper()
+                        .readValue(permissionFile.getInputStream(),
+                                PermissionScheme.class);
+
+                String permissionSchemeName = project.key
+                        + " PERMISSION SCHEME";
+
+                singleScheme.setName(permissionSchemeName);
+
+                String description = project.description;
+                if (description != null && description.length() > 0)
+                {
+                    singleScheme.setDescription(description);
+                } else
+                {
+                    singleScheme.setDescription(permissionSchemeName);
+                }
+
+                // replace group with real group
+                for (Permission permission : singleScheme
+                        .getPermissions())
+                {
+                    String group = permission.getHolder()
+                            .getParameter();
+
+                    if ("adminGroup".equals(group))
+                    {
+                        permission.getHolder()
+                                .setParameter(project.adminGroup);
+                    } else if ("userGroup".equals(group))
+                    {
+                        permission.getHolder()
+                                .setParameter(project.userGroup);
+                    } else if ("readonlyGroup".equals(group))
+                    {
+                        permission.getHolder()
+                                .setParameter(project.readonlyGroup);
+                    } else if ("keyuserGroup".equals(group))
+                    {
+                        permission.getHolder()
+                                .setParameter(globalKeyuserRoleName);
+                    }
+                }
+                logger.debug(
+                        "Update permissionScheme {} location: {}",
+                        permissionSchemeName,
+                        permissionFile.getFilename());
+
+                String path = String.format("%s%s/permissionscheme",
+                        jiraUri, jiraApiPath);
+                singleScheme = client.callHttp(path, singleScheme,
+                        crowdCookieValue, true,
+                        RestClient.HTTP_VERB.POST,
+                        PermissionScheme.class);
+
+                // update jira project
+                path = String.format(
+                        "%s%s/project/%s/permissionscheme", jiraUri,
+                        jiraApiPath, project.key);
+                PermissionScheme small = new PermissionScheme();
+                small.setId(singleScheme.getId());
+                client.callHttp(path, small, crowdCookieValue, true,
+                        RestClient.HTTP_VERB.PUT,
+                        FullJiraProject.class);
+
+                updatedPermissions++;
+            }
+        } catch (Exception createPermissions)
+        {
+            // continue - we are ok if permissions fail, because the admin has access, and
+            // create the set
+            logger.error("Could not update permissionset: "
+                    + project.key + "\n Exception: "
+                    + createPermissions.getMessage());
+        }
+        return updatedPermissions;
     }
-  }
 
-  public String getEndpointUri () {
-  	return jiraUri + jiraApiPath;
-  } 
-  
-  public int addShortcutsToProject (ProjectData data, String crowdCookieValue) 
-  {
-	if (!data.jiraconfluencespace) {
-		return -1;
-	}
-	  
-    String path = String.format("%s/rest/projects/1.0/project/%s/shortcut", jiraUri, data.key);
+    protected FullJiraProject buildJiraProjectPojoFromApiProject(
+            ProjectData s)
+    {
 
-    List<Shortcut> shortcuts = new ArrayList<>();
-    
-    int id = 1;
-    int createdShortcuts = 0;
-    
-	Shortcut shortcutConfluence = new Shortcut();
-		shortcutConfluence.setId("" + id++);
-		shortcutConfluence.setName("Confluence: " + data.key);
-		shortcutConfluence.setUrl(data.confluenceUrl);
-		shortcutConfluence.setIcon("");
-		shortcuts.add(shortcutConfluence);
-		
-	if (data.openshiftproject)
-	{
-	    Shortcut shortcutBB = new Shortcut();
-	    	shortcutBB.setId("" + id++);
-	    	shortcutBB.setName("GIT: " + data.key);
-	    	shortcutBB.setUrl(data.bitbucketUrl);
-	    	shortcutBB.setIcon("");
-	        shortcuts.add(shortcutBB);
-	        
-	    Shortcut shortcutJenkins = new Shortcut();
-	    	shortcutJenkins.setId("" + id++);
-	    	shortcutJenkins.setName("Jenkins");
-	    	shortcutJenkins.setUrl(data.openshiftJenkinsUrl);
-	    	shortcutJenkins.setIcon("");
-	        shortcuts.add(shortcutJenkins);
-	
-	    Shortcut shortcutOCDev = new Shortcut();
-	    	shortcutOCDev.setId("" + id++);
-	    	shortcutOCDev.setName("OC Dev " + data.key);
-	    	shortcutOCDev.setUrl(data.openshiftConsoleDevEnvUrl);
-	    	shortcutOCDev.setIcon("");
-	        shortcuts.add(shortcutOCDev);
-	
-		Shortcut shortcutOCTest = new Shortcut();
-			shortcutOCTest.setId("" + id);
-			shortcutOCTest.setName("OC Test " + data.key);
-			shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
-			shortcutOCTest.setIcon("");
-	        shortcuts.add(shortcutOCTest);
-	}
-	    	
-	for (Shortcut shortcut : shortcuts) 
-	{
-		logger.debug("Attempting to create shortcut (" + shortcut.getId()
-			+ ") for: " + shortcut.getName());
-		try 
-		{
-			client.callHttp(path, shortcut, crowdCookieValue, false, RestClient.HTTP_VERB.POST, Shortcut.class);
-		    createdShortcuts++;
-		} catch (IOException shortcutEx) 
-		{
-			logger.error("Could not create shortcut for: " + shortcut.getName() + 
-				" Error: " + shortcutEx.getMessage());
-		}
-	}
-	return createdShortcuts;
-  }
+        BasicUser lead = new BasicUser(null, s.admin, s.admin);
 
-  String calculateJiraProjectTypeAndTemplateFromProjectType 
-  	(ProjectData project, String templatePrefix, String defaultValue) 
-  {
-	  Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
-	  Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
-	  /*
-	   * if the type can be found in the global definition of types (projectTemplateKeyNames)
-	   * and is also configured for jira (environment.containsProperty) - take it, if not
-	   * fall back to default
-	   */
-	  return
-    	(project.projectType != null && 
-    		environment.containsProperty(templatePrefix + project.projectType) && 
-    		projectTemplateKeyNames.contains(project.projectType)) ?
-    		environment.getProperty(templatePrefix + project.projectType) : defaultValue;
-	  
-  }
-  
+        String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType(
+                s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
+
+        String templateType = calculateJiraProjectTypeAndTemplateFromProjectType(
+                s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+
+        if (jiraTemplateKey.equals(templateKey))
+        {
+            s.projectType = defaultProjectKey;
+        }
+
+        logger.debug("Creating project of type: {} for project: {}",
+                templateKey, s.key);
+
+        return new FullJiraProject(null, s.key, s.name, s.description,
+                lead, null, null, null, null, null, templateKey,
+                templateType, jiraNotificationSchemeId);
+    }
+
+    public String buildProjectKey(String name)
+    {
+        // build key
+        String key = name;
+        key = key.toUpperCase();
+        key = key.replaceAll("\\s+", "");
+        key = key.replaceAll("-", "_");
+        key = key.length() > 5
+                ? (key.substring(0, 3)
+                        + key.substring(key.length() - 2))
+                : key;
+        return key;
+    }
+
+    public boolean keyExists(String key, String crowdCookieValue)
+    {
+        Preconditions.checkNotNull(key,
+                "Key for keyExists cannot be null");
+        getSessionId();
+        Map<String, String> projectKeyMap = getProjects(
+                crowdCookieValue, key);
+
+        return (projectKeyMap.containsKey(key)
+                || (projectKeyMap.containsValue(key)));
+    }
+
+    // refactor - to only look for the project by key that is to be created!
+    public Map<String, String> getProjects(String crowdCookieValue,
+            String filter)
+    {
+        getSessionId();
+        logger.debug("Getting jira projects with filter {}", filter);
+        String url = filter == null || filter.trim().length() == 0
+                ? String.format("%s%s/project", jiraUri, jiraApiPath)
+                : String.format(URL_PATTERN, jiraUri, jiraApiPath,
+                        filter);
+
+        try
+        {
+            List<FullJiraProject> projects = client.callHttpTypeRef(
+                    url, null, crowdCookieValue, false,
+                    RestClient.HTTP_VERB.GET,
+                    new TypeReference<List<FullJiraProject>>()
+                    {
+                    });
+            return convertJiraProjectToKeyMap(projects);
+        } catch (JsonMappingException e)
+        {
+            // if for some odd reason serialization fails ...
+            Map<String, String> foundProjects = new HashMap<>();
+            foundProjects.put(filter, filter);
+            return foundProjects;
+        } catch (IOException e)
+        {
+            return convertJiraProjectToKeyMap(null);
+        }
+    }
+
+    private void getSessionId()
+    {
+        try
+        {
+            client.getSessionId(jiraUri);
+        } catch (IOException ex)
+        {
+            logger.error("Can not get session id", ex);
+        }
+    }
+
+    public int addShortcutsToProject(ProjectData data,
+            String crowdCookieValue)
+    {
+        if (!data.jiraconfluencespace)
+        {
+            return -1;
+        }
+
+        String path = String.format(
+                "%s/rest/projects/1.0/project/%s/shortcut", jiraUri,
+                data.key);
+
+        List<Shortcut> shortcuts = new ArrayList<>();
+
+        int id = 1;
+        int createdShortcuts = 0;
+
+        Shortcut shortcutConfluence = new Shortcut();
+        shortcutConfluence.setId("" + id++);
+        shortcutConfluence.setName("Confluence: " + data.key);
+        shortcutConfluence.setUrl(data.confluenceUrl);
+        shortcutConfluence.setIcon("");
+        shortcuts.add(shortcutConfluence);
+
+        if (data.openshiftproject)
+        {
+            Shortcut shortcutBB = new Shortcut();
+            shortcutBB.setId("" + id++);
+            shortcutBB.setName("GIT: " + data.key);
+            shortcutBB.setUrl(data.bitbucketUrl);
+            shortcutBB.setIcon("");
+            shortcuts.add(shortcutBB);
+
+            Shortcut shortcutJenkins = new Shortcut();
+            shortcutJenkins.setId("" + id++);
+            shortcutJenkins.setName("Jenkins");
+            shortcutJenkins.setUrl(data.openshiftJenkinsUrl);
+            shortcutJenkins.setIcon("");
+            shortcuts.add(shortcutJenkins);
+
+            Shortcut shortcutOCDev = new Shortcut();
+            shortcutOCDev.setId("" + id++);
+            shortcutOCDev.setName("OC Dev " + data.key);
+            shortcutOCDev.setUrl(data.openshiftConsoleDevEnvUrl);
+            shortcutOCDev.setIcon("");
+            shortcuts.add(shortcutOCDev);
+
+            Shortcut shortcutOCTest = new Shortcut();
+            shortcutOCTest.setId("" + id);
+            shortcutOCTest.setName("OC Test " + data.key);
+            shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
+            shortcutOCTest.setIcon("");
+            shortcuts.add(shortcutOCTest);
+        }
+
+        for (Shortcut shortcut : shortcuts)
+        {
+            logger.debug("Attempting to create shortcut ({}) for: {}",
+                    shortcut.getId(), shortcut.getName());
+            try
+            {
+                client.callHttp(path, shortcut, crowdCookieValue,
+                        false, RestClient.HTTP_VERB.POST,
+                        Shortcut.class);
+                createdShortcuts++;
+            } catch (HttpException httpEx)
+            {
+                if (httpEx.getResponseCode() == 401)
+                {
+                    logger.error("Could not create shortcut for: "
+                            + shortcut.getName() + " Error: "
+                            + httpEx.getMessage());
+                    // if you get a 401 here - we can't reach the project, so stop
+                    break;
+                }
+            } catch (IOException shortcutEx)
+            {
+                logger.error("Could not create shortcut for: "
+                        + shortcut.getName() + " Error: "
+                        + shortcutEx.getMessage());
+            }
+        }
+        return createdShortcuts;
+    }
+
+    public String calculateJiraProjectTypeAndTemplateFromProjectType(
+            ProjectData project, String templatePrefix,
+            String defaultValue)
+    {
+        Preconditions.checkNotNull(templatePrefix,
+                "no template prefix passed");
+        Preconditions.checkNotNull(defaultValue,
+                "no defaultValue passed");
+        /*
+         * if the type can be found in the global definition of types
+         * (projectTemplateKeyNames) and is also configured for jira
+         * (environment.containsProperty) - take it, if not fall back to default
+         */
+        return (project.projectType != null
+                && environment.containsProperty(
+                        templatePrefix + project.projectType)
+                && projectTemplateKeyNames
+                        .contains(project.projectType))
+                                ? environment
+                                        .getProperty(templatePrefix
+                                                + project.projectType)
+                                : defaultValue;
+
+    }
+
+    Map<String, String> convertJiraProjectToKeyMap(
+            List<FullJiraProject> projects)
+    {
+        Map<String, String> keyMap = new HashMap<>();
+        if (projects == null || projects.size() == 0)
+        {
+            return keyMap;
+        }
+
+        for (FullJiraProject project : projects)
+        {
+            keyMap.put(project.getKey(), project.getName());
+        }
+        return keyMap;
+    }
+
+    @Override
+    public String getAdapterApiUri()
+    {
+        return jiraUri + jiraApiPath;
+    }
+
+    @Override
+    public ProjectData createBugtrackerProjectForODSProject(
+            ProjectData project, String crowdCookieValue)
+            throws IOException
+    {
+        try
+        {
+            client.getSessionId(jiraUri);
+
+            logger.debug("Creating new jira project");
+
+            Preconditions.checkNotNull(project.key);
+            Preconditions.checkNotNull(project.name);
+
+            if (!project.createpermissionset || project.admin == null
+                    || project.admin.trim().length() == 0)
+            {
+                // set in any case - otherwise jira will be annoyed.
+                CrowdUserDetails details = crowdUserDetailsService
+                        .loadUserByToken(crowdCookieValue);
+                project.admin = details.getUsername();
+            }
+
+            FullJiraProject toBeCreated = this
+                    .buildJiraProjectPojoFromApiProject(project);
+
+            FullJiraProject created;
+            created = createProjectInJira(project, crowdCookieValue,
+                    toBeCreated);
+
+            logger.debug("Created project: {}", created);
+            project.jiraUrl = String.format("%s/browse/%s", jiraUri,
+                    created.getKey());
+
+            if (project.createpermissionset)
+            {
+                createPermissions(project, crowdCookieValue);
+            }
+
+            return project;
+        } catch (IOException eCreationException)
+        {
+            logger.error("Error in project creation",
+                    eCreationException);
+            throw eCreationException;
+        }
+    }
+
+    @Override
+    public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
+            ProjectData project)
+    {
+        Map<PROJECT_TEMPLATE, String> template = new HashMap<>();
+
+        template.put(PROJECT_TEMPLATE.TEMPLATE_KEY,
+                calculateJiraProjectTypeAndTemplateFromProjectType(
+                        project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX,
+                        jiraTemplateKey));
+
+        template.put(PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
+                calculateJiraProjectTypeAndTemplateFromProjectType(
+                        project,
+                        JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX,
+                        jiraTemplateType));
+
+        return template;
+    }
+
 }

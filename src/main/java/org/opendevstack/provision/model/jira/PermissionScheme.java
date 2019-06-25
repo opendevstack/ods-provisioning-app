@@ -23,15 +23,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = {"JSON-to-Pojo-Generator"})
+@Generated(value = { "JSON-to-Pojo-Generator" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({
-    "name",
-    "description",
-    "permissions"
-})
-public class PermissionScheme {
+@JsonPropertyOrder({ "name", "description", "permissions" })
+public class PermissionScheme
+{
 
     @JsonProperty("name")
     private String name;
@@ -43,43 +40,50 @@ public class PermissionScheme {
     private String id;
 
     @JsonProperty("name")
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
     @JsonProperty("name")
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
     @JsonProperty("description")
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
     @JsonProperty("description")
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 
     @JsonProperty("id")
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 
     @JsonProperty("id")
-    public void setId(String id) {
+    public void setId(String id)
+    {
         this.id = id;
     }
-    
-    
+
     @JsonProperty("permissions")
-    public List<Permission> getPermissions() {
+    public List<Permission> getPermissions()
+    {
         return permissions;
     }
 
     @JsonProperty("permissions")
-    public void setPermissions(List<Permission> permissions) {
+    public void setPermissions(List<Permission> permissions)
+    {
         this.permissions = permissions;
     }
 

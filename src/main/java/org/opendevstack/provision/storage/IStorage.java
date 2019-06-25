@@ -23,16 +23,19 @@ import org.opendevstack.provision.model.ProjectData;
  * @author Torsten Jaeschke
  */
 
-public interface IStorage {
-  String storeProject(ProjectData project) throws IOException;
+public interface IStorage
+{
+    String storeProject(ProjectData project) throws IOException;
 
-  Map<String, ProjectData> listProjectHistory();
+    Map<String, ProjectData> listProjectHistory();
 
-  ProjectData getProject(String id);
+    ProjectData getProject(String id);
 
-  boolean updateStoredProject(ProjectData project) throws IOException;
+    boolean updateStoredProject(ProjectData project)
+            throws IOException;
 
-  String storeAboutChangesData(AboutChangesData aboutData) throws IOException;
+    String storeAboutChangesData(AboutChangesData aboutData)
+            throws IOException;
 
-  AboutChangesData listAboutChangesData();
+    AboutChangesData listAboutChangesData();
 }

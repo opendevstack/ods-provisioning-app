@@ -30,75 +30,94 @@ import org.springframework.stereotype.Service;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
- * Service to interact with the underlying storage system to liast the project history
+ * Service to interact with the underlying storage system to liast the project
+ * history
  *
  * @author Torsten Jaeschke
  */
 
 @Service
-public class StorageAdapter {
+public class StorageAdapter
+{
 
-  @Autowired
-  IStorage storage;
+    @Autowired
+    IStorage storage;
 
-  private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(StorageAdapter.class);
 
-  public Map<String, ProjectData> listProjectHistory() {
-	 
-	 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-    	 return new HashMap<String, ProjectData>();
-	 }
-	  
-     CrowdUserDetails userDetails =
-        (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-	 
-     // security!
-     if (userDetails == null) {
-    	 return new HashMap<String, ProjectData>();
-     }
-     
-	 Map<String, ProjectData> allProjects = storage.listProjectHistory();
-	 Map<String, ProjectData> filteredProjects = new HashMap<String, ProjectData>();
-	 
-	 Collection <GrantedAuthority> authorities = userDetails.getAuthorities();
-     logger.debug("User: "+ userDetails.getUsername() + "\n" + authorities);
-	 
-	 for (Map.Entry<String, ProjectData> project : allProjects.entrySet()) 
-	 {
-		 ProjectData projectData = project.getValue();
-		 logger.debug("Project: " + projectData.key + 
-			 " groups: " + projectData.adminGroup + "," + projectData.userGroup + 
-			 " > " + projectData.createpermissionset);
-		 
-		 if (!projectData.createpermissionset)
-		 {
-			 filteredProjects.put(projectData.key, projectData);
-		 } else 
-		 {
-			 for (GrantedAuthority authority : authorities) 
-			 {
-				 if (authority.getAuthority().equalsIgnoreCase(projectData.adminGroup) || 
-				     authority.getAuthority().equalsIgnoreCase(projectData.userGroup)) 
-				 {
-					 filteredProjects.put(projectData.key, projectData);
-					 break;
-				 }
-			 }
-		 }
-	 }
-	 
-	 return filteredProjects;
-  }  
-  
-  public ProjectData getProject(String key) {
-	return storage.getProject(key);
-  }
+    public Map<String, ProjectData> listProjectHistory()
+    {
 
-  public AboutChangesData listAboutChangesData() {
-    return storage.listAboutChangesData();
-  }
+        if (SecurityContextHolder.getContext()
+                .getAuthentication() == null)
+        {
+            return new HashMap<>();
+        }
 
-  void setStorage (IStorage storage) {
-	this.storage = storage;
-  }
+        CrowdUserDetails userDetails = (CrowdUserDetails) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal();
+
+        // security!
+        if (userDetails == null)
+        {
+            return new HashMap<>();
+        }
+
+        Map<String, ProjectData> allProjects = storage
+                .listProjectHistory();
+        Map<String, ProjectData> filteredProjects = new HashMap<>();
+
+        Collection<GrantedAuthority> authorities = userDetails
+                .getAuthorities();
+        logger.debug("User: {} \n {}", userDetails.getUsername(),
+                authorities);
+
+        for (Map.Entry<String, ProjectData> project : allProjects
+                .entrySet())
+        {
+            ProjectData projectData = project.getValue();
+            logger.debug("Project: {} groups: {},{} > {}",
+                    projectData.key, projectData.adminGroup,
+                    projectData.userGroup,
+                    projectData.createpermissionset);
+
+            if (!projectData.createpermissionset)
+            {
+                filteredProjects.put(projectData.key, projectData);
+            } else
+            {
+                for (GrantedAuthority authority : authorities)
+                {
+                    if (authority.getAuthority()
+                            .equalsIgnoreCase(projectData.adminGroup)
+                            || authority.getAuthority()
+                                    .equalsIgnoreCase(
+                                            projectData.userGroup))
+                    {
+                        filteredProjects.put(projectData.key,
+                                projectData);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return filteredProjects;
+    }
+
+    public ProjectData getProject(String key)
+    {
+        return storage.getProject(key);
+    }
+
+    public AboutChangesData listAboutChangesData()
+    {
+        return storage.listAboutChangesData();
+    }
+
+    void setStorage(IStorage storage)
+    {
+        this.storage = storage;
+    }
 }

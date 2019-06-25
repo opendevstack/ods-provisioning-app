@@ -14,7 +14,10 @@
 package org.opendevstack.provision.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -45,286 +48,346 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Abstraction to handle the OkHTTP client and use it in the same way from different classes to
- * prevent redundant code.
+ * Abstraction to handle the OkHTTP client and use it in the same way from
+ * different classes to prevent redundant code.
  *
  * @author Torsten Jaeschke
  */
 
 @Component
-public class RestClient {
+public class RestClient
+{
 
-  private static final Logger logger = LoggerFactory.getLogger(RestClient.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(RestClient.class);
 
-  private static final MediaType JSON_MEDIA_TYPE = MediaType
-	      .parse("application/json; charset=utf-8");
+    private static final MediaType JSON_MEDIA_TYPE = MediaType
+            .parse("application/json; charset=utf-8");
 
-  CrowdCookieJar cookieJar;
+    CrowdCookieJar cookieJar;
 
-  int connectTimeout = 30;
+    int connectTimeout = 30;
 
-  int readTimeout = 60;
-  
-  private Map<String, OkHttpClient> cache = new HashMap<>();
+    int readTimeout = 60;
 
-  @Autowired
-  CrowdUserDetailsService crowdUserDetailsService;
+    private Map<String, OkHttpClient> cache = new HashMap<>();
 
-  @Autowired
-  CustomAuthenticationManager manager;
+    private static final List<Integer> RETRY_HTTP_CODES = new ArrayList<>(
+            Arrays.asList(401, 403, 500));
 
-  public static enum HTTP_VERB {
-	  PUT, 
-	  POST,
-	  GET,
-	  HEAD
-  }  
- 
-  public static enum HTTP_POST_TYPE {
-	  URL,
-	  FORM
-  }
+    @Autowired
+    CrowdUserDetailsService crowdUserDetailsService;
 
-  OkHttpClient getClient(String crowdCookie) {
-	  
-	OkHttpClient client = cache.get(crowdCookie);
-	if (client != null) {
-		return client;
-	}
-	
-    OkHttpClient.Builder builder = new Builder();
-    if (null != crowdCookie) {
-      cookieJar.addCrowdCookie(crowdCookie);
-    }
-    builder.cookieJar(cookieJar).connectTimeout(connectTimeout, TimeUnit.SECONDS)
-        .readTimeout(readTimeout, TimeUnit.SECONDS);
-    client = builder.build();
-    cache.put(crowdCookie, client);
-    return client;
-  }  
+    @Autowired
+    CustomAuthenticationManager manager;
 
-  public OkHttpClient getClientFresh(String crowdCookie) {
-	cache.remove(crowdCookie);
-    cookieJar.clear();
-    return getClient(null);
-  }  
-  
-  public void getSessionId(String url) throws IOException 
-  {
-	  try 
-	  {
-		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, 
-				null, null, null);
-	  } catch (HttpException httpX) {
-		  if (httpX.getResponseCode() != 401) 
-		  {
-			  throw httpX;
-		  }
-	  }
-  }
-
-  public <T> T callHttpPut(String url, Map<String,String> input, String crowdCookieValue, 
-		boolean directAuth)
-			throws JsonMappingException, HttpException, IOException
-  {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, 
-			HTTP_VERB.PUT, null, null, HTTP_POST_TYPE.URL);
-  }
-  
-  
-  public <T> T callHttp(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
-  {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null, null);
-  }
-
-  public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
-  {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType, null);
-  }
-  
-  private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
-		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef, 
-		  HTTP_POST_TYPE contentType)
-      throws JsonMappingException, HttpException, IOException
-  {
-	Preconditions.checkNotNull(url, "Url cannot be null");
-	Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
-	  
-	String json = null;
-
-	logger.debug("Calling url: " + url);
-	
-    RequestBody body = null;
-    
-    if (HTTP_POST_TYPE.FORM.equals(contentType) && input instanceof Map)
+    public enum HTTP_VERB
     {
-    	FormBody.Builder formBuilder = new FormBody.Builder();
-    	for (Map.Entry<String, String> entry : ((Map<String,String>)input).entrySet())
-    	{
-    		formBuilder.add(entry.getKey(), entry.getValue());
-    	}
-    	body = formBuilder.build();
-    }
-    else if (HTTP_POST_TYPE.URL.equals(contentType) && input instanceof Map) 
-    {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-    	for (Map.Entry<String, String> entry : ((Map<String,String>)input).entrySet())
-    	{
-	        urlBuilder.addQueryParameter(entry.getKey(), entry.getValue());
-    	}
-    	url = urlBuilder.toString();
-    }
-    else 
-    {
-    	if (input == null) 
-    	{
-    		json = "";
-    	    logger.debug("Null payload");
-    	} else if (input instanceof String) 
-    	{
-    		json = (String)input;
-    	    logger.debug("Passed String rest object: [{}]", json);
-    	} else
-    	{
-    	    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    	    json = ow.writeValueAsString(input);
-    	    logger.debug("Converted rest object: {}", json);
-    	}
-
-    	body = RequestBody.create(JSON_MEDIA_TYPE, json);
+        PUT, POST, GET, HEAD
     }
 
-    okhttp3.Request.Builder builder = new Request.Builder();
-    builder.url(url).addHeader("X-Atlassian-Token", "no-check").
-    	addHeader("Accept", "application/json");
-    
-    if (HTTP_VERB.PUT.equals(verb))
+    public static enum HTTP_POST_TYPE
     {
-        builder = builder.put(body);
-    } else if (HTTP_VERB.GET.equals(verb))
-    {
-    	builder = builder.get();
-    } else if (HTTP_VERB.POST.equals(verb))
-    {
-    	builder = builder.post(body);
-    } else if (HTTP_VERB.HEAD.equals(verb))
-    {
-    	builder = builder.head();
-    }
-    
-    Response response = null;
-    if (directAuth)
-    {
-    	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.
-				loadUserByToken(crowdCookieValue).getUsername(),
-				manager.getUserPassword());
-    	builder = builder.addHeader("Authorization", credentials);
-    	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
-    }
-    else 
-    {
-    	response = getClient(crowdCookieValue).newCall(builder.build()).execute();	
-    }
-    	    
-    String respBody = response.body().string();
-    response.close();
-    logger.debug(url + " > " + response.code() + 
-    	(respBody == null || respBody.trim().length() == 0 ?
-    		"" : (": \n" + respBody  )) + " : " + verb);
-    
-    if (response.code() < 200 || response.code() >= 300)
-    {
-      throw new HttpException(response.code(), 
-    	"Could not " + verb + " > "  + url + " : " + respBody);
+        URL, FORM
     }
 
-    if (returnType == null && returnTypeRef == null) 
+    OkHttpClient getClient(String crowdCookie)
     {
-    	return null;
-    } else if (returnType != null) 
-    {
-    	if (returnType.isAssignableFrom(String.class)) 
-    	{
-    		return (T)new String(respBody);
-    	}
-    	return (T)new ObjectMapper().readValue(respBody, returnType);
-    } else
-    {
-    	return (T)new ObjectMapper().readValue(respBody, returnTypeRef);
+
+        OkHttpClient client = cache.get(crowdCookie);
+        if (client != null)
+        {
+            return client;
+        }
+
+        OkHttpClient.Builder builder = new Builder();
+        if (null != crowdCookie)
+        {
+            cookieJar.addCrowdCookie(crowdCookie);
+        }
+        builder.cookieJar(cookieJar)
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS);
+        client = builder.build();
+        cache.put(crowdCookie, client);
+        return client;
     }
-  }
 
-  public void callHttpBasicFormAuthenticate(String url) throws IOException 
-  {
-	Preconditions.checkNotNull(url, "Url cannot be null");
-	Preconditions.checkNotNull(SecurityContextHolder.getContext().getAuthentication(),
-		"Cannot auth with null principal");
-    CrowdUserDetails userDetails =
-        (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public OkHttpClient getClientFresh(String crowdCookie)
+    {
+        cache.remove(crowdCookie);
+        cookieJar.clear();
+        return getClient(null);
+    }
 
-//    String username = userDetails.getUsername();
-//    String password = manager.getUserPassword();
+    public void getSessionId(String url) throws IOException
+    {
+        try
+        {
+            callHttpInternal(url, null, null, false, HTTP_VERB.HEAD,
+                    null, null);
+        } catch (HttpException httpX)
+        {
+            if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
+            {
+                callHttpInternal(url, null, null, true,
+                        HTTP_VERB.HEAD, null, null);
+            } else
+            {
+                throw httpX;
+            }
+        }
+    }
 
-    Map<String, String> params = new HashMap<>();
-    params.put("j_username", userDetails.getUsername());
-    params.put("j_password", manager.getUserPassword());
-    
-//    RequestBody body =
-//        new FormBody.Builder().add("j_username", username).add("j_password", password).build();
-//    Request request = new Request.Builder()
-//        .url(url).post(body)
-//        .build();
-//    Response response = null;
-//    try 
-//    {
-//    	response = getClient(null).newCall(request).execute();
-//    	if (response.isSuccessful()) 
-//    	{
-//    		logger.debug("Successful form based auth");
-//    	} else {
-//    		throw new IOException("Could not authenticate: " + username + 
-//    			" : " + response.body());
-//    	}
-//    }
-//    finally {
-//    	if (response != null)
-//    		response.close();
-//    }
-     callHttpInternal(url, params, null, true, HTTP_VERB.POST, 
-    	null, null, HTTP_POST_TYPE.FORM);
-  }
+    public <T> T callHttpPut(String url, Map<String, String> input,
+            String crowdCookieValue, boolean directAuth)
+            throws JsonMappingException, HttpException, IOException
+    {
+        return callHttpInternal(url, input, crowdCookieValue,
+                directAuth, HTTP_VERB.PUT, null, null);
+    }
 
+    public <T> T callHttp(String url, Object input,
+            String crowdCookieValue, boolean directAuth,
+            HTTP_VERB verb, Class<T> returnType)
+            throws HttpException, IOException
+    {
+        try
+        {
+            return callHttpInternal(url, input, crowdCookieValue,
+                    directAuth, verb, returnType, null);
+        } catch (HttpException httpException)
+        {
+            if (RETRY_HTTP_CODES
+                    .contains(httpException.getResponseCode()))
+            {
+                logger.debug("401 - retrying with direct auth");
+                return callHttpInternal(url, input, crowdCookieValue,
+                        true, verb, returnType, null);
+            } else
+            {
+                throw httpException;
+            }
+        }
+    }
 
-  @Autowired
-  public void setCookieJar(CrowdCookieJar cookieJar) {
-    this.cookieJar = cookieJar;
-  }
+    public <T> T callHttpTypeRef(String url, Object input,
+            String crowdCookieValue, boolean directAuth,
+            HTTP_VERB verb, TypeReference<T> returnType)
+            throws HttpException, IOException
+    {
+        try
+        {
+            return callHttpInternal(url, input, crowdCookieValue,
+                    directAuth, verb, null, returnType);
+        } catch (HttpException httpException)
+        {
+            if (RETRY_HTTP_CODES
+                    .contains(httpException.getResponseCode()))
+            {
+                logger.debug("401 - retrying with direct auth");
+                return callHttpInternal(url, input, crowdCookieValue,
+                        true, verb, null, returnType);
+            } else
+            {
+                throw httpException;
+            }
+        }
+    }
 
-  public int getConnectTimeout() {
-    return connectTimeout;
-  }
+    private <T> T callHttpInternal(String url, Object input,
+            String crowdCookieValue, boolean directAuth,
+            HTTP_VERB verb, Class returnType,
+            TypeReference returnTypeRef)
+            throws HttpException, IOException
+    {
+        Preconditions.checkNotNull(url, "Url cannot be null");
+        Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
 
-  public void setConnectTimeout(int connectTimeout) {
-    this.connectTimeout = connectTimeout;
-  }
+        String json = null;
 
-  public int getReadTimeout() {
-    return readTimeout;
-  }
+        logger.debug("Calling url: " + url);
 
-  public void setReadTimeout(int readTimeout) {
-    this.readTimeout = readTimeout;
-  }
-  
-  public void removeClient (String crowdCookieValue) {
-	  if (crowdCookieValue == null) {
-		  return;
-	  }
-	  cache.remove(crowdCookieValue);
-  }
+        RequestBody body = null;
+
+        if (HTTP_POST_TYPE.FORM.equals(HTTP_POST_TYPE.FORM)
+                && input instanceof Map)
+        {
+            FormBody.Builder formBuilder = new FormBody.Builder();
+            for (Map.Entry<String, String> entry : ((Map<String, String>) input)
+                    .entrySet())
+            {
+                formBuilder.add(entry.getKey(), entry.getValue());
+            }
+            body = formBuilder.build();
+        } else if (HTTP_POST_TYPE.URL.equals(HTTP_POST_TYPE.URL)
+                && input instanceof Map)
+        {
+            HttpUrl.Builder urlBuilder = HttpUrl.parse(url)
+                    .newBuilder();
+            for (Map.Entry<String, String> entry : ((Map<String, String>) input)
+                    .entrySet())
+            {
+                urlBuilder.addQueryParameter(entry.getKey(),
+                        entry.getValue());
+            }
+            url = urlBuilder.toString();
+        } else
+        {
+            if (input == null)
+            {
+                json = "";
+                logger.debug("Null payload");
+            } else if (input instanceof String)
+            {
+                json = (String) input;
+                logger.debug("Passed String rest object: [{}]", json);
+            } else
+            {
+                ObjectWriter ow = new ObjectMapper().writer()
+                        .withDefaultPrettyPrinter();
+                json = ow.writeValueAsString(input);
+                logger.debug("Converted rest object: {}", json);
+            }
+
+            body = RequestBody.create(JSON_MEDIA_TYPE, json);
+        }
+
+        okhttp3.Request.Builder builder = new Request.Builder();
+        builder.url(url).addHeader("X-Atlassian-Token", "no-check")
+                .addHeader("Accept", "application/json");
+
+        switch (verb) {
+            case PUT:
+                builder = builder.put(body);
+                break;
+            case GET:
+                builder = builder.get();
+                break;
+            case POST:
+                builder = builder.post(body);
+                break;
+            case HEAD:
+                builder = builder.head();
+                break;
+            default:
+                builder = builder.head();
+                break;
+        }
+
+        Response response = null;
+        if (directAuth)
+        {
+            String currentUser = SecurityContextHolder.getContext()
+                    .getAuthentication().getName();
+            logger.debug("Authenticating rest call with {}",
+                    currentUser);
+            String credentials = Credentials.basic(currentUser,
+                    manager.getUserPassword());
+            builder = builder.addHeader("Authorization", credentials);
+            response = getClientFresh(crowdCookieValue)
+                    .newCall(builder.build()).execute();
+        } else
+        {
+            response = getClient(crowdCookieValue)
+                    .newCall(builder.build()).execute();
+        }
+
+        String respBody = response.body().string();
+        logger.debug(url + " > " + verb + " >> " + response.code()
+                + ": \n" + respBody);
+
+        if (response.code() < 200 || response.code() >= 300)
+        {
+            throw new HttpException(response.code(), "Could not "
+                    + verb + " > " + url + " : " + respBody);
+        }
+
+        if (returnType == null && returnTypeRef == null)
+        {
+            return null;
+        } else if (returnType != null)
+        {
+            if (returnType.isAssignableFrom(String.class))
+            {
+                return (T) respBody;
+            }
+            return (T) new ObjectMapper().readValue(respBody,
+                    returnType);
+        } else
+        {
+            return (T) new ObjectMapper().readValue(respBody,
+                    returnTypeRef);
+        }
+    }
+
+    public void callHttpBasicFormAuthenticate(String url)
+            throws IOException
+    {
+        Preconditions.checkNotNull(url, "Url cannot be null");
+        Preconditions.checkNotNull(
+                SecurityContextHolder.getContext()
+                        .getAuthentication(),
+                "Cannot auth with null principal");
+        CrowdUserDetails userDetails = (CrowdUserDetails) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal();
+
+        String username = userDetails.getUsername();
+        String password = manager.getUserPassword();
+
+        Map<String, String> params = new HashMap<>();
+        params.put("j_username", userDetails.getUsername());
+        params.put("j_password", manager.getUserPassword());
+
+        RequestBody body = new FormBody.Builder()
+                .add("j_username", username)
+                .add("j_password", password).build();
+        Request request = new Request.Builder().url(url).post(body)
+                .build();
+        try (Response response = getClient(null).newCall(request)
+                .execute();)
+        {
+            if (!response.isSuccessful() || response.body().string()
+                    .contains("Invalid username and password"))
+            {
+                throw new IOException("Could not authenticate: "
+                        + username + " : " + response.body());
+            }
+        }
+    }
+
+    @Autowired
+    public void setCookieJar(CrowdCookieJar cookieJar)
+    {
+        this.cookieJar = cookieJar;
+    }
+
+    public int getConnectTimeout()
+    {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(int connectTimeout)
+    {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public int getReadTimeout()
+    {
+        return readTimeout;
+    }
+
+    public void setReadTimeout(int readTimeout)
+    {
+        this.readTimeout = readTimeout;
+    }
+
+    public void removeClient(String crowdCookieValue)
+    {
+        if (crowdCookieValue == null)
+        {
+            return;
+        }
+        cache.remove(crowdCookieValue);
+    }
 }
