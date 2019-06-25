@@ -372,11 +372,13 @@ public class BitbucketAdapter implements ISCMAdapter
         String url = String.format("%s/%s/repos/%s/permissions/%s",
                 basePath, key, data.getSlug(), userOrGroup);
 
-        Map<String, String> urlParams = new HashMap<>();
-        urlParams.put("permission", "REPO_ADMIN");
-        urlParams.put("name", groupOrUser);
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+        // allow people to modify settings (webhooks)
+        urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
+        urlBuilder.addQueryParameter("name", groupOrUser);
 
-        client.callHttpPut(url, urlParams, crowdCookieValue, true);
+        client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
+                RestClient.HTTP_VERB.PUT, String.class);
     }
 
     protected String buildBasePath()

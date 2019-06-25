@@ -32,14 +32,12 @@ import org.springframework.stereotype.Component;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
-import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
@@ -52,6 +50,7 @@ import okhttp3.Response;
  * different classes to prevent redundant code.
  *
  * @author Torsten Jaeschke
+ * @author Clemens Utschig
  */
 
 @Component
@@ -73,7 +72,7 @@ public class RestClient
     private Map<String, OkHttpClient> cache = new HashMap<>();
 
     private static final List<Integer> RETRY_HTTP_CODES = new ArrayList<>(
-            Arrays.asList(401, 403, 500));
+            Arrays.asList(401, 403, 409, 500));
 
     @Autowired
     CrowdUserDetailsService crowdUserDetailsService;
@@ -84,11 +83,6 @@ public class RestClient
     public enum HTTP_VERB
     {
         PUT, POST, GET, HEAD
-    }
-
-    public static enum HTTP_POST_TYPE
-    {
-        URL, FORM
     }
 
     OkHttpClient getClient(String crowdCookie)
@@ -137,14 +131,6 @@ public class RestClient
                 throw httpX;
             }
         }
-    }
-
-    public <T> T callHttpPut(String url, Map<String, String> input,
-            String crowdCookieValue, boolean directAuth)
-            throws JsonMappingException, HttpException, IOException
-    {
-        return callHttpInternal(url, input, crowdCookieValue,
-                directAuth, HTTP_VERB.PUT, null, null);
     }
 
     public <T> T callHttp(String url, Object input,
@@ -208,50 +194,23 @@ public class RestClient
 
         logger.debug("Calling url: " + url);
 
-        RequestBody body = null;
-
-        if (HTTP_POST_TYPE.FORM.equals(HTTP_POST_TYPE.FORM)
-                && input instanceof Map)
+        if (input == null)
         {
-            FormBody.Builder formBuilder = new FormBody.Builder();
-            for (Map.Entry<String, String> entry : ((Map<String, String>) input)
-                    .entrySet())
-            {
-                formBuilder.add(entry.getKey(), entry.getValue());
-            }
-            body = formBuilder.build();
-        } else if (HTTP_POST_TYPE.URL.equals(HTTP_POST_TYPE.URL)
-                && input instanceof Map)
+            json = "";
+            logger.debug("Null payload");
+        } else if (input instanceof String)
         {
-            HttpUrl.Builder urlBuilder = HttpUrl.parse(url)
-                    .newBuilder();
-            for (Map.Entry<String, String> entry : ((Map<String, String>) input)
-                    .entrySet())
-            {
-                urlBuilder.addQueryParameter(entry.getKey(),
-                        entry.getValue());
-            }
-            url = urlBuilder.toString();
+            json = (String) input;
+            logger.debug("Passed String rest object: [{}]", json);
         } else
         {
-            if (input == null)
-            {
-                json = "";
-                logger.debug("Null payload");
-            } else if (input instanceof String)
-            {
-                json = (String) input;
-                logger.debug("Passed String rest object: [{}]", json);
-            } else
-            {
-                ObjectWriter ow = new ObjectMapper().writer()
-                        .withDefaultPrettyPrinter();
-                json = ow.writeValueAsString(input);
-                logger.debug("Converted rest object: {}", json);
-            }
-
-            body = RequestBody.create(JSON_MEDIA_TYPE, json);
+            ObjectWriter ow = new ObjectMapper().writer()
+                    .withDefaultPrettyPrinter();
+            json = ow.writeValueAsString(input);
+            logger.debug("Converted rest object: {}", json);
         }
+
+        RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
 
         okhttp3.Request.Builder builder = new Request.Builder();
         builder.url(url).addHeader("X-Atlassian-Token", "no-check")
@@ -334,10 +293,6 @@ public class RestClient
 
         String username = userDetails.getUsername();
         String password = manager.getUserPassword();
-
-        Map<String, String> params = new HashMap<>();
-        params.put("j_username", userDetails.getUsername());
-        params.put("j_password", manager.getUserPassword());
 
         RequestBody body = new FormBody.Builder()
                 .add("j_username", username)

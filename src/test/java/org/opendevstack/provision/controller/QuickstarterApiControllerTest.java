@@ -85,7 +85,7 @@ public class QuickstarterApiControllerTest
     @Test
     public void getQuickstarters() throws Exception
     {
-        Mockito.when(rundeckAdapter.getQuickstarter())
+        Mockito.when(rundeckAdapter.getQuickstarters())
                 .thenReturn(jobs);
 
         mockMvc.perform(get("/api/v1/quickstarter")).andExpect(
@@ -95,7 +95,7 @@ public class QuickstarterApiControllerTest
     @Test
     public void executeJobs() throws Exception
     {
-        Mockito.when(rundeckAdapter.provisionComponents(project))
+        Mockito.when(rundeckAdapter.provisionComponentsBasedOnQuickstarters(project))
                 .thenReturn(executions);
 
         mockMvc.perform(post("/api/v1/quickstarter/provision")
