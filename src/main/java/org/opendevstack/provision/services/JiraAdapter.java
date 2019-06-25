@@ -477,12 +477,13 @@ public class JiraAdapter {
 				createdComponents.put(component.getName(), component.getDescription());
 			} catch (HttpException httpEx) 
 			{
+                                String error = 
+                                        String.format("Could not create jira component for %s - error %s",
+                                                component.getName(), httpEx.getMessage());
+                                logger.error(error);
+
 				if (httpEx.getResponseCode() == 401) 
 				{
-					String error = 
-						String.format("Could not create jira component for %s - error %s",
-							component.getName(), httpEx.getMessage());
-					logger.error(error);
 					// if you get a 401 here - we can't reach the project, so stop
 					break;
 				}
