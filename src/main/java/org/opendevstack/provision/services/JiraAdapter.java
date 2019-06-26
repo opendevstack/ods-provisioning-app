@@ -467,7 +467,7 @@ public class JiraAdapter {
 						
 			Component component = new Component();
 				component.setName(String.format("Technology%s", 
-					repo.getKey().replace(data.key, "")));
+					repo.getKey().replace(data.key.toLowerCase(), "")));
 				component.setProject(data.key);
 				component.setDescription(
 					String.format("Technology component %s stored at %s", repo.getKey(), href));

@@ -69,7 +69,7 @@ public class RestClient {
   private Map<String, OkHttpClient> cache = new HashMap<>();
 
   private static final List<Integer> RETRY_HTTP_CODES = 
-	new ArrayList<>(Arrays.asList(401, 403, 500));
+	new ArrayList<>(Arrays.asList(401, 403, 500, 404));
   
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
