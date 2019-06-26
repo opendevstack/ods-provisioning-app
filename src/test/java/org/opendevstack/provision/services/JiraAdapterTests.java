@@ -353,8 +353,17 @@ public class JiraAdapterTests {
     apiInput.repositories = repos;
 
     created =
-    mocked.createComponentsForProjectRepositories(apiInput, "test");
+            mocked.createComponentsForProjectRepositories(apiInput, "test");
+    assertEquals(1, created.size());
+    entry = created.entrySet().iterator().next();
     assertEquals("Technology-fe-angular", entry.getKey());
+    
+    // test with component creation == false
+    mocked.createJiraComponents = false;
+    created =
+            mocked.createComponentsForProjectRepositories(apiInput, "test");
+    assertEquals(0, created.size());
+    
   }
   
   public static ProjectData getTestProject(String name) {

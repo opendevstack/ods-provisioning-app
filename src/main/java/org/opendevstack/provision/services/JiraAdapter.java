@@ -68,6 +68,9 @@ public class JiraAdapter {
   @Value("${jira.project.notification.scheme.id:10000}")
   String jiraNotificationSchemeId;
   
+  @Value("${jira.create.components:true}")
+  boolean createJiraComponents;
+  
   //Pattern to use for project with id
   private static final String URL_PATTERN = "%s%s/project/%s";
 
@@ -445,6 +448,10 @@ public class JiraAdapter {
   public Map<String, String> createComponentsForProjectRepositories 
   	(ProjectData data, String crowdCookieValue) 
   {
+          if (!createJiraComponents) {
+              logger.info("not creating jira components");
+              return new HashMap<>();
+          }
 	  Preconditions.checkNotNull(data, "data input cannot be null");
 	  Preconditions.checkNotNull(data.key, "project key cannot be null");
 	  String path = String.format("%s%s/component", jiraUri, jiraApiPath);
