@@ -346,6 +346,15 @@ public class JiraAdapterTests {
     assertEquals("Technology-fe-angular", entry.getKey());
     assertTrue(entry.getValue().
     	contains("https://bb/projects/test/repos/test-fe-angular/browse"));
+    
+    // test with uppercase projects
+    apiInput = getTestProject("Ai00000001");
+    apiInput.key = "Ai00000001";
+    apiInput.repositories = repos;
+
+    created =
+    mocked.createComponentsForProjectRepositories(apiInput, "test");
+    assertEquals("Technology-fe-angular", entry.getKey());
   }
   
   public static ProjectData getTestProject(String name) {
