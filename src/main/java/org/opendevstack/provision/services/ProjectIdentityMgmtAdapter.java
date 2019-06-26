@@ -23,7 +23,6 @@ import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -37,24 +36,15 @@ import com.atlassian.crowd.integration.soap.SOAPGroup;
  */
 @Service
 public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter  
-{
-    @Value("${crowd.user.group:}")
-    private String crowdUserGroup;
-	  
-	@Value("${crowd.admin.group:}")
-	private String crowdAdminGroup;
-	
+{	
     private static final Logger logger = LoggerFactory.getLogger(ProjectIdentityMgmtAdapter.class);
 	
 	@Autowired
 	CustomAuthenticationManager manager;
 	 
-    @Value("${crowd.local.directory}")
-	String crowdLocalDirectory;
-
     public void validateIdSettingsOfProject (ProjectData project) throws IdMgmtException 
     {
-    	Map<String, String> projectCheckStatus = new HashMap<String, String>();
+    	Map<String, String> projectCheckStatus = new HashMap<>();
     	
 		long startTime = System.currentTimeMillis();
 
@@ -71,8 +61,8 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
     		projectCheckStatus.put("admin", project.admin);
     	}
 
-    	logger.debug("identityCheck Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+    	logger.debug("identityCheck Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
     	
     	if (!projectCheckStatus.isEmpty()) {
     		throw new IdMgmtException ("Identity check failed - these groups don't exist! " 
@@ -95,13 +85,13 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		} catch (Exception eSecurity) 
 		{
 			if (!(eSecurity instanceof GroupNotFoundException)) {
-				logger.error("GroupFind call failed with: {}", eSecurity);
+				logger.error("GroupFind call failed with:", eSecurity);
 			}
 			return false;
 		} finally 
 		{
-			logger.debug("findGroupByName by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findGroupByName by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 
@@ -120,13 +110,13 @@ public class ProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter
 		} catch (Exception eSecurity) 
 		{
 			if (!(eSecurity instanceof UsernameNotFoundException)) {
-				logger.error("UserFind call failed with: {}", eSecurity);
+				logger.error("UserFind call failed with:", eSecurity);
 			}
 			return false;
 		} finally 
 		{
-			logger.debug("findPrincipal by Name took (ms): " + 
-				(System.currentTimeMillis() - startTime));
+			logger.debug("findPrincipal by Name took (ms): {}",
+				System.currentTimeMillis() - startTime);
 		}
 	}
 

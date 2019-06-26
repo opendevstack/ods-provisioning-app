@@ -14,9 +14,6 @@
 
 package org.opendevstack.provision.authentication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import java.rmi.RemoteException;
 import java.util.Properties;
 import org.junit.Before;
@@ -40,6 +37,8 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientProperties;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Torsten Jaeschke
@@ -95,8 +94,8 @@ public class CustomAuthenticationManagerTest {
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
     
     manager.setSecurityServerClient(client);
-    
-    assertEquals(null, manager.authenticate(getContext()));
+
+    assertNull(manager.authenticate(getContext()));
   }
 
   @Test
@@ -106,8 +105,8 @@ public class CustomAuthenticationManagerTest {
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
     
     manager.setSecurityServerClient(client);
-    
-    assertEquals(null, manager.authenticateWithoutValidatingPassword(getContext()));
+
+    assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
   }
 
   @Test

@@ -14,12 +14,9 @@
 
 package org.opendevstack.provision.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import okhttp3.HttpUrl;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -31,14 +28,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.fasterxml.jackson.core.type.TypeReference;
 
-import okhttp3.HttpUrl;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service to interact with rundeck
@@ -51,8 +49,12 @@ public class RundeckAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
 
+  public static final String COMPONENT_ID_KEY = "component_id";
+  public static final String COMPONENT_TYPE_KEY = "component_type";
+
   @Autowired
-  protected RundeckJobStore jobStore;
+  private RundeckJobStore jobStore;
+
   @Autowired
   private CrowdUserDetailsService crowdUserDetailsService;
 
@@ -105,7 +107,7 @@ public class RundeckAdapter {
   private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
   
   @Autowired
-  RestClient client;
+  private RestClient client;
 
   @Autowired
   CustomAuthenticationManager manager;
@@ -126,13 +128,13 @@ public class RundeckAdapter {
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
       for (Map<String, String> options : project.quickstart) {
-        Job job = jobStore.getJob(options.get("component_type"));
+        Job job = jobStore.getJob(options.get(COMPONENT_TYPE_KEY));
 
         String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
         String packageName =
             String.format("%s.%s", String.format(groupPattern, project.key.toLowerCase()),
-                options.get("component_id").replace('-', '_'));
+                options.get(COMPONENT_ID_KEY).replace('-', '_'));
         Execution execution = new Execution();
 
         options.put("group_id", groupId);
@@ -181,9 +183,8 @@ public class RundeckAdapter {
           		"USERGROUP=" + project.userGroup + "," +
           		"READONLYGROUP=" + project.readonlyGroup;
           	  
-              logger.info("project id: " + project.key + 
-            	" passed project owner: " + project.admin + 
-            	" passed groups: " + entitlementGroups);
+              logger.info("project id: {} passed project owner: {} passed groups: {}",
+                      project.key, project.admin, entitlementGroups);
               
               options.put("project_admin", project.admin);
               options.put("project_groups", entitlementGroups);
@@ -192,7 +193,7 @@ public class RundeckAdapter {
           {
         	// someone is always logged in :)
         	UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);  
-            logger.info("project id: " + project.key + " details: " + details);
+            logger.info("project id: {} details: {}", project.key, details);
             options.put("project_admin", details.getUsername());
           } 
           execution.setOptions(options);
@@ -204,7 +205,7 @@ public class RundeckAdapter {
           // access link to openshift app domain
           project.openshiftJenkinsUrl =
               "https://" + String.format(projectOpenshiftJenkinsProjectPattern,
-                  project.key.toLowerCase(), projectOpenshiftBaseDomain);;
+                  project.key.toLowerCase(), projectOpenshiftBaseDomain);
 
           // we can only add the console based links - as no routes are created per default
           project.openshiftConsoleDevEnvUrl = String.format(projectOpenshiftDevProjectPattern,
@@ -213,7 +214,7 @@ public class RundeckAdapter {
           project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
               projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
 
-          project.lastJobs = new ArrayList<String>();
+          project.lastJobs = new ArrayList<>();
           project.lastJobs.add(data.getPermalink());
           
           return project;
@@ -250,7 +251,7 @@ public class RundeckAdapter {
     	client.callHttpTypeRef(urlBuilder.toString(), null, null, false, RestClient.HTTP_VERB.GET,
     		new TypeReference<List<Job>>() {});
     
-    enabledJobs = jobs.stream().filter(x -> x.isEnabled()).collect(Collectors.toList());
+    enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
     jobStore.addJobs(enabledJobs);
     return enabledJobs;
   }

@@ -17,7 +17,9 @@ package org.opendevstack.provision.config;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -32,6 +34,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -45,12 +48,12 @@ import com.atlassian.crowd.service.UserManager;
 import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.cache.CacheImpl;
 import com.atlassian.crowd.service.cache.CachingGroupManager;
-import com.atlassian.crowd.service.cache.CachingGroupMembershipManager;
 import com.atlassian.crowd.service.cache.CachingUserManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+
 import net.sf.ehcache.CacheManager;
 
 /**
@@ -79,6 +82,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .antMatchers("/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico",
             "/login")
         .permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll()
+        .defaultSuccessUrl("/home")
         .and().logout().addLogoutHandler(crowdLogoutHandler()).permitAll();
   }
 
@@ -281,7 +285,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
-    cusd.setGroupMembershipManager(new CachingGroupMembershipManager(securityServerClient(),
+    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient(),
         userManager(), groupManager(), getCache()));
     cusd.setAuthorityPrefix("");
     return cusd;

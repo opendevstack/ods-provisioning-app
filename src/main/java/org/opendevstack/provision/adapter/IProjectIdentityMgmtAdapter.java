@@ -14,15 +14,10 @@
 package org.opendevstack.provision.adapter;
 
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
  * Generic identity mgmt adapter - called to create the necessary ID groups used later in

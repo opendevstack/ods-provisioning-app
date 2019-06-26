@@ -1,6 +1,8 @@
 # OpenDevStack Provisioning Application
 
-This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on quickstarters.
+[![Build Status](https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master)](https://travis-ci.com/opendevstack/ods-provisioning-app)
+
+This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on [quickstarters](https://github.com/opendevstack/ods-project-quickstarters).
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
 ## Basic idea & usage:
@@ -127,10 +129,26 @@ The connectors to the various tools to create resources are in the [services pac
 If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
 
     - nexus_url=<NEXUS HOST>
-    - nexus_folder=candidates
     - nexus_user=<NEXUS USER>
     - nexus_pw=<NEXUS_PW> 
- 
+    
+If you want to build / run locally without NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
+
+```properties
+no_nexus=true
+```
+
+Alternatively, you can also configure the build using environment variables:
+
+| Gradle property | Environment variable |
+| --------------- | -------------------- |
+| nexus_url       | NEXUS_HOST           |
+| nexus_user      | NEXUS_USERNAME       |
+| nexus_pw        | NEXUS_PASSWORD       |
+| no_nexus        | NO_NEXUS             |
+
+You can start the application with the following command:
+
 ```bash
 # to run the server execute
 gradle bootRun

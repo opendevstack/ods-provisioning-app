@@ -52,13 +52,13 @@ public class CrowdCookieJarTest {
   @Test
   public void saveFromResponse() throws Exception {
     crowdCookieJar.saveFromResponse(getUrl(), getCookies());
-    assertTrue(crowdCookieJar.loadForRequest(getUrl()).equals(getCookies()));
+    assertEquals(crowdCookieJar.loadForRequest(getUrl()), getCookies());
   }
 
   @Test
   public void loadForRequest() throws Exception {
     crowdCookieJar.saveFromResponse(getUrl(), getCookies());
-    assertTrue(crowdCookieJar.loadForRequest(getUrl()).equals(getCookies()));
+    assertEquals(crowdCookieJar.loadForRequest(getUrl()), getCookies());
   }
 
   @Test
@@ -70,7 +70,7 @@ public class CrowdCookieJarTest {
   
   @Test
   public void loadForRequestWithoutCookies() throws Exception {
-    assertTrue(crowdCookieJar.loadForRequest(getUrl()).size() == 0);
+    assertEquals(0, crowdCookieJar.loadForRequest(getUrl()).size());
   }
 
   @Test

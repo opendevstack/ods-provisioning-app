@@ -55,7 +55,7 @@ public class MailAdapter {
   private TemplateEngine templateEngine;
 
   // testing only!
-  CrowdUserDetails crowdUserDetails = null;
+  private CrowdUserDetails crowdUserDetails = null;
 
   @Autowired
   public MailAdapter(JavaMailSender mailSender) {
@@ -77,24 +77,19 @@ public class MailAdapter {
         messageHelper.setText(build(data), true);
       };
       
-      Thread sendThread = new Thread () {
-      	
-      	@Override
-      	public void run () 
-      	{
-  		    try {
-  		      MDC.put(STR_LOGFILE_KEY, data.key);
-  		      mailSender.send(messagePreparator);
-  		    } catch (MailException e) {
-  		      logger.error("Error in sending mail for project: " + data.key, e);
-  		    } finally {
-		      MDC.remove(STR_LOGFILE_KEY);
-  		    }
-      	}
-      };
+      Thread sendThread = new Thread(() -> {
+          try {
+            MDC.put(STR_LOGFILE_KEY, data.key);
+            mailSender.send(messagePreparator);
+          } catch (MailException e) {
+            logger.error("Error in sending mail for project: " + data.key, e);
+          } finally {
+          MDC.remove(STR_LOGFILE_KEY);
+          }
+      });
       
       sendThread.start();
-      logger.debug("Mail for project: " + data.key + " sent");
+      logger.debug("Mail for project: {} sent", data.key );
   }
 
   String build(ProjectData data) {

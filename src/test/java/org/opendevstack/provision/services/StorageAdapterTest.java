@@ -14,13 +14,6 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +30,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Torsten Jaeschke
@@ -66,7 +62,7 @@ public class StorageAdapterTest {
   @Test
   public void listProjectHistoryNoAuth() throws Exception 
   {
-	  Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<String, ProjectData>());
+	  Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<>());
 	  adapter.setStorage(storage);
 	  
 	  assertTrue(adapter.listProjectHistory().isEmpty());
@@ -104,7 +100,7 @@ public class StorageAdapterTest {
 		  dataProtectedCase.adminGroup = "testGroup";
 		  dataProtectedCase.createpermissionset = true;
 		  
-		  Map<String, ProjectData> projects = new HashMap<String, ProjectData>();
+		  Map<String, ProjectData> projects = new HashMap<>();
 		  projects.put(data.key, data);
 		  projects.put(dataProtected.key, dataProtected);
 		  projects.put(dataProtectedWrong.key, dataProtectedWrong);
