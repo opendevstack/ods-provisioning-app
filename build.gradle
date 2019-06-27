@@ -117,8 +117,8 @@ dependencies {
     compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
 
     //frontend webjars
-    compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:jquery:3.2.1'
+    compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:react:15.5.4'
     compile 'org.webjars.bower:font-awesome:4.7.0'
     compile 'org.webjars.bower:lodash:4.17.4'
