@@ -201,7 +201,11 @@ public class ProjectData
         
         // urls & config
         project.jiraconfluencespace = open.bugtrackerSpace;
+        project.jiraUrl = open.bugtrackerUrl;
+        project.confluenceUrl = open.collaborationSpaceUrl;
+        
         project.openshiftproject = open.platformRuntime;
+        project.bitbucketUrl = open.scmvcsUrl;
         project.openshiftConsoleDevEnvUrl = open.platformDevEnvironmentUrl;
         project.openshiftConsoleTestEnvUrl = open.platformTestEnvironmentUrl;
         project.openshiftJenkinsUrl = open.platformBuildEngineUrl;
@@ -240,6 +244,11 @@ public class ProjectData
         
         // urls & config
         open.bugtrackerSpace = project.jiraconfluencespace;
+        open.scmvcsUrl = project.bitbucketUrl;
+
+        open.bugtrackerUrl = project.jiraUrl;
+        open.collaborationSpaceUrl = project.confluenceUrl;
+        
         open.platformRuntime = project.openshiftproject;
         open.platformDevEnvironmentUrl = project.openshiftConsoleDevEnvUrl;
         open.platformTestEnvironmentUrl = project.openshiftConsoleTestEnvUrl;

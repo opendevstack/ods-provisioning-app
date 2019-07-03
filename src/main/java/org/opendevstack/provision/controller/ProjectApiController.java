@@ -343,7 +343,8 @@ public class ProjectApiController
             throws IOException
     {
         logger.debug("create delivery chain for:" + project.projectKey
-                + " oc?" + project.platformRuntime);
+                + " oc?" + project.platformRuntime + " scm: " + 
+                project.scmvcsUrl);
 
         if (!project.platformRuntime)
         {
