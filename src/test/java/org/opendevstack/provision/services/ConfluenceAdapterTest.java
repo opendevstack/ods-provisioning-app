@@ -35,7 +35,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
@@ -75,7 +75,7 @@ public class ConfluenceAdapterTest
     public void createConfluenceSpaceForProject() throws Exception
     {
         ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
-        ProjectData project = Mockito.mock(ProjectData.class);
+        OpenProjectData project = Mockito.mock(OpenProjectData.class);
         SpaceData spaceData = Mockito.mock(SpaceData.class);
         Space space = Mockito.mock(Space.class);
 
@@ -84,11 +84,11 @@ public class ConfluenceAdapterTest
                 .callCreateSpaceApi(any(Space.class), anyString());
         when(spaceData.getUrl()).thenReturn("testUrl");
 
-        ProjectData createdProject = spyAdapter
+        OpenProjectData createdProject = spyAdapter
                 .createCollaborationSpaceForODSProject(project,
                         "crowdCookieValue");
 
-        assertEquals("testUrl", createdProject.confluenceUrl);
+        assertEquals("testUrl", createdProject.collaborationSpaceUrl);
     }
 
     @Test
@@ -113,10 +113,10 @@ public class ConfluenceAdapterTest
     public void updateSpacePermissions() throws Exception
     {
         ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
-        ProjectData project = JiraAdapterTests.getTestProject("name");
-        project.adminGroup = "adminGroup";
-        project.userGroup = "userGroup";
-        project.readonlyGroup = "readGroup";
+        OpenProjectData project = JiraAdapterTests.getTestProject("name");
+        project.projectAdminGroup = "adminGroup";
+        project.projectUserGroup = "userGroup";
+        project.projectReadonlyGroup = "readGroup";
 
         spyAdapter.client = client;
 
@@ -130,17 +130,17 @@ public class ConfluenceAdapterTest
 
         // 3 permission sets
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.adminGroup), anyString(),
+                contains(project.projectAdminGroup), anyString(),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.userGroup), anyString(),
+                contains(project.projectUserGroup), anyString(),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.readonlyGroup), anyString(),
+                contains(project.projectReadonlyGroup), anyString(),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
@@ -151,10 +151,10 @@ public class ConfluenceAdapterTest
     public void testCreateSpaceData() throws Exception
     {
         ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
-        ProjectData project = JiraAdapterTests.getTestProject("name");
-        project.adminGroup = "adminGroup";
-        project.userGroup = "adminGroup";
-        project.readonlyGroup = "adminGroup";
+        OpenProjectData project = JiraAdapterTests.getTestProject("name");
+        project.projectAdminGroup = "adminGroup";
+        project.projectUserGroup = "adminGroup";
+        project.projectReadonlyGroup = "adminGroup";
 
         List blList = new ArrayList<>();
         Blueprint bPrint = new Blueprint();
@@ -173,14 +173,14 @@ public class ConfluenceAdapterTest
         Space space = spyAdapter.createSpaceData(project);
 
         assertNotNull(space);
-        assertEquals(project.name, space.getName());
-        assertEquals(project.key, space.getSpaceKey());
+        assertEquals(project.projectName, space.getName());
+        assertEquals(project.projectKey, space.getSpaceKey());
 
         assertNotNull(space.getContext());
 
-        assertEquals(project.name,
+        assertEquals(project.projectName,
                 space.getContext().getProjectName());
-        assertEquals(project.key, space.getContext().getProjectKey());
+        assertEquals(project.projectKey, space.getContext().getProjectKey());
 
     }
 
@@ -189,7 +189,7 @@ public class ConfluenceAdapterTest
     {
         String defaultTemplateName = "com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint";
 
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         Map<IServiceAdapter.PROJECT_TEMPLATE, String> templates = confluenceAdapter
                 .retrieveInternalProjectTypeAndTemplateFromProjectType(
                         project);

@@ -61,7 +61,8 @@ public class QuickstarterApiController
             @RequestBody ProjectData project) throws IOException
     {
         List<ExecutionsData> executions = rundeckAdapter
-                .provisionComponentsBasedOnQuickstarters(project);
+                .provisionComponentsBasedOnQuickstarters(
+                        ProjectData.toOpenProjectData(project));
         return ResponseEntity.ok(executions);
     }
 }

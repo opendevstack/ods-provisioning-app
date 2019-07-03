@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
@@ -94,7 +94,7 @@ public class JiraAdapter implements IBugtrackerAdapter
     @Value("${project.template.default.key}")
     private String defaultProjectKey;
 
-    private FullJiraProject createProjectInJira(ProjectData project,
+    private FullJiraProject createProjectInJira(OpenProjectData project,
             String crowdCookieValue, FullJiraProject toBeCreated)
             throws IOException
     {
@@ -155,7 +155,7 @@ public class JiraAdapter implements IBugtrackerAdapter
      *            the crowd cookie
      * @return the number of created permission sets
      */
-    protected int createPermissions(ProjectData project,
+    protected int createPermissions(OpenProjectData project,
             String crowdCookieValue)
     {
         PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
@@ -175,7 +175,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                         .readValue(permissionFile.getInputStream(),
                                 PermissionScheme.class);
 
-                String permissionSchemeName = project.key
+                String permissionSchemeName = project.projectKey
                         + " PERMISSION SCHEME";
 
                 singleScheme.setName(permissionSchemeName);
@@ -199,15 +199,15 @@ public class JiraAdapter implements IBugtrackerAdapter
                     if ("adminGroup".equals(group))
                     {
                         permission.getHolder()
-                                .setParameter(project.adminGroup);
+                                .setParameter(project.projectAdminGroup);
                     } else if ("userGroup".equals(group))
                     {
                         permission.getHolder()
-                                .setParameter(project.userGroup);
+                                .setParameter(project.projectUserGroup);
                     } else if ("readonlyGroup".equals(group))
                     {
                         permission.getHolder()
-                                .setParameter(project.readonlyGroup);
+                                .setParameter(project.projectReadonlyGroup);
                     } else if ("keyuserGroup".equals(group))
                     {
                         permission.getHolder()
@@ -229,7 +229,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                 // update jira project
                 path = String.format(
                         "%s%s/project/%s/permissionscheme", jiraUri,
-                        jiraApiPath, project.key);
+                        jiraApiPath, project.projectKey);
                 PermissionScheme small = new PermissionScheme();
                 small.setId(singleScheme.getId());
                 client.callHttp(path, small, crowdCookieValue, true,
@@ -243,17 +243,17 @@ public class JiraAdapter implements IBugtrackerAdapter
             // continue - we are ok if permissions fail, because the admin has access, and
             // create the set
             logger.error("Could not update permissionset: "
-                    + project.key + "\n Exception: "
+                    + project.projectKey + "\n Exception: "
                     + createPermissions.getMessage());
         }
         return updatedPermissions;
     }
 
     protected FullJiraProject buildJiraProjectPojoFromApiProject(
-            ProjectData s)
+            OpenProjectData s)
     {
 
-        BasicUser lead = new BasicUser(null, s.admin, s.admin);
+        BasicUser lead = new BasicUser(null, s.projectAdminUser, s.projectAdminUser);
 
         String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType(
                 s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
@@ -267,9 +267,9 @@ public class JiraAdapter implements IBugtrackerAdapter
         }
 
         logger.debug("Creating project of type: {} for project: {}",
-                templateKey, s.key);
+                templateKey, s.projectKey);
 
-        return new FullJiraProject(null, s.key, s.name, s.description,
+        return new FullJiraProject(null, s.projectKey, s.projectName, s.description,
                 lead, null, null, null, null, null, templateKey,
                 templateType, jiraNotificationSchemeId);
     }
@@ -343,17 +343,17 @@ public class JiraAdapter implements IBugtrackerAdapter
         }
     }
 
-    public int addShortcutsToProject(ProjectData data,
+    public int addShortcutsToProject(OpenProjectData data,
             String crowdCookieValue)
     {
-        if (!data.jiraconfluencespace)
+        if (!data.bugtrackerSpace)
         {
             return -1;
         }
 
         String path = String.format(
                 "%s/rest/projects/1.0/project/%s/shortcut", jiraUri,
-                data.key);
+                data.projectKey);
 
         List<Shortcut> shortcuts = new ArrayList<>();
 
@@ -362,38 +362,38 @@ public class JiraAdapter implements IBugtrackerAdapter
 
         Shortcut shortcutConfluence = new Shortcut();
         shortcutConfluence.setId("" + id++);
-        shortcutConfluence.setName("Confluence: " + data.key);
-        shortcutConfluence.setUrl(data.confluenceUrl);
+        shortcutConfluence.setName("Confluence: " + data.projectKey);
+        shortcutConfluence.setUrl(data.bugtrackerUrl);
         shortcutConfluence.setIcon("");
         shortcuts.add(shortcutConfluence);
 
-        if (data.openshiftproject)
+        if (data.platformRuntime)
         {
             Shortcut shortcutBB = new Shortcut();
             shortcutBB.setId("" + id++);
-            shortcutBB.setName("GIT: " + data.key);
-            shortcutBB.setUrl(data.bitbucketUrl);
+            shortcutBB.setName("GIT: " + data.projectKey);
+            shortcutBB.setUrl(data.scmvcsUrl);
             shortcutBB.setIcon("");
             shortcuts.add(shortcutBB);
 
             Shortcut shortcutJenkins = new Shortcut();
             shortcutJenkins.setId("" + id++);
             shortcutJenkins.setName("Jenkins");
-            shortcutJenkins.setUrl(data.openshiftJenkinsUrl);
+            shortcutJenkins.setUrl(data.platformBuildEngineUrl);
             shortcutJenkins.setIcon("");
             shortcuts.add(shortcutJenkins);
 
             Shortcut shortcutOCDev = new Shortcut();
             shortcutOCDev.setId("" + id++);
-            shortcutOCDev.setName("OC Dev " + data.key);
-            shortcutOCDev.setUrl(data.openshiftConsoleDevEnvUrl);
+            shortcutOCDev.setName("OC Dev " + data.projectKey);
+            shortcutOCDev.setUrl(data.platformDevEnvironmentUrl);
             shortcutOCDev.setIcon("");
             shortcuts.add(shortcutOCDev);
 
             Shortcut shortcutOCTest = new Shortcut();
             shortcutOCTest.setId("" + id);
-            shortcutOCTest.setName("OC Test " + data.key);
-            shortcutOCTest.setUrl(data.openshiftConsoleTestEnvUrl);
+            shortcutOCTest.setName("OC Test " + data.projectKey);
+            shortcutOCTest.setUrl(data.platformTestEnvironmentUrl);
             shortcutOCTest.setIcon("");
             shortcuts.add(shortcutOCTest);
         }
@@ -429,7 +429,7 @@ public class JiraAdapter implements IBugtrackerAdapter
     }
 
     public String calculateJiraProjectTypeAndTemplateFromProjectType(
-            ProjectData project, String templatePrefix,
+            OpenProjectData project, String templatePrefix,
             String defaultValue)
     {
         Preconditions.checkNotNull(templatePrefix,
@@ -476,8 +476,8 @@ public class JiraAdapter implements IBugtrackerAdapter
     }
 
     @Override
-    public ProjectData createBugtrackerProjectForODSProject(
-            ProjectData project, String crowdCookieValue)
+    public OpenProjectData createBugtrackerProjectForODSProject(
+            OpenProjectData project, String crowdCookieValue)
             throws IOException
     {
         try
@@ -486,16 +486,16 @@ public class JiraAdapter implements IBugtrackerAdapter
 
             logger.debug("Creating new jira project");
 
-            Preconditions.checkNotNull(project.key);
-            Preconditions.checkNotNull(project.name);
+            Preconditions.checkNotNull(project.projectKey);
+            Preconditions.checkNotNull(project.projectName);
 
-            if (!project.createpermissionset || project.admin == null
-                    || project.admin.trim().length() == 0)
+            if (!project.specialPermissionSet || project.projectAdminUser == null
+                    || project.projectAdminUser.trim().length() == 0)
             {
                 // set in any case - otherwise jira will be annoyed.
                 CrowdUserDetails details = crowdUserDetailsService
                         .loadUserByToken(crowdCookieValue);
-                project.admin = details.getUsername();
+                project.projectAdminUser = details.getUsername();
             }
 
             FullJiraProject toBeCreated = this
@@ -506,10 +506,10 @@ public class JiraAdapter implements IBugtrackerAdapter
                     toBeCreated);
 
             logger.debug("Created project: {}", created);
-            project.jiraUrl = String.format("%s/browse/%s", jiraUri,
+            project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri,
                     created.getKey());
 
-            if (project.createpermissionset)
+            if (project.specialPermissionSet)
             {
                 createPermissions(project, crowdCookieValue);
             }
@@ -525,7 +525,7 @@ public class JiraAdapter implements IBugtrackerAdapter
 
     @Override
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
-            ProjectData project)
+            OpenProjectData project)
     {
         Map<PROJECT_TEMPLATE, String> template = new HashMap<>();
 

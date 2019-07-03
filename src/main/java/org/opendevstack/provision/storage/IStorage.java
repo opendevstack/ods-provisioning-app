@@ -17,6 +17,7 @@ package org.opendevstack.provision.storage;
 import java.io.IOException;
 import java.util.Map;
 import org.opendevstack.provision.model.AboutChangesData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 
 /**
@@ -25,13 +26,13 @@ import org.opendevstack.provision.model.ProjectData;
 
 public interface IStorage
 {
-    String storeProject(ProjectData project) throws IOException;
+    String storeProject(OpenProjectData project) throws IOException;
 
-    Map<String, ProjectData> listProjectHistory();
+    Map<String, OpenProjectData> listProjectHistory();
 
-    ProjectData getProject(String id);
+    OpenProjectData getProject(String id);
 
-    boolean updateStoredProject(ProjectData project)
+    boolean updateStoredProject(OpenProjectData project)
             throws IOException;
 
     String storeAboutChangesData(AboutChangesData aboutData)

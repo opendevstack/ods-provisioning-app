@@ -26,7 +26,7 @@ import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -159,30 +159,30 @@ public class ProjectIdentityMgmtAdapterTest
         Mockito.when(manager.getSecurityServerClient()
                 .findGroupByName(group.getName())).thenReturn(group);
 
-        ProjectData data = new ProjectData();
-        data.adminGroup = group.getName();
-        data.userGroup = group.getName();
-        data.readonlyGroup = group.getName();
-        data.admin = principal.getName();
+        OpenProjectData data = new OpenProjectData();
+        data.projectAdminGroup = group.getName();
+        data.projectUserGroup = group.getName();
+        data.projectReadonlyGroup = group.getName();
+        data.projectAdminUser = principal.getName();
 
         idMgr.validateIdSettingsOfProject(data);
 
-        data.userGroup = "doesNotExistUG";
-        data.adminGroup = "doesNotExistAD";
-        data.readonlyGroup = "doesNotExistRO";
+        data.projectUserGroup = "doesNotExistUG";
+        data.projectAdminGroup = "doesNotExistAD";
+        data.projectReadonlyGroup = "doesNotExistRO";
 
         Mockito.when(manager.getSecurityServerClient()
-                .findGroupByName(data.userGroup)).thenThrow(
-                        new GroupNotFoundException(data.userGroup));
+                .findGroupByName(data.projectUserGroup)).thenThrow(
+                        new GroupNotFoundException(data.projectUserGroup));
 
         Mockito.when(manager.getSecurityServerClient()
-                .findGroupByName(data.adminGroup)).thenThrow(
-                        new GroupNotFoundException(data.adminGroup));
+                .findGroupByName(data.projectAdminGroup)).thenThrow(
+                        new GroupNotFoundException(data.projectAdminGroup));
 
         Mockito.when(manager.getSecurityServerClient()
-                .findGroupByName(data.readonlyGroup))
+                .findGroupByName(data.projectReadonlyGroup))
                 .thenThrow(new GroupNotFoundException(
-                        data.readonlyGroup));
+                        data.projectReadonlyGroup));
 
         Exception testE = null;
         try
@@ -193,9 +193,9 @@ public class ProjectIdentityMgmtAdapterTest
             testE = idEx;
         }
         assertNotNull(testE);
-        assertTrue(testE.getMessage().contains(data.userGroup));
-        assertTrue(testE.getMessage().contains(data.adminGroup));
-        assertTrue(testE.getMessage().contains(data.readonlyGroup));
+        assertTrue(testE.getMessage().contains(data.projectUserGroup));
+        assertTrue(testE.getMessage().contains(data.projectAdminGroup));
+        assertTrue(testE.getMessage().contains(data.projectReadonlyGroup));
 
         Mockito.when(manager.getSecurityServerClient()
                 .findPrincipalByName(principal.getName()))
@@ -211,8 +211,8 @@ public class ProjectIdentityMgmtAdapterTest
             testE = idEx;
         }
         assertNotNull(testE);
-        assertTrue(testE.getMessage().contains(data.userGroup));
-        assertTrue(testE.getMessage().contains(data.admin));
+        assertTrue(testE.getMessage().contains(data.projectUserGroup));
+        assertTrue(testE.getMessage().contains(data.projectAdminUser));
 
     }
 }

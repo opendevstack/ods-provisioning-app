@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,7 +73,7 @@ public class MailAdapterTest
         spyAdapter = new MailAdapter(mailSender);
         spyAdapter.setCrowdUserDetails(details);
 
-        spyAdapter.notifyUsersAboutProject(new ProjectData());
+        spyAdapter.notifyUsersAboutProject(new OpenProjectData());
     }
 
     @Test
@@ -97,7 +98,7 @@ public class MailAdapterTest
         Mockito.doNothing().when(mailSender)
                 .send(any(MimeMessage.class));
 
-        spyAdapter.notifyUsersAboutProject(new ProjectData());
+        spyAdapter.notifyUsersAboutProject(new OpenProjectData());
 
         Mockito.verify(spyAdapter).getCrowdUserDetailsFromContext();
     }
@@ -112,7 +113,7 @@ public class MailAdapterTest
         MailAdapter spyAdapter = Mockito.spy(mailAdapter);
         spyAdapter.setCrowdUserDetails(details);
 
-        String message = spyAdapter.build(new ProjectData());
+        String message = spyAdapter.build(new OpenProjectData());
         assertNotNull(message);
         assertTrue(message.trim().length() > 0);
     }

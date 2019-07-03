@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class QuickstarterApiControllerTest
     RundeckAdapter rundeckAdapter;
 
     private List<Job> jobs;
-    private ProjectData project;
+    private OpenProjectData project;
     private List<ExecutionsData> executions = new ArrayList<>();
 
     @Before
@@ -71,9 +71,9 @@ public class QuickstarterApiControllerTest
 
     private void initJobs()
     {
-        project = new ProjectData();
-        project.key = "TST";
-        project.name = "name";
+        project = new OpenProjectData();
+        project.projectKey = "TST";
+        project.projectName = "name";
 
         jobs = new ArrayList<>();
         Job job = new Job();

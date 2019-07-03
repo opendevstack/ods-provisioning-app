@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 
 /**
@@ -38,31 +38,31 @@ public interface IJobExecutionAdapter extends IServiceAdapter
 
     /**
      * Create platform projects, e.g. openshift projects to house later
-     * components created thru {@link #provisionComponentsBasedOnQuickstarters(ProjectData)}
+     * components created thru {@link #provisionComponentsBasedOnQuickstarters(OpenProjectData)}
      * @param project the project including the project's name and key 
-     * {@link ProjectData#key} and {@link ProjectData#name}
+     * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
      * @param crowdCookie the sso cookie
      * @return the project with filled
-     * {@link ProjectData#openshiftConsoleDevEnvUrl}, 
-     * {@link ProjectData#openshiftConsoleTestEnvUrl},
-     * {{@link ProjectData#openshiftJenkinsUrl} and
-     * {@link ProjectData#lastJobs} which contains the link the jobs
+     * {@link OpenProjectData#platformDevEnvironmentUrl}, 
+     * {@link OpenProjectData#platformTestEnvironmentUrl},
+     * {{@link OpenProjectData#platformBuildEngineUrl} and
+     * {@link OpenProjectData#lastExecutionJobs} which contains the link the jobs
      * that were kicked off
      * @throws IOException in case the projects cannot be created
      */
-    public ProjectData createPlatformProjects(ProjectData project,
+    public OpenProjectData createPlatformProjects(OpenProjectData project,
             String crowdCookie) throws IOException;
 
     /**
-     * Create repositories based on passed {@link ProjectData#quickstart}
+     * Create repositories based on passed {@link OpenProjectData#quickstarters}
      * @param project the project containing quickstarters - 
      * to derive the names from
      * @param crowdCookie the sso cookie
-     * @return the project filled with {@link ProjectData#lastJobs} 
+     * @return the project filled with {@link OpenProjectData#lastExecutionJobs} 
      * which contains the URLs to the jobs kicked off.
      * @throws IOException
      */
     public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(
-            ProjectData project) throws IOException;
+            OpenProjectData project) throws IOException;
 
 }

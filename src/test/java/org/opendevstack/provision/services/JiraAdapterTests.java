@@ -38,7 +38,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
@@ -136,17 +136,17 @@ public class JiraAdapterTests
                 eq(FullJiraProject.class)))
                         .thenReturn(getReturnProject());
 
-        ProjectData createdProject = spyAdapter
+        OpenProjectData createdProject = spyAdapter
                 .createBugtrackerProjectForODSProject(
                         getTestProject(name), crowdCookieValue);
 
-        assertEquals(getTestProject(name).key, createdProject.key);
-        assertEquals(getTestProject(name).name, createdProject.name);
+        assertEquals(getTestProject(name).projectKey, createdProject.projectKey);
+        assertEquals(getTestProject(name).projectName, createdProject.projectName);
         // default template
         assertEquals(defaultProjectKey, createdProject.projectType);
 
         // new template
-        ProjectData templateProject = getTestProject(name);
+        OpenProjectData templateProject = getTestProject(name);
         templateProject.projectType = "newTemplate";
 
         projectTemplateKeyNames.add("newTemplate");
@@ -157,14 +157,14 @@ public class JiraAdapterTests
                 "jira.project.template.type.newTemplate",
                 "templateType");
 
-        ProjectData createdProjectWithNewTemplate = spyAdapter
+        OpenProjectData createdProjectWithNewTemplate = spyAdapter
                 .createBugtrackerProjectForODSProject(templateProject,
                         crowdCookieValue);
 
-        assertEquals(templateProject.key,
-                createdProjectWithNewTemplate.key);
-        assertEquals(templateProject.name,
-                createdProjectWithNewTemplate.name);
+        assertEquals(templateProject.projectKey,
+                createdProjectWithNewTemplate.projectKey);
+        assertEquals(templateProject.projectName,
+                createdProjectWithNewTemplate.projectName);
         assertEquals("newTemplate",
                 createdProjectWithNewTemplate.projectType);
 
@@ -211,14 +211,14 @@ public class JiraAdapterTests
     @Test
     public void buildJiraProjectPojoFromApiProject() throws Exception
     {
-        ProjectData apiInput = getTestProject("TestProject");
-        apiInput.key = "TestP";
+        OpenProjectData apiInput = getTestProject("TestProject");
+        apiInput.projectKey = "TestP";
 
         FullJiraProject fullJiraProject = jiraAdapter
                 .buildJiraProjectPojoFromApiProject(apiInput);
 
-        assertEquals(apiInput.name, fullJiraProject.getName());
-        assertEquals(apiInput.key, fullJiraProject.getKey());
+        assertEquals(apiInput.projectName, fullJiraProject.getName());
+        assertEquals(apiInput.projectKey, fullJiraProject.getKey());
         assertEquals(env.getProperty("jira.project.template.key"),
                 fullJiraProject.projectTemplateKey);
         assertEquals(env.getProperty("jira.project.template.type"),
@@ -266,8 +266,8 @@ public class JiraAdapterTests
         String projectNameTrue = "TESTP";
         String projectNameFalse = "TESTP_FALSE";
 
-        ProjectData apiInput = getTestProject(projectNameTrue);
-        apiInput.key = projectNameTrue;
+        OpenProjectData apiInput = getTestProject(projectNameTrue);
+        apiInput.projectKey = projectNameTrue;
 
         FullJiraProject fullJiraProject = jiraAdapter
                 .buildJiraProjectPojoFromApiProject(apiInput);
@@ -296,13 +296,13 @@ public class JiraAdapterTests
         Mockito.doNothing().when(client).getSessionId(null);
 
         String projectNameTrue = "TESTP";
-        ProjectData apiInput = getTestProject(projectNameTrue);
-        apiInput.key = projectNameTrue;
+        OpenProjectData apiInput = getTestProject(projectNameTrue);
+        apiInput.projectKey = projectNameTrue;
 
-        apiInput.admin = "Clemens";
-        apiInput.adminGroup = "AdminGroup";
-        apiInput.userGroup = "UserGroup";
-        apiInput.readonlyGroup = "ReadonlyGroup";
+        apiInput.projectAdminUser = "Clemens";
+        apiInput.projectAdminGroup = "AdminGroup";
+        apiInput.projectUserGroup = "UserGroup";
+        apiInput.projectReadonlyGroup = "ReadonlyGroup";
 
         PermissionScheme scheme = new PermissionScheme();
         scheme.setId("permScheme1");
@@ -332,7 +332,7 @@ public class JiraAdapterTests
     {
         JiraAdapter mocked = Mockito.spy(jiraAdapter);
         RestClient restClientMocket = Mockito.spy(RestClient.class);
-        ProjectData apiInput = getTestProject("testproject");
+        OpenProjectData apiInput = getTestProject("testproject");
 
         int shortcutsAdded = mocked.addShortcutsToProject(apiInput,
                 "test");
@@ -343,7 +343,7 @@ public class JiraAdapterTests
                 any(), anyString(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
 
-        apiInput.jiraconfluencespace = false;
+        apiInput.bugtrackerSpace = false;
         mocked = Mockito.spy(jiraAdapter);
         mocked.client = Mockito.spy(RestClient.class);
         shortcutsAdded = mocked.addShortcutsToProject(apiInput,
@@ -356,13 +356,13 @@ public class JiraAdapterTests
 
     }
 
-    public static ProjectData getTestProject(String name)
+    public static OpenProjectData getTestProject(String name)
     {
-        ProjectData apiInput = new ProjectData();
-        apiInput.name = name;
+        OpenProjectData apiInput = new OpenProjectData();
+        apiInput.projectName = name;
         apiInput.description = "Test Description";
-        apiInput.key = "TESTP";
-        apiInput.admin = "Clemens";
+        apiInput.projectKey = "TESTP";
+        apiInput.projectAdminUser = "Clemens";
         return apiInput;
     }
 

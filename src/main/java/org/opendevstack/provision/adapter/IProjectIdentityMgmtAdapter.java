@@ -14,7 +14,7 @@
 package org.opendevstack.provision.adapter;
 
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
@@ -100,7 +100,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter
      * @throws Exception
      *             in case one or more groups cannot be found
      */
-    public void validateIdSettingsOfProject(ProjectData project)
+    public void validateIdSettingsOfProject(OpenProjectData project)
             throws IdMgmtException;
 
 }

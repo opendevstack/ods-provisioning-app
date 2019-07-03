@@ -25,7 +25,7 @@ import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
@@ -84,7 +84,7 @@ public class ProjectApiControllerTest
 
     private MockMvc mockMvc;
 
-    private ProjectData data;
+    private OpenProjectData data;
 
     @Value("${project.template.key.names}")
     private String projectKeys;
@@ -101,28 +101,28 @@ public class ProjectApiControllerTest
         MockitoAnnotations.initMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(apiController)
                 .build();
-        initProjectData();
+        initOpenProjectData();
     }
 
-    private void initProjectData()
+    private void initOpenProjectData()
     {
-        data = new ProjectData();
-        data.key = "KEY";
-        data.name = "Name";
+        data = new OpenProjectData();
+        data.projectKey = "KEY";
+        data.projectName = "Name";
         data.description = "Description";
 
         Map<String, String> someQuickstarter = new HashMap<>();
         someQuickstarter.put("key", "value");
-        List<Map<String, String>> quickstart = new ArrayList<>();
-        quickstart.add(someQuickstarter);
-        data.quickstart = quickstart;
+        List<Map<String, String>> quickstarters = new ArrayList<>();
+        quickstarters.add(someQuickstarter);
+        data.quickstarters = quickstarters;
 
-        data.openshiftproject = false;
-        data.createpermissionset = true;
-        data.admin = "clemens";
-        data.adminGroup = "group";
-        data.userGroup = "group";
-        data.readonlyGroup = "group";
+        data.platformRuntime = false;
+        data.specialPermissionSet = true;
+        data.projectAdminUser = "clemens";
+        data.projectAdminGroup = "group";
+        data.projectUserGroup = "group";
+        data.projectReadonlyGroup = "group";
     }
 
     @Test
@@ -144,7 +144,7 @@ public class ProjectApiControllerTest
                 .validateIdSettingsOfProject(data);
 
         mockMvc.perform(
-                post("/api/v1/project").content(asJsonString(data))
+                post("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -160,7 +160,7 @@ public class ProjectApiControllerTest
         Mockito.when(storage.storeProject(data))
                 .thenThrow(IOException.class);
         mockMvc.perform(
-                post("/api/v1/project").content(asJsonString(data))
+                post("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
@@ -170,7 +170,7 @@ public class ProjectApiControllerTest
     @Test
     public void addProjectWithOC() throws Exception
     {
-        data.openshiftproject = true;
+        data.platformRuntime = true;
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
                 isNotNull(), isNull())).thenReturn(data);
         Mockito.when(confluenceAdapter
@@ -201,7 +201,7 @@ public class ProjectApiControllerTest
                 .validateIdSettingsOfProject(data);
 
         mockMvc.perform(
-                post("/api/v1/project").content(asJsonString(data))
+                post("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -222,7 +222,7 @@ public class ProjectApiControllerTest
     {
         Mockito.doNothing().when(client).removeClient(anyString());
 
-        mockMvc.perform(post("/api/v1/project").content("{}")
+        mockMvc.perform(post("/api/v2/project").content("{}")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(
@@ -233,7 +233,7 @@ public class ProjectApiControllerTest
     @Test
     public void addProjectNullAnd4xxClientResult() throws Exception
     {
-        mockMvc.perform(post("/api/v1/project").content("")
+        mockMvc.perform(post("/api/v2/project").content("")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
@@ -245,12 +245,12 @@ public class ProjectApiControllerTest
     public void addProjectKeyOnlyAndExpectBadRequest()
             throws Exception
     {
-        ProjectData data = new ProjectData();
-        data.key = "KEY";
-        data.openshiftproject = true;
+        OpenProjectData data = new OpenProjectData();
+        data.projectKey = "KEY";
+        data.platformRuntime = true;
 
         mockMvc.perform(
-                post("/api/v1/project").content(asJsonString(data))
+                post("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(
@@ -264,7 +264,7 @@ public class ProjectApiControllerTest
         Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(true);
 
-        mockMvc.perform(get("/api/v1/project/validate")
+        mockMvc.perform(get("/api/v2/project/validate")
                 .param("name", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
@@ -278,7 +278,7 @@ public class ProjectApiControllerTest
         Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(false);
 
-        mockMvc.perform(get("/api/v1/project/validate")
+        mockMvc.perform(get("/api/v2/project/validate")
                 .param("name", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -290,7 +290,7 @@ public class ProjectApiControllerTest
     {
         Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(true);
-        mockMvc.perform(get("/api/v1/project/key/validate")
+        mockMvc.perform(get("/api/v2/project/key/validate")
                 .param("key", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
@@ -304,7 +304,7 @@ public class ProjectApiControllerTest
         Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
                 isNull())).thenReturn(false);
 
-        mockMvc.perform(get("/api/v1/project/key/validate")
+        mockMvc.perform(get("/api/v2/project/key/validate")
                 .param("key", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -318,7 +318,7 @@ public class ProjectApiControllerTest
                 jiraAdapter.buildProjectKey(isNotNull(String.class)))
                 .thenReturn("PROJ");
 
-        mockMvc.perform(get("/api/v1/project/key/generate")
+        mockMvc.perform(get("/api/v2/project/key/generate")
                 .param("name", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -329,7 +329,7 @@ public class ProjectApiControllerTest
     public void getProject() throws Exception
     {
         // arbitrary number
-        mockMvc.perform(get("/api/v1/project/1")
+        mockMvc.perform(get("/api/v2/project/1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(
                         MockMvcResultMatchers.status().isNotFound())
@@ -338,7 +338,7 @@ public class ProjectApiControllerTest
         Mockito.when(storage.getProject(anyString()))
                 .thenReturn(data);
 
-        mockMvc.perform(get("/api/v1/project/1")
+        mockMvc.perform(get("/api/v2/project/1")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print());
@@ -349,7 +349,7 @@ public class ProjectApiControllerTest
     {
         // list of keys - that we need to jsonify
         projectKeys = projectKeys.replace(",", "\",\"");
-        mockMvc.perform(get("/api/v1/project/templates")
+        mockMvc.perform(get("/api/v2/project/templates")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content()
@@ -364,7 +364,7 @@ public class ProjectApiControllerTest
         apiController.jiraAdapter = realJiraAdapter;
         apiController.confluenceAdapter = realConfluenceAdapter;
 
-        mockMvc.perform(get("/api/v1/project/template/default")
+        mockMvc.perform(get("/api/v2/project/template/default")
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -375,7 +375,7 @@ public class ProjectApiControllerTest
                         .string(CoreMatchers.containsString(
                                 "collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
 
-        mockMvc.perform(get("/api/v1/project/template/nonExistant")
+        mockMvc.perform(get("/api/v2/project/template/nonExistant")
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -386,7 +386,7 @@ public class ProjectApiControllerTest
                         .string(CoreMatchers.containsString(
                                 "collabSpaceTemplate\":\"com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint")));
 
-        mockMvc.perform(get("/api/v1/project/template/")
+        mockMvc.perform(get("/api/v2/project/template/")
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status()
@@ -396,7 +396,7 @@ public class ProjectApiControllerTest
     @Test
     public void updateProjectWithAndWithoutOC() throws Exception
     {
-        data.openshiftproject = false;
+        data.platformRuntime = false;
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
                 isNotNull(), isNull())).thenReturn(data);
         Mockito.when(confluenceAdapter
@@ -425,7 +425,7 @@ public class ProjectApiControllerTest
 
         // not existing
         mockMvc.perform(
-                put("/api/v1/project").content(asJsonString(data))
+                put("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(
@@ -436,13 +436,13 @@ public class ProjectApiControllerTest
                 .thenReturn(data);
 
         // upgrade to OC - with minimal set
-        ProjectData upgrade = new ProjectData();
-        upgrade.key = data.key;
-        upgrade.openshiftproject = true;
+        OpenProjectData upgrade = new OpenProjectData();
+        upgrade.projectKey = data.projectKey;
+        upgrade.platformRuntime = true;
         apiController.ocUpgradeAllowed = true;
 
         mockMvc.perform(
-                put("/api/v1/project").content(asJsonString(upgrade))
+                put("/api/v2/project").content(asJsonString(upgrade))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -455,14 +455,14 @@ public class ProjectApiControllerTest
                 .createSCMProjectForODSProject(isNotNull(), isNull());
 
         // upgrade to OC with upgrade forbidden
-        data.openshiftproject = false;
+        data.platformRuntime = false;
         Mockito.when(storage.getProject(anyString()))
                 .thenReturn(data);
-        upgrade.openshiftproject = true;
+        upgrade.platformRuntime = true;
 
         apiController.ocUpgradeAllowed = false;
         mockMvc.perform(
-                put("/api/v1/project").content(asJsonString(upgrade))
+                put("/api/v2/project").content(asJsonString(upgrade))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
@@ -472,10 +472,10 @@ public class ProjectApiControllerTest
                 .andDo(MockMvcResultHandlers.print());
 
         // now w/o upgrade
-        upgrade.openshiftproject = false;
+        upgrade.platformRuntime = false;
 
         mockMvc.perform(
-                put("/api/v1/project").content(asJsonString(data))
+                put("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -488,11 +488,11 @@ public class ProjectApiControllerTest
                 .createSCMProjectForODSProject(isNotNull(), isNull());
 
         // now w/o upgrade
-        data.openshiftproject = true;
-        upgrade.openshiftproject = false;
+        data.platformRuntime = true;
+        upgrade.platformRuntime = false;
 
         mockMvc.perform(
-                put("/api/v1/project").content(asJsonString(data))
+                put("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -508,7 +508,7 @@ public class ProjectApiControllerTest
     {
         data.description = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
 
-        ProjectData dataReturn = this.copyFromProject(data);
+        OpenProjectData dataReturn = this.copyFromProject(data);
         apiController.shortenDescription(dataReturn);
 
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
@@ -527,7 +527,7 @@ public class ProjectApiControllerTest
                 .validateIdSettingsOfProject(dataReturn);
 
         mockMvc.perform(
-                post("/api/v1/project").content(asJsonString(data))
+                post("/api/v2/project").content(asJsonString(data))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -561,20 +561,20 @@ public class ProjectApiControllerTest
         }
     }
 
-    private ProjectData copyFromProject(ProjectData origin)
+    private OpenProjectData copyFromProject(OpenProjectData origin)
     {
-        ProjectData data = new ProjectData();
-        data.key = origin.key;
-        data.name = origin.name;
+        OpenProjectData data = new OpenProjectData();
+        data.projectKey = origin.projectKey;
+        data.projectName = origin.projectName;
         data.description = origin.description;
-        data.openshiftproject = origin.openshiftproject;
-        data.bitbucketUrl = origin.bitbucketUrl;
-        data.quickstart = origin.quickstart;
-        data.createpermissionset = origin.createpermissionset;
-        data.admin = origin.admin;
-        data.adminGroup = origin.adminGroup;
-        data.userGroup = origin.userGroup;
-        data.readonlyGroup = origin.readonlyGroup;
+        data.platformRuntime = origin.platformRuntime;
+        data.scmvcsUrl = origin.scmvcsUrl;
+        data.quickstarters = origin.quickstarters;
+        data.specialPermissionSet = origin.specialPermissionSet;
+        data.projectAdminUser = origin.projectAdminUser;
+        data.projectAdminGroup = origin.projectAdminGroup;
+        data.projectUserGroup = origin.projectUserGroup;
+        data.projectReadonlyGroup = origin.projectReadonlyGroup;
         return data;
     }
 

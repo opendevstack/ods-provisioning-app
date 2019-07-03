@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.opendevstack.provision.model.AboutChangesData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 @Component
 public class LocalStorage implements IStorage
 {
-
     private static final Logger logger = LoggerFactory
             .getLogger(LocalStorage.class);
 
@@ -54,6 +54,8 @@ public class LocalStorage implements IStorage
 
     private static String ABOUT_CHANGES_LOGFILENAME = "about_change_log";
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    
     /**
      * Store the project in the injected storage path Saves the raw JSON data
      *
@@ -62,10 +64,10 @@ public class LocalStorage implements IStorage
      * @throws IOException
      */
     @Override
-    public String storeProject(ProjectData project) throws IOException
+    public String storeProject(OpenProjectData project) throws IOException
     {
-        if (project == null || project.key == null
-                || project.key.trim().length() == 0)
+        if (project == null || project.projectKey == null
+                || project.projectKey.trim().length() == 0)
         {
             throw new IOException(
                     "Can't store invalid, null or no key project");
@@ -78,10 +80,11 @@ public class LocalStorage implements IStorage
                 .format(FILE_PATH_PATTERN, localStoragePath,
                         dateTime.format(DateTimeFormatter
                                 .ofPattern("yyyyMMddHHmmss")),
-                        project.key);
+                        project.projectKey);
         try (FileWriter file = new FileWriter(filePath, false))
         {
             file.write(json);
+            file.close();
             logger.debug(
                     "Successfully Copied JSON Object to File...");
             logger.debug("JSON Object: {}", json);
@@ -99,9 +102,9 @@ public class LocalStorage implements IStorage
      * @return a desc date sorted list of projects
      */
     @Override
-    public Map<String, ProjectData> listProjectHistory()
+    public Map<String, OpenProjectData> listProjectHistory()
     {
-        HashMap<String, ProjectData> history = new HashMap<>();
+        HashMap<String, OpenProjectData> history = new HashMap<>();
         try
         {
             File folder = new File(localStoragePath);
@@ -125,9 +128,9 @@ public class LocalStorage implements IStorage
                         LocalDateTime dt = LocalDateTime.parse(
                                 file.getName().substring(0, 14),
                                 formatter);
+                        
                         history.put(dt.format(targetDt),
-                                new ObjectMapper().readValue(project,
-                                        ProjectData.class));
+                                readObjectFromString(project));
                     }
                 }
             }
@@ -140,9 +143,9 @@ public class LocalStorage implements IStorage
     }
 
     @Override
-    public ProjectData getProject(String id)
+    public OpenProjectData getProject(String id)
     {
-        ProjectData project = null;
+        OpenProjectData project = null;
         if (id == null)
         {
             return project;
@@ -160,10 +163,9 @@ public class LocalStorage implements IStorage
                     if (!file.isDirectory() && !file.isHidden()
                             && file.getName().endsWith(".txt"))
                     {
-                        project = new ObjectMapper().readValue(
-                                FileUtils.readFileToString(file),
-                                ProjectData.class);
-                        if (project.key.equalsIgnoreCase(id))
+                        project = readObjectFromString(
+                                FileUtils.readFileToString(file));
+                        if (project.projectKey.equalsIgnoreCase(id))
                         {
                             return project;
                         }
@@ -178,11 +180,11 @@ public class LocalStorage implements IStorage
     }
 
     @Override
-    public boolean updateStoredProject(ProjectData projectNew)
+    public boolean updateStoredProject(OpenProjectData projectNew)
             throws IOException
     {
-        if (projectNew == null || projectNew.key == null
-                || projectNew.key.trim().length() == 0)
+        if (projectNew == null || projectNew.projectKey == null
+                || projectNew.projectKey.trim().length() == 0)
         {
             throw new IOException(
                     "Can't update invalid, null or no key project");
@@ -200,13 +202,13 @@ public class LocalStorage implements IStorage
                     if (!file.isDirectory() && !file.isHidden()
                             && file.getName().endsWith(".txt"))
                     {
-                        ProjectData project = new ObjectMapper()
-                                .readValue(
-                                        FileUtils.readFileToString(
-                                                file),
-                                        ProjectData.class);
-                        if (projectNew.key
-                                .equalsIgnoreCase(project.key))
+                        OpenProjectData project =
+                                readObjectFromString(
+                                    FileUtils.readFileToString(
+                                                file));
+
+                        if (projectNew.projectKey
+                                .equalsIgnoreCase(project.projectKey))
                         {
                             filePath = file.getPath();
                         }
@@ -238,6 +240,10 @@ public class LocalStorage implements IStorage
         this.localStoragePath = localStoragePath;
     }
 
+    public String getLocalStoragePath () {
+        return this.localStoragePath;
+    }
+    
     /**
      * Test Impl only
      */
@@ -279,4 +285,23 @@ public class LocalStorage implements IStorage
             }
         }
     }
+
+    private OpenProjectData readObjectFromString (String project) throws IOException
+    {
+        ProjectData temp =
+            MAPPER.readValue(project,
+                    ProjectData.class);
+
+        if (temp.key != null) 
+        {
+            logger.debug("Project legacy format");
+            return ProjectData.toOpenProjectData((ProjectData)temp);
+        } else {
+            logger.debug("Project std format");
+            return MAPPER.readValue(project,
+                    OpenProjectData.class);
+        }
+
+    }
+
 }

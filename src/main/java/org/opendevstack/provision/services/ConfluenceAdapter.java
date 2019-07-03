@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Context;
@@ -97,16 +97,16 @@ public class ConfluenceAdapter implements ICollaborationAdapter
     @Value("${project.template.default.key}")
     private String defaultProjectKey;
 
-    public ProjectData createCollaborationSpaceForODSProject(
-            ProjectData project, String crowdCookieValue)
+    public OpenProjectData createCollaborationSpaceForODSProject(
+            OpenProjectData project, String crowdCookieValue)
             throws IOException
     {
         this.crowdCookieValue = crowdCookieValue;
         SpaceData space = callCreateSpaceApi(createSpaceData(project),
                 crowdCookieValue);
-        project.confluenceUrl = space.getUrl();
+        project.collaborationSpaceUrl = space.getUrl();
 
-        if (project.createpermissionset)
+        if (project.specialPermissionSet)
         {
             try
             {
@@ -116,7 +116,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                 // continue - we are ok if permissions fail, because the admin has access, and
                 // create the set
                 logger.error("Could not create project: "
-                        + project.key + "\n Exception: "
+                        + project.projectKey + "\n Exception: "
                         + createPermissions.getMessage());
             }
         }
@@ -133,7 +133,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                 RestClient.HTTP_VERB.POST, SpaceData.class);
     }
 
-    Space createSpaceData(ProjectData project) throws IOException
+    Space createSpaceData(OpenProjectData project) throws IOException
     {
         String confluenceBlueprintId = getBluePrintId(
                 project.projectType);
@@ -141,19 +141,19 @@ public class ConfluenceAdapter implements ICollaborationAdapter
 
         Space space = new Space();
         space.setSpaceBlueprintId(confluenceBlueprintId);
-        space.setName(project.name);
-        space.setSpaceKey(project.key);
+        space.setName(project.projectName);
+        space.setSpaceKey(project.projectKey);
         space.setDescription(project.description);
 
         Context context = new Context();
-        context.setName(project.name);
-        context.setSpaceKey(project.key);
+        context.setName(project.projectName);
+        context.setSpaceKey(project.projectKey);
         context.setAtlToken("undefined");
         context.setNoPageTitlePrefix("true");
         context.setJiraServer(jiraServerId);
         context.setJiraServerId(jiraServerId);
-        context.setProjectKey(project.key);
-        context.setProjectName(project.name);
+        context.setProjectKey(project.projectKey);
+        context.setProjectName(project.projectName);
         context.setDescription(project.description);
         space.setContext(context);
         return space;
@@ -192,7 +192,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                 {
                 });
 
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         project.projectType = projectTypeKey;
 
         String template = retrieveInternalProjectTypeAndTemplateFromProjectType(
@@ -231,7 +231,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                 reference);
     }
 
-    int updateSpacePermissions(ProjectData data,
+    int updateSpacePermissions(OpenProjectData data,
             String crowdCookieValue) throws IOException
     {
         PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
@@ -258,21 +258,21 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                 // we know it's a singular pseudo json line
                 permissionset = reader.readLine();
                 permissionset = permissionset.replace("SPACE_NAME",
-                        data.key);
+                        data.projectKey);
 
                 if (permissionFilename.contains("adminGroup"))
                 {
                     permissionset = permissionset.replace(SPACE_GROUP,
-                            data.adminGroup);
+                            data.projectAdminGroup);
                 } else if (permissionFilename.contains("userGroup"))
                 {
                     permissionset = permissionset.replace(SPACE_GROUP,
-                            data.userGroup);
+                            data.projectUserGroup);
                 } else if (permissionFilename
                         .contains("readonlyGroup"))
                 {
                     permissionset = permissionset.replace(SPACE_GROUP,
-                            data.readonlyGroup);
+                            data.projectReadonlyGroup);
                 } else if (permissionFilename
                         .contains("keyuserGroup"))
                 {
@@ -301,7 +301,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
 
     @Override
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
-            ProjectData project)
+            OpenProjectData project)
     {
         Preconditions.checkNotNull(project, "project cannot be null");
 

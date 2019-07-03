@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -29,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.AboutChangesData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Torsten Jaeschke
@@ -61,32 +65,67 @@ public class LocalStorageTest
     @Test(expected = IOException.class)
     public void storeProjectNoKey() throws Exception
     {
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         localStorage.storeProject(project);
     }
 
     @Test
+    public void upgradeExisting () throws Exception {
+        
+        File testFile = 
+            new File(localStorage.getLocalStoragePath() 
+                        + "/20170101000000-test.txt");
+        
+        File testFileBackup =
+                new File(localStorage.getLocalStoragePath() + 
+                        "/20170101000000-test.txt.kup");
+        
+        FileCopyUtils.copy(new FileInputStream(testFile), 
+                new FileOutputStream(testFileBackup));
+        try 
+        {
+            OpenProjectData project = 
+                localStorage.getProject("Test");
+            
+            // try the new field
+            project.bugtrackerSpace = false;
+            assertTrue(localStorage.updateStoredProject(project));
+            project = localStorage.getProject(project.projectKey);
+    
+            assertNotNull(project);
+            assertFalse(project.bugtrackerSpace);
+        } catch (Exception allErr) 
+        {
+            throw allErr;
+        } finally {
+            FileCopyUtils.copy(new FileInputStream(testFileBackup), 
+                new FileOutputStream(testFile));
+            testFileBackup.deleteOnExit();
+        }
+    }
+    
+    @Test
     public void storeProject() throws Exception
     {
-        ProjectData project = new ProjectData();
-        project.key = "clemens";
+        OpenProjectData project = new OpenProjectData();
+        project.projectKey = "clemens";
         String filePath = localStorage.storeProject(project);
 
         assertNotNull(filePath);
 
-        project = localStorage.getProject(project.key);
+        project = localStorage.getProject(project.projectKey);
 
         assertNotNull(project);
-        assertTrue(project.jiraconfluencespace);
-        assertEquals("clemens", project.key);
+        assertTrue(project.bugtrackerSpace);
+        assertEquals("clemens", project.projectKey);
 
         // try the new field
-        project.jiraconfluencespace = false;
+        project.bugtrackerSpace = false;
         localStorage.updateStoredProject(project);
-        project = localStorage.getProject(project.key);
+        project = localStorage.getProject(project.projectKey);
 
         assertNotNull(project);
-        assertFalse(project.jiraconfluencespace);
+        assertFalse(project.bugtrackerSpace);
 
         (new File(filePath)).delete();
     }
@@ -94,7 +133,7 @@ public class LocalStorageTest
     @Test(expected = IOException.class)
     public void storeProjectWithException() throws Exception
     {
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         localStorage
                 .setLocalStoragePath("/to/some/non/existant/folder/");
         localStorage.storeProject(project);
@@ -103,10 +142,12 @@ public class LocalStorageTest
     @Test
     public void listProjectHistory() throws Exception
     {
-        Map<String, ProjectData> history = localStorage
+        Map<String, OpenProjectData> history = localStorage
                 .listProjectHistory();
 
         assertFalse(history.isEmpty());
+        
+        assertEquals("Test", history.values().iterator().next().projectName);
     }
 
     @Test

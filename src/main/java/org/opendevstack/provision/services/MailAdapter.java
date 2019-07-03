@@ -14,7 +14,7 @@
 
 package org.opendevstack.provision.services;
 
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -65,7 +65,7 @@ public class MailAdapter
         this.mailSender = mailSender;
     }
 
-    public void notifyUsersAboutProject(ProjectData data)
+    public void notifyUsersAboutProject(OpenProjectData data)
     {
         if (!isMailEnabled)
         {
@@ -86,12 +86,12 @@ public class MailAdapter
         Thread sendThread = new Thread(() -> {
             try
             {
-                MDC.put(STR_LOGFILE_KEY, data.key);
+                MDC.put(STR_LOGFILE_KEY, data.projectKey);
                 mailSender.send(messagePreparator);
             } catch (MailException e)
             {
                 logger.error("Error in sending mail for project: "
-                        + data.key, e);
+                        + data.projectKey, e);
             } finally
             {
                 MDC.remove(STR_LOGFILE_KEY);
@@ -99,10 +99,10 @@ public class MailAdapter
         });
 
         sendThread.start();
-        logger.debug("Mail for project: {} sent", data.key);
+        logger.debug("Mail for project: {} sent", data.projectKey);
     }
 
-    String build(ProjectData data)
+    String build(OpenProjectData data)
     {
         try
         {

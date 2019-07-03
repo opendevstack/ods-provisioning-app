@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.BitbucketData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
@@ -86,13 +86,13 @@ public class BitbucketAdapterTest
         bitbucketData.setLinks(map);
 
         Mockito.doReturn(bitbucketData).when(spyAdapter)
-                .callCreateProjectApi(any(ProjectData.class),
+                .callCreateProjectApi(any(OpenProjectData.class),
                         eq(null));
 
-        ProjectData data = spyAdapter.createSCMProjectForODSProject(
-                getReturnProjectData(), crowdCookieValue);
+        OpenProjectData data = spyAdapter.createSCMProjectForODSProject(
+                getReturnOpenProjectData(), crowdCookieValue);
 
-        assertEquals("testlink", data.bitbucketUrl);
+        assertEquals("testlink", data.scmvcsUrl);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class BitbucketAdapterTest
                 .thenReturn(authentication);
 
         SecurityContextHolder.setContext(securityContext);
-        ProjectData projectData = getReturnProjectData();
+        OpenProjectData projectData = getReturnOpenProjectData();
         RepositoryData repoData = getReturnRepoData();
 
         Mockito.doNothing().when(spyAdapter)
@@ -121,7 +121,7 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class), eq(null));
 
-        ProjectData result = spyAdapter
+        OpenProjectData result = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData,
                         crowdCookieValue);
 
@@ -154,7 +154,7 @@ public class BitbucketAdapterTest
         SecurityContextHolder.setContext(securityContext);
 
         Repository repo = new Repository();
-        ProjectData projectData = getReturnProjectData();
+        OpenProjectData projectData = getReturnOpenProjectData();
         Map<String, Map<String, List<Link>>> repos = new HashMap();
         projectData.repositories = repos;
 
@@ -163,10 +163,10 @@ public class BitbucketAdapterTest
         List<Map<String, String>> quickstarters = new ArrayList<>();
         quickstarters.add(quickstart);
 
-        projectData.quickstart = quickstarters;
+        projectData.quickstarters = quickstarters;
         RepositoryData repoData = new RepositoryData();
         repoData.setLinks(getReturnLinks());
-        projectData.key = "testkey";
+        projectData.projectKey = "testkey";
 
         Mockito.doNothing().when(spyAdapter)
                 .createWebHooksForRepository(repoData, projectData,
@@ -174,7 +174,7 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class), any());
 
-        ProjectData result = spyAdapter
+        OpenProjectData result = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData,
                         crowdCookieValue);
 
@@ -204,7 +204,7 @@ public class BitbucketAdapterTest
                 .thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        ProjectData projectData = new ProjectData();
+        OpenProjectData projectData = new OpenProjectData();
 
         RepositoryData repoData = new RepositoryData();
 
@@ -222,7 +222,7 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class), anyString());
 
-        ProjectData actual = spyAdapter
+        OpenProjectData actual = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData,
                         crowdCookieValue);
 
@@ -237,12 +237,12 @@ public class BitbucketAdapterTest
 
         String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
-        ProjectData data = new ProjectData();
-        data.key = "testkey";
-        data.name = "testproject";
+        OpenProjectData data = new OpenProjectData();
+        data.projectKey = "testkey";
+        data.projectName = "testproject";
         data.description = "this is a discription";
-        data.createpermissionset = true;
-        data.admin = "someadmin";
+        data.specialPermissionSet = true;
+        data.projectAdminUser = "someadmin";
 
         spyAdapter.client = client;
 
@@ -296,11 +296,11 @@ public class BitbucketAdapterTest
 
         String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
-        ProjectData data = new ProjectData();
-        data.key = "testkey";
-        data.name = "testproject";
+        OpenProjectData data = new OpenProjectData();
+        data.projectKey = "testkey";
+        data.projectName = "testproject";
         data.description = "this is a discription";
-        data.createpermissionset = false;
+        data.specialPermissionSet = false;
 
         BitbucketProject project = BitbucketAdapter
                 .createBitbucketProject(data);
@@ -395,19 +395,19 @@ public class BitbucketAdapterTest
     {
         BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
 
-        ProjectData projectData = new ProjectData();
+        OpenProjectData projectData = new OpenProjectData();
         projectData.repositories = new HashMap<>();
-        projectData.key = "12423qtr";
+        projectData.projectKey = "12423qtr";
         String crowdCookieValue = "cookieValue";
         String[] auxRepos = new String[] { "auxrepo1", "auxrepo2" };
 
         Repository repo1 = new Repository();
         repo1.setName(String.format("%s-%s",
-                projectData.key.toLowerCase(), "auxrepo1"));
+                projectData.projectKey.toLowerCase(), "auxrepo1"));
 
         Repository repo2 = new Repository();
         repo1.setName(String.format("%s-%s",
-                projectData.key.toLowerCase(), "auxrepo2"));
+                projectData.projectKey.toLowerCase(), "auxrepo2"));
 
         RepositoryData repoData1 = new RepositoryData();
         repoData1.setName("repoData1");
@@ -439,9 +439,9 @@ public class BitbucketAdapterTest
     public void testCreateWebhooks() throws Exception
     {
 
-        ProjectData projectData = new ProjectData();
+        OpenProjectData projectData = new OpenProjectData();
         projectData.repositories = new HashMap<>();
-        projectData.key = "12423qtr";
+        projectData.projectKey = "12423qtr";
 
         RepositoryData repoData1 = new RepositoryData();
         repoData1.setName("repoData1");
@@ -475,11 +475,11 @@ public class BitbucketAdapterTest
         return linkMap;
     }
 
-    private ProjectData getReturnProjectData()
+    private OpenProjectData getReturnOpenProjectData()
     {
-        ProjectData data = new ProjectData();
-        data.quickstart = getReturnQuickstarters();
-        data.key = "testkey";
+        OpenProjectData data = new OpenProjectData();
+        data.quickstarters = getReturnQuickstarters();
+        data.projectKey = "testkey";
         return data;
     }
 

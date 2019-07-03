@@ -19,7 +19,7 @@ import java.util.Map;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,29 +45,29 @@ public class ProjectIdentityMgmtAdapter
     @Autowired
     CustomAuthenticationManager manager;
 
-    public void validateIdSettingsOfProject(ProjectData project)
+    public void validateIdSettingsOfProject(OpenProjectData project)
             throws IdMgmtException
     {
         Map<String, String> projectCheckStatus = new HashMap<>();
 
         long startTime = System.currentTimeMillis();
 
-        if (!groupExists(project.adminGroup))
+        if (!groupExists(project.projectAdminGroup))
         {
-            projectCheckStatus.put("adminGroup", project.adminGroup);
+            projectCheckStatus.put("adminGroup", project.projectAdminGroup);
         }
-        if (!groupExists(project.userGroup))
+        if (!groupExists(project.projectUserGroup))
         {
-            projectCheckStatus.put("userGroup", project.userGroup);
+            projectCheckStatus.put("userGroup", project.projectUserGroup);
         }
-        if (!groupExists(project.readonlyGroup))
+        if (!groupExists(project.projectReadonlyGroup))
         {
             projectCheckStatus.put("readonlyGroup",
-                    project.readonlyGroup);
+                    project.projectReadonlyGroup);
         }
-        if (!userExists(project.admin))
+        if (!userExists(project.projectAdminUser))
         {
-            projectCheckStatus.put("admin", project.admin);
+            projectCheckStatus.put("admin", project.projectAdminUser);
         }
 
         logger.debug("identityCheck Name took (ms): {}",

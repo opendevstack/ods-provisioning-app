@@ -173,4 +173,81 @@ public class ProjectData
         return true;
     }
 
+    /**
+     * Create a legacy project from a new one
+     * @param open the new style project pojo
+     * @return the old style pojo
+     */
+    public static ProjectData fromOpenProjectData
+        (OpenProjectData open) 
+    {
+        ProjectData project = new ProjectData();
+        
+        project.key = open.projectKey;
+        project.name = open.projectName;
+        project.description = open.description;
+        
+        // roles & users
+        project.createpermissionset = open.specialPermissionSet;
+        project.admin = open.projectAdminUser;
+        project.adminGroup = open.projectAdminGroup;
+        project.readonlyGroup = open.projectReadonlyGroup;
+        project.userGroup = open.projectUserGroup;
+        
+        // quickstarters and repos
+        project.repositories = open.repositories;
+        project.quickstart = open.quickstarters;
+        
+        // urls & config
+        project.jiraconfluencespace = open.bugtrackerSpace;
+        project.openshiftproject = open.platformRuntime;
+        project.openshiftConsoleDevEnvUrl = open.platformDevEnvironmentUrl;
+        project.openshiftConsoleTestEnvUrl = open.platformTestEnvironmentUrl;
+        project.openshiftJenkinsUrl = open.platformBuildEngineUrl;
+        
+        // state
+        project.lastJobs = open.lastExecutionJobs;
+        
+        
+        return project;
+    }
+
+    /**
+     * Create a new Open project from this legacy
+     * @param project the legacy project
+     * @return a project in the new strucutre
+     */
+    public static OpenProjectData toOpenProjectData
+        (ProjectData project) 
+    {
+        OpenProjectData open = new OpenProjectData();
+        
+        open.projectKey = project.key;
+        open.projectName = project.name;
+        open.description = project.description;
+        
+        // roles & users
+        open.specialPermissionSet = project.createpermissionset;
+        open.projectAdminUser = project.admin;
+        open.projectAdminGroup = project.adminGroup ;
+        open.projectReadonlyGroup = project.readonlyGroup;
+        open.projectUserGroup = project.userGroup;
+        
+        // quickstarters and repos
+        open.repositories = project.repositories;
+        open.quickstarters = project.quickstart;
+        
+        // urls & config
+        open.bugtrackerSpace = project.jiraconfluencespace;
+        open.platformRuntime = project.openshiftproject;
+        open.platformDevEnvironmentUrl = project.openshiftConsoleDevEnvUrl;
+        open.platformTestEnvironmentUrl = project.openshiftConsoleTestEnvUrl;
+        open.platformBuildEngineUrl = project.openshiftJenkinsUrl;
+        
+        // state
+        open.lastExecutionJobs = project.lastJobs;
+        
+        return open;
+    }
+
 }

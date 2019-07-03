@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.RestClient;
@@ -104,7 +104,7 @@ public class RundeckAdapterTest
     public void executeJobsWhenQuickstartIsNull() throws Exception
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         List<ExecutionsData> expectedExecutions = new ArrayList<>();
         Mockito.doNothing().when(spyAdapter).authenticate();
 
@@ -119,8 +119,8 @@ public class RundeckAdapterTest
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        ProjectData project = new ProjectData();
-        project.key = PROJECT_KEY;
+        OpenProjectData project = new OpenProjectData();
+        project.projectKey = PROJECT_KEY;
 
         Job job = new Job();
         job.setId(PROJECT_ID);
@@ -132,7 +132,7 @@ public class RundeckAdapterTest
         List<Map<String, String>> quickstart = new ArrayList<>();
 
         quickstart.add(testjob);
-        project.quickstart = quickstart;
+        project.quickstarters = quickstart;
 
         Execution exec = generateDefaultExecution();
 
@@ -166,8 +166,8 @@ public class RundeckAdapterTest
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        ProjectData projectData = new ProjectData();
-        projectData.key = "key";
+        OpenProjectData projectData = new OpenProjectData();
+        projectData.projectKey = "key";
         String crowdCookie = "cookie2";
 
         ExecutionsData execData = Mockito.mock(ExecutionsData.class);
@@ -194,14 +194,14 @@ public class RundeckAdapterTest
         mockRestClientToReturnExecutionData(Execution.class,
                 ExecutionsData.class);
 
-        ProjectData expectedProjectData = generateDefaultProjectData();
+        OpenProjectData expectedOpenProjectData = generateDefaultOpenProjectData();
 
-        ProjectData createdProjectData = spyAdapter
+        OpenProjectData createdOpenProjectData = spyAdapter
                 .createPlatformProjects(projectData, crowdCookie);
 
         Execution execution = new Execution();
         Map<String, String> options = new HashMap<>();
-        options.put("project_id", projectData.key);
+        options.put("project_id", projectData.projectKey);
         options.put("project_admin", userNameFromCrowd);
         execution.setOptions(options);
 
@@ -215,14 +215,14 @@ public class RundeckAdapterTest
                 refEq(execution), any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), any());
 
-        assertEquals(expectedProjectData, createdProjectData);
-        assertTrue(expectedProjectData.openshiftproject);
-        assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl,
-                createdProjectData.openshiftConsoleDevEnvUrl);
-        assertEquals(expectedProjectData.openshiftConsoleTestEnvUrl,
-                createdProjectData.openshiftConsoleTestEnvUrl);
-        assertEquals(expectedProjectData.openshiftJenkinsUrl,
-                createdProjectData.openshiftJenkinsUrl);
+        assertEquals(expectedOpenProjectData, createdOpenProjectData);
+        assertTrue(expectedOpenProjectData.platformRuntime);
+        assertEquals(expectedOpenProjectData.platformDevEnvironmentUrl,
+                createdOpenProjectData.platformDevEnvironmentUrl);
+        assertEquals(expectedOpenProjectData.platformTestEnvironmentUrl,
+                createdOpenProjectData.platformTestEnvironmentUrl);
+        assertEquals(expectedOpenProjectData.platformBuildEngineUrl,
+                createdOpenProjectData.platformBuildEngineUrl);
     }
 
     @Test(expected = IOException.class)
@@ -238,8 +238,8 @@ public class RundeckAdapterTest
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        ProjectData projectData = new ProjectData();
-        projectData.key = "key";
+        OpenProjectData projectData = new OpenProjectData();
+        projectData.projectKey = "key";
         String crowdCookie = "cookie2";
 
         ExecutionsData execData = Mockito.mock(ExecutionsData.class);
@@ -254,15 +254,15 @@ public class RundeckAdapterTest
         jobs.add(job2);
 
         // create special permissionset - here crowd userdetails should never be called
-        projectData.createpermissionset = true;
-        projectData.admin = "clemens";
-        projectData.adminGroup = "agroup";
-        projectData.userGroup = "ugroup";
-        projectData.readonlyGroup = "rgroup";
+        projectData.specialPermissionSet = true;
+        projectData.projectAdminUser = "clemens";
+        projectData.projectAdminGroup = "agroup";
+        projectData.projectUserGroup = "ugroup";
+        projectData.projectReadonlyGroup = "rgroup";
 
-        // projectData.adminGroup = "agroup";
-        // projectData.userGroup = "ugroup";
-        // projectData.readonlyGroup = "rgroup";
+        // projectData.projectAdminGroup = "agroup";
+        // projectData.projectUserGroup = "ugroup";
+        // projectData.projectReadonlyGroup = "rgroup";
 
         spyAdapter = Mockito.spy(rundeckAdapter);
 
@@ -283,17 +283,17 @@ public class RundeckAdapterTest
         Execution execVerify = (Execution) captor.getValue();
         assertNotNull(execVerify);
         assertEquals(execVerify.getOptions().get("project_id"),
-                projectData.key);
+                projectData.projectKey);
         assertEquals(execVerify.getOptions().get("project_admin"),
-                projectData.admin);
+                projectData.projectAdminUser);
         String groups = execVerify.getOptions().get("project_groups");
         assertNotNull(groups);
         assertTrue(groups
-                .contains("ADMINGROUP=" + projectData.adminGroup)
+                .contains("ADMINGROUP=" + projectData.projectAdminGroup)
                 && groups.contains(
-                        "USERGROUP=" + projectData.userGroup)
+                        "USERGROUP=" + projectData.projectUserGroup)
                 && groups.contains("READONLYGROUP="
-                        + projectData.readonlyGroup));
+                        + projectData.projectReadonlyGroup));
     }
 
     @Test
@@ -303,15 +303,15 @@ public class RundeckAdapterTest
                 rundeckAdapter.getAdapterApiUri());
     }
 
-    private ProjectData generateDefaultProjectData()
+    private OpenProjectData generateDefaultOpenProjectData()
     {
-        ProjectData expected = new ProjectData();
-        expected.openshiftConsoleDevEnvUrl = "https://192.168.99.100:8443/console/project/key-dev";
-        expected.openshiftConsoleTestEnvUrl = "https://192.168.99.100:8443/console/project/key-test";
-        expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
-        expected.jiraconfluencespace = true;
-        expected.openshiftproject = true;
-        expected.key = "key";
+        OpenProjectData expected = new OpenProjectData();
+        expected.platformDevEnvironmentUrl = "https://192.168.99.100:8443/console/project/key-dev";
+        expected.platformTestEnvironmentUrl = "https://192.168.99.100:8443/console/project/key-test";
+        expected.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
+        expected.bugtrackerSpace = true;
+        expected.platformRuntime = true;
+        expected.projectKey = "key";
         return expected;
     }
 

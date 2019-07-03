@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.TestAuthentication;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,37 +78,37 @@ public class StorageAdapterTest
         try
         {
             // open project
-            ProjectData data = new ProjectData();
-            data.name = "testproject";
-            data.key = "testpprojectKey";
-            data.adminGroup = "testgroup";
+            OpenProjectData data = new OpenProjectData();
+            data.projectName = "testproject";
+            data.projectKey = "testpprojectKey";
+            data.projectAdminGroup = "testgroup";
 
             // case sensitive right group
-            ProjectData dataProtected = new ProjectData();
-            dataProtected.name = "testprojectProtected";
-            dataProtected.key = "testprojectProtected";
-            dataProtected.adminGroup = "testgroup";
-            dataProtected.createpermissionset = true;
+            OpenProjectData dataProtected = new OpenProjectData();
+            dataProtected.projectName = "testprojectProtected";
+            dataProtected.projectKey = "testprojectProtected";
+            dataProtected.projectAdminGroup = "testgroup";
+            dataProtected.specialPermissionSet = true;
 
             // wrong group
-            ProjectData dataProtectedWrong = new ProjectData();
-            dataProtectedWrong.name = "testprojectProtectedW";
-            dataProtectedWrong.key = "testprojectProtectedW";
-            dataProtectedWrong.adminGroup = "testgroupW";
-            dataProtectedWrong.createpermissionset = true;
+            OpenProjectData dataProtectedWrong = new OpenProjectData();
+            dataProtectedWrong.projectName = "testprojectProtectedW";
+            dataProtectedWrong.projectKey = "testprojectProtectedW";
+            dataProtectedWrong.projectAdminGroup = "testgroupW";
+            dataProtectedWrong.specialPermissionSet = true;
 
             // group upper lower case
-            ProjectData dataProtectedCase = new ProjectData();
-            dataProtectedCase.name = "testprojectProtectedC";
-            dataProtectedCase.key = "testprojectProtectedC";
-            dataProtectedCase.adminGroup = "testGroup";
-            dataProtectedCase.createpermissionset = true;
+            OpenProjectData dataProtectedCase = new OpenProjectData();
+            dataProtectedCase.projectName = "testprojectProtectedC";
+            dataProtectedCase.projectKey = "testprojectProtectedC";
+            dataProtectedCase.projectAdminGroup = "testGroup";
+            dataProtectedCase.specialPermissionSet = true;
 
-            Map<String, ProjectData> projects = new HashMap<>();
-            projects.put(data.key, data);
-            projects.put(dataProtected.key, dataProtected);
-            projects.put(dataProtectedWrong.key, dataProtectedWrong);
-            projects.put(dataProtectedCase.key, dataProtectedCase);
+            Map<String, OpenProjectData> projects = new HashMap<>();
+            projects.put(data.projectKey, data);
+            projects.put(dataProtected.projectKey, dataProtected);
+            projects.put(dataProtectedWrong.projectKey, dataProtectedWrong);
+            projects.put(dataProtectedCase.projectKey, dataProtectedCase);
 
             Mockito.when(storage.listProjectHistory())
                     .thenReturn(projects);
@@ -116,11 +117,11 @@ public class StorageAdapterTest
             SecurityContextHolder.getContext()
                     .setAuthentication(new TestAuthentication());
 
-            Map<String, ProjectData> testresult = adapter
+            Map<String, OpenProjectData> testresult = adapter
                     .listProjectHistory();
             assertEquals(3, testresult.size());
             assertFalse(
-                    testresult.containsKey(dataProtectedWrong.key));
+                    testresult.containsKey(dataProtectedWrong.projectKey));
         } finally
         {
             SecurityContextHolder.clearContext();

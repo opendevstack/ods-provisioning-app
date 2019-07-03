@@ -17,7 +17,7 @@ package org.opendevstack.provision.adapter;
 import java.io.IOException;
 import java.util.Map;
 
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Service interface for a bugtracker
@@ -28,24 +28,24 @@ public interface IBugtrackerAdapter extends IServiceAdapter
     /**
      * Create a bugtracker project based on name and key
      * @param project the project including the project's name and key 
-     * {@link ProjectData#key} and {@link ProjectData#name}
+     * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
      * @param crowdCookie the sso cookie
      * @return the project filled with {@link ProjectData#jiraUrl}
      * @throws IOException in case something occurs during the outbound 
      * call to the bugtracker
      */
-    public ProjectData createBugtrackerProjectForODSProject(
-            ProjectData project, String crowdCookieValue)
+    public OpenProjectData createBugtrackerProjectForODSProject(
+            OpenProjectData project, String crowdCookieValue)
             throws IOException;
 
     /**
      * Add shortcuts / links to other tools used based on the 
-     * {@link ProjectData} fields, e.g. openshift URLs
+     * {@link OpenProjectData} fields, e.g. openshift URLs
      * @param project the project filled with all available information
      * @param crowdCookieValue the SSO cookie
      * @return the number of shortcuts created
      */
-    public int addShortcutsToProject(ProjectData project,
+    public int addShortcutsToProject(OpenProjectData project,
             String crowdCookieValue);
 
     /**
@@ -65,11 +65,11 @@ public interface IBugtrackerAdapter extends IServiceAdapter
 
     /**
      * In case templates are used return template(s) based on 
-     * {@link ProjectData#projectType}
+     * {@link OpenProjectData#projectType}
      * @param project the project with filled projectType
      * @return the template(s) keys
      */
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
-            ProjectData project);
+            OpenProjectData project);
 
 }

@@ -31,7 +31,7 @@ import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.storage.IStorage;
@@ -62,7 +62,7 @@ import com.google.common.base.Preconditions;
  * @author Clemens Utschig
  */
 @RestController
-@RequestMapping(value = "api/v1/project")
+@RequestMapping(value = "api/v2/project")
 public class ProjectApiController
 {
 
@@ -115,14 +115,14 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Object> addProject(
             HttpServletRequest request,
-            @RequestBody ProjectData project,
+            @RequestBody OpenProjectData project,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
 
-        if (project == null || project.key == null
-                || project.key.trim().length() == 0
-                || project.name == null
-                || project.name.trim().length() == 0)
+        if (project == null || project.projectKey == null
+                || project.projectKey.trim().length() == 0
+                || project.projectName == null
+                || project.projectName.trim().length() == 0)
         {
             return ResponseEntity.badRequest().body(
                     "Project key and name are mandatory fields to create a project!");
@@ -131,8 +131,8 @@ public class ProjectApiController
         // fix for opendevstack/ods-provisioning-app/issues/64
         shortenDescription(project);
 
-        project.key = project.key.toUpperCase();
-        MDC.put(STR_LOGFILE_KEY, project.key);
+        project.projectKey = project.projectKey.toUpperCase();
+        MDC.put(STR_LOGFILE_KEY, project.projectKey);
         logger.debug("Crowd Cookie: {}", crowdCookie);
 
         try
@@ -142,19 +142,19 @@ public class ProjectApiController
                             .withDefaultPrettyPrinter()
                             .writeValueAsString(project));
 
-            if (project.createpermissionset)
+            if (project.specialPermissionSet)
             {
                 projectIdentityMgmtAdapter
                         .validateIdSettingsOfProject(project);
             }
 
-            if (project.jiraconfluencespace)
+            if (project.bugtrackerSpace)
             {
                 if (storage.listProjectHistory()
-                        .containsKey(project.key))
+                        .containsKey(project.projectKey))
                 {
                     throw new IOException("Project with key "
-                            + project.key + " already exists");
+                            + project.projectKey + " already exists");
                 }
 
                 // create JIRA project
@@ -217,18 +217,18 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.PUT)
     public ResponseEntity<Object> updateProject(
             HttpServletRequest request,
-            @RequestBody ProjectData project,
+            @RequestBody OpenProjectData project,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
 
-        if (project == null || project.key.trim().length() == 0)
+        if (project == null || project.projectKey.trim().length() == 0)
         {
             return ResponseEntity.badRequest().body(
                     "Project key is mandatory to call update project!");
         }
-        MDC.put(STR_LOGFILE_KEY, project.key);
+        MDC.put(STR_LOGFILE_KEY, project.projectKey);
 
-        logger.debug("Update project: " + project.key);
+        logger.debug("Update project: " + project.projectKey);
         try
         {
             logger.debug("Project: {}",
@@ -236,7 +236,7 @@ public class ProjectApiController
                             .withDefaultPrettyPrinter()
                             .writeValueAsString(project));
 
-            ProjectData oldProject = storage.getProject(project.key);
+            OpenProjectData oldProject = storage.getProject(project.projectKey);
 
             if (oldProject == null)
             {
@@ -244,44 +244,44 @@ public class ProjectApiController
             }
 
             project.description = oldProject.description;
-            project.name = oldProject.name;
-            project.bitbucketUrl = oldProject.bitbucketUrl;
-            project.jiraconfluencespace = oldProject.jiraconfluencespace;
+            project.projectName = oldProject.projectName;
+            project.scmvcsUrl = oldProject.scmvcsUrl;
+            project.bugtrackerSpace = oldProject.bugtrackerSpace;
             // we purposely allow overwriting openshift settings, to create a project later
             // on
-            if (!oldProject.openshiftproject
-                    && project.openshiftproject && !ocUpgradeAllowed)
+            if (!oldProject.platformRuntime
+                    && project.platformRuntime && !ocUpgradeAllowed)
             {
                 return ResponseEntity
                         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Project: " + project.key
+                        .body("Project: " + project.projectKey
                                 + " cannot be upgraded to openshift usage");
-            } else if (oldProject.openshiftproject)
+            } else if (oldProject.platformRuntime)
             {
                 // we need to set this, otherwise the provisioniong will not work
-                project.openshiftproject = oldProject.openshiftproject;
+                project.platformRuntime = oldProject.platformRuntime;
             }
 
-            if (oldProject.createpermissionset)
+            if (oldProject.specialPermissionSet)
             {
-                project.createpermissionset = oldProject.createpermissionset;
-                project.admin = oldProject.admin;
-                project.adminGroup = oldProject.adminGroup;
-                project.userGroup = oldProject.userGroup;
-                project.readonlyGroup = oldProject.readonlyGroup;
+                project.specialPermissionSet = oldProject.specialPermissionSet;
+                project.projectAdminUser = oldProject.projectAdminUser;
+                project.projectAdminGroup = oldProject.projectAdminGroup;
+                project.projectUserGroup = oldProject.projectUserGroup;
+                project.projectReadonlyGroup = oldProject.projectReadonlyGroup;
             }
 
             project = createDeliveryChain(project, crowdCookie);
 
-            oldProject.bitbucketUrl = project.bitbucketUrl;
-            if (project.quickstart != null)
+            oldProject.scmvcsUrl = project.scmvcsUrl;
+            if (project.quickstarters != null)
             {
-                if (oldProject.quickstart != null)
+                if (oldProject.quickstarters != null)
                 {
-                    oldProject.quickstart.addAll(project.quickstart);
+                    oldProject.quickstarters.addAll(project.quickstarters);
                 } else
                 {
-                    oldProject.quickstart = project.quickstart;
+                    oldProject.quickstarters = project.quickstarters;
                 }
             }
 
@@ -299,7 +299,7 @@ public class ProjectApiController
             // notify user via mail of project creation with embedding links
             mailAdapter.notifyUsersAboutProject(oldProject);
 
-            oldProject.lastJobs = project.lastJobs;
+            oldProject.lastExecutionJobs = project.lastExecutionJobs;
 
             /*
              * 
@@ -309,7 +309,7 @@ public class ProjectApiController
         } catch (Exception ex)
         {
             logger.error("An error occured while updating project: "
-                    + project.key, ex);
+                    + project.projectKey, ex);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ex.getMessage());
@@ -333,18 +333,18 @@ public class ProjectApiController
      * @throws Exception
      *             in case something goes wrong
      */
-    private ProjectData createDeliveryChain(ProjectData project,
+    private OpenProjectData createDeliveryChain(OpenProjectData project,
             String crowdCookie) throws IOException
     {
-        logger.debug("create delivery chain for:" + project.key
-                + " oc?" + project.openshiftproject);
+        logger.debug("create delivery chain for:" + project.projectKey
+                + " oc?" + project.platformRuntime);
 
-        if (!project.openshiftproject)
+        if (!project.platformRuntime)
         {
             return project;
         }
 
-        if (project.bitbucketUrl == null)
+        if (project.scmvcsUrl == null)
         {
             // create a bitbucket project
             project = bitbucketAdapter.createSCMProjectForODSProject(
@@ -360,20 +360,20 @@ public class ProjectApiController
                     crowdCookie);
         }
 
-        // create repositories dependent of the chosen quickstarters
+        // create repositories dependent of the chosen quickstartersers
         project = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project,
                         crowdCookie);
 
-        if (project.lastJobs == null)
+        if (project.lastExecutionJobs == null)
         {
-            project.lastJobs = new ArrayList<>();
+            project.lastExecutionJobs = new ArrayList<>();
         }
         List<ExecutionsData> execs = rundeckAdapter
                 .provisionComponentsBasedOnQuickstarters(project);
         for (ExecutionsData exec : execs)
         {
-            project.lastJobs.add(exec.getPermalink());
+            project.lastExecutionJobs.add(exec.getPermalink());
         }
 
         return project;
@@ -387,30 +387,30 @@ public class ProjectApiController
      * @return Response with a complete project list
      */
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-    public ResponseEntity<ProjectData> getProject(
+    public ResponseEntity<OpenProjectData> getProject(
             HttpServletRequest request, @PathVariable String id,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
-        ProjectData project = storage.getProject(id);
+        OpenProjectData project = storage.getProject(id);
         if (project == null)
         {
             return ResponseEntity.notFound().build();
         }
-        if (project.quickstart != null)
+        if (project.quickstarters != null)
         {
             List<Map<String, String>> enhancedStarters = new ArrayList<>();
-            for (Map<String, String> quickstarter : project.quickstart)
+            for (Map<String, String> quickstarterser : project.quickstarters)
             {
                 Job job = jobStore
-                        .getJob(quickstarter.get("component_type"));
+                        .getJob(quickstarterser.get("component_type"));
                 if (job != null)
                 {
-                    quickstarter.put("component_description",
+                    quickstarterser.put("component_description",
                             job.getDescription());
                 }
-                enhancedStarters.add(quickstarter);
+                enhancedStarters.add(quickstarterser);
             }
-            project.quickstart = enhancedStarters;
+            project.quickstarters = enhancedStarters;
         }
         return ResponseEntity.ok(project);
     }
@@ -460,7 +460,7 @@ public class ProjectApiController
         Preconditions.checkNotNull(key,
                 "Null template key is not allowed");
 
-        ProjectData project = new ProjectData();
+        OpenProjectData project = new OpenProjectData();
         project.projectType = key;
 
         Map<PROJECT_TEMPLATE, String> templates = jiraAdapter
@@ -528,7 +528,7 @@ public class ProjectApiController
         return ResponseEntity.ok(proj);
     }
 
-    void shortenDescription(ProjectData project)
+    void shortenDescription(OpenProjectData project)
     {
         if (project != null && project.description != null
                 && project.description.length() > 100)

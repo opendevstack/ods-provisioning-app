@@ -22,7 +22,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.RestClient;
@@ -129,14 +129,14 @@ public class RundeckAdapter implements IJobExecutionAdapter
     }
 
     public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(
-            ProjectData project) throws IOException
+            OpenProjectData project) throws IOException
     {
         authenticate();
 
         List<ExecutionsData> executionList = new ArrayList<>();
-        if (project.quickstart != null)
+        if (project.quickstarters != null)
         {
-            for (Map<String, String> options : project.quickstart)
+            for (Map<String, String> options : project.quickstarters)
             {
                 Job job = jobStore
                         .getJob(options.get(COMPONENT_TYPE_KEY));
@@ -145,17 +145,17 @@ public class RundeckAdapter implements IJobExecutionAdapter
                         rundeckUri, rundeckApiPath, job.getId());
                 String groupId = String
                         .format(groupPattern,
-                                project.key.toLowerCase())
+                                project.projectKey.toLowerCase())
                         .replace('_', '-');
                 String packageName = String.format("%s.%s",
                         String.format(groupPattern,
-                                project.key.toLowerCase()),
+                                project.projectKey.toLowerCase()),
                         options.get(COMPONENT_ID_KEY).replace('-',
                                 '_'));
                 Execution execution = new Execution();
 
                 options.put("group_id", groupId);
-                options.put("project_id", project.key.toLowerCase());
+                options.put("project_id", project.projectKey.toLowerCase());
                 options.put("package_name", packageName);
                 execution.setOptions(options);
                 try
@@ -186,7 +186,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
         return executionList;
     }
 
-    public ProjectData createPlatformProjects(ProjectData project,
+    public OpenProjectData createPlatformProjects(OpenProjectData project,
             String crowdCookie) throws IOException
     {
 
@@ -208,21 +208,21 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     Execution execution = new Execution();
                     Map<String, String> options = new HashMap<>();
                     options.put("project_id",
-                            project.key.toLowerCase());
-                    if (project.createpermissionset)
+                            project.projectKey.toLowerCase());
+                    if (project.specialPermissionSet)
                     {
                         String entitlementGroups = "ADMINGROUP="
-                                + project.adminGroup + ","
-                                + "USERGROUP=" + project.userGroup
+                                + project.projectAdminGroup + ","
+                                + "USERGROUP=" + project.projectUserGroup
                                 + "," + "READONLYGROUP="
-                                + project.readonlyGroup;
+                                + project.projectReadonlyGroup;
 
                         logger.info(
                                 "project id: {} passed project owner: {} passed groups: {}",
-                                project.key, project.admin,
+                                project.projectKey, project.projectAdminUser,
                                 entitlementGroups);
 
-                        options.put("project_admin", project.admin);
+                        options.put("project_admin", project.projectAdminUser);
                         options.put("project_groups",
                                 entitlementGroups);
                     } else
@@ -231,7 +231,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
                         UserDetails details = crowdUserDetailsService
                                 .loadUserByToken(crowdCookie);
                         logger.info("project id: {} details: {}",
-                                project.key, details);
+                                project.projectKey, details);
                         options.put("project_admin",
                                 details.getUsername());
                     }
@@ -245,25 +245,25 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     // add openshift based links - for jenkins we know the link - hence create the
                     // direct
                     // access link to openshift app domain
-                    project.openshiftJenkinsUrl = "https://" + String
+                    project.platformBuildEngineUrl = "https://" + String
                             .format(projectOpenshiftJenkinsProjectPattern,
-                                    project.key.toLowerCase(),
+                                    project.projectKey.toLowerCase(),
                                     projectOpenshiftBaseDomain);
 
                     // we can only add the console based links - as no routes are created per
                     // default
-                    project.openshiftConsoleDevEnvUrl = String.format(
+                    project.platformDevEnvironmentUrl = String.format(
                             projectOpenshiftDevProjectPattern,
                             projectOpenshiftConsoleUri.trim(),
-                            project.key.toLowerCase());
+                            project.projectKey.toLowerCase());
 
-                    project.openshiftConsoleTestEnvUrl = String
+                    project.platformTestEnvironmentUrl = String
                             .format(projectOpenshiftTestProjectPattern,
                                     projectOpenshiftConsoleUri.trim(),
-                                    project.key.toLowerCase());
+                                    project.projectKey.toLowerCase());
 
-                    project.lastJobs = new ArrayList<>();
-                    project.lastJobs.add(data.getPermalink());
+                    project.lastExecutionJobs = new ArrayList<>();
+                    project.lastExecutionJobs.add(data.getPermalink());
 
                     return project;
                 }

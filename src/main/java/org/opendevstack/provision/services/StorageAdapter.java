@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.opendevstack.provision.model.AboutChangesData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.storage.IStorage;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class StorageAdapter
     private static final Logger logger = LoggerFactory
             .getLogger(StorageAdapter.class);
 
-    public Map<String, ProjectData> listProjectHistory()
+    public Map<String, OpenProjectData> listProjectHistory()
     {
 
         if (SecurityContextHolder.getContext()
@@ -64,38 +65,38 @@ public class StorageAdapter
             return new HashMap<>();
         }
 
-        Map<String, ProjectData> allProjects = storage
+        Map<String, OpenProjectData> allProjects = storage
                 .listProjectHistory();
-        Map<String, ProjectData> filteredProjects = new HashMap<>();
+        Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
         Collection<GrantedAuthority> authorities = userDetails
                 .getAuthorities();
         logger.debug("User: {} \n {}", userDetails.getUsername(),
                 authorities);
 
-        for (Map.Entry<String, ProjectData> project : allProjects
+        for (Map.Entry<String, OpenProjectData> project : allProjects
                 .entrySet())
         {
-            ProjectData projectData = project.getValue();
+            OpenProjectData projectData = project.getValue();
             logger.debug("Project: {} groups: {},{} > {}",
-                    projectData.key, projectData.adminGroup,
-                    projectData.userGroup,
-                    projectData.createpermissionset);
+                    projectData.projectKey, projectData.projectAdminGroup,
+                    projectData.projectUserGroup,
+                    projectData.specialPermissionSet);
 
-            if (!projectData.createpermissionset)
+            if (!projectData.specialPermissionSet)
             {
-                filteredProjects.put(projectData.key, projectData);
+                filteredProjects.put(projectData.projectKey, projectData);
             } else
             {
                 for (GrantedAuthority authority : authorities)
                 {
                     if (authority.getAuthority()
-                            .equalsIgnoreCase(projectData.adminGroup)
+                            .equalsIgnoreCase(projectData.projectAdminGroup)
                             || authority.getAuthority()
                                     .equalsIgnoreCase(
-                                            projectData.userGroup))
+                                            projectData.projectUserGroup))
                     {
-                        filteredProjects.put(projectData.key,
+                        filteredProjects.put(projectData.projectKey,
                                 projectData);
                         break;
                     }
@@ -106,7 +107,7 @@ public class StorageAdapter
         return filteredProjects;
     }
 
-    public ProjectData getProject(String key)
+    public OpenProjectData getProject(String key)
     {
         return storage.getProject(key);
     }

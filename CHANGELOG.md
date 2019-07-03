@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- Add service framework to hook in different adapter implementations instead of the provided ones
+ ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
+
 ## [1.1.0] - 2019-05-28
 
 ### Added

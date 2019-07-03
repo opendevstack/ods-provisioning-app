@@ -17,7 +17,7 @@ package org.opendevstack.provision.adapter;
 import java.io.IOException;
 import java.util.Map;
 
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Interface for collaboration adapter implementations, e.g for confluence
@@ -35,8 +35,8 @@ public interface ICollaborationAdapter extends IServiceAdapter
      * @return the project filled with {@link ProjectData#confluenceUrl}
      * @throws IOException in case the space cannot be created
      */
-    public ProjectData createCollaborationSpaceForODSProject(
-            ProjectData project, String crowdCookie)
+    public OpenProjectData createCollaborationSpaceForODSProject(
+            OpenProjectData project, String crowdCookie)
             throws IOException;
 
     /**
@@ -46,6 +46,6 @@ public interface ICollaborationAdapter extends IServiceAdapter
      * @return the template(s) keys
      */
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
-            ProjectData project);
+            OpenProjectData project);
 
 }
