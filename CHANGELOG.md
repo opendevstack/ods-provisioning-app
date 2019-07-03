@@ -5,6 +5,7 @@
 ### Added
 - Add service framework to hook in different adapter implementations instead of the provided ones
  ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
+- Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
 
 ## [1.1.0] - 2019-05-28
 

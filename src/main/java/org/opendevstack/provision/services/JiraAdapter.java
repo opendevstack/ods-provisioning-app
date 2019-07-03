@@ -5,10 +5,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.model.Component;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
@@ -70,6 +73,9 @@ public class JiraAdapter implements IBugtrackerAdapter
     @Value("${jira.project.notification.scheme.id:10000}")
     String jiraNotificationSchemeId;
 
+    @Value("${jira.create.components:true}")
+    boolean createJiraComponents;
+
     // Pattern to use for project with id
     private static final String URL_PATTERN = "%s%s/project/%s";
 
@@ -94,9 +100,9 @@ public class JiraAdapter implements IBugtrackerAdapter
     @Value("${project.template.default.key}")
     private String defaultProjectKey;
 
-    private FullJiraProject createProjectInJira(OpenProjectData project,
-            String crowdCookieValue, FullJiraProject toBeCreated)
-            throws IOException
+    private FullJiraProject createProjectInJira(
+            OpenProjectData project, String crowdCookieValue,
+            FullJiraProject toBeCreated) throws IOException
     {
         FullJiraProject created;
         try
@@ -198,16 +204,16 @@ public class JiraAdapter implements IBugtrackerAdapter
 
                     if ("adminGroup".equals(group))
                     {
-                        permission.getHolder()
-                                .setParameter(project.projectAdminGroup);
+                        permission.getHolder().setParameter(
+                                project.projectAdminGroup);
                     } else if ("userGroup".equals(group))
                     {
-                        permission.getHolder()
-                                .setParameter(project.projectUserGroup);
+                        permission.getHolder().setParameter(
+                                project.projectUserGroup);
                     } else if ("readonlyGroup".equals(group))
                     {
-                        permission.getHolder()
-                                .setParameter(project.projectReadonlyGroup);
+                        permission.getHolder().setParameter(
+                                project.projectReadonlyGroup);
                     } else if ("keyuserGroup".equals(group))
                     {
                         permission.getHolder()
@@ -253,7 +259,8 @@ public class JiraAdapter implements IBugtrackerAdapter
             OpenProjectData s)
     {
 
-        BasicUser lead = new BasicUser(null, s.projectAdminUser, s.projectAdminUser);
+        BasicUser lead = new BasicUser(null, s.projectAdminUser,
+                s.projectAdminUser);
 
         String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType(
                 s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
@@ -269,9 +276,9 @@ public class JiraAdapter implements IBugtrackerAdapter
         logger.debug("Creating project of type: {} for project: {}",
                 templateKey, s.projectKey);
 
-        return new FullJiraProject(null, s.projectKey, s.projectName, s.description,
-                lead, null, null, null, null, null, templateKey,
-                templateType, jiraNotificationSchemeId);
+        return new FullJiraProject(null, s.projectKey, s.projectName,
+                s.description, lead, null, null, null, null, null,
+                templateKey, templateType, jiraNotificationSchemeId);
     }
 
     public String buildProjectKey(String name)
@@ -288,7 +295,8 @@ public class JiraAdapter implements IBugtrackerAdapter
         return key;
     }
 
-    public boolean projectKeyExists(String key, String crowdCookieValue)
+    public boolean projectKeyExists(String key,
+            String crowdCookieValue)
     {
         Preconditions.checkNotNull(key,
                 "Key for keyExists cannot be null");
@@ -489,7 +497,8 @@ public class JiraAdapter implements IBugtrackerAdapter
             Preconditions.checkNotNull(project.projectKey);
             Preconditions.checkNotNull(project.projectName);
 
-            if (!project.specialPermissionSet || project.projectAdminUser == null
+            if (!project.specialPermissionSet
+                    || project.projectAdminUser == null
                     || project.projectAdminUser.trim().length() == 0)
             {
                 // set in any case - otherwise jira will be annoyed.
@@ -506,8 +515,8 @@ public class JiraAdapter implements IBugtrackerAdapter
                     toBeCreated);
 
             logger.debug("Created project: {}", created);
-            project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri,
-                    created.getKey());
+            project.bugtrackerUrl = String.format("%s/browse/%s",
+                    jiraUri, created.getKey());
 
             if (project.specialPermissionSet)
             {
@@ -543,4 +552,76 @@ public class JiraAdapter implements IBugtrackerAdapter
         return template;
     }
 
+    public Map<String, String> createComponentsForProjectRepositories(
+            OpenProjectData data, String crowdCookieValue)
+    {
+        if (!createJiraComponents)
+        {
+            logger.info("not creating jira components");
+            return new HashMap<>();
+        }
+        Preconditions.checkNotNull(data, "data input cannot be null");
+        Preconditions.checkNotNull(data.projectKey,
+                "project key cannot be null");
+        String path = String.format("%s%s/component", jiraUri,
+                jiraApiPath);
+
+        Map<String, String> createdComponents = new HashMap<>();
+
+        Map<String, Map<String, List<Link>>> repositories = data.repositories;
+        if (repositories != null)
+        {
+            for (Entry<String, Map<String, List<Link>>> repo : repositories
+                    .entrySet())
+            {
+                String href = null;
+                for (Link link : repo.getValue().get("self"))
+                {
+                    href = link.getHref();
+                    break;
+                }
+
+                logger.debug("Repo {} {} for project {} ",
+                        repo.getKey(), href, data.projectKey);
+
+                Component component = new Component();
+                component
+                        .setName(String.format("Technology%s",
+                                repo.getKey().replace(
+                                        data.projectKey.toLowerCase(),
+                                        "")));
+                component.setProject(data.projectKey);
+                component.setDescription(String.format(
+                        "Technology component %s stored at %s",
+                        repo.getKey(), href));
+                try
+                {
+                    client.callHttp(path, component, crowdCookieValue,
+                            false, RestClient.HTTP_VERB.POST, null);
+                    createdComponents.put(component.getName(),
+                            component.getDescription());
+                } catch (HttpException httpEx)
+                {
+                    String error = String.format(
+                            "Could not create jira component for %s - error %s",
+                            component.getName(), httpEx.getMessage());
+                    logger.error(error);
+
+                    if (httpEx.getResponseCode() == 401)
+                    {
+                        // if you get a 401 here - we can't reach the project, so stop
+                        break;
+                    }
+                } catch (IOException componentEx)
+                {
+                    String error = String.format(
+                            "Could not create jira component for %s - error %s",
+                            component.getName(),
+                            componentEx.getMessage());
+                    logger.error(error);
+                }
+            }
+        }
+        return createdComponents;
+    }
 }

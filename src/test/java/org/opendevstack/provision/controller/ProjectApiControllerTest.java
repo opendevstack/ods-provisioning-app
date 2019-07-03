@@ -215,6 +215,30 @@ public class ProjectApiControllerTest
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
                 .createComponentRepositoriesForODSProject(isNotNull(),
                         isNull());
+        // jira components
+        Mockito.verify(jiraAdapter, Mockito.times(1))
+                .createComponentsForProjectRepositories(isNotNull(),
+                        isNull());
+    }
+
+    @Test
+    public void addProjectAgainstExistingOne() throws Exception
+    {
+        Mockito.doNothing().when(client).removeClient(anyString());
+
+        Mockito.when(storage.getProject(data.projectKey))
+                .thenReturn(data);
+
+        mockMvc.perform(
+                post("/api/v2/project").content(asJsonString(data))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status()
+                        .is5xxServerError())
+                .andExpect(MockMvcResultMatchers.content().string(
+                        CoreMatchers.containsString(data.projectKey
+                                + ") already exists")))
+                .andDo(MockMvcResultHandlers.print());
     }
 
     @Test
@@ -261,8 +285,9 @@ public class ProjectApiControllerTest
     @Test
     public void validateProjectWithProjectExists() throws Exception
     {
-        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
-                isNull())).thenReturn(true);
+        Mockito.when(jiraAdapter
+                .projectKeyExists(isNotNull(String.class), isNull()))
+                .thenReturn(true);
 
         mockMvc.perform(get("/api/v2/project/validate")
                 .param("name", "project")
@@ -275,8 +300,9 @@ public class ProjectApiControllerTest
     @Test
     public void validateProjectWithProjectNotExists() throws Exception
     {
-        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
-                isNull())).thenReturn(false);
+        Mockito.when(jiraAdapter
+                .projectKeyExists(isNotNull(String.class), isNull()))
+                .thenReturn(false);
 
         mockMvc.perform(get("/api/v2/project/validate")
                 .param("name", "project")
@@ -288,8 +314,9 @@ public class ProjectApiControllerTest
     @Test
     public void validateKeyWithKeyExists() throws Exception
     {
-        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
-                isNull())).thenReturn(true);
+        Mockito.when(jiraAdapter
+                .projectKeyExists(isNotNull(String.class), isNull()))
+                .thenReturn(true);
         mockMvc.perform(get("/api/v2/project/key/validate")
                 .param("key", "project")
                 .accept(MediaType.APPLICATION_JSON))
@@ -301,8 +328,9 @@ public class ProjectApiControllerTest
     @Test
     public void validateKeyWithKeyNotExists() throws Exception
     {
-        Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class),
-                isNull())).thenReturn(false);
+        Mockito.when(jiraAdapter
+                .projectKeyExists(isNotNull(String.class), isNull()))
+                .thenReturn(false);
 
         mockMvc.perform(get("/api/v2/project/key/validate")
                 .param("key", "project")

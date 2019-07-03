@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Deprecated
 public class ProjectData
 {
     /**

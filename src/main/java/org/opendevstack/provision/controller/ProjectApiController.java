@@ -150,11 +150,13 @@ public class ProjectApiController
 
             if (project.bugtrackerSpace)
             {
-                if (storage.listProjectHistory()
-                        .containsKey(project.projectKey))
+                if (storage.getProject(project.projectKey) != null)
                 {
-                    throw new IOException("Project with key "
-                            + project.projectKey + " already exists");
+                    {
+                        throw new IOException(String.format(
+                                "Project with key (%s) already exists",
+                                project.projectKey));
+                    }
                 }
 
                 // create JIRA project
@@ -181,8 +183,8 @@ public class ProjectApiController
             String filePath = storage.storeProject(project);
             if (filePath != null)
             {
-                logger.debug("project successful stored: {}",
-                        filePath);
+                logger.debug("Project {} successfully stored: {}",
+                        project.projectKey, filePath);
             }
 
             // notify user via mail of project creation with embedding links
@@ -221,7 +223,8 @@ public class ProjectApiController
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
 
-        if (project == null || project.projectKey.trim().length() == 0)
+        if (project == null
+                || project.projectKey.trim().length() == 0)
         {
             return ResponseEntity.badRequest().body(
                     "Project key is mandatory to call update project!");
@@ -236,7 +239,8 @@ public class ProjectApiController
                             .withDefaultPrettyPrinter()
                             .writeValueAsString(project));
 
-            OpenProjectData oldProject = storage.getProject(project.projectKey);
+            OpenProjectData oldProject = storage
+                    .getProject(project.projectKey);
 
             if (oldProject == null)
             {
@@ -249,8 +253,8 @@ public class ProjectApiController
             project.bugtrackerSpace = oldProject.bugtrackerSpace;
             // we purposely allow overwriting openshift settings, to create a project later
             // on
-            if (!oldProject.platformRuntime
-                    && project.platformRuntime && !ocUpgradeAllowed)
+            if (!oldProject.platformRuntime && project.platformRuntime
+                    && !ocUpgradeAllowed)
             {
                 return ResponseEntity
                         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -278,7 +282,8 @@ public class ProjectApiController
             {
                 if (oldProject.quickstarters != null)
                 {
-                    oldProject.quickstarters.addAll(project.quickstarters);
+                    oldProject.quickstarters
+                            .addAll(project.quickstarters);
                 } else
                 {
                     oldProject.quickstarters = project.quickstarters;
@@ -333,8 +338,9 @@ public class ProjectApiController
      * @throws Exception
      *             in case something goes wrong
      */
-    private OpenProjectData createDeliveryChain(OpenProjectData project,
-            String crowdCookie) throws IOException
+    private OpenProjectData createDeliveryChain(
+            OpenProjectData project, String crowdCookie)
+            throws IOException
     {
         logger.debug("create delivery chain for:" + project.projectKey
                 + " oc?" + project.platformRuntime);
@@ -364,6 +370,10 @@ public class ProjectApiController
         project = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project,
                         crowdCookie);
+
+        // create jira components from newly created repos
+        jiraAdapter.createComponentsForProjectRepositories(project,
+                crowdCookie);
 
         if (project.lastExecutionJobs == null)
         {
@@ -401,8 +411,8 @@ public class ProjectApiController
             List<Map<String, String>> enhancedStarters = new ArrayList<>();
             for (Map<String, String> quickstarterser : project.quickstarters)
             {
-                Job job = jobStore
-                        .getJob(quickstarterser.get("component_type"));
+                Job job = jobStore.getJob(
+                        quickstarterser.get("component_type"));
                 if (job != null)
                 {
                     quickstarterser.put("component_description",

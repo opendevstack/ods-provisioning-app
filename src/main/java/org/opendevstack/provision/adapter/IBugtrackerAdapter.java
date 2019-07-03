@@ -72,4 +72,6 @@ public interface IBugtrackerAdapter extends IServiceAdapter
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
             OpenProjectData project);
 
+    public Map<String, String> createComponentsForProjectRepositories 
+        (OpenProjectData data, String crowdCookieValue);
 }

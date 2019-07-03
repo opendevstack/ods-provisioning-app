@@ -38,7 +38,9 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.model.Component;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
@@ -56,6 +58,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -140,8 +143,10 @@ public class JiraAdapterTests
                 .createBugtrackerProjectForODSProject(
                         getTestProject(name), crowdCookieValue);
 
-        assertEquals(getTestProject(name).projectKey, createdProject.projectKey);
-        assertEquals(getTestProject(name).projectName, createdProject.projectName);
+        assertEquals(getTestProject(name).projectKey,
+                createdProject.projectKey);
+        assertEquals(getTestProject(name).projectName,
+                createdProject.projectName);
         // default template
         assertEquals(defaultProjectKey, createdProject.projectType);
 
@@ -280,13 +285,14 @@ public class JiraAdapterTests
         Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
                 projectNameTrue);
 
-        assertTrue(mocked.projectKeyExists(projectNameTrue, "CookieValue"));
+        assertTrue(mocked.projectKeyExists(projectNameTrue,
+                "CookieValue"));
 
         projects.clear();
         Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
                 projectNameFalse);
-        assertFalse(
-                mocked.projectKeyExists(projectNameFalse, "CookieValue"));
+        assertFalse(mocked.projectKeyExists(projectNameFalse,
+                "CookieValue"));
     }
 
     @Test
@@ -364,6 +370,60 @@ public class JiraAdapterTests
         apiInput.projectKey = "TESTP";
         apiInput.projectAdminUser = "Clemens";
         return apiInput;
+    }
+
+    @Test
+    public void testComponentCreation() throws Exception
+    {
+        TypeReference reference = new TypeReference<Map<String, Map<String, List<Link>>>>()
+        {
+        };
+
+        Map<String, Map<String, List<Link>>> repos = new ObjectMapper()
+                .readValue(Thread.currentThread()
+                        .getContextClassLoader().getResourceAsStream(
+                                "data/repositoryTestData.txt"),
+                        reference);
+
+        JiraAdapter mocked = Mockito.spy(jiraAdapter);
+        OpenProjectData apiInput = getTestProject("ai00000001");
+        apiInput.projectKey = "ai00000001";
+        apiInput.repositories = repos;
+
+        Map<String, String> created = mocked
+                .createComponentsForProjectRepositories(apiInput,
+                        "test");
+
+        Mockito.verify(client, Mockito.times(1)).callHttp(
+                endsWith("/rest/api/latest/component"),
+                any(Component.class), anyString(), anyBoolean(),
+                eq(RestClient.HTTP_VERB.POST), isNull());
+
+        assertEquals(1, created.size());
+        Map.Entry<String, String> entry = created.entrySet()
+                .iterator().next();
+
+        assertEquals("Technology-fe-angular", entry.getKey());
+        assertTrue(entry.getValue().contains(
+                "https://bb/projects/test/repos/test-fe-angular/browse"));
+
+        // test with uppercase projects
+        apiInput = getTestProject("Ai00000001");
+        apiInput.projectKey = "Ai00000001";
+        apiInput.repositories = repos;
+
+        created = mocked.createComponentsForProjectRepositories(
+                apiInput, "test");
+        assertEquals(1, created.size());
+        entry = created.entrySet().iterator().next();
+        assertEquals("Technology-fe-angular", entry.getKey());
+
+        // test with component creation == false
+        mocked.createJiraComponents = false;
+        created = mocked.createComponentsForProjectRepositories(
+                apiInput, "test");
+        assertEquals(0, created.size());
+
     }
 
     private FullJiraProject getReturnProject()

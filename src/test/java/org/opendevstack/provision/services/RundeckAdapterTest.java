@@ -217,9 +217,11 @@ public class RundeckAdapterTest
 
         assertEquals(expectedOpenProjectData, createdOpenProjectData);
         assertTrue(expectedOpenProjectData.platformRuntime);
-        assertEquals(expectedOpenProjectData.platformDevEnvironmentUrl,
+        assertEquals(
+                expectedOpenProjectData.platformDevEnvironmentUrl,
                 createdOpenProjectData.platformDevEnvironmentUrl);
-        assertEquals(expectedOpenProjectData.platformTestEnvironmentUrl,
+        assertEquals(
+                expectedOpenProjectData.platformTestEnvironmentUrl,
                 createdOpenProjectData.platformTestEnvironmentUrl);
         assertEquals(expectedOpenProjectData.platformBuildEngineUrl,
                 createdOpenProjectData.platformBuildEngineUrl);
@@ -288,8 +290,8 @@ public class RundeckAdapterTest
                 projectData.projectAdminUser);
         String groups = execVerify.getOptions().get("project_groups");
         assertNotNull(groups);
-        assertTrue(groups
-                .contains("ADMINGROUP=" + projectData.projectAdminGroup)
+        assertTrue(groups.contains(
+                "ADMINGROUP=" + projectData.projectAdminGroup)
                 && groups.contains(
                         "USERGROUP=" + projectData.projectUserGroup)
                 && groups.contains("READONLYGROUP="
@@ -299,16 +301,16 @@ public class RundeckAdapterTest
     @Test
     public void getEndpointAPIPath() throws Exception
     {
-        assertEquals("http://192.168.56.31:4440/rundeck/api/19",
+        assertEquals("http://192.168.56.31:4440/api/19",
                 rundeckAdapter.getAdapterApiUri());
     }
 
     private OpenProjectData generateDefaultOpenProjectData()
     {
         OpenProjectData expected = new OpenProjectData();
-        expected.platformDevEnvironmentUrl = "https://192.168.99.100:8443/console/project/key-dev";
-        expected.platformTestEnvironmentUrl = "https://192.168.99.100:8443/console/project/key-test";
-        expected.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
+        expected.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
+        expected.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
+        expected.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
         expected.bugtrackerSpace = true;
         expected.platformRuntime = true;
         expected.projectKey = "key";
