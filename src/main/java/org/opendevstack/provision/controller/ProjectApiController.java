@@ -136,9 +136,10 @@ public class ProjectApiController {
       
         if (project.jiraconfluencespace)
         {
-        	if (storage.listProjectHistory().containsKey(project.key))
+        	if (storage.getProject(project.key) != null)
         	{
-        		throw new IOException("Project with key " + project.key + " already exists");
+        		throw new IOException(
+        			String.format("Project with key (%s) already exists" , project.key));
         	}
 	
 	        //create JIRA project
@@ -160,7 +161,7 @@ public class ProjectApiController {
       // option to store data in other data sources
       String filePath = storage.storeProject(project);
       if (filePath != null) {
-        logger.debug("project successful stored: {}", filePath);
+        logger.debug("Project {} successfully stored: {}", project.key, filePath);
       }
       
       // notify user via mail of project creation with embedding links
@@ -304,6 +305,9 @@ public class ProjectApiController {
     // create repositories dependent of the chosen quickstarters
     project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
 
+    // create jira components from newly created repos
+    jiraAdapter.createComponentsForProjectRepositories(project, crowdCookie);
+    
     if (project.lastJobs == null) {
     	project.lastJobs = new ArrayList<>();
     }
