@@ -330,8 +330,8 @@ $(document).ready(function(){
   });
 
   //automatic key generation
-  $(document).on('keyup', "#name", function () {
-    if($("#key").val().trim() == "") {
+  $(document).on('keyup', "#projectName", function () {
+    if($("#projectKey").val().trim() == "") {
       clearTimeout($(this).data('timeout'));
       var _self = this;
       $(this).data('timeout', setTimeout(function () {
@@ -339,7 +339,7 @@ $(document).ready(function(){
         $.get(projectAPiUrl+'/key/generate', {
           name: _self.value
         }, function (data) {
-            $("#key").val(data.key);
+            $("#projectKey").val(data.projectKey);
         }, "json");
 
       }, 1000));
@@ -347,10 +347,10 @@ $(document).ready(function(){
   });
 
   //transform input to uppercase
-  $(document).on('keyup', "#key", function () {
-    if($("#key").val().trim() != "") {
-      var val = $("#key").val().trim();
-      $("#key").val(val.toUpperCase());
+  $(document).on('keyup', "#projectKey", function () {
+    if($("#projectKey").val().trim() != "") {
+      var val = $("#projectKey").val().trim();
+      $("#projectKey").val(val.toUpperCase());
     }
   });
 

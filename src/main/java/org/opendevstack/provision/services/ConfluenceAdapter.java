@@ -48,11 +48,9 @@ import com.google.common.base.Preconditions;
  *
  * @author Brokmeier, Pascal
  */
-
 @Service
 public class ConfluenceAdapter implements ICollaborationAdapter
 {
-
     private static final Logger logger = LoggerFactory
             .getLogger(ConfluenceAdapter.class);
 
@@ -80,8 +78,6 @@ public class ConfluenceAdapter implements ICollaborationAdapter
 
     private static final String SPACE_GROUP = "SPACE_GROUP";
 
-    private String crowdCookieValue = null;
-
     @Value("${confluence.permission.filepattern}")
     private String confluencePermissionFilePattern;
 
@@ -98,19 +94,17 @@ public class ConfluenceAdapter implements ICollaborationAdapter
     private String defaultProjectKey;
 
     public OpenProjectData createCollaborationSpaceForODSProject(
-            OpenProjectData project, String crowdCookieValue)
+            OpenProjectData project)
             throws IOException
     {
-        this.crowdCookieValue = crowdCookieValue;
-        SpaceData space = callCreateSpaceApi(createSpaceData(project),
-                crowdCookieValue);
+        SpaceData space = callCreateSpaceApi(createSpaceData(project));
         project.collaborationSpaceUrl = space.getUrl();
 
         if (project.specialPermissionSet)
         {
             try
             {
-                updateSpacePermissions(project, crowdCookieValue);
+                updateSpacePermissions(project);
             } catch (Exception createPermissions)
             {
                 // continue - we are ok if permissions fail, because the admin has access, and
@@ -124,19 +118,17 @@ public class ConfluenceAdapter implements ICollaborationAdapter
         return project;
     }
 
-    protected SpaceData callCreateSpaceApi(Space space,
-            String crowdCookieValue) throws IOException
+    protected SpaceData callCreateSpaceApi(Space space) throws IOException
     {
         String path = String.format(SPACE_PATTERN, confluenceUri,
                 confluenceApiPath);
-        return client.callHttp(path, space, crowdCookieValue, false,
+        return client.callHttp(path, space, false,
                 RestClient.HTTP_VERB.POST, SpaceData.class);
     }
 
     Space createSpaceData(OpenProjectData project) throws IOException
     {
-        String confluenceBlueprintId = getBluePrintId(
-                project.projectType);
+        String confluenceBlueprintId = getBluePrintId(project.projectType);
         String jiraServerId = getJiraServerId();
 
         Space space = new Space();
@@ -165,7 +157,6 @@ public class ConfluenceAdapter implements ICollaborationAdapter
         String url = String.format(JIRA_SERVER, confluenceUri,
                 confluenceApiPath);
         List<Object> server = getSpaceTemplateList(url,
-                crowdCookieValue,
                 new TypeReference<List<JiraServer>>()
                 {
                 });
@@ -188,9 +179,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
         String url = String.format(BLUEPRINT_PATTERN, confluenceUri,
                 confluenceApiPath);
         List<Object> blueprints = getSpaceTemplateList(url,
-                crowdCookieValue, new TypeReference<List<Blueprint>>()
-                {
-                });
+                new TypeReference<List<Blueprint>>(){});
 
         OpenProjectData project = new OpenProjectData();
         project.projectType = projectTypeKey;
@@ -221,18 +210,16 @@ public class ConfluenceAdapter implements ICollaborationAdapter
     }
 
     List<Object> getSpaceTemplateList(String url,
-            String crowdCookieValue, TypeReference reference)
+            TypeReference reference)
             throws IOException
     {
         client.getSessionId(confluenceUri);
 
         return (List<Object>) client.callHttpTypeRef(url, null,
-                crowdCookieValue, false, RestClient.HTTP_VERB.GET,
-                reference);
+                false, RestClient.HTTP_VERB.GET, reference);
     }
 
-    int updateSpacePermissions(OpenProjectData data,
-            String crowdCookieValue) throws IOException
+    int updateSpacePermissions(OpenProjectData data) throws IOException
     {
         PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
                 Thread.currentThread().getContextClassLoader());
@@ -284,7 +271,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
                         "%s%s/addPermissionsToSpace", confluenceUri,
                         confluenceLegacyApiPath);
 
-                client.callHttp(path, permissionset, crowdCookieValue,
+                client.callHttp(path, permissionset,
                         false, RestClient.HTTP_VERB.POST,
                         String.class);
 
@@ -327,8 +314,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
         return template;
     }
 
-    public Map<String, String> getProjects(String crowdCookieValue,
-            String filter)
+    public Map<String, String> getProjects(String filter)
     {
         throw new NotImplementedException();
     }

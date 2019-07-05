@@ -36,11 +36,11 @@ import com.atlassian.crowd.integration.soap.SOAPGroup;
  *
  */
 @Service
-public class ProjectIdentityMgmtAdapter
+public class CrowdProjectIdentityMgmtAdapter
         implements IProjectIdentityMgmtAdapter
 {
     private static final Logger logger = LoggerFactory
-            .getLogger(ProjectIdentityMgmtAdapter.class);
+            .getLogger(CrowdProjectIdentityMgmtAdapter.class);
 
     @Autowired
     CustomAuthenticationManager manager;
@@ -185,8 +185,7 @@ public class ProjectIdentityMgmtAdapter
     }
 
     @Override
-    public Map<String, String> getProjects(String filter,
-            String crowdCookieValue)
+    public Map<String, String> getProjects(String filter)
     {
         return new HashMap<>();
     }

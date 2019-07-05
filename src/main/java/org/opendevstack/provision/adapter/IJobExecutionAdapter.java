@@ -41,7 +41,6 @@ public interface IJobExecutionAdapter extends IServiceAdapter
      * components created thru {@link #provisionComponentsBasedOnQuickstarters(OpenProjectData)}
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @param crowdCookie the sso cookie
      * @return the project with filled
      * {@link OpenProjectData#platformDevEnvironmentUrl}, 
      * {@link OpenProjectData#platformTestEnvironmentUrl},
@@ -50,14 +49,13 @@ public interface IJobExecutionAdapter extends IServiceAdapter
      * that were kicked off
      * @throws IOException in case the projects cannot be created
      */
-    public OpenProjectData createPlatformProjects(OpenProjectData project,
-            String crowdCookie) throws IOException;
+    public OpenProjectData createPlatformProjects(OpenProjectData project) 
+            throws IOException;
 
     /**
      * Create repositories based on passed {@link OpenProjectData#quickstarters}
      * @param project the project containing quickstarters - 
      * to derive the names from
-     * @param crowdCookie the sso cookie
      * @return the project filled with {@link OpenProjectData#lastExecutionJobs} 
      * which contains the URLs to the jobs kicked off.
      * @throws IOException

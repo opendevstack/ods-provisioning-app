@@ -17,18 +17,16 @@ package org.opendevstack.provision.services;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.storage.IStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
  * Service to interact with the underlying storage system to liast the project
@@ -44,34 +42,20 @@ public class StorageAdapter
     @Autowired
     IStorage storage;
 
+    @Autowired
+    IODSAuthnzAdapter authManager;
+    
     private static final Logger logger = LoggerFactory
             .getLogger(StorageAdapter.class);
 
     public Map<String, OpenProjectData> listProjectHistory()
     {
-
-        if (SecurityContextHolder.getContext()
-                .getAuthentication() == null)
-        {
-            return new HashMap<>();
-        }
-
-        CrowdUserDetails userDetails = (CrowdUserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-
-        // security!
-        if (userDetails == null)
-        {
-            return new HashMap<>();
-        }
-
         Map<String, OpenProjectData> allProjects = storage
                 .listProjectHistory();
         Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
-        Collection<GrantedAuthority> authorities = userDetails
-                .getAuthorities();
-        logger.debug("User: {} \n {}", userDetails.getUsername(),
+        Collection<GrantedAuthority> authorities = authManager.getAuthorities();
+        logger.debug("User: {} \n {}", authManager.getUserName(),
                 authorities);
 
         for (Map.Entry<String, OpenProjectData> project : allProjects

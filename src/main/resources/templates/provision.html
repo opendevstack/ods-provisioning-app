@@ -118,14 +118,14 @@
             <fieldset class="form-group">
                 <legend class="col-form-legend">Project</legend>
                 <div class="form-group">
-                    <label for="name"  class="control-label">Name</label>
-                    <input type="text" class="form-control" data-remote="/api/v2/project/validate" data-remote-error="A project with this name already exists" id="name" name="name" placeholder="Project name" maxlength="80" required="required"/>
+                    <label for="projectName"  class="control-label">Name</label>
+                    <input type="text" class="form-control" data-remote="/api/v2/project/validate" data-remote-error="A project with this name already exists" id="projectName" name="projectName" placeholder="Project name" maxlength="80" required="required"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>
                 <div class="form-group">
-                    <label for="key" class="control-label">Key</label>
-                    <input type="text" pattern="([a-zA-Z][a-zA-Z_0-9]+)" class="form-control text-uppercase" data-remote="/api/v2/project/key/validate" data-remote-error="A key with this name already exists" id="key" name="key" placeholder="Project key" maxlength="10" required="required"/>
+                    <label for="projectKey" class="control-label">Key</label>
+                    <input type="text" pattern="([a-zA-Z][a-zA-Z_0-9]+)" class="form-control text-uppercase" data-remote="/api/v2/project/key/validate" data-remote-error="A key with this name already exists" id="projectKey" name="projectKey" placeholder="Project key" maxlength="10" required="required"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>

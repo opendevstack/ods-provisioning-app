@@ -25,11 +25,11 @@ import javax.servlet.http.HttpServletRequest;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
@@ -97,7 +97,7 @@ public class ProjectApiController
 
     // open for testing
     @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     // open for testing
     @Value("${openshift.project.upgrade}")
@@ -115,8 +115,8 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Object> addProject(
             HttpServletRequest request,
-            @RequestBody OpenProjectData project,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestBody OpenProjectData project)
+    //, @CookieValue(value = "crowd.token_key", required = false
     {
 
         if (project == null || project.projectKey == null
@@ -133,7 +133,6 @@ public class ProjectApiController
 
         project.projectKey = project.projectKey.toUpperCase();
         MDC.put(STR_LOGFILE_KEY, project.projectKey);
-        logger.debug("Crowd Cookie: {}", crowdCookie);
 
         try
         {
@@ -150,33 +149,33 @@ public class ProjectApiController
 
             if (project.bugtrackerSpace)
             {
-                if (storage.getProject(project.projectKey) != null)
+                OpenProjectData projectLoad = storage.getProject(project.projectKey);
+                if (projectLoad != null)
                 {
                     {
                         throw new IOException(String.format(
-                                "Project with key (%s) already exists",
-                                project.projectKey));
+                                "Project with key (%s) already exists: {}",
+                                project.projectKey, projectLoad.projectKey));
                     }
                 }
 
                 // create JIRA project
                 project = jiraAdapter
-                        .createBugtrackerProjectForODSProject(project,
-                                crowdCookie);
+                        .createBugtrackerProjectForODSProject(project);
 
                 // create confluence space
                 project = confluenceAdapter
                         .createCollaborationSpaceForODSProject(
-                                project, crowdCookie);
+                                project);
                 logger.debug("Updated project: {}",
                         new ObjectMapper().writer()
                                 .withDefaultPrettyPrinter()
                                 .writeValueAsString(project));
             }
 
-            project = createDeliveryChain(project, crowdCookie);
+            project = createDeliveryChain(project);
 
-            jiraAdapter.addShortcutsToProject(project, crowdCookie);
+            jiraAdapter.addShortcutsToProject(project);
 
             // store project data. The storage is autowired with an interface to enable the
             // option to store data in other data sources
@@ -202,7 +201,7 @@ public class ProjectApiController
                     .body(ex.getMessage());
         } finally
         {
-            client.removeClient(crowdCookie);
+            client.removeClient(manager.getToken());
             MDC.remove(STR_LOGFILE_KEY);
         }
     }
@@ -219,8 +218,8 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.PUT)
     public ResponseEntity<Object> updateProject(
             HttpServletRequest request,
-            @RequestBody OpenProjectData project,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestBody OpenProjectData project)
+    //             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
 
         if (project == null
@@ -275,7 +274,7 @@ public class ProjectApiController
                 project.projectReadonlyGroup = oldProject.projectReadonlyGroup;
             }
 
-            project = createDeliveryChain(project, crowdCookie);
+            project = createDeliveryChain(project);
 
             oldProject.scmvcsUrl = project.scmvcsUrl;
             if (project.quickstarters != null)
@@ -320,7 +319,7 @@ public class ProjectApiController
                     .body(ex.getMessage());
         } finally
         {
-            client.removeClient(crowdCookie);
+            client.removeClient(manager.getToken());
             MDC.remove(STR_LOGFILE_KEY);
         }
     }
@@ -331,15 +330,13 @@ public class ProjectApiController
      *
      * @param project
      *            the meta information from the API
-     * @param crowdCookie
-     *            the authenticated user
      * @return the generated, amended Project
      * @throws IOException
      * @throws Exception
      *             in case something goes wrong
      */
     private OpenProjectData createDeliveryChain(
-            OpenProjectData project, String crowdCookie)
+            OpenProjectData project)
             throws IOException
     {
         logger.debug("create delivery chain for:" + project.projectKey
@@ -355,26 +352,23 @@ public class ProjectApiController
         {
             // create a bitbucket project
             project = bitbucketAdapter.createSCMProjectForODSProject(
-                    project, crowdCookie);
+                    project);
             // create auxilaries - for design and for the ocp artifacts
             String[] auxiliaryRepositories = { "occonfig-artifacts",
                     "design" };
             project = bitbucketAdapter
                     .createAuxiliaryRepositoriesForODSProject(project,
-                            crowdCookie, auxiliaryRepositories);
+                            auxiliaryRepositories);
             // provision OpenShift project via rundeck
-            project = rundeckAdapter.createPlatformProjects(project,
-                    crowdCookie);
+            project = rundeckAdapter.createPlatformProjects(project);
         }
 
         // create repositories dependent of the chosen quickstartersers
         project = bitbucketAdapter
-                .createComponentRepositoriesForODSProject(project,
-                        crowdCookie);
+                .createComponentRepositoriesForODSProject(project);
 
         // create jira components from newly created repos
-        jiraAdapter.createComponentsForProjectRepositories(project,
-                crowdCookie);
+        jiraAdapter.createComponentsForProjectRepositories(project);
 
         if (project.lastExecutionJobs == null)
         {
@@ -438,10 +432,10 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.GET, value = "/validate")
     public ResponseEntity<Object> validateProject(
             HttpServletRequest request,
-            @RequestParam(value = "name") String name,
+            @RequestParam(value = "projectName") String name,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
-        if (jiraAdapter.projectKeyExists(name, crowdCookie))
+        if (jiraAdapter.projectKeyExists(name))
         {
             HashMap<String, Object> result = new HashMap<>();
             result.put("error", true);
@@ -503,10 +497,10 @@ public class ProjectApiController
     @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
     public ResponseEntity<Object> validateKey(
             HttpServletRequest request,
-            @RequestParam(value = "key") String name,
+            @RequestParam(value = "projectKey") String key,
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
-        if (jiraAdapter.projectKeyExists(name, crowdCookie))
+        if (jiraAdapter.projectKeyExists(key))
         {
             HashMap<String, Object> result = new HashMap<>();
             result.put("error", true);
@@ -535,7 +529,7 @@ public class ProjectApiController
             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
     {
         Map<String, String> proj = new HashMap<>();
-        proj.put("key", jiraAdapter.buildProjectKey(name));
+        proj.put("projectKey", jiraAdapter.buildProjectKey(name));
         return ResponseEntity.ok(proj);
     }
 

@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -46,6 +46,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
 @DirtiesContext
+@WithMockUser(username = "testUser", roles = {"ADMIN" }, password="testUser")
 public class RestClientTest
 {
 
@@ -110,17 +111,15 @@ public class RestClientTest
         String response = client.callHttp(
                 String.format("http://localhost:%d",
                         randomServerPort),
-                "ClemensTest", null, false, HTTP_VERB.GET,
+                "ClemensTest", false, HTTP_VERB.GET,
                 String.class);
 
         assertNotNull(response);
 
-        ProjectData data = new ProjectData();
-
         response = client.callHttp(
                 String.format("http://localhost:%d",
                         randomServerPort),
-                "ClemensTest", null, false, HTTP_VERB.POST,
+                "ClemensTest", false, HTTP_VERB.POST,
                 String.class);
 
         assertNotNull(response);
@@ -132,13 +131,13 @@ public class RestClientTest
         client.callHttp(
                 String.format("http://localhost:%d",
                         randomServerPort),
-                "ClemensTest", null, false, null, String.class);
+                "ClemensTest", false, null, String.class);
     }
 
     @Test(expected = NullPointerException.class)
     public void callHttpMissingUrl() throws Exception
     {
-        client.callHttp(null, "ClemensTest", null, false, null,
+        client.callHttp(null, "ClemensTest", false, null,
                 String.class);
     }
 
@@ -164,7 +163,7 @@ public class RestClientTest
         {
             spyAdapter.callHttp(
                     String.format("http://localhost:%d", 1000),
-                    "ClemensTest", null, false, HTTP_VERB.GET,
+                    "ClemensTest", false, HTTP_VERB.GET,
                     String.class);
         } catch (SocketTimeoutException se)
         {

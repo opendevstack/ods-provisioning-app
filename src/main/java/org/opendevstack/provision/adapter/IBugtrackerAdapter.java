@@ -29,32 +29,28 @@ public interface IBugtrackerAdapter extends IServiceAdapter
      * Create a bugtracker project based on name and key
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @param crowdCookie the sso cookie
      * @return the project filled with {@link ProjectData#jiraUrl}
      * @throws IOException in case something occurs during the outbound 
      * call to the bugtracker
      */
     public OpenProjectData createBugtrackerProjectForODSProject(
-            OpenProjectData project, String crowdCookieValue)
+            OpenProjectData project)
             throws IOException;
 
     /**
      * Add shortcuts / links to other tools used based on the 
      * {@link OpenProjectData} fields, e.g. openshift URLs
      * @param project the project filled with all available information
-     * @param crowdCookieValue the SSO cookie
      * @return the number of shortcuts created
      */
-    public int addShortcutsToProject(OpenProjectData project,
-            String crowdCookieValue);
+    public int addShortcutsToProject(OpenProjectData project);
 
     /**
      * Verify if a project key & name exists
      * @param projectKeyName the name or key of a given project
-     * @param crowdCookieValue the SSO cookie
      * @return true in case it exists, otherwise false
      */
-    public boolean projectKeyExists(String projectKeyName, String crowdCookieValue);
+    public boolean projectKeyExists(String projectKeyName);
 
     /**
      * Build the project key - e.g. uppercase it, strip special chars
@@ -73,5 +69,5 @@ public interface IBugtrackerAdapter extends IServiceAdapter
             OpenProjectData project);
 
     public Map<String, String> createComponentsForProjectRepositories 
-        (OpenProjectData data, String crowdCookieValue);
+        (OpenProjectData data);
 }

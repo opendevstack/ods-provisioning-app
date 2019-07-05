@@ -15,13 +15,21 @@
 package org.opendevstack.provision.authentication;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
 import com.atlassian.crowd.exception.ExpiredCredentialException;
 import com.atlassian.crowd.exception.InactiveAccountException;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
 import com.atlassian.crowd.service.AuthenticationManager;
@@ -36,7 +44,7 @@ import com.google.common.base.Preconditions;
  */
 @Component
 public class CustomAuthenticationManager
-        implements AuthenticationManager
+        implements AuthenticationManager, IODSAuthnzAdapter
 {
 
     private SecurityServerClient securityServerClient;
@@ -53,17 +61,64 @@ public class CustomAuthenticationManager
     {
         return userPassword.getPassword();
     }
+    
+    public String getUserName ()
+    {
+        return userPassword.getUsername();
+    }
+    
+    public String getToken ()
+    {
+        return userPassword.getToken();
+    }
 
+    public Collection<GrantedAuthority> getAuthorities () 
+    {
+        Authentication auth = SecurityContextHolder 
+                .getContext().getAuthentication();
+        
+        if (auth == null) 
+        {
+            return new ArrayList<>();
+        }
+        
+        CrowdUserDetails userDetails = (CrowdUserDetails)auth.getPrincipal();
+        
+        return userDetails.getAuthorities();
+    }
+    
+    public String getUserEmail () 
+    {
+        Authentication auth = SecurityContextHolder 
+                .getContext().getAuthentication();
+        
+        if (auth == null) 
+        {
+            return null;
+        }
+        
+        if (!(auth.getPrincipal() instanceof CrowdUserDetails)) {
+            return null;
+        }
+        
+        CrowdUserDetails userDetails = (CrowdUserDetails)auth.getPrincipal();
+        
+        return userDetails.getEmail();
+    }
+    
     /**
-     * set the password to use in rundeck calls
-     *
-     * @param userPassword
+     * testing
      */
-    public void setUserPassword(String userPassword)
+    void setUserPassword(String userPassword)
     {
         this.userPassword.setPassword(userPassword);
     }
 
+    public void setUserName(String userName)
+    {
+        this.userPassword.setUsername(userName);
+    }
+        
     /**
      * Constructor with secure SOAP client for crowd authentication
      * 
@@ -95,10 +150,8 @@ public class CustomAuthenticationManager
             ApplicationAccessDeniedException,
             ExpiredCredentialException
     {
-
         Preconditions.checkNotNull(authenticationContext);
-        setUserPassword(authenticationContext.getCredential()
-                .getCredential());
+        
         if (authenticationContext.getApplication() == null)
         {
             authenticationContext.setApplication(this
@@ -106,8 +159,13 @@ public class CustomAuthenticationManager
                     .getSoapClientProperties().getApplicationName());
         }
 
-        return this.getSecurityServerClient()
+        String token = this.getSecurityServerClient()
                 .authenticatePrincipal(authenticationContext);
+        userPassword.setToken(token);
+        userPassword.setUsername(authenticationContext.getName());
+        userPassword.setPassword(authenticationContext.getCredential()
+                .getCredential());
+        return token;
     }
 
     /**
@@ -128,7 +186,6 @@ public class CustomAuthenticationManager
             InvalidAuthorizationTokenException,
             InactiveAccountException, RemoteException
     {
-
         Preconditions.checkNotNull(authenticationContext);
         return this.getSecurityServerClient().createPrincipalToken(
                 authenticationContext.getName(),
@@ -158,9 +215,12 @@ public class CustomAuthenticationManager
 
         Preconditions.checkNotNull(username);
         Preconditions.checkNotNull(password);
-        setUserPassword(password);
-        return this.getSecurityServerClient()
+        String token = this.getSecurityServerClient()
                 .authenticatePrincipalSimple(username, password);
+        userPassword.setToken(token);
+        userPassword.setUsername(username);
+        userPassword.setPassword(password);
+        return token;
     }
 
     /**
@@ -181,8 +241,8 @@ public class CustomAuthenticationManager
             ApplicationAccessDeniedException,
             InvalidAuthenticationException
     {
-
         Preconditions.checkNotNull(token);
+        userPassword.setToken(token);
         return this.getSecurityServerClient().isValidToken(token,
                 validationFactors);
     }
@@ -199,12 +259,17 @@ public class CustomAuthenticationManager
             InvalidAuthorizationTokenException,
             InvalidAuthenticationException
     {
-
         Preconditions.checkNotNull(token);
         this.getSecurityServerClient().invalidateToken(token);
-        setUserPassword(null);
+        userPassword.clear();
     }
 
+    @Override
+    public void invalidateIdentity () throws Exception
+    {
+        invalidate(getToken());
+    }
+    
     /**
      * get the internal secure client
      *

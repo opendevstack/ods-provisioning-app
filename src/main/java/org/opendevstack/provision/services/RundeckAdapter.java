@@ -14,13 +14,12 @@
 
 package org.opendevstack.provision.services;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.HttpUrl;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -31,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -59,9 +57,6 @@ public class RundeckAdapter implements IJobExecutionAdapter
 
     @Autowired
     private RundeckJobStore jobStore;
-
-    @Autowired
-    private CrowdUserDetailsService crowdUserDetailsService;
 
     @Value("${rundeck.api.path}")
     private String rundeckApiPath;
@@ -114,7 +109,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
     private RestClient client;
 
     @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     public List<Job> getQuickstarters()
     {
@@ -161,7 +156,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
                 try
                 {
                     ExecutionsData data = client.callHttp(url,
-                            execution, null, false,
+                            execution, false,
                             RestClient.HTTP_VERB.POST,
                             ExecutionsData.class);
 
@@ -186,8 +181,8 @@ public class RundeckAdapter implements IJobExecutionAdapter
         return executionList;
     }
 
-    public OpenProjectData createPlatformProjects(OpenProjectData project,
-            String crowdCookie) throws IOException
+    public OpenProjectData createPlatformProjects(OpenProjectData project)
+            throws IOException
     {
 
         if (project == null)
@@ -217,7 +212,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
                                 + "," + "READONLYGROUP="
                                 + project.projectReadonlyGroup;
 
-                        logger.info(
+                        logger.debug(
                                 "project id: {} passed project owner: {} passed groups: {}",
                                 project.projectKey, project.projectAdminUser,
                                 entitlementGroups);
@@ -228,17 +223,15 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     } else
                     {
                         // someone is always logged in :)
-                        UserDetails details = crowdUserDetailsService
-                                .loadUserByToken(crowdCookie);
-                        logger.info("project id: {} details: {}",
-                                project.projectKey, details);
+                        logger.debug("project id: {} admin: {}",
+                                project.projectKey, manager.getUserName());
                         options.put("project_admin",
-                                details.getUsername());
+                                manager.getUserName());
                     }
                     execution.setOptions(options);
 
                     ExecutionsData data = client.callHttp(url,
-                            execution, null, false,
+                            execution, false,
                             RestClient.HTTP_VERB.POST,
                             ExecutionsData.class);
 
@@ -300,7 +293,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
         urlBuilder.addQueryParameter("groupPath", group);
 
         List<Job> jobs = client.callHttpTypeRef(urlBuilder.toString(),
-                null, null, false, RestClient.HTTP_VERB.GET,
+                null, false, RestClient.HTTP_VERB.GET,
                 new TypeReference<List<Job>>()
                 {
                 });
@@ -312,8 +305,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
     }
 
     @Override
-    public Map<String, String> getProjects(String filter,
-            String crowdCookieValue)
+    public Map<String, String> getProjects(String filter)
     {
         throw new NotImplementedException();
     }

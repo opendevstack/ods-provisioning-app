@@ -31,38 +31,33 @@ public interface ISCMAdapter extends IServiceAdapter
      * {@link #createComponentRepositoriesForODSProject(OpenProjectData, String)}
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @param crowdCookie the sso cookie
      * @return the project, filled with {@link ProjectData#bitbucketUrl}
      * @throws IOException in case the project / space cannot be created
      */
     public OpenProjectData createSCMProjectForODSProject(
-            OpenProjectData project, String crowdCookie)
+            OpenProjectData project)
             throws IOException;
 
     /**
      * Called to create auxiliary repos, e.g for design artifacts
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @param crowdCookie the sso cookie
      * @param auxRepos the list of auxiliary repositories
      * @return the project
      * @throws IOException in case something goes wrong during creating
      * these repositories
      */
     public OpenProjectData createAuxiliaryRepositoriesForODSProject(
-            OpenProjectData project, String crowdCookie,
-            String[] auxRepos) throws IOException;
+            OpenProjectData project, String[] auxRepos) throws IOException;
 
     /**
      * Create repositories based on passed {@link OpenProjectData#quickstarters}
      * @param project the project containing quickstarters - 
      * to derive the names from
-     * @param crowdCookie the sso cookie
      * @return the project with filled {@link OpenProjectData#repositories}
      * @throws IOException in case the repositories cannot be created
      */
     public OpenProjectData createComponentRepositoriesForODSProject(
-            OpenProjectData project, String crowdCookie)
-            throws IOException;
+            OpenProjectData project) throws IOException;
 
 }

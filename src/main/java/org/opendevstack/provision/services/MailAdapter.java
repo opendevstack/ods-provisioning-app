@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.services;
 
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +26,9 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
  * Service for mail interaction with the user in the provisioning app
@@ -46,6 +45,9 @@ public class MailAdapter
 
     private JavaMailSender mailSender;
 
+    @Autowired
+    IODSAuthnzAdapter manager;
+    
     @Value("${provison.mail.sender}")
     private String mailSenderAddress;
 
@@ -55,9 +57,6 @@ public class MailAdapter
 
     @Autowired
     private TemplateEngine templateEngine;
-
-    // testing only!
-    private CrowdUserDetails crowdUserDetails = null;
 
     @Autowired
     public MailAdapter(JavaMailSender mailSender)
@@ -72,8 +71,7 @@ public class MailAdapter
             logger.debug("Email disabled, returning");
             return;
         }
-        CrowdUserDetails userDetails = getCrowdUserDetails();
-        String recipient = userDetails.getEmail();
+        String recipient = manager.getUserEmail();
         MimeMessagePreparator messagePreparator = mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(
                     mimeMessage);
@@ -114,25 +112,5 @@ public class MailAdapter
             logger.error("Error in creating mail template", ex);
         }
         return "";
-    }
-
-    void setCrowdUserDetails(CrowdUserDetails details)
-    {
-        this.crowdUserDetails = details;
-    }
-
-    private CrowdUserDetails getCrowdUserDetails()
-    {
-        if (crowdUserDetails == null)
-        {
-            crowdUserDetails = getCrowdUserDetailsFromContext();
-        }
-        return crowdUserDetails;
-    }
-
-    CrowdUserDetails getCrowdUserDetailsFromContext()
-    {
-        return (CrowdUserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
     }
 }

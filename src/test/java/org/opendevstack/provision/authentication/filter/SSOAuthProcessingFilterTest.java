@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.filter;
+package org.opendevstack.provision.authentication.filter;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;

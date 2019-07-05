@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,6 +88,7 @@ public class LocalStorageTest
             
             // try the new field
             project.bugtrackerSpace = false;
+            assertNotNull(project.physicalLocation);
             assertTrue(localStorage.updateStoredProject(project));
             project = localStorage.getProject(project.projectKey);
     

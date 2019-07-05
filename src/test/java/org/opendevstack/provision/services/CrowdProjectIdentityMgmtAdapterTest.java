@@ -46,7 +46,7 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class ProjectIdentityMgmtAdapterTest
+public class CrowdProjectIdentityMgmtAdapterTest
 {
 
     @Mock
@@ -54,7 +54,7 @@ public class ProjectIdentityMgmtAdapterTest
 
     @Autowired
     @InjectMocks
-    ProjectIdentityMgmtAdapter idMgr;
+    CrowdProjectIdentityMgmtAdapter idMgr;
 
     @Before
     public void initTests()

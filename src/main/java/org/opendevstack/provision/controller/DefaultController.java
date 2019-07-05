@@ -18,23 +18,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -47,10 +40,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class DefaultController
 {
-
     StorageAdapter storageAdapter;
 
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     private IJobExecutionAdapter rundeckAdapter;
 
@@ -77,9 +69,6 @@ public class DefaultController
     @Autowired
     List<String> projectTemplateKeyNames;
 
-    @Value("${crowd.sso.cookie.name}")
-    private String crowdCookieKey;
-
     @RequestMapping("/")
     String rootRedirect()
     {
@@ -98,10 +87,7 @@ public class DefaultController
     }
 
     @RequestMapping("/provision")
-    String provisionProject(Model model,
-            Authentication authentication,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie,
-            HttpServletRequest request)
+    String provisionProject(Model model)
     {
         if (!isAuthenticated())
         {
@@ -172,16 +158,13 @@ public class DefaultController
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
-    public String logoutPage(HttpServletRequest request,
-            HttpServletResponse response)
+    public String logoutPage()
     {
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (auth != null)
+        try
         {
-            manager.setUserPassword(null);
-            new SecurityContextLogoutHandler().logout(request,
-                    response, auth);
+            manager.invalidateIdentity();
+        } catch (Exception eAllLogout) 
+        {
         }
         return "redirect:/login?logout";
     }
@@ -193,7 +176,7 @@ public class DefaultController
 
     @Autowired
     public void setCustomAuthenticationManager(
-            CustomAuthenticationManager manager)
+            IODSAuthnzAdapter manager)
     {
         this.manager = manager;
     }
@@ -202,7 +185,6 @@ public class DefaultController
     public void setRundeckAdapter(IJobExecutionAdapter rundeckAdapter)
     {
         this.rundeckAdapter = rundeckAdapter;
-
     }
 
     @Autowired

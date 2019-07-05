@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.filter;
+package org.opendevstack.provision.authentication.filter;
 
 import java.io.IOException;
 import javax.servlet.FilterChain;

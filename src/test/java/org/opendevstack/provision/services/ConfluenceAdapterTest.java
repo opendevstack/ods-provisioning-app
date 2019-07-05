@@ -81,12 +81,11 @@ public class ConfluenceAdapterTest
 
         doReturn(space).when(spyAdapter).createSpaceData(project);
         doReturn(spaceData).when(spyAdapter)
-                .callCreateSpaceApi(any(Space.class), anyString());
+                .callCreateSpaceApi(any(Space.class));
         when(spaceData.getUrl()).thenReturn("testUrl");
 
         OpenProjectData createdProject = spyAdapter
-                .createCollaborationSpaceForODSProject(project,
-                        "crowdCookieValue");
+                .createCollaborationSpaceForODSProject(project);
 
         assertEquals("testUrl", createdProject.collaborationSpaceUrl);
     }
@@ -100,11 +99,11 @@ public class ConfluenceAdapterTest
         SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
         doReturn(expectedSpaceData).when(client).callHttp(anyString(),
-                any(), anyString(), anyBoolean(),
+                any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
 
         SpaceData createdSpaceData = spyAdapter
-                .callCreateSpaceApi(space, "crowdCookieValue");
+                .callCreateSpaceApi(space);
 
         assertEquals(expectedSpaceData, createdSpaceData);
     }
@@ -121,26 +120,26 @@ public class ConfluenceAdapterTest
         spyAdapter.client = client;
 
         doReturn(String.class).when(client).callHttp(anyString(),
-                any(), anyString(), anyBoolean(),
+                any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
         int permissionSets = spyAdapter
-                .updateSpacePermissions(project, "crowdCookieValue");
+                .updateSpacePermissions(project);
 
         // 3 permission sets
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.projectAdminGroup), anyString(),
+                contains(project.projectAdminGroup),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.projectUserGroup), anyString(),
+                contains(project.projectUserGroup),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                contains(project.projectReadonlyGroup), anyString(),
+                contains(project.projectReadonlyGroup),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any(String.class.getClass()));
 
@@ -164,11 +163,10 @@ public class ConfluenceAdapterTest
 
         Mockito.doReturn(blList).when(spyAdapter)
                 .getSpaceTemplateList(contains("space-blueprint"),
-                        eq(null), any());
+                        any());
 
         Mockito.doReturn(new ArrayList<>()).when(spyAdapter)
-                .getSpaceTemplateList(contains("jira"), eq(null),
-                        any());
+                .getSpaceTemplateList(contains("jira"), any());
 
         Space space = spyAdapter.createSpaceData(project);
 

@@ -21,16 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -56,7 +53,6 @@ import okhttp3.Response;
 @Component
 public class RestClient
 {
-
     private static final Logger logger = LoggerFactory
             .getLogger(RestClient.class);
 
@@ -75,10 +71,7 @@ public class RestClient
             Arrays.asList(401, 403, 404, 409, 500));
 
     @Autowired
-    CrowdUserDetailsService crowdUserDetailsService;
-
-    @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     public enum HTTP_VERB
     {
@@ -107,7 +100,7 @@ public class RestClient
         return client;
     }
 
-    public OkHttpClient getClientFresh(String crowdCookie)
+    private OkHttpClient getClientFresh(String crowdCookie)
     {
         cache.remove(crowdCookie);
         cookieJar.clear();
@@ -118,13 +111,13 @@ public class RestClient
     {
         try
         {
-            callHttpInternal(url, null, null, false, HTTP_VERB.HEAD,
+            callHttpInternal(url, null, false, HTTP_VERB.HEAD,
                     null, null);
         } catch (HttpException httpX)
         {
             if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
             {
-                callHttpInternal(url, null, null, true,
+                callHttpInternal(url, null, true,
                         HTTP_VERB.HEAD, null, null);
             } else
             {
@@ -134,13 +127,13 @@ public class RestClient
     }
 
     public <T> T callHttp(String url, Object input,
-            String crowdCookieValue, boolean directAuth,
+            boolean directAuth,
             HTTP_VERB verb, Class<T> returnType)
             throws HttpException, IOException
     {
         try
         {
-            return callHttpInternal(url, input, crowdCookieValue,
+            return callHttpInternal(url, input, 
                     directAuth, verb, returnType, null);
         } catch (HttpException httpException)
         {
@@ -148,7 +141,7 @@ public class RestClient
                     .contains(httpException.getResponseCode()))
             {
                 logger.debug("401 - retrying with direct auth");
-                return callHttpInternal(url, input, crowdCookieValue,
+                return callHttpInternal(url, input, 
                         true, verb, returnType, null);
             } else
             {
@@ -158,13 +151,13 @@ public class RestClient
     }
 
     public <T> T callHttpTypeRef(String url, Object input,
-            String crowdCookieValue, boolean directAuth,
+            boolean directAuth,
             HTTP_VERB verb, TypeReference<T> returnType)
             throws HttpException, IOException
     {
         try
         {
-            return callHttpInternal(url, input, crowdCookieValue,
+            return callHttpInternal(url, input, 
                     directAuth, verb, null, returnType);
         } catch (HttpException httpException)
         {
@@ -172,7 +165,7 @@ public class RestClient
                     .contains(httpException.getResponseCode()))
             {
                 logger.debug("401 - retrying with direct auth");
-                return callHttpInternal(url, input, crowdCookieValue,
+                return callHttpInternal(url, input, 
                         true, verb, null, returnType);
             } else
             {
@@ -181,8 +174,7 @@ public class RestClient
         }
     }
 
-    private <T> T callHttpInternal(String url, Object input,
-            String crowdCookieValue, boolean directAuth,
+    private <T> T callHttpInternal(String url, Object input, boolean directAuth,
             HTTP_VERB verb, Class returnType,
             TypeReference returnTypeRef)
             throws HttpException, IOException
@@ -237,18 +229,16 @@ public class RestClient
         Response response = null;
         if (directAuth)
         {
-            String currentUser = SecurityContextHolder.getContext()
-                    .getAuthentication().getName();
             logger.debug("Authenticating rest call with {}",
-                    currentUser);
-            String credentials = Credentials.basic(currentUser,
+                    manager.getUserName());
+            String credentials = Credentials.basic(manager.getUserName(),
                     manager.getUserPassword());
             builder = builder.addHeader("Authorization", credentials);
-            response = getClientFresh(crowdCookieValue)
+            response = getClientFresh(manager.getToken())
                     .newCall(builder.build()).execute();
         } else
         {
-            response = getClient(crowdCookieValue)
+            response = getClient(manager != null ? manager.getToken() : null )
                     .newCall(builder.build()).execute();
         }
 
@@ -284,19 +274,11 @@ public class RestClient
             throws IOException
     {
         Preconditions.checkNotNull(url, "Url cannot be null");
-        Preconditions.checkNotNull(
-                SecurityContextHolder.getContext()
-                        .getAuthentication(),
-                "Cannot auth with null principal");
-        CrowdUserDetails userDetails = (CrowdUserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-
-        String username = userDetails.getUsername();
-        String password = manager.getUserPassword();
+        String username = manager.getUserName();
 
         RequestBody body = new FormBody.Builder()
                 .add("j_username", username)
-                .add("j_password", password).build();
+                .add("j_password", manager.getUserPassword()).build();
         Request request = new Request.Builder().url(url).post(body)
                 .build();
         try (Response response = getClient(null).newCall(request)

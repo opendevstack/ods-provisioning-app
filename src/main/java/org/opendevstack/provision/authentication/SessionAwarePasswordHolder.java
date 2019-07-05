@@ -28,6 +28,8 @@ public class SessionAwarePasswordHolder
 {
 
     private String password = null;
+    private String token = null;
+    private String username = null;
 
     public String getPassword()
     {
@@ -37,5 +39,39 @@ public class SessionAwarePasswordHolder
     public void setPassword(String password)
     {
         this.password = password;
+    }
+    
+    public String getToken()
+    {
+        return token;
+    }
+
+    public void setToken(String token)
+    {
+        this.token = token;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername(String username)
+    {
+        this.username = username;
+    }
+    
+    @Override
+    public String toString () 
+    {
+        return "u: " + username + 
+               " p: " + (password != null ? "*" : "empty") + 
+               " t: " + token;
+    }
+    
+    public void clear () {
+        this.username = null;
+        this.password = null;
+        this.token = null;
     }
 }

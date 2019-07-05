@@ -45,8 +45,7 @@ public interface IServiceAdapter
      * @return a map with project key and name, never null, 
      * but potentially empty
      */
-    public Map<String, String> getProjects(String filter,
-            String crowdCookieValue);
+    public Map<String, String> getProjects(String filter);
 
     /**
      * Get the adapter's used rest / api URI

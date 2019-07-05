@@ -134,14 +134,14 @@ public class JiraAdapterTests
         when(details.getFullName()).thenReturn("achmed meyer");
 
         when(client.callHttp(anyString(), any(FullJiraProject.class),
-                anyString(), anyBoolean(),
+                anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST),
                 eq(FullJiraProject.class)))
                         .thenReturn(getReturnProject());
 
         OpenProjectData createdProject = spyAdapter
                 .createBugtrackerProjectForODSProject(
-                        getTestProject(name), crowdCookieValue);
+                        getTestProject(name));
 
         assertEquals(getTestProject(name).projectKey,
                 createdProject.projectKey);
@@ -163,8 +163,7 @@ public class JiraAdapterTests
                 "templateType");
 
         OpenProjectData createdProjectWithNewTemplate = spyAdapter
-                .createBugtrackerProjectForODSProject(templateProject,
-                        crowdCookieValue);
+                .createBugtrackerProjectForODSProject(templateProject);
 
         assertEquals(templateProject.projectKey,
                 createdProjectWithNewTemplate.projectKey);
@@ -179,12 +178,12 @@ public class JiraAdapterTests
             HttpException ioEx = new HttpException(300, "testerror");
 
             when(client.callHttp(anyString(),
-                    any(FullJiraProject.class), anyString(),
+                    any(FullJiraProject.class), 
                     anyBoolean(), any(RestClient.HTTP_VERB.class),
                     eq(FullJiraProject.class))).thenThrow(ioEx);
 
             spyAdapter.createBugtrackerProjectForODSProject(
-                    getTestProject(name), crowdCookieValue);
+                    getTestProject(name));
         } catch (HttpException e)
         {
             thrownEx = e;
@@ -201,14 +200,13 @@ public class JiraAdapterTests
         FullJiraProject expectedProject = new FullJiraProject();
 
         when(client.callHttp(anyString(), any(FullJiraProject.class),
-                anyString(), anyBoolean(),
+                anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST),
                 eq(FullJiraProject.class)))
                         .thenReturn(expectedProject);
 
         FullJiraProject createdProject = spyAdapter
-                .callJiraCreateProjectApi(expectedProject,
-                        crowdCookieValue);
+                .callJiraCreateProjectApi(expectedProject);
 
         assertEquals(expectedProject, createdProject);
     }
@@ -282,17 +280,13 @@ public class JiraAdapterTests
 
         JiraAdapter mocked = Mockito.spy(jiraAdapter);
         Mockito.doNothing().when(client).getSessionId(null);
-        Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
-                projectNameTrue);
+        Mockito.doReturn(keys).when(mocked).getProjects(projectNameTrue);
 
-        assertTrue(mocked.projectKeyExists(projectNameTrue,
-                "CookieValue"));
+        assertTrue(mocked.projectKeyExists(projectNameTrue));
 
         projects.clear();
-        Mockito.doReturn(keys).when(mocked).getProjects("CookieValue",
-                projectNameFalse);
-        assertFalse(mocked.projectKeyExists(projectNameFalse,
-                "CookieValue"));
+        Mockito.doReturn(keys).when(mocked).getProjects(projectNameFalse);
+        assertFalse(mocked.projectKeyExists(projectNameFalse));
     }
 
     @Test
@@ -313,20 +307,19 @@ public class JiraAdapterTests
         PermissionScheme scheme = new PermissionScheme();
         scheme.setId("permScheme1");
 
-        when(client.callHttp(anyString(), any(), anyString(),
+        when(client.callHttp(anyString(), any(), 
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 eq(PermissionScheme.class))).thenReturn(scheme);
 
-        int updates = mocked.createPermissions(apiInput,
-                "crowdCookieValue");
+        int updates = mocked.createPermissions(apiInput);
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                any(), anyString(), anyBoolean(),
+                any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST),
                 eq(PermissionScheme.class));
 
         Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-                any(), anyString(), anyBoolean(),
+                any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.PUT),
                 eq(FullJiraProject.class));
 
@@ -340,24 +333,22 @@ public class JiraAdapterTests
         RestClient restClientMocket = Mockito.spy(RestClient.class);
         OpenProjectData apiInput = getTestProject("testproject");
 
-        int shortcutsAdded = mocked.addShortcutsToProject(apiInput,
-                "test");
+        int shortcutsAdded = mocked.addShortcutsToProject(apiInput);
 
         assertEquals(5, shortcutsAdded);
 
         Mockito.verify(client, Mockito.times(5)).callHttp(anyString(),
-                any(), anyString(), anyBoolean(),
+                any(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
 
         apiInput.bugtrackerSpace = false;
         mocked = Mockito.spy(jiraAdapter);
         mocked.client = Mockito.spy(RestClient.class);
-        shortcutsAdded = mocked.addShortcutsToProject(apiInput,
-                "test");
+        shortcutsAdded = mocked.addShortcutsToProject(apiInput);
         assertEquals(-1, shortcutsAdded);
 
         Mockito.verify(mocked.client, Mockito.never()).callHttp(
-                anyString(), any(), anyString(), anyBoolean(),
+                any(), anyString(), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
 
     }
@@ -391,12 +382,11 @@ public class JiraAdapterTests
         apiInput.repositories = repos;
 
         Map<String, String> created = mocked
-                .createComponentsForProjectRepositories(apiInput,
-                        "test");
+                .createComponentsForProjectRepositories(apiInput);
 
         Mockito.verify(client, Mockito.times(1)).callHttp(
                 endsWith("/rest/api/latest/component"),
-                any(Component.class), anyString(), anyBoolean(),
+                any(Component.class), anyBoolean(),
                 eq(RestClient.HTTP_VERB.POST), isNull());
 
         assertEquals(1, created.size());
@@ -413,7 +403,7 @@ public class JiraAdapterTests
         apiInput.repositories = repos;
 
         created = mocked.createComponentsForProjectRepositories(
-                apiInput, "test");
+                apiInput);
         assertEquals(1, created.size());
         entry = created.entrySet().iterator().next();
         assertEquals("Technology-fe-angular", entry.getKey());
@@ -421,7 +411,7 @@ public class JiraAdapterTests
         // test with component creation == false
         mocked.createJiraComponents = false;
         created = mocked.createComponentsForProjectRepositories(
-                apiInput, "test");
+                apiInput);
         assertEquals(0, created.size());
 
     }

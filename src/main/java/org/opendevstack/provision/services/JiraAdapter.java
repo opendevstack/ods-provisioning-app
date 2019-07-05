@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.Component;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
@@ -27,8 +27,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -80,10 +78,7 @@ public class JiraAdapter implements IBugtrackerAdapter
     private static final String URL_PATTERN = "%s%s/project/%s";
 
     @Autowired
-    CrowdUserDetailsService crowdUserDetailsService;
-
-    @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     @Value("${global.keyuser.role.name}")
     private String globalKeyuserRoleName;
@@ -101,14 +96,13 @@ public class JiraAdapter implements IBugtrackerAdapter
     private String defaultProjectKey;
 
     private FullJiraProject createProjectInJira(
-            OpenProjectData project, String crowdCookieValue,
+            OpenProjectData project,
             FullJiraProject toBeCreated) throws IOException
     {
         FullJiraProject created;
         try
         {
-            created = this.callJiraCreateProjectApi(toBeCreated,
-                    crowdCookieValue);
+            created = this.callJiraCreateProjectApi(toBeCreated);
         } catch (HttpException jiracreateException)
         {
             logger.debug(
@@ -123,8 +117,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                         jiraTemplateKey);
                 toBeCreated.projectTypeKey = jiraTemplateType;
                 toBeCreated.projectTemplateKey = jiraTemplateKey;
-                created = this.callJiraCreateProjectApi(toBeCreated,
-                        crowdCookieValue);
+                created = this.callJiraCreateProjectApi(toBeCreated);
                 project.projectType = defaultProjectKey;
             } else
             {
@@ -135,14 +128,14 @@ public class JiraAdapter implements IBugtrackerAdapter
     }
 
     protected FullJiraProject callJiraCreateProjectApi(
-            FullJiraProject jiraProject, String crowdCookieValue)
+            FullJiraProject jiraProject)
             throws IOException
     {
         String path = String.format("%s%s/project", jiraUri,
                 jiraApiPath);
 
         FullJiraProject created = client.callHttp(path, jiraProject,
-                crowdCookieValue, false, RestClient.HTTP_VERB.POST,
+                false, RestClient.HTTP_VERB.POST,
                 FullJiraProject.class);
         FullJiraProject returnProject = new FullJiraProject(
                 created.getSelf(), created.getKey(),
@@ -161,8 +154,7 @@ public class JiraAdapter implements IBugtrackerAdapter
      *            the crowd cookie
      * @return the number of created permission sets
      */
-    protected int createPermissions(OpenProjectData project,
-            String crowdCookieValue)
+    protected int createPermissions(OpenProjectData project)
     {
         PathMatchingResourcePatternResolver pmrl = new PathMatchingResourcePatternResolver(
                 Thread.currentThread().getContextClassLoader());
@@ -228,8 +220,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                 String path = String.format("%s%s/permissionscheme",
                         jiraUri, jiraApiPath);
                 singleScheme = client.callHttp(path, singleScheme,
-                        crowdCookieValue, true,
-                        RestClient.HTTP_VERB.POST,
+                        true, RestClient.HTTP_VERB.POST,
                         PermissionScheme.class);
 
                 // update jira project
@@ -238,7 +229,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                         jiraApiPath, project.projectKey);
                 PermissionScheme small = new PermissionScheme();
                 small.setId(singleScheme.getId());
-                client.callHttp(path, small, crowdCookieValue, true,
+                client.callHttp(path, small, true,
                         RestClient.HTTP_VERB.PUT,
                         FullJiraProject.class);
 
@@ -295,22 +286,19 @@ public class JiraAdapter implements IBugtrackerAdapter
         return key;
     }
 
-    public boolean projectKeyExists(String key,
-            String crowdCookieValue)
+    public boolean projectKeyExists(String key)
     {
         Preconditions.checkNotNull(key,
                 "Key for keyExists cannot be null");
         getSessionId();
-        Map<String, String> projectKeyMap = getProjects(
-                crowdCookieValue, key);
+        Map<String, String> projectKeyMap = getProjects(key);
 
         return (projectKeyMap.containsKey(key)
                 || (projectKeyMap.containsValue(key)));
     }
 
     // refactor - to only look for the project by key that is to be created!
-    public Map<String, String> getProjects(String crowdCookieValue,
-            String filter)
+    public Map<String, String> getProjects(String filter)
     {
         getSessionId();
         logger.debug("Getting jira projects with filter {}", filter);
@@ -322,7 +310,7 @@ public class JiraAdapter implements IBugtrackerAdapter
         try
         {
             List<FullJiraProject> projects = client.callHttpTypeRef(
-                    url, null, crowdCookieValue, false,
+                    url, null, false,
                     RestClient.HTTP_VERB.GET,
                     new TypeReference<List<FullJiraProject>>()
                     {
@@ -351,8 +339,7 @@ public class JiraAdapter implements IBugtrackerAdapter
         }
     }
 
-    public int addShortcutsToProject(OpenProjectData data,
-            String crowdCookieValue)
+    public int addShortcutsToProject(OpenProjectData data)
     {
         if (!data.bugtrackerSpace)
         {
@@ -412,7 +399,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                     shortcut.getId(), shortcut.getName());
             try
             {
-                client.callHttp(path, shortcut, crowdCookieValue,
+                client.callHttp(path, shortcut,
                         false, RestClient.HTTP_VERB.POST,
                         Shortcut.class);
                 createdShortcuts++;
@@ -485,7 +472,7 @@ public class JiraAdapter implements IBugtrackerAdapter
 
     @Override
     public OpenProjectData createBugtrackerProjectForODSProject(
-            OpenProjectData project, String crowdCookieValue)
+            OpenProjectData project)
             throws IOException
     {
         try
@@ -501,17 +488,14 @@ public class JiraAdapter implements IBugtrackerAdapter
                     || project.projectAdminUser == null
                     || project.projectAdminUser.trim().length() == 0)
             {
-                // set in any case - otherwise jira will be annoyed.
-                CrowdUserDetails details = crowdUserDetailsService
-                        .loadUserByToken(crowdCookieValue);
-                project.projectAdminUser = details.getUsername();
+                project.projectAdminUser = manager.getUserName();
             }
 
             FullJiraProject toBeCreated = this
                     .buildJiraProjectPojoFromApiProject(project);
 
             FullJiraProject created;
-            created = createProjectInJira(project, crowdCookieValue,
+            created = createProjectInJira(project,
                     toBeCreated);
 
             logger.debug("Created project: {}", created);
@@ -520,7 +504,7 @@ public class JiraAdapter implements IBugtrackerAdapter
 
             if (project.specialPermissionSet)
             {
-                createPermissions(project, crowdCookieValue);
+                createPermissions(project);
             }
 
             return project;
@@ -553,11 +537,11 @@ public class JiraAdapter implements IBugtrackerAdapter
     }
 
     public Map<String, String> createComponentsForProjectRepositories(
-            OpenProjectData data, String crowdCookieValue)
+            OpenProjectData data)
     {
         if (!createJiraComponents)
         {
-            logger.info("not creating jira components");
+            logger.debug("not creating jira components");
             return new HashMap<>();
         }
         Preconditions.checkNotNull(data, "data input cannot be null");
@@ -596,7 +580,7 @@ public class JiraAdapter implements IBugtrackerAdapter
                         repo.getKey(), href));
                 try
                 {
-                    client.callHttp(path, component, crowdCookieValue,
+                    client.callHttp(path, component, 
                             false, RestClient.HTTP_VERB.POST, null);
                     createdComponents.put(component.getName(),
                             component.getDescription());

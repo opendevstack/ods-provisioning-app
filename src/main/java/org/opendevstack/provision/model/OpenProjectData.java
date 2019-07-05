@@ -123,6 +123,11 @@ public class OpenProjectData
      */
     public String projectType = null;
 
+    /**
+     * The storage path location
+     */
+    public String physicalLocation = null;
+    
     @Override
     public int hashCode()
     {

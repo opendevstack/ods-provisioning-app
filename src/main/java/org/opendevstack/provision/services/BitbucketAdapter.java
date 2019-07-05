@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.RepositoryData;
@@ -36,11 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 
 import okhttp3.HttpUrl;
 
@@ -91,10 +87,7 @@ public class BitbucketAdapter implements ISCMAdapter
     RestClient client;
 
     @Autowired
-    CrowdUserDetailsService crowdUserDetailsService;
-
-    @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     private static final String PROJECT_PATTERN = "%s%s/projects";
 
@@ -109,11 +102,10 @@ public class BitbucketAdapter implements ISCMAdapter
     }
 
     public OpenProjectData createSCMProjectForODSProject(
-            OpenProjectData project, String crowdCookieValue)
+            OpenProjectData project)
             throws IOException
     {
-        BitbucketData data = callCreateProjectApi(project,
-                crowdCookieValue);
+        BitbucketData data = callCreateProjectApi(project);
 
         project.scmvcsUrl = data.getLinks().get("self").get(0)
                 .getHref();
@@ -122,13 +114,9 @@ public class BitbucketAdapter implements ISCMAdapter
 
     @SuppressWarnings("squid:S3776")
     public OpenProjectData createComponentRepositoriesForODSProject(
-            OpenProjectData project, String crowdCookieValue)
+            OpenProjectData project)
             throws IOException
     {
-
-        CrowdUserDetails userDetails = (CrowdUserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-
         logger.debug("Creating quickstartersProjects");
 
         Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
@@ -164,9 +152,8 @@ public class BitbucketAdapter implements ISCMAdapter
                 try
                 {
                     RepositoryData result = callCreateRepoApi(
-                            project.projectKey, repo, crowdCookieValue);
-                    createWebHooksForRepository(result, project,
-                            crowdCookieValue);
+                            project.projectKey, repo);
+                    createWebHooksForRepository(result, project);
                     Map<String, List<Link>> links = result.getLinks();
                     if (links != null)
                     {
@@ -177,7 +164,7 @@ public class BitbucketAdapter implements ISCMAdapter
                             String href = repoLink.getHref();
                             GitUrlWrangler gitUrlWrangler = new GitUrlWrangler();
                             href = gitUrlWrangler.buildGitUrl(
-                                    userDetails.getUsername(),
+                                    manager.getUserName(),
                                     technicalUser, href);
                             option.put(
                                     String.format("git_url_%s",
@@ -211,7 +198,7 @@ public class BitbucketAdapter implements ISCMAdapter
     }
 
     public OpenProjectData createAuxiliaryRepositoriesForODSProject(
-            OpenProjectData project, String crowdCookieValue,
+            OpenProjectData project,
             String[] auxiliaryRepos)
     {
         Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
@@ -235,7 +222,7 @@ public class BitbucketAdapter implements ISCMAdapter
             try
             {
                 RepositoryData result = callCreateRepoApi(project.projectKey,
-                        repo, crowdCookieValue);
+                        repo);
                 repoLinks.put(result.getName(), result.getLinks());
             } catch (IOException ex)
             {
@@ -254,7 +241,7 @@ public class BitbucketAdapter implements ISCMAdapter
 
     // Create webhook for CI (using webhook proxy)
     protected void createWebHooksForRepository(RepositoryData repo,
-            OpenProjectData project, String crowdCookie)
+            OpenProjectData project)
     {
 
         // projectOpenshiftJenkinsWebhookProxyNamePattern is e.g.
@@ -282,7 +269,7 @@ public class BitbucketAdapter implements ISCMAdapter
 
         try
         {
-            client.callHttp(url, webhook, crowdCookie, false,
+            client.callHttp(url, webhook, false,
                     RestClient.HTTP_VERB.POST, Webhook.class);
             logger.info("created hook: {}", webhook.getUrl());
         } catch (IOException ex)
@@ -291,65 +278,63 @@ public class BitbucketAdapter implements ISCMAdapter
         }
     }
 
-    protected BitbucketData callCreateProjectApi(OpenProjectData project,
-            String crowdCookieValue) throws IOException
+    protected BitbucketData callCreateProjectApi(OpenProjectData project) throws IOException
     {
 
         BitbucketProject bbProject = createBitbucketProject(project);
 
         BitbucketData projectData = client.callHttp(buildBasePath(),
-                bbProject, crowdCookieValue, false,
+                bbProject, false,
                 RestClient.HTTP_VERB.POST, BitbucketData.class);
 
         if (project.specialPermissionSet)
         {
             setProjectPermissions(projectData, ID_GROUPS,
-                    globalKeyuserRoleName, crowdCookieValue,
+                    globalKeyuserRoleName,
                     PROJECT_PERMISSIONS.PROJECT_ADMIN);
             setProjectPermissions(projectData, ID_GROUPS,
-                    project.projectAdminGroup, crowdCookieValue,
+                    project.projectAdminGroup,
                     PROJECT_PERMISSIONS.PROJECT_ADMIN);
             setProjectPermissions(projectData, ID_GROUPS,
-                    project.projectUserGroup, crowdCookieValue,
+                    project.projectUserGroup,
                     PROJECT_PERMISSIONS.PROJECT_WRITE);
             setProjectPermissions(projectData, ID_GROUPS,
-                    project.projectReadonlyGroup, crowdCookieValue,
+                    project.projectReadonlyGroup,
                     PROJECT_PERMISSIONS.PROJECT_READ);
         } else
         {
             setProjectPermissions(projectData, ID_GROUPS,
-                    defaultUserGroup, crowdCookieValue,
+                    defaultUserGroup,
                     PROJECT_PERMISSIONS.PROJECT_WRITE);
         }
         // set the technical user in any case
         setProjectPermissions(projectData, ID_USERS, technicalUser,
-                crowdCookieValue, PROJECT_PERMISSIONS.PROJECT_WRITE);
+                PROJECT_PERMISSIONS.PROJECT_WRITE);
 
         return projectData;
     }
 
     protected RepositoryData callCreateRepoApi(String projectKey,
-            Repository repo, String crowdCookieValue)
-            throws IOException
+            Repository repo) throws IOException
     {
         String path = String.format("%s/%s/repos", buildBasePath(),
                 projectKey);
 
         RepositoryData data = client.callHttp(path, repo,
-                crowdCookieValue, false, RestClient.HTTP_VERB.POST,
+                false, RestClient.HTTP_VERB.POST,
                 RepositoryData.class);
 
         setRepositoryPermissions(data, projectKey, ID_GROUPS,
-                repo.getUserGroup(), crowdCookieValue);
+                repo.getUserGroup());
         setRepositoryPermissions(data, projectKey, ID_USERS,
-                technicalUser, crowdCookieValue);
+                technicalUser);
 
         return data;
     }
 
     protected void setProjectPermissions(BitbucketData data,
             String pathFragment, String groupOrUser,
-            String crowdCookieValue, PROJECT_PERMISSIONS rights)
+            PROJECT_PERMISSIONS rights)
             throws IOException
     {
         String basePath = buildBasePath();
@@ -360,13 +345,13 @@ public class BitbucketAdapter implements ISCMAdapter
         // utschig - allow group to create new repos (rather than just read / write)
         urlBuilder.addQueryParameter("permission", rights.toString());
         urlBuilder.addQueryParameter("name", groupOrUser);
-        client.callHttp(urlBuilder.toString(), null, crowdCookieValue,
+        client.callHttp(urlBuilder.toString(), null, 
                 true, RestClient.HTTP_VERB.PUT, String.class);
     }
 
     protected void setRepositoryPermissions(RepositoryData data,
-            String key, String userOrGroup, String groupOrUser,
-            String crowdCookieValue) throws IOException
+            String key, String userOrGroup, String groupOrUser) 
+                    throws IOException
     {
         String basePath = buildBasePath();
         String url = String.format("%s/%s/repos/%s/permissions/%s",
@@ -377,7 +362,7 @@ public class BitbucketAdapter implements ISCMAdapter
         urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
         urlBuilder.addQueryParameter("name", groupOrUser);
 
-        client.callHttp(urlBuilder.toString(), null, crowdCookieValue, true,
+        client.callHttp(urlBuilder.toString(), null, true,
                 RestClient.HTTP_VERB.PUT, String.class);
     }
 
@@ -411,10 +396,8 @@ public class BitbucketAdapter implements ISCMAdapter
     }
 
     @Override
-    public Map<String, String> getProjects(String filter,
-            String crowdCookieValue)
+    public Map<String, String> getProjects(String filter)
     {
-        // TODO Auto-generated method stub
         throw new NotImplementedException();
     }
 }

@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.config;
+package org.opendevstack.provision.authentication.config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +20,7 @@ import java.util.Properties;
 
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
-import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
+import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;

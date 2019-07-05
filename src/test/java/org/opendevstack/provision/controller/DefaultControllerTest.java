@@ -63,7 +63,7 @@ public class DefaultControllerTest
     DefaultController defaultController;
 
     @Mock
-    RundeckAdapter rundeckAdapter;
+    IJobExecutionAdapter rundeckAdapter;
 
     @Mock
     CustomAuthenticationManager customAuthenticationManager;

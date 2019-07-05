@@ -76,7 +76,7 @@ public class ProjectApiControllerTest
     private RestClient client;
 
     @Mock
-    private ProjectIdentityMgmtAdapter idm;
+    private CrowdProjectIdentityMgmtAdapter idm;
 
     @InjectMocks
     @Autowired
@@ -129,10 +129,9 @@ public class ProjectApiControllerTest
     public void addProjectWithoutOCPosNeg() throws Exception
     {
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull(), isNull())).thenReturn(data);
+                isNotNull())).thenReturn(data);
         Mockito.when(confluenceAdapter
-                .createCollaborationSpaceForODSProject(isNotNull(),
-                        isNull()))
+                .createCollaborationSpaceForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
@@ -152,9 +151,9 @@ public class ProjectApiControllerTest
 
         // rundeck should NOT have been called and neither bitbucket
         Mockito.verify(rundeckAdapter, Mockito.never())
-                .createPlatformProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull());
         Mockito.verify(bitbucketAdapter, Mockito.never())
-                .createSCMProjectForODSProject(isNotNull(), isNull());
+                .createSCMProjectForODSProject(isNotNull());
 
         // try with failing storage
         Mockito.when(storage.storeProject(data))
@@ -172,24 +171,22 @@ public class ProjectApiControllerTest
     {
         data.platformRuntime = true;
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull(), isNull())).thenReturn(data);
+                isNotNull())).thenReturn(data);
         Mockito.when(confluenceAdapter
-                .createCollaborationSpaceForODSProject(isNotNull(),
-                        isNull()))
+                .createCollaborationSpaceForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
-                .createSCMProjectForODSProject(isNotNull(), isNull()))
+                .createSCMProjectForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
-                .createComponentRepositoriesForODSProject(isNotNull(),
-                        isNull()))
+                .createComponentRepositoriesForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
                 .createAuxiliaryRepositoriesForODSProject(isNotNull(),
-                        isNull(), isNotNull()))
+                        isNotNull()))
                 .thenReturn(data);
         Mockito.when(rundeckAdapter
-                .createPlatformProjects(isNotNull(), isNull()))
+                .createPlatformProjects(isNotNull()))
                 .thenReturn(data);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
@@ -209,16 +206,14 @@ public class ProjectApiControllerTest
 
         // rundeck should have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter, Mockito.times(1))
-                .createPlatformProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
-                .createSCMProjectForODSProject(isNotNull(), isNull());
+                .createSCMProjectForODSProject(isNotNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
-                .createComponentRepositoriesForODSProject(isNotNull(),
-                        isNull());
+                .createComponentRepositoriesForODSProject(isNotNull());
         // jira components
         Mockito.verify(jiraAdapter, Mockito.times(1))
-                .createComponentsForProjectRepositories(isNotNull(),
-                        isNull());
+                .createComponentsForProjectRepositories(isNotNull());
     }
 
     @Test
@@ -286,11 +281,11 @@ public class ProjectApiControllerTest
     public void validateProjectWithProjectExists() throws Exception
     {
         Mockito.when(jiraAdapter
-                .projectKeyExists(isNotNull(String.class), isNull()))
+                .projectKeyExists(isNotNull(String.class)))
                 .thenReturn(true);
 
         mockMvc.perform(get("/api/v2/project/validate")
-                .param("name", "project")
+                .param("projectName", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
                         .isNotAcceptable())
@@ -301,11 +296,11 @@ public class ProjectApiControllerTest
     public void validateProjectWithProjectNotExists() throws Exception
     {
         Mockito.when(jiraAdapter
-                .projectKeyExists(isNotNull(String.class), isNull()))
+                .projectKeyExists(isNotNull(String.class)))
                 .thenReturn(false);
 
         mockMvc.perform(get("/api/v2/project/validate")
-                .param("name", "project")
+                .param("projectName", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print());
@@ -315,10 +310,10 @@ public class ProjectApiControllerTest
     public void validateKeyWithKeyExists() throws Exception
     {
         Mockito.when(jiraAdapter
-                .projectKeyExists(isNotNull(String.class), isNull()))
+                .projectKeyExists(isNotNull(String.class)))
                 .thenReturn(true);
         mockMvc.perform(get("/api/v2/project/key/validate")
-                .param("key", "project")
+                .param("projectKey", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status()
                         .isNotAcceptable())
@@ -329,11 +324,11 @@ public class ProjectApiControllerTest
     public void validateKeyWithKeyNotExists() throws Exception
     {
         Mockito.when(jiraAdapter
-                .projectKeyExists(isNotNull(String.class), isNull()))
+                .projectKeyExists(isNotNull(String.class)))
                 .thenReturn(false);
 
         mockMvc.perform(get("/api/v2/project/key/validate")
-                .param("key", "project")
+                .param("projectKey", "project")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print());
@@ -426,24 +421,22 @@ public class ProjectApiControllerTest
     {
         data.platformRuntime = false;
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull(), isNull())).thenReturn(data);
+                isNotNull())).thenReturn(data);
         Mockito.when(confluenceAdapter
-                .createCollaborationSpaceForODSProject(isNotNull(),
-                        isNull()))
+                .createCollaborationSpaceForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
-                .createSCMProjectForODSProject(isNotNull(), isNull()))
+                .createSCMProjectForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
-                .createComponentRepositoriesForODSProject(isNotNull(),
-                        isNull()))
+                .createComponentRepositoriesForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
                 .createAuxiliaryRepositoriesForODSProject(isNotNull(),
-                        isNull(), isNotNull()))
+                        isNotNull()))
                 .thenReturn(data);
         Mockito.when(rundeckAdapter
-                .createPlatformProjects(isNotNull(), isNull()))
+                .createPlatformProjects(isNotNull()))
                 .thenReturn(data);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
@@ -478,9 +471,9 @@ public class ProjectApiControllerTest
 
         // rundeck should have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter, Mockito.times(1))
-                .createPlatformProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull());
         Mockito.verify(bitbucketAdapter, Mockito.times(1))
-                .createSCMProjectForODSProject(isNotNull(), isNull());
+                .createSCMProjectForODSProject(isNotNull());
 
         // upgrade to OC with upgrade forbidden
         data.platformRuntime = false;
@@ -511,9 +504,9 @@ public class ProjectApiControllerTest
 
         // rundeck should NOT have been called (and repo creation as well)
         Mockito.verify(rundeckAdapter)
-                .createPlatformProjects(isNotNull(), isNull());
+                .createPlatformProjects(isNotNull());
         Mockito.verify(bitbucketAdapter)
-                .createSCMProjectForODSProject(isNotNull(), isNull());
+                .createSCMProjectForODSProject(isNotNull());
 
         // now w/o upgrade
         data.platformRuntime = true;
@@ -528,7 +521,7 @@ public class ProjectApiControllerTest
 
         // rundeck should have been called (and repo creation as well)
         Mockito.verify(bitbucketAdapter, Mockito.times(2))
-                .createSCMProjectForODSProject(isNotNull(), isNull());
+                .createSCMProjectForODSProject(isNotNull());
     }
 
     @Test
@@ -540,10 +533,9 @@ public class ProjectApiControllerTest
         apiController.shortenDescription(dataReturn);
 
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull(), isNull())).thenReturn(dataReturn);
+                isNotNull())).thenReturn(dataReturn);
         Mockito.when(confluenceAdapter
-                .createCollaborationSpaceForODSProject(isNotNull(),
-                        isNull()))
+                .createCollaborationSpaceForODSProject(isNotNull()))
                 .thenReturn(dataReturn);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(dataReturn);

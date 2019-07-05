@@ -31,12 +31,11 @@ public interface ICollaborationAdapter extends IServiceAdapter
      * Called to create a collaboration space
      * @param project the project with {@link ProjectData#name} & 
      * {@link ProjectData#key} filled 
-     * @param crowdCookie the sso cookie
      * @return the project filled with {@link ProjectData#confluenceUrl}
      * @throws IOException in case the space cannot be created
      */
     public OpenProjectData createCollaborationSpaceForODSProject(
-            OpenProjectData project, String crowdCookie)
+            OpenProjectData project)
             throws IOException;
 
     /**
