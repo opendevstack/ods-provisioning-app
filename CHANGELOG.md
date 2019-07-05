@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
+
 ## [1.1.0] - 2019-05-28
 
 ### Added

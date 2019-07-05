@@ -141,6 +141,7 @@ public class BitbucketAdapterTest {
     projectData.quickstart = quickstarters;
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
+    repoData.setName("testRepoName");
     projectData.key = "testkey";
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData,
@@ -422,6 +423,7 @@ public class BitbucketAdapterTest {
   private RepositoryData getReturnRepoData() {
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
+    repoData.setName("testRepo");
     return repoData;
   }
 

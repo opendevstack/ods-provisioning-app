@@ -35,7 +35,6 @@ public class ProjectData {
   public String description = null;
   public String key = null;
   public String jiraId = null;
-  public List<String> tags = new ArrayList<>();
   public List<Map<String, String>> quickstart = null;
   public boolean jiraconfluencespace = true;
   public boolean openshiftproject = true;
