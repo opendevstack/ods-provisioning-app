@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,14 +19,14 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
- *
  * @author Torsten Jaeschke
+ * Instead of hooking into the security context of spring,
+ * we build another threadlocal to hold security information
  */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SessionAwarePasswordHolder
 {
-
     private String password = null;
     private String token = null;
     private String username = null;
@@ -64,9 +64,8 @@ public class SessionAwarePasswordHolder
     @Override
     public String toString () 
     {
-        return "u: " + username + 
-               " p: " + (password != null ? "*" : "empty") + 
-               " t: " + token;
+        return String.format("user: %s token %s", 
+                username, token);
     }
     
     public void clear () {

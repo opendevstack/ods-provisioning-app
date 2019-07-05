@@ -3,14 +3,14 @@
 [![Build Status](https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master)](https://travis-ci.com/opendevstack/ods-provisioning-app)
 
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on [quickstarters](https://github.com/opendevstack/ods-project-quickstarters).
-It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
+It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck - which are the default implementations
 
 ## Basic idea & usage:
 1. An admin (user in a group defined in property `crowd.admin.group`) creates new ODS project. This in turn creates 
     - a Jira Project (name based on project `key` & `name`)
     - a Confluence Space (name based on project's `key`)
-    - the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `openshiftproject == true`. Internally this is done thru a rest call to rundeck triggering the [create-projects rundeck job](https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml)
-    - a Bitbucket Project (name based on project `key`) - in case `openshiftproject == true`. Within this project two default repositories are created `key`-oc-config-artifacts for all `yaml` resources as well as `key`-design for any design artifacts (e.g. sketches)
+    - the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `platformRuntime == true`. Internally this is done thru a rest call to rundeck triggering the [create-projects rundeck job](https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml)
+    - a Bitbucket Project (name based on project `key`) - in case `platformRuntime == true`. Within this project two default repositories are created `key`-oc-config-artifacts for all `yaml` resources as well as `key`-design for any design artifacts (e.g. sketches)
 
 2. A normal user (user in a group defined in property `crowd.user.group`) creates all resources required for a working component - 
 this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter. Internally this is done thru a rest call to rundeck - with the picked job as parameter - [here](https://github.com/opendevstack/ods-project-quickstarters/tree/master/rundeck-jobs/quickstarts)
@@ -35,7 +35,7 @@ This webhook calls the [webhook proxy](https://github.com/opendevstack/ods-core/
 
 By default no special permissions are set on either confluence / jira / bitbucket or openshift, only system-wide settings are inherited.
 
-However there is a special knob to tighten security (which can be passed with the project input `createpermissionset : boolean`)  - based on three groups that need to be provided as part of the API call / from the userinterface.
+However there is a special knob to tighten security (which can be passed with the project input `specialPermissionSet : boolean`)  - based on three groups that need to be provided as part of the API call / from the userinterface.
 
 1. admin group: admin rights on the generated projects / spaces / repositories
 1. user group: read / write rights on the generated projects / spaces / repositories
@@ -98,22 +98,22 @@ COOKIES=${JSESSION_ID}${CROWD_COOKIE}
 
 # sample provision file >> create.txt
 {
-  "name" : "<Mandatory name>",
-  "key" : "<Mandatory key>",
-  "createpermissionset" : true,
-  "jiraconfluencespace" : true,
-  "admin" : "<admin user>",
-  "adminGroup" : "<admin group>",
-  "userGroup" : "<user group>",
-  "readonlyGroup" : "<readonly group>",
-  "openshiftproject" : false
+  "projectName" : "<Mandatory name>",
+  "projectKey" : "<Mandatory key>",
+  "specialPermissionSet" : true,
+  "bugtrackerSpace" : true,
+  "projectAdminUser" : "<admin user>",
+  "projectAdminGroup" : "<admin group>",
+  "projectUserGroup" : "<user group>",
+  "projectAdminUser" : "<readonly group>",
+  "platformRuntime" : false
 }
 
 provisionfile=create.txt
 
 # invoke the provision API to create a new project
 curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
--H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v1/project
+-H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
 ```
 
 # Internal architecture
@@ -215,3 +215,5 @@ A. Within the Openshift `pod` of the provision app (in `project`dev/test, namely
     
 1. Where is the real configuration of the provision application? <BR>
 A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
+
+# Upgrade notes

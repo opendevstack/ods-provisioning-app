@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -53,25 +53,32 @@ public class CustomAuthenticationManager
     private SessionAwarePasswordHolder userPassword;
 
     /**
-     * get the password from the logged in user
-     *
-     * @return password for the logged in user
+     * @see IODSAuthnzAdapter#getUserPassword()
      */
     public String getUserPassword()
     {
         return userPassword.getPassword();
     }
     
+    /**
+     * @see IODSAuthnzAdapter#getUserName()
+     */    
     public String getUserName ()
     {
         return userPassword.getUsername();
     }
     
+    /**
+     * @see IODSAuthnzAdapter#getToken()
+     */    
     public String getToken ()
     {
         return userPassword.getToken();
     }
 
+    /**
+     * @see IODSAuthnzAdapter#getAuthorities()
+     */    
     public Collection<GrantedAuthority> getAuthorities () 
     {
         Authentication auth = SecurityContextHolder 
@@ -87,6 +94,9 @@ public class CustomAuthenticationManager
         return userDetails.getAuthorities();
     }
     
+    /**
+     * @see IODSAuthnzAdapter#getAuthorities()
+     */    
     public String getUserEmail () 
     {
         Authentication auth = SecurityContextHolder 
@@ -107,13 +117,16 @@ public class CustomAuthenticationManager
     }
     
     /**
-     * testing
+     * open for testing
      */
     void setUserPassword(String userPassword)
     {
         this.userPassword.setPassword(userPassword);
     }
 
+    /**
+     * open for testing
+     */
     public void setUserName(String userName)
     {
         this.userPassword.setUsername(userName);
@@ -131,10 +144,11 @@ public class CustomAuthenticationManager
     }
 
     /**
-     * specific authentication method for crowd
+     * specific authentication method implementation 
+     * for crowd integration
      *
-     * @param authenticationContext
-     * @return
+     * @param authenticationContext the auth context passed from spring
+     * @return the user's token
      * @throws RemoteException
      * @throws InvalidAuthorizationTokenException
      * @throws InvalidAuthenticationException
@@ -142,6 +156,7 @@ public class CustomAuthenticationManager
      * @throws ApplicationAccessDeniedException
      * @throws ExpiredCredentialException
      */
+    @Override
     public String authenticate(
             UserAuthenticationContext authenticationContext)
             throws RemoteException,
@@ -179,6 +194,7 @@ public class CustomAuthenticationManager
      * @throws InactiveAccountException
      * @throws RemoteException
      */
+    @Override
     public String authenticateWithoutValidatingPassword(
             UserAuthenticationContext authenticationContext)
             throws ApplicationAccessDeniedException,
@@ -195,9 +211,9 @@ public class CustomAuthenticationManager
     /**
      * simple authentication with username and password
      *
-     * @param username
-     * @param password
-     * @return
+     * @param username users username
+     * @param password users password
+     * @return the users token
      * @throws RemoteException
      * @throws InvalidAuthorizationTokenException
      * @throws InvalidAuthenticationException
@@ -205,6 +221,7 @@ public class CustomAuthenticationManager
      * @throws ApplicationAccessDeniedException
      * @throws ExpiredCredentialException
      */
+    @Override
     public String authenticate(String username, String password)
             throws RemoteException,
             InvalidAuthorizationTokenException,
@@ -226,14 +243,15 @@ public class CustomAuthenticationManager
     /**
      * proof if user is authenticated
      *
-     * @param token
-     * @param validationFactors
-     * @return
+     * @param token the users token
+     * @param validationFactors and additional auth factors, eg. IP
+     * @return true in case the token is valid
      * @throws RemoteException
      * @throws InvalidAuthorizationTokenException
      * @throws ApplicationAccessDeniedException
      * @throws InvalidAuthenticationException
      */
+    @Override
     public boolean isAuthenticated(String token,
             ValidationFactor[] validationFactors)
             throws RemoteException,
@@ -248,13 +266,14 @@ public class CustomAuthenticationManager
     }
 
     /**
-     * invalidate session
+     * Invalidate a session based on a user#s token
      *
-     * @param token
+     * @param token the users token
      * @throws RemoteException
      * @throws InvalidAuthorizationTokenException
      * @throws InvalidAuthenticationException
      */
+    @Override
     public void invalidate(String token) throws RemoteException,
             InvalidAuthorizationTokenException,
             InvalidAuthenticationException
@@ -275,6 +294,7 @@ public class CustomAuthenticationManager
      *
      * @return the secure client for crowd connect
      */
+    @Override
     public SecurityServerClient getSecurityServerClient()
     {
         return this.securityServerClient;
@@ -285,7 +305,7 @@ public class CustomAuthenticationManager
      *
      * @param securityServerClient
      */
-    public void setSecurityServerClient(
+    void setSecurityServerClient(
             SecurityServerClient securityServerClient)
     {
         this.securityServerClient = securityServerClient;

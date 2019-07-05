@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ package org.opendevstack.provision.adapter;
 import java.io.IOException;
 import java.util.Map;
 
+import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
 /**
@@ -39,7 +40,9 @@ public interface IBugtrackerAdapter extends IServiceAdapter
 
     /**
      * Add shortcuts / links to other tools used based on the 
-     * {@link OpenProjectData} fields, e.g. openshift URLs
+     * {@link OpenProjectData} fields, e.g. platform engine urls
+     * This method is called AFTER all provisioning of a new project has
+     * taken place in {@link ProjectApiController#addProject(OpenProjectData)}
      * @param project the project filled with all available information
      * @return the number of shortcuts created
      */
@@ -68,6 +71,12 @@ public interface IBugtrackerAdapter extends IServiceAdapter
     public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
             OpenProjectData project);
 
+    /**
+     * Create components in the bugtracker based on provisioned boilerplates
+     * @param data the project containing only the new repositories and quickstarters
+     * {@link OpenProjectData#quickstarters} and {@link OpenProjectData#repositories}
+     * @return the name and descriptions of the components created
+     */
     public Map<String, String> createComponentsForProjectRepositories 
         (OpenProjectData data);
 }

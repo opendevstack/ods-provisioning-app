@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,7 +64,6 @@ import com.google.common.base.Preconditions;
 @RequestMapping(value = "api/v2/project")
 public class ProjectApiController
 {
-
     private static final Logger logger = LoggerFactory
             .getLogger(ProjectApiController.class);
 
@@ -85,7 +83,6 @@ public class ProjectApiController
     private IStorage storage;
     @Autowired
     private RundeckJobStore jobStore;
-
     @Autowired
     private RestClient client;
 
@@ -107,90 +104,87 @@ public class ProjectApiController
      * Add a project to JIRA and process subsequent calls to dependent services, to
      * create a complete project stack.
      *
-     * @param request
-     * @param project
-     * @param crowdCookie
-     * @return
+     * @param newProject the {@link OpenProjectData} containing the request information
+     * @return the created project with additional information, e.g. links or in case
+     * an error happens, the error
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Object> addProject(
-            HttpServletRequest request,
-            @RequestBody OpenProjectData project)
-    //, @CookieValue(value = "crowd.token_key", required = false
+            @RequestBody OpenProjectData newProject)
     {
 
-        if (project == null || project.projectKey == null
-                || project.projectKey.trim().length() == 0
-                || project.projectName == null
-                || project.projectName.trim().length() == 0)
+        if (newProject == null || newProject.projectKey == null
+                || newProject.projectKey.trim().length() == 0
+                || newProject.projectName == null
+                || newProject.projectName.trim().length() == 0)
         {
             return ResponseEntity.badRequest().body(
                     "Project key and name are mandatory fields to create a project!");
         }
 
         // fix for opendevstack/ods-provisioning-app/issues/64
-        shortenDescription(project);
+        shortenDescription(newProject);
 
-        project.projectKey = project.projectKey.toUpperCase();
-        MDC.put(STR_LOGFILE_KEY, project.projectKey);
+        newProject.projectKey = newProject.projectKey.toUpperCase();
+        MDC.put(STR_LOGFILE_KEY, newProject.projectKey);
 
         try
         {
             logger.debug("Project to be created: {}",
                     new ObjectMapper().writer()
                             .withDefaultPrettyPrinter()
-                            .writeValueAsString(project));
+                            .writeValueAsString(newProject));
 
-            if (project.specialPermissionSet)
+            if (newProject.specialPermissionSet)
             {
                 projectIdentityMgmtAdapter
-                        .validateIdSettingsOfProject(project);
+                        .validateIdSettingsOfProject(newProject);
             }
 
-            if (project.bugtrackerSpace)
+            if (newProject.bugtrackerSpace)
             {
-                OpenProjectData projectLoad = storage.getProject(project.projectKey);
+                // verify the project does NOT exist
+                OpenProjectData projectLoad = storage.getProject(newProject.projectKey);
                 if (projectLoad != null)
                 {
                     {
                         throw new IOException(String.format(
                                 "Project with key (%s) already exists: {}",
-                                project.projectKey, projectLoad.projectKey));
+                                newProject.projectKey, projectLoad.projectKey));
                     }
                 }
 
-                // create JIRA project
-                project = jiraAdapter
-                        .createBugtrackerProjectForODSProject(project);
+                // create the bugtracker project
+                newProject = jiraAdapter
+                        .createBugtrackerProjectForODSProject(newProject);
 
                 // create confluence space
-                project = confluenceAdapter
+                newProject = confluenceAdapter
                         .createCollaborationSpaceForODSProject(
-                                project);
+                                newProject);
                 logger.debug("Updated project: {}",
                         new ObjectMapper().writer()
                                 .withDefaultPrettyPrinter()
-                                .writeValueAsString(project));
+                                .writeValueAsString(newProject));
             }
 
-            project = createDeliveryChain(project);
+            // create the delivery chain, including scm repos, and platform project
+            newProject = createDeliveryChain(newProject);
 
-            jiraAdapter.addShortcutsToProject(project);
+            jiraAdapter.addShortcutsToProject(newProject);
 
-            // store project data. The storage is autowired with an interface to enable the
-            // option to store data in other data sources
-            String filePath = storage.storeProject(project);
+            // store the project data
+            String filePath = storage.storeProject(newProject);
             if (filePath != null)
             {
                 logger.debug("Project {} successfully stored: {}",
-                        project.projectKey, filePath);
+                        newProject.projectKey, filePath);
             }
 
             // notify user via mail of project creation with embedding links
-            mailAdapter.notifyUsersAboutProject(project);
+            mailAdapter.notifyUsersAboutProject(newProject);
 
-            // return project data for further processing
-            return ResponseEntity.ok().body(project);
+            return ResponseEntity.ok().body(newProject);
         } catch (Exception ex)
         {
             logger.error(
@@ -207,113 +201,114 @@ public class ProjectApiController
     }
 
     /**
-     * Add a project to JIRA and process subsequent calls to dependent services, to
-     * create a complete project stack.
-     *
-     * @param request
-     * @param project
-     * @param crowdCookie
-     * @return
+     * Update a project, e.g. add new quickstarters, 
+     * upgrade a bugtracker only project
+     * @param updatedProject the project containing the update data
+     * @return the updated project
      */
     @RequestMapping(method = RequestMethod.PUT)
     public ResponseEntity<Object> updateProject(
-            HttpServletRequest request,
-            @RequestBody OpenProjectData project)
-    //             @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestBody OpenProjectData updatedProject)
     {
 
-        if (project == null
-                || project.projectKey.trim().length() == 0)
+        if (updatedProject == null
+                || updatedProject.projectKey.trim().length() == 0)
         {
             return ResponseEntity.badRequest().body(
                     "Project key is mandatory to call update project!");
         }
-        MDC.put(STR_LOGFILE_KEY, project.projectKey);
+        MDC.put(STR_LOGFILE_KEY, updatedProject.projectKey);
 
-        logger.debug("Update project: " + project.projectKey);
+        logger.debug("Update project {}", updatedProject.projectKey);
         try
         {
             logger.debug("Project: {}",
                     new ObjectMapper().writer()
                             .withDefaultPrettyPrinter()
-                            .writeValueAsString(project));
+                            .writeValueAsString(updatedProject));
 
-            OpenProjectData oldProject = storage
-                    .getProject(project.projectKey);
+            OpenProjectData storedExistingProject = storage
+                    .getProject(updatedProject.projectKey);
 
-            if (oldProject == null)
+            if (storedExistingProject == null)
             {
                 return ResponseEntity.notFound().build();
             }
 
-            project.description = oldProject.description;
-            project.projectName = oldProject.projectName;
-            project.scmvcsUrl = oldProject.scmvcsUrl;
-            project.bugtrackerSpace = oldProject.bugtrackerSpace;
-            // we purposely allow overwriting openshift settings, to create a project later
+            // add the baseline, to return a full project later
+            updatedProject.description = storedExistingProject.description;
+            updatedProject.projectName = storedExistingProject.projectName;
+            
+            // add the scm url & bugtracker space bool
+            updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
+            updatedProject.bugtrackerSpace = storedExistingProject.bugtrackerSpace;
+            // we purposely allow overwriting platformRuntime settings, to create a project later
             // on
-            if (!oldProject.platformRuntime && project.platformRuntime
+            if (!storedExistingProject.platformRuntime && updatedProject.platformRuntime
                     && !ocUpgradeAllowed)
             {
                 return ResponseEntity
                         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Project: " + project.projectKey
+                        .body("Project: " + updatedProject.projectKey
                                 + " cannot be upgraded to openshift usage");
-            } else if (oldProject.platformRuntime)
+            } else if (storedExistingProject.platformRuntime)
             {
-                // we need to set this, otherwise the provisioniong will not work
-                project.platformRuntime = oldProject.platformRuntime;
+                // we need to set this, otherwise the provisioning later will not work
+                updatedProject.platformRuntime = storedExistingProject.platformRuntime;
             }
 
-            if (oldProject.specialPermissionSet)
+            // add (hard) permission data
+            if (storedExistingProject.specialPermissionSet)
             {
-                project.specialPermissionSet = oldProject.specialPermissionSet;
-                project.projectAdminUser = oldProject.projectAdminUser;
-                project.projectAdminGroup = oldProject.projectAdminGroup;
-                project.projectUserGroup = oldProject.projectUserGroup;
-                project.projectReadonlyGroup = oldProject.projectReadonlyGroup;
+                updatedProject.specialPermissionSet = storedExistingProject.specialPermissionSet;
+                updatedProject.projectAdminUser = storedExistingProject.projectAdminUser;
+                updatedProject.projectAdminGroup = storedExistingProject.projectAdminGroup;
+                updatedProject.projectUserGroup = storedExistingProject.projectUserGroup;
+                updatedProject.projectReadonlyGroup = storedExistingProject.projectReadonlyGroup;
             }
 
-            project = createDeliveryChain(project);
+            updatedProject = createDeliveryChain(updatedProject);
 
-            oldProject.scmvcsUrl = project.scmvcsUrl;
-            if (project.quickstarters != null)
+            /*
+             * add the already existing data /provisioned/ 
+             * + we have to add the scm url here, in case we have upgraded 
+             * a bugtracker only project to a platform project
+             */
+            storedExistingProject.scmvcsUrl = updatedProject.scmvcsUrl;
+            if (updatedProject.quickstarters != null)
             {
-                if (oldProject.quickstarters != null)
+                if (storedExistingProject.quickstarters != null)
                 {
-                    oldProject.quickstarters
-                            .addAll(project.quickstarters);
+                    storedExistingProject.quickstarters
+                            .addAll(updatedProject.quickstarters);
                 } else
                 {
-                    oldProject.quickstarters = project.quickstarters;
+                    storedExistingProject.quickstarters = updatedProject.quickstarters;
                 }
             }
 
-            if ((oldProject.repositories != null)
-                    && (project.repositories != null))
+            if ((storedExistingProject.repositories != null)
+                    && (updatedProject.repositories != null))
             {
-                oldProject.repositories.putAll(project.repositories);
+                storedExistingProject.repositories.putAll(updatedProject.repositories);
             }
-            // store project data. The storage is autowired with an interface to enable the
-            // option to store data in other data sources
-            if (storage.updateStoredProject(oldProject))
+            
+            // store the updated project
+            if (storage.updateStoredProject(storedExistingProject))
             {
-                logger.debug("project successful updated");
+                logger.debug("project {} successfully updated", updatedProject.projectKey);
             }
-            // notify user via mail of project creation with embedding links
-            mailAdapter.notifyUsersAboutProject(oldProject);
+            
+            // notify user via mail of project updates with embedding links
+            mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
-            oldProject.lastExecutionJobs = project.lastExecutionJobs;
-
-            /*
-             * 
-             * return project data for further processing
-             */
-            return ResponseEntity.ok().body(oldProject);
+            // add the executions - so people can track what's going on
+            storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
+            return ResponseEntity.ok().body(storedExistingProject);
         } catch (Exception ex)
         {
             logger.error("An error occured while updating project: "
-                    + project.projectKey, ex);
+                    + updatedProject.projectKey, ex);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ex.getMessage());
@@ -325,8 +320,8 @@ public class ProjectApiController
     }
 
     /**
-     * Create the bitbucket delivery chain with openshift. OC projects will only be
-     * created in case openshiftproject = true
+     * Create the delivery chain within the platform in case
+     * {@link OpenProjectData#platformRuntime} is set to true
      *
      * @param project
      *            the meta information from the API
@@ -339,8 +334,8 @@ public class ProjectApiController
             OpenProjectData project)
             throws IOException
     {
-        logger.debug("create delivery chain for:" + project.projectKey
-                + " oc?" + project.platformRuntime + " scm: " + 
+        logger.debug("Create delivery chain for: {}, platform? {}, scm {}",
+                project.projectKey, project.platformRuntime, 
                 project.scmvcsUrl);
 
         if (!project.platformRuntime)
@@ -370,6 +365,8 @@ public class ProjectApiController
         // create jira components from newly created repos
         jiraAdapter.createComponentsForProjectRepositories(project);
 
+        // add the long running execution links from the 
+        // IJobExecutionAdapter
         if (project.lastExecutionJobs == null)
         {
             project.lastExecutionJobs = new ArrayList<>();
@@ -385,16 +382,13 @@ public class ProjectApiController
     }
 
     /**
-     * Get a list with all projects in the system defined by the path variable
-     *
-     * @param request
-     * @param crowdCookie
+     * Get a list with all projects in the system defined by their key
+     * @param id the project's key
      * @return Response with a complete project list
      */
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
     public ResponseEntity<OpenProjectData> getProject(
-            HttpServletRequest request, @PathVariable String id,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @PathVariable String id)
     {
         OpenProjectData project = storage.getProject(id);
         if (project == null)
@@ -421,19 +415,15 @@ public class ProjectApiController
     }
 
     /**
-     * Validate the project name. Duplicates are not allowed in JIRA.
+     * Validate the project name. Duplicates are not allowed in most bugtrackers.
      * 
-     * @param request
-     * @param name
-     * @param crowdCookie
+     * @param name the project's name
      * @return Response with HTTP status. If 406 a project with this name exists in
      *         JIRA
      */
     @RequestMapping(method = RequestMethod.GET, value = "/validate")
     public ResponseEntity<Object> validateProject(
-            HttpServletRequest request,
-            @RequestParam(value = "projectName") String name,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestParam(value = "projectName") String name)
     {
         if (jiraAdapter.projectKeyExists(name))
         {
@@ -447,17 +437,25 @@ public class ProjectApiController
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Get all available (project) template keys
+     * @return a list of available template keys
+     */
     @RequestMapping(method = RequestMethod.GET, value = "/templates")
-    public ResponseEntity<Object> getProjectTemplateKeys(
-            HttpServletRequest request,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+    public ResponseEntity<List<String>> getProjectTemplateKeys()
     {
         return ResponseEntity.ok(projectTemplateKeyNames);
     }
 
+    /**
+     * Retrieve the underlying templates from {@link IBugtrackerAdapter} and
+     * {@link ICollaborationAdapter}
+     * @param key the project type as in {@link OpenProjectData#projectKey}
+     * @return a map with the templates (which are implementation specific)
+     */
     @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
     public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey(
-            HttpServletRequest request, @PathVariable String key)
+            @PathVariable String key)
     {
         Map<String, String> templatesForKey = new HashMap<>();
         logger.debug("retrieving templates for key: " + key);
@@ -488,17 +486,13 @@ public class ProjectApiController
     /**
      * Validate the project's key name. Duplicates are not allowed in JIRA.
      * 
-     * @param request
-     * @param name
-     * @param crowdCookie
+     * @param name the project's name to validate against
      * @return Response with HTTP status. If 406 a project with this key exists in
      *         JIRA
      */
     @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
     public ResponseEntity<Object> validateKey(
-            HttpServletRequest request,
-            @RequestParam(value = "projectKey") String key,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestParam(value = "projectKey") String key)
     {
         if (jiraAdapter.projectKeyExists(key))
         {
@@ -515,18 +509,12 @@ public class ProjectApiController
     /**
      * Generate the Key on server side
      *
-     * TODO make the key pattern dynamic
-     *
-     * @param request
-     * @param name
-     * @param crowdCookie
-     * @return
+     * @param name the project name to generate the key from
+     * @return the generated key
      */
     @RequestMapping(method = RequestMethod.GET, value = "/key/generate")
     public ResponseEntity<Map<String, String>> generateKey(
-            HttpServletRequest request,
-            @RequestParam(value = "name") String name,
-            @CookieValue(value = "crowd.token_key", required = false) String crowdCookie)
+            @RequestParam(value = "name") String name)
     {
         Map<String, String> proj = new HashMap<>();
         proj.put("projectKey", jiraAdapter.buildProjectKey(name));

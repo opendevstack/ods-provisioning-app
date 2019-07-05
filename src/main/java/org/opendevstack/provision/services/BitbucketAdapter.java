@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -90,7 +90,6 @@ public class BitbucketAdapter implements ISCMAdapter
     IODSAuthnzAdapter manager;
 
     private static final String PROJECT_PATTERN = "%s%s/projects";
-
     private static final String COMPONENT_ID_KEY = "component_id";
 
     private static final String ID_GROUPS = "groups";
@@ -113,24 +112,24 @@ public class BitbucketAdapter implements ISCMAdapter
     }
 
     @SuppressWarnings("squid:S3776")
+    @Override
     public OpenProjectData createComponentRepositoriesForODSProject(
             OpenProjectData project)
             throws IOException
     {
-        logger.debug("Creating quickstartersProjects");
-
         Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
         List<Map<String, String>> newOptions = new ArrayList<>();
         if (project.quickstarters != null)
         {
 
-            logger.debug("new quickstartersers: {}",
+            logger.debug("Project {} - new quickstarters: {}",
+                    project.projectKey,
                     project.quickstarters.size());
 
             for (Map<String, String> option : project.quickstarters)
             {
                 logger.debug(
-                        "create repo for quickstarterser: {}  in {}",
+                        "Creating repo for quickstarters: {}  in {}",
                         option.get(COMPONENT_ID_KEY), project.projectKey);
 
                 String repoName = (String.format("%s-%s", project.projectKey,
@@ -197,6 +196,7 @@ public class BitbucketAdapter implements ISCMAdapter
         return project;
     }
 
+    @Override
     public OpenProjectData createAuxiliaryRepositoriesForODSProject(
             OpenProjectData project,
             String[] auxiliaryRepos)
@@ -265,7 +265,7 @@ public class BitbucketAdapter implements ISCMAdapter
 
         // projects/CLE200/repos/cle200-be-node-express/webhooks
         String url = String.format("%s/%s/repos/%s/webhooks",
-                buildBasePath(), project.projectKey, repo.getSlug());
+                getAdapterApiUri(), project.projectKey, repo.getSlug());
 
         try
         {
@@ -280,10 +280,9 @@ public class BitbucketAdapter implements ISCMAdapter
 
     protected BitbucketData callCreateProjectApi(OpenProjectData project) throws IOException
     {
-
         BitbucketProject bbProject = createBitbucketProject(project);
 
-        BitbucketData projectData = client.callHttp(buildBasePath(),
+        BitbucketData projectData = client.callHttp(getAdapterApiUri(),
                 bbProject, false,
                 RestClient.HTTP_VERB.POST, BitbucketData.class);
 
@@ -317,7 +316,7 @@ public class BitbucketAdapter implements ISCMAdapter
     protected RepositoryData callCreateRepoApi(String projectKey,
             Repository repo) throws IOException
     {
-        String path = String.format("%s/%s/repos", buildBasePath(),
+        String path = String.format("%s/%s/repos", getAdapterApiUri(),
                 projectKey);
 
         RepositoryData data = client.callHttp(path, repo,
@@ -337,7 +336,7 @@ public class BitbucketAdapter implements ISCMAdapter
             PROJECT_PERMISSIONS rights)
             throws IOException
     {
-        String basePath = buildBasePath();
+        String basePath = getAdapterApiUri();
         String url = String.format("%s/%s/permissions/%s", basePath,
                 data.getKey(), pathFragment);
         // http://192.168.56.31:7990/rest/api/1.0/projects/{projectKey}/permissions/groups
@@ -353,7 +352,7 @@ public class BitbucketAdapter implements ISCMAdapter
             String key, String userOrGroup, String groupOrUser) 
                     throws IOException
     {
-        String basePath = buildBasePath();
+        String basePath = getAdapterApiUri();
         String url = String.format("%s/%s/repos/%s/permissions/%s",
                 basePath, key, data.getSlug(), userOrGroup);
 
@@ -366,13 +365,7 @@ public class BitbucketAdapter implements ISCMAdapter
                 RestClient.HTTP_VERB.PUT, String.class);
     }
 
-    protected String buildBasePath()
-    {
-        return String.format(PROJECT_PATTERN, bitbucketUri,
-                bitbucketApiPath);
-    }
-
-    public static BitbucketProject createBitbucketProject(
+    static BitbucketProject createBitbucketProject(
             OpenProjectData jiraProject)
     {
         BitbucketProject project = new BitbucketProject();
@@ -392,7 +385,8 @@ public class BitbucketAdapter implements ISCMAdapter
     @Override
     public String getAdapterApiUri()
     {
-        return buildBasePath();
+        return String.format(PROJECT_PATTERN, bitbucketUri,
+                bitbucketApiPath);
     }
 
     @Override

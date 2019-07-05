@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -70,7 +70,6 @@ public class LocalStorageTest
 
     @Test
     public void upgradeExisting () throws Exception {
-        
         File testFile = 
             new File(localStorage.getLocalStoragePath() 
                         + "/20170101000000-test.txt");
@@ -88,12 +87,14 @@ public class LocalStorageTest
             
             // try the new field
             project.bugtrackerSpace = false;
-            assertNotNull(project.physicalLocation);
+            String currentPath = project.physicalLocation;
+            assertNotNull(currentPath);
             assertTrue(localStorage.updateStoredProject(project));
             project = localStorage.getProject(project.projectKey);
     
             assertNotNull(project);
             assertFalse(project.bugtrackerSpace);
+            assertEquals(currentPath, project.physicalLocation);
         } catch (Exception allErr) 
         {
             throw allErr;
@@ -110,6 +111,7 @@ public class LocalStorageTest
         OpenProjectData project = new OpenProjectData();
         project.projectKey = "clemens";
         String filePath = localStorage.storeProject(project);
+        assertNotNull(project.physicalLocation);
 
         assertNotNull(filePath);
 
@@ -126,6 +128,7 @@ public class LocalStorageTest
 
         assertNotNull(project);
         assertFalse(project.bugtrackerSpace);
+        assertNotNull(project.physicalLocation);
 
         (new File(filePath)).delete();
     }
