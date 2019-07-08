@@ -35,6 +35,7 @@ import com.google.common.base.Preconditions;
 
 import okhttp3.Credentials;
 import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
@@ -193,6 +194,15 @@ public class RestClient
         {
             json = (String) input;
             logger.debug("Passed String rest object: [{}]", json);
+        } else if (input instanceof Map) {
+            HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+            Map<String, String> paramMap = ((Map)input);
+            for (Map.Entry<String, String> param : paramMap.entrySet()) 
+            {
+                urlBuilder.addQueryParameter(param.getKey(), param.getValue());
+            }
+            return callHttpInternal(urlBuilder.toString(), null, 
+                    directAuth, verb, returnType, returnTypeRef);
         } else
         {
             ObjectWriter ow = new ObjectMapper().writer()

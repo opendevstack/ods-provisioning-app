@@ -38,14 +38,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import okhttp3.HttpUrl;
-
 /**
  * Service to interact with Bitbucket and to create projects and repositories
  *
- * @author Brokmeier, Pascal
+ * @author Brokmeier, Pascal´
+ * @author utschig 
  */
-
 @Service
 public class BitbucketAdapter implements ISCMAdapter
 {
@@ -339,13 +337,14 @@ public class BitbucketAdapter implements ISCMAdapter
         String basePath = getAdapterApiUri();
         String url = String.format("%s/%s/permissions/%s", basePath,
                 data.getKey(), pathFragment);
-        // http://192.168.56.31:7990/rest/api/1.0/projects/{projectKey}/permissions/groups
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-        // utschig - allow group to create new repos (rather than just read / write)
-        urlBuilder.addQueryParameter("permission", rights.toString());
-        urlBuilder.addQueryParameter("name", groupOrUser);
-        client.callHttp(urlBuilder.toString(), null, 
-                true, RestClient.HTTP_VERB.PUT, String.class);
+        
+        Map<String, String> permissions = 
+                new HashMap<>();
+        permissions.put("permission", rights.toString());
+        permissions.put("name", groupOrUser);
+        
+        client.callHttp(url, permissions, true,
+                RestClient.HTTP_VERB.PUT, String.class);
     }
 
     protected void setRepositoryPermissions(RepositoryData data,
@@ -356,12 +355,12 @@ public class BitbucketAdapter implements ISCMAdapter
         String url = String.format("%s/%s/repos/%s/permissions/%s",
                 basePath, key, data.getSlug(), userOrGroup);
 
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-        // allow people to modify settings (webhooks)
-        urlBuilder.addQueryParameter("permission", "REPO_ADMIN");
-        urlBuilder.addQueryParameter("name", groupOrUser);
-
-        client.callHttp(urlBuilder.toString(), null, true,
+        Map<String, String> permissions = 
+                new HashMap<>();
+        permissions.put("permission", "REPO_ADMIN");
+        permissions.put("name", groupOrUser);
+        
+        client.callHttp(url, permissions, true,
                 RestClient.HTTP_VERB.PUT, String.class);
     }
 

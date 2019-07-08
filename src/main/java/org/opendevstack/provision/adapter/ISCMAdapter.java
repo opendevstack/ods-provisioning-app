@@ -31,7 +31,7 @@ public interface ISCMAdapter extends IServiceAdapter
      * {@link #createComponentRepositoriesForODSProject(OpenProjectData, String)}
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @return the project, filled with {@link ProjectData#bitbucketUrl}
+     * @return the project, filled with {@link OpenProjectData#scmvcsUrl}
      * @throws IOException in case the project / space cannot be created
      */
     public OpenProjectData createSCMProjectForODSProject(
@@ -39,11 +39,12 @@ public interface ISCMAdapter extends IServiceAdapter
             throws IOException;
 
     /**
-     * Called to create auxiliary repos, e.g for design artifacts
+     * Called to create auxiliary repositories, e.g for design artifacts
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
      * @param auxRepos the list of auxiliary repositories
-     * @return the project
+     * @return the project filled with aux repo information inside 
+     * {@link OpenProjectData#repositories}
      * @throws IOException in case something goes wrong during creating
      * these repositories
      */
@@ -52,7 +53,7 @@ public interface ISCMAdapter extends IServiceAdapter
 
     /**
      * Create repositories based on passed {@link OpenProjectData#quickstarters}
-     * @param project the project containing quickstarters - 
+     * @param project the project containing NEW quickstarters ONLY - 
      * to derive the names from
      * @return the project with filled {@link OpenProjectData#repositories}
      * @throws IOException in case the repositories cannot be created

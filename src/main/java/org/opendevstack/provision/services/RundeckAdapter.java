@@ -15,7 +15,6 @@
 package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import okhttp3.HttpUrl;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -288,12 +287,12 @@ public class RundeckAdapter implements IJobExecutionAdapter
         String jobsUrl = String.format("%s%s/project/%s/jobs",
                 rundeckUri, rundeckApiPath, rundeckProject);
 
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(jobsUrl)
-                .newBuilder();
-        urlBuilder.addQueryParameter("groupPath", group);
-
-        List<Job> jobs = client.callHttpTypeRef(urlBuilder.toString(),
-                null, false, RestClient.HTTP_VERB.GET,
+        Map<String, String> jobPath = 
+                new HashMap<>();
+        jobPath.put("groupPath", group);
+        
+        List<Job> jobs = client.callHttpTypeRef(jobsUrl,
+                jobPath, false, RestClient.HTTP_VERB.GET,
                 new TypeReference<List<Job>>()
                 {
                 });
