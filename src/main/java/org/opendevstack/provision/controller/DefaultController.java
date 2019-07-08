@@ -26,6 +26,8 @@ import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,10 +71,12 @@ public class DefaultController
     @Autowired
     List<String> projectTemplateKeyNames;
 
+    @Value("${provision.auth.provider}")
+    private String authProvider;
+
     @RequestMapping("/")
-    String rootRedirect()
-    {
-        return "redirect:/home";
+    public String rootRedirect(Model model) {
+        return LOGIN_REDIRECT;
     }
 
     @RequestMapping("/home")
@@ -111,9 +115,12 @@ public class DefaultController
     }
 
     @RequestMapping("/login")
-    String login(Model model)
-    {
-        return "login";
+    public String login(Model model) {
+        if (isAuthProviderKeycloak()) {
+            return "keycloakLogin";
+        }
+        return "crowdLogin";
+
     }
 
     @RequestMapping("/history")
@@ -171,6 +178,13 @@ public class DefaultController
 
     private boolean isAuthenticated()
     {
+        //return (manager.getUserPassword() != null);
+        if (isAuthProviderKeycloak()) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            boolean authenticated = authentication.isAuthenticated();
+
+            return authenticated;
+        }
         return (manager.getUserPassword() != null);
     }
 
@@ -203,5 +217,9 @@ public class DefaultController
     public void setSCMAdapter(ISCMAdapter bitbucketAdapter)
     {
         this.bitbucketAdapter = bitbucketAdapter;
+    }
+
+    private boolean isAuthProviderKeycloak() {
+        return authProvider.equals("keycloak");
     }
 }

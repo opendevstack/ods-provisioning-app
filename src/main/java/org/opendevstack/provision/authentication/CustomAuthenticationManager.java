@@ -18,17 +18,19 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.atlassian.crowd.exception.*;
+import com.atlassian.crowd.integration.soap.SOAPGroup;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
-import com.atlassian.crowd.exception.ExpiredCredentialException;
-import com.atlassian.crowd.exception.InactiveAccountException;
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
@@ -42,11 +44,17 @@ import com.google.common.base.Preconditions;
  *
  * @author Torsten Jaeschke
  */
-@Component
+@Component("provisioningAppAuthenticationManager")
+@ConditionalOnProperty(
+        name = "provision.auth.provider",
+        havingValue = "crowd",
+        matchIfMissing = false)
+//TODO rename class CustomAuthenticationManager to CrowdAuthenticationManager ?
 public class CustomAuthenticationManager
         implements AuthenticationManager, IODSAuthnzAdapter
 {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomAuthenticationManager.class);
     private SecurityServerClient securityServerClient;
 
     @Autowired
@@ -119,7 +127,7 @@ public class CustomAuthenticationManager
     /**
      * open for testing
      */
-    void setUserPassword(String userPassword)
+    public void setUserPassword(String userPassword)
     {
         this.userPassword.setPassword(userPassword);
     }
@@ -300,6 +308,49 @@ public class CustomAuthenticationManager
         return this.securityServerClient;
     }
 
+    @Override
+    public boolean existsGroupWithName(String groupName) {
+        try {
+            securityServerClient.findGroupByName(groupName);
+            return true;
+        } catch (Exception exception) {
+            if (!(exception instanceof GroupNotFoundException)) {
+                logger.error("GroupFind call failed with:", exception);
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public boolean existPrincipalWithName(String userName) {
+        try {
+            getSecurityServerClient().findPrincipalByName(userName);
+            return true;
+        } catch (Exception exception) {
+            if (!(exception instanceof UsernameNotFoundException)) {
+                logger.error("UserFind call failed with:", exception);
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public String addGroup(String groupName) throws IdMgmtException {
+        try {
+            String name =
+                    securityServerClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
+            return name;
+        } catch (Exception eAddGroup) {
+            logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
+            throw new IdMgmtException(eAddGroup);
+        }
+    }
+
+    @Override
+    public String getAdapterApiUri() {
+        return securityServerClient.getSoapClientProperties().getBaseURL();
+    }
+
     /**
      * Set the secure client for injection in tests
      *
@@ -310,4 +361,6 @@ public class CustomAuthenticationManager
     {
         this.securityServerClient = securityServerClient;
     }
+
+
 }

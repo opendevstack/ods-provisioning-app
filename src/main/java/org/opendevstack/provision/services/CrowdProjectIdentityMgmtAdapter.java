@@ -16,6 +16,7 @@ package org.opendevstack.provision.services;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
@@ -23,6 +24,7 @@ import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +34,12 @@ import com.atlassian.crowd.integration.soap.SOAPGroup;
 /**
  * Identity mgmt adapter to create / validate groups
  * 
- * @author utschig
+ * @author utschig,stefanlack
  *
  */
 @Service
+//TODO stefanlack: rename this to ProjectIdentityMgmtAdapter, since this implementation is generic an can be used
+//  with crowd and keyloak. For identity provider specific details see implementation classes of  IODSAuthnzAdapter
 public class CrowdProjectIdentityMgmtAdapter
         implements IProjectIdentityMgmtAdapter
 {
@@ -43,7 +47,7 @@ public class CrowdProjectIdentityMgmtAdapter
             .getLogger(CrowdProjectIdentityMgmtAdapter.class);
 
     @Autowired
-    CustomAuthenticationManager manager;
+    IODSAuthnzAdapter manager;
 
     public void validateIdSettingsOfProject(OpenProjectData project)
             throws IdMgmtException
@@ -83,31 +87,24 @@ public class CrowdProjectIdentityMgmtAdapter
 
     @Override
     @SuppressWarnings("squid:S1193")
-    public boolean groupExists(String groupName)
-    {
-        if (groupName == null || groupName.trim().length() == 0)
+    public boolean groupExists(String groupName) {
+        if (groupName == null || groupName.trim().length() == 0) {
             return true;
-
+        }
         long startTime = System.currentTimeMillis();
-        try
-        {
-            manager.getSecurityServerClient()
-                    .findGroupByName(groupName);
-            return true;
-        } catch (Exception eSecurity)
-        {
-            if (!(eSecurity instanceof GroupNotFoundException))
-            {
-                logger.error("GroupFind call failed with:",
-                        eSecurity);
+        try {
+            boolean exists = manager.existsGroupWithName(groupName);
+            if (!exists) {
+                logger.error("group {0} does not exist!", groupName);
             }
-            return false;
-        } finally
-        {
-            logger.debug("findGroupByName by Name took (ms): {}",
-                    System.currentTimeMillis() - startTime);
+            return exists;
+        } finally {
+            logger.debug(
+                    "existsGroupWithName by Name took (ms): {}", System.currentTimeMillis() - startTime);
         }
     }
+
+
 
     @Override
     @SuppressWarnings("squid:S1193")
@@ -117,22 +114,14 @@ public class CrowdProjectIdentityMgmtAdapter
             return true;
 
         long startTime = System.currentTimeMillis();
-        try
-        {
-            manager.getSecurityServerClient()
-                    .findPrincipalByName(userName);
-            return true;
-        } catch (Exception eSecurity)
-        {
-            if (!(eSecurity instanceof UsernameNotFoundException))
-            {
-                logger.error("UserFind call failed with:", eSecurity);
+        try {
+            boolean exists = manager.existPrincipalWithName(userName);
+            if (!exists) {
+                logger.error("principal {0} does not exist!", userName);
             }
-            return false;
-        } finally
-        {
-            logger.debug("findPrincipal by Name took (ms): {}",
-                    System.currentTimeMillis() - startTime);
+            return exists;
+        } finally {
+            logger.debug("findPrincipal by Name took (ms): {}", System.currentTimeMillis() - startTime);
         }
     }
 
@@ -165,10 +154,8 @@ public class CrowdProjectIdentityMgmtAdapter
 
         try
         {
-            return manager.getSecurityServerClient()
-                    .addGroup(
-                            new SOAPGroup(groupName, new String[] {}))
-                    .getName();
+            return manager
+                    .addGroup(groupName);
         } catch (Exception eAddGroup)
         {
             logger.error("Could not create group {}, error: {}",
@@ -180,8 +167,8 @@ public class CrowdProjectIdentityMgmtAdapter
     @Override
     public String getAdapterApiUri()
     {
-        return manager.getSecurityServerClient()
-                .getSoapClientProperties().getBaseURL();
+        return manager.getAdapterApiUri();
+
     }
 
     @Override

@@ -16,6 +16,7 @@ package org.opendevstack.provision.adapter;
 
 import java.util.Collection;
 
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -60,4 +61,14 @@ public interface IODSAuthnzAdapter
      * @throws Exception in case the identity cannot be invalidated
      */
     public void invalidateIdentity() throws Exception;
+
+    void setUserPassword(String userPassword);
+
+    boolean existsGroupWithName(String groupName);
+
+    boolean existPrincipalWithName(String userName);
+
+    String addGroup(String groupName) throws IdMgmtException;
+
+    String getAdapterApiUri();
 }

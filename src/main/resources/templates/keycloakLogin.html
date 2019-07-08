@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+
+    <div class="starter-template">
+
+        <h2><a th:href="@{/home}">Login with keycloak</a></h2>
+    </div>
+
+</div>
+<!-- /.container -->
+
+
+<div th:replace="fragments/footer :: footer"/>
+
+</body>
+</html>

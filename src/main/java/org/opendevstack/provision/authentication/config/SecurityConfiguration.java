@@ -22,6 +22,7 @@ import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -67,6 +68,10 @@ import net.sf.ehcache.CacheManager;
 @EnableWebSecurity
 @EnableCaching
 @EnableEncryptableProperties
+@ConditionalOnProperty(
+        name = "provision.auth.provider",
+        havingValue = "crowd",
+        matchIfMissing = false)
 public class SecurityConfiguration
         extends WebSecurityConfigurerAdapter
 {
@@ -204,6 +209,10 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
+    @ConditionalOnProperty(
+            name = "provision.auth.provider",
+            havingValue = "crowd",
+            matchIfMissing = true)
     public SecurityServerClient securityServerClient()
             throws IOException
     {

@@ -2,6 +2,7 @@ buildscript {
 	 
     ext {
         springBootVersion = '2.1.4.RELEASE'
+        keycloakVersion = '4.8.3.Final'
         // fix for not set system variable
 		nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
 		nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
@@ -116,6 +117,9 @@ dependencies {
 
     compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
 
+    // keycloak
+    implementation  'org.keycloak:keycloak-spring-boot-starter'
+    
     //frontend webjars
     compile 'org.webjars.bower:jquery:3.2.1'
     compile 'org.webjars.bower:bootstrap:3.3.7'
@@ -165,6 +169,13 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '20.0'
 
 }
+
+dependencyManagement {
+    imports {
+        mavenBom "org.keycloak.bom:keycloak-adapter-bom:${keycloakVersion}"
+    }
+}
+
 
 bootJar {
     archiveName     "app.jar"
