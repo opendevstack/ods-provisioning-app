@@ -30,8 +30,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -94,6 +96,18 @@ public class LocalStorageTest
     
             assertNotNull(project);
             assertFalse(project.bugtrackerSpace);
+            
+            Map<String,Map<URL_TYPE, String>> repositories = 
+                    project.repositories;
+            
+            assertNotNull(repositories);
+            Map<URL_TYPE, String> occonfigrepo = 
+                    repositories.get("odsew-occonfig-artifacts");
+            
+            assertNotNull(occonfigrepo);
+            
+            assertEquals(3, occonfigrepo.size());
+            
             assertEquals(currentPath, project.physicalLocation);
         } catch (Exception allErr) 
         {
@@ -202,5 +216,4 @@ public class LocalStorageTest
     {
         assertNull(localStorage.getProject(null));
     }
-
 }

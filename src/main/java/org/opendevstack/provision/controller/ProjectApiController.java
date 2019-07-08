@@ -16,6 +16,7 @@ package org.opendevstack.provision.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -161,7 +163,8 @@ public class ProjectApiController
                         " did not return bugTracker url");
                 
                 // create confluence space
-                newProject = confluenceAdapter
+                newProject.collaborationSpaceUrl = 
+                        confluenceAdapter
                         .createCollaborationSpaceForODSProject(
                                 newProject);
 
@@ -341,7 +344,7 @@ public class ProjectApiController
             OpenProjectData project)
             throws IOException
     {
-        logger.debug("Create delivery chain for: {}, platform? {}, scm {}",
+        logger.debug("Create delivery chain for: {}, platform? {}, scm: {}",
                 project.projectKey, project.platformRuntime, 
                 project.scmvcsUrl);
 
@@ -352,9 +355,11 @@ public class ProjectApiController
 
         if (project.scmvcsUrl == null)
         {
-            // create a bitbucket project
-            project = bitbucketAdapter.createSCMProjectForODSProject(
+            // create the bugtracker project
+            String scmvcsUrl = bitbucketAdapter.createSCMProjectForODSProject(
                     project);
+            
+            project.scmvcsUrl = scmvcsUrl;
             
             Preconditions.checkNotNull(project.scmvcsUrl,
                     bitbucketAdapter.getClass() + 
@@ -368,10 +373,12 @@ public class ProjectApiController
                     (project.repositories == null ? 0 : 
                             project.repositories.size());
                         
-            project = bitbucketAdapter
+            Map<String, Map<URL_TYPE, String>> createdRepositories = 
+                    bitbucketAdapter
                     .createAuxiliaryRepositoriesForODSProject(project,
                             auxiliaryRepositories);
 
+            addRepositoryUrlsToQuickstarters(project);
             /*
             Preconditions.checkNotNull(
                     project.repositories,
@@ -390,7 +397,7 @@ public class ProjectApiController
         }
 
         // create repositories dependent of the chosen quickstartersers
-        project = bitbucketAdapter
+        project.repositories = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project);
 
         // create jira components from newly created repos
@@ -561,5 +568,39 @@ public class ProjectApiController
                     99);
         }
     }
+    
+    private void addRepositoryUrlsToQuickstarters
+        (OpenProjectData project)
+    {
+        if (project.quickstarters == null || project.repositories == null) 
+        {
+            return;
+        }
+        
+        for (Map<String, String> option : project.quickstarters)
+        {
+            String projectComponentKey =
+                    option.get(OpenProjectData.COMPONENT_ID_KEY);
+            
+            String repoName = 
+                    bitbucketAdapter.createRepoNameFromComponentName
+                    (project.projectKey, projectComponentKey);
+            
+            logger.debug(String.format(
+                    "Trying to find repo %s in %s", repoName, 
+                    project.repositories.keySet()));
 
+            Map<URL_TYPE, String> repoUrls = 
+                    project.repositories.get(repoName);
+            
+            if (repoUrls == null) 
+            {
+                return;
+            }
+                        
+            option.put("git_url_ssh", repoUrls.get(URL_TYPE.URL_CLONE_SSH));
+            option.put("git_url_http", repoUrls.get(URL_TYPE.URL_CLONE_HTTP));
+        }
+    }
+    
 }

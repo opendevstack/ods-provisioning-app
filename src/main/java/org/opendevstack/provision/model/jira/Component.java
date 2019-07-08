@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.model;
+package org.opendevstack.provision.model.jira;
 
 import java.util.HashMap;
 import java.util.Map;

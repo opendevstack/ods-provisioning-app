@@ -19,7 +19,7 @@ import java.util.Map;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.model.bitbucket.Link;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -30,6 +30,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class OpenProjectData
 {
 
+    /**
+     * The key to derive get the quickstarter name 
+     */
+    public static final String COMPONENT_ID_KEY = "component_id";
     /**
      * The unique name of the project, must not be null
      */
@@ -43,7 +47,9 @@ public class OpenProjectData
      */
     public String projectKey = null;
     /**
-     * Map of quickstarters used
+     * Map of quickstarters used, to get the 
+     * name of the quickstarter picked, use
+     * {@link #COMPONENT_ID_KEY} against the map contained
      */
     public List<Map<String, String>> quickstarters = null;
     /**
@@ -69,9 +75,11 @@ public class OpenProjectData
      */
     public String scmvcsUrl = null;
     /**
-     * Created repositories
+     * Created project repositories. 
+     * The key denotes the repository name, the
+     * contained map contains the repository links (urls)
      */
-    public Map<String, Map<String, List<Link>>> repositories = null;
+    public Map<String, Map<URL_TYPE, String>> repositories = null;
     /**
      * The url of the jenkins / build engine
      */

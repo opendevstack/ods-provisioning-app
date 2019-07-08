@@ -25,11 +25,11 @@ import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Context;
 import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
+import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,12 +93,12 @@ public class ConfluenceAdapter implements ICollaborationAdapter
     @Value("${project.template.default.key}")
     private String defaultProjectKey;
 
-    public OpenProjectData createCollaborationSpaceForODSProject(
+    public String createCollaborationSpaceForODSProject(
             OpenProjectData project)
             throws IOException
     {
         SpaceData space = callCreateSpaceApi(createSpaceData(project));
-        project.collaborationSpaceUrl = space.getUrl();
+        String spaceUrl = space.getUrl();
 
         if (project.specialPermissionSet)
         {
@@ -115,7 +115,7 @@ public class ConfluenceAdapter implements ICollaborationAdapter
             }
         }
 
-        return project;
+        return spaceUrl;
     }
 
     protected SpaceData callCreateSpaceApi(Space space) throws IOException

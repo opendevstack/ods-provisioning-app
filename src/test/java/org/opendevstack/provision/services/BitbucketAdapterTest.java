@@ -21,12 +21,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.model.BitbucketData;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.RepositoryData;
+import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
+import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,7 +57,7 @@ public class BitbucketAdapterTest
 {
 
     @Mock
-    BitbucketData bitbucketData;
+    BitbucketProjectData bitbucketData;
     @Mock
     BitbucketProject project;
 
@@ -82,16 +83,16 @@ public class BitbucketAdapterTest
         link.setHref("testlink");
         linkList.add(link);
         map.put("self", linkList);
-        BitbucketData bitbucketData = getReturnBitbucketData();
+        BitbucketProjectData bitbucketData = getReturnBitbucketData();
         bitbucketData.setLinks(map);
 
         Mockito.doReturn(bitbucketData).when(spyAdapter)
                 .callCreateProjectApi(any(OpenProjectData.class));
 
-        OpenProjectData data = spyAdapter.createSCMProjectForODSProject(
+        String scmUrl = spyAdapter.createSCMProjectForODSProject(
                 getReturnOpenProjectData());
 
-        assertEquals("testlink", data.scmvcsUrl);
+        assertEquals("testlink", scmUrl);
     }
 
     @Test
@@ -120,16 +121,15 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class));
 
-        OpenProjectData result = spyAdapter
+        Map<String, Map<URL_TYPE, String>> result = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData);
 
         Mockito.verify(spyAdapter).createWebHooksForRepository(
                 repoData, projectData);
-        for (Entry<String, Map<String, List<Link>>> entry : result.repositories
-                .entrySet())
+        for (Entry<String, Map<URL_TYPE, String>> entry : result.entrySet()) 
         {
-            Map<String, List<Link>> resultLinkMap = entry.getValue();
-            assertEquals(repoData.getLinks(), resultLinkMap);
+            Map<URL_TYPE, String> resultLinkMap = entry.getValue();
+            assertEquals(repoData.convertRepoToOpenDataProjectRepo(), resultLinkMap);
         }
     }
 
@@ -153,7 +153,7 @@ public class BitbucketAdapterTest
 
         Repository repo = new Repository();
         OpenProjectData projectData = getReturnOpenProjectData();
-        Map<String, Map<String, List<Link>>> repos = new HashMap();
+        Map<String, Map<URL_TYPE, String>> repos = new HashMap();
         projectData.repositories = repos;
 
         Map<String, String> quickstart = new HashMap<>();
@@ -172,14 +172,13 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class));
 
-        OpenProjectData result = spyAdapter
+        Map<String, Map<URL_TYPE, String>> result = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData);
 
-        for (Entry<String, Map<String, List<Link>>> entry : result.repositories
-                .entrySet())
+        for (Entry<String, Map<URL_TYPE, String>> entry : result.entrySet())
         {
-            Map<String, List<Link>> resultLinkMap = entry.getValue();
-            assertEquals(repoData.getLinks(), resultLinkMap);
+            Map<URL_TYPE, String> resultLinkMap = entry.getValue();
+            assertEquals(repoData.convertRepoToOpenDataProjectRepo(), resultLinkMap);
         }
     }
 
@@ -208,7 +207,7 @@ public class BitbucketAdapterTest
         Map<String, List<Link>> links = new HashMap<>();
         List<Link> linkList = new ArrayList<>();
         Link link = new Link();
-        link.setName("testname");
+        link.setName("http");
         link.setHref("clone");
         linkList.add(link);
         links.put("clone", linkList);
@@ -219,10 +218,10 @@ public class BitbucketAdapterTest
         Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(
                 anyString(), any(Repository.class));
 
-        OpenProjectData actual = spyAdapter
+        Map<String, Map<URL_TYPE, String>> actual = spyAdapter
                 .createComponentRepositoriesForODSProject(projectData);
 
-        assertEquals(projectData, actual);
+        assertEquals(new HashMap<String, Map<URL_TYPE, String>>(), actual);
     }
 
     @Test
@@ -242,7 +241,7 @@ public class BitbucketAdapterTest
 
         spyAdapter.client = client;
 
-        BitbucketData expected = new BitbucketData();
+        BitbucketProjectData expected = new BitbucketProjectData();
         expected.setDescription("this is a discription");
         expected.setName("testproject");
         expected.setKey("testkey");
@@ -258,12 +257,12 @@ public class BitbucketAdapterTest
 
         Mockito.doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
-        BitbucketData actual = spyAdapter.callCreateProjectApi(data);
+        BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
         Mockito.verify(client).callHttp(eq(uri),
                 isA(BitbucketProject.class), 
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-                eq(BitbucketData.class));
+                eq(BitbucketProjectData.class));
 
         // once for each group
         Mockito.verify(spyAdapter, Mockito.times(4))
@@ -303,7 +302,7 @@ public class BitbucketAdapterTest
         ObjectWriter ow = new ObjectMapper().writer()
                 .withDefaultPrettyPrinter();
 
-        BitbucketData expected = new BitbucketData();
+        BitbucketProjectData expected = new BitbucketProjectData();
         expected.setDescription("this is a discription");
         expected.setName("testproject");
         expected.setKey("testkey");
@@ -319,7 +318,7 @@ public class BitbucketAdapterTest
 
         Mockito.doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
-        BitbucketData actual = spyAdapter.callCreateProjectApi(data);
+        BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
         Mockito.verify(client).callHttp(anyString(), any(),
                 anyBoolean(),
@@ -406,25 +405,15 @@ public class BitbucketAdapterTest
         repoData1.setLinks(
                 generateRepoLinks(new String[] { "link1", "link2" }));
 
-        RepositoryData repoData2 = new RepositoryData();
-        repoData2.setName("repoData2");
-        repoData2.setLinks(
-                generateRepoLinks(new String[] { "link3", "link4" }));
-
-        Map<String, Map<String, List<Link>>> expected = new HashMap<>();
-        expected.put("repoData1",
-                generateRepoLinks(new String[] { "link1", "link2" }));
-        // expected.put("repoData2", generateRepoLinks(new String[]{"link3", "link4"}));
-
         Mockito.doReturn(repoData1).when(spyAdapter)
                 .callCreateRepoApi(any(), any());
 
         spyAdapter.createAuxiliaryRepositoriesForODSProject(
                 projectData, auxRepos);
-        Map<String, Map<String, List<Link>>> actual;
+        Map<String, Map<URL_TYPE, String>> actual;
         actual = projectData.repositories;
 
-        assertEquals(expected, actual);
+        assertEquals(repoData1.convertRepoToOpenDataProjectRepo(), actual);
     }
 
     @Test
@@ -483,9 +472,9 @@ public class BitbucketAdapterTest
         return quickstarters;
     }
 
-    private BitbucketData getReturnBitbucketData()
+    private BitbucketProjectData getReturnBitbucketData()
     {
-        BitbucketData data = new BitbucketData();
+        BitbucketProjectData data = new BitbucketProjectData();
         return data;
     }
 
@@ -508,7 +497,7 @@ public class BitbucketAdapterTest
         Map<String, List<Link>> links = new HashMap<>();
         List<Link> linkList = new ArrayList<>();
         Link link = new Link();
-        link.setName("testname");
+        link.setName("http");
         link.setHref("clone");
         linkList.add(link);
         links.put("clone", linkList);

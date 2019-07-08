@@ -23,12 +23,11 @@ import java.util.Map;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.model.BitbucketData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.RepositoryData;
+import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
-import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
+import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.Webhook;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.RestClient;
@@ -88,7 +87,6 @@ public class BitbucketAdapter implements ISCMAdapter
     IODSAuthnzAdapter manager;
 
     private static final String PROJECT_PATTERN = "%s%s/projects";
-    private static final String COMPONENT_ID_KEY = "component_id";
 
     private static final String ID_GROUPS = "groups";
     private static final String ID_USERS = "users";
@@ -98,25 +96,28 @@ public class BitbucketAdapter implements ISCMAdapter
         PROJECT_ADMIN, PROJECT_WRITE, PROJECT_READ
     }
 
-    public OpenProjectData createSCMProjectForODSProject(
+    public String createSCMProjectForODSProject(
             OpenProjectData project)
             throws IOException
     {
-        BitbucketData data = callCreateProjectApi(project);
+        BitbucketProjectData data = callCreateProjectApi(project);
 
         project.scmvcsUrl = data.getLinks().get("self").get(0)
                 .getHref();
-        return project;
+        return project.scmvcsUrl;
     }
 
     @SuppressWarnings("squid:S3776")
     @Override
-    public OpenProjectData createComponentRepositoriesForODSProject(
+    public Map<String, Map<URL_TYPE, String>> createComponentRepositoriesForODSProject(
             OpenProjectData project)
             throws IOException
     {
-        Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
         List<Map<String, String>> newOptions = new ArrayList<>();
+        
+        Map<String, Map<URL_TYPE, String>> createdRepositories 
+            = new HashMap<>();
+        
         if (project.quickstarters != null)
         {
 
@@ -128,14 +129,15 @@ public class BitbucketAdapter implements ISCMAdapter
             {
                 logger.debug(
                         "Creating repo for quickstarters: {}  in {}",
-                        option.get(COMPONENT_ID_KEY), project.projectKey);
+                        option.get(OpenProjectData.COMPONENT_ID_KEY), project.projectKey);
 
-                String repoName = (String.format("%s-%s", project.projectKey,
-                        option.get(COMPONENT_ID_KEY))).toLowerCase()
-                                .replace('_', '-');
+                String repoName = createRepoNameFromComponentName(
+                        project.projectKey,
+                        option.get(OpenProjectData.COMPONENT_ID_KEY));
+                
                 Repository repo = new Repository();
                 repo.setName(repoName);
-
+                
                 if (project.specialPermissionSet)
                 {
                     repo.setAdminGroup(project.projectAdminGroup);
@@ -146,60 +148,63 @@ public class BitbucketAdapter implements ISCMAdapter
                     repo.setUserGroup(this.defaultUserGroup);
                 }
 
+                Map<URL_TYPE, String> componentRepository = null;
+
                 try
                 {
                     RepositoryData result = callCreateRepoApi(
                             project.projectKey, repo);
                     createWebHooksForRepository(result, project);
-                    Map<String, List<Link>> links = result.getLinks();
-                    if (links != null)
+
+                    componentRepository = 
+                            result.convertRepoToOpenDataProjectRepo();
+                    
+                    GitUrlWrangler gitUrlWrangler = new GitUrlWrangler();
+
+                    String gitSSHUrl =
+                            componentRepository.get(URL_TYPE.URL_CLONE_SSH);
+                    
+                    if (gitSSHUrl != null)
                     {
-                        repoLinks.put(result.getName(),
-                                result.getLinks());
-                        for (Link repoLink : links.get("clone"))
-                        {
-                            String href = repoLink.getHref();
-                            GitUrlWrangler gitUrlWrangler = new GitUrlWrangler();
-                            href = gitUrlWrangler.buildGitUrl(
-                                    manager.getUserName(),
-                                    technicalUser, href);
-                            option.put(
-                                    String.format("git_url_%s",
-                                            repoLink.getName()),
-                                    href);
-                        }
-                        newOptions.add(option);
+                        gitSSHUrl = gitUrlWrangler.buildGitUrl(
+                              manager.getUserName(),
+                              technicalUser, gitSSHUrl);
+                        
+                        componentRepository.put(URL_TYPE.URL_CLONE_SSH, gitSSHUrl);
                     }
+
+                    String gitHttpUrl =
+                            componentRepository.get(URL_TYPE.URL_CLONE_HTTP);
+                    
+                    gitHttpUrl = gitUrlWrangler.buildGitUrl(
+                          manager.getUserName(),
+                          technicalUser, gitHttpUrl);
+                    
+                    componentRepository.put(URL_TYPE.URL_CLONE_HTTP, gitHttpUrl);
                 } catch (IOException ex)
                 {
                     logger.error(
                             "Error in creating repo: "
-                                    + option.get(COMPONENT_ID_KEY),
+                                    + option.get(OpenProjectData.COMPONENT_ID_KEY),
                             ex);
                     throw new IOException("Error in creating repo: "
-                            + option.get(COMPONENT_ID_KEY) + "\n"
+                            + option.get(OpenProjectData.COMPONENT_ID_KEY) + "\n"
                             + "details: " + ex.getMessage());
                 }
+                createdRepositories.put(repoName, componentRepository);
             }
             project.quickstarters = newOptions;
         }
-
-        if (project.repositories != null)
-        {
-            project.repositories.putAll(repoLinks);
-        } else
-        {
-            project.repositories = repoLinks;
-        }
-        return project;
+        
+        return createdRepositories;
     }
 
     @Override
-    public OpenProjectData createAuxiliaryRepositoriesForODSProject(
+    public Map<String, Map<URL_TYPE, String>> createAuxiliaryRepositoriesForODSProject(
             OpenProjectData project,
             String[] auxiliaryRepos)
     {
-        Map<String, Map<String, List<Link>>> repoLinks = new HashMap<>();
+        Map<String, Map<URL_TYPE, String>> repositories = new HashMap<>();
         for (String name : auxiliaryRepos)
         {
             Repository repo = new Repository();
@@ -221,20 +226,13 @@ public class BitbucketAdapter implements ISCMAdapter
             {
                 RepositoryData result = callCreateRepoApi(project.projectKey,
                         repo);
-                repoLinks.put(result.getName(), result.getLinks());
+                repositories.put(result.getName(), result.convertRepoToOpenDataProjectRepo());
             } catch (IOException ex)
             {
                 logger.error("Error in creating auxiliary repo", ex);
             }
         }
-        if (project.repositories != null)
-        {
-            project.repositories.putAll(repoLinks);
-        } else
-        {
-            project.repositories = repoLinks;
-        }
-        return project;
+        return repositories;
     }
 
     // Create webhook for CI (using webhook proxy)
@@ -252,13 +250,13 @@ public class BitbucketAdapter implements ISCMAdapter
                 + "?trigger_secret="
                 + projectOpenshiftJenkinsTriggerSecret;
         Webhook webhook = new Webhook();
-        webhook.setName("Jenkins");
-        webhook.setActive(true);
-        webhook.setUrl(webhookProxyUrl);
+            webhook.setName("Jenkins");
+            webhook.setActive(true);
+            webhook.setUrl(webhookProxyUrl);
         List<String> events = new ArrayList<>();
-        events.add("repo:refs_changed");
-        events.add("pr:merged");
-        events.add("pr:declined");
+            events.add("repo:refs_changed");
+            events.add("pr:merged");
+            events.add("pr:declined");
         webhook.setEvents(events);
 
         // projects/CLE200/repos/cle200-be-node-express/webhooks
@@ -276,13 +274,13 @@ public class BitbucketAdapter implements ISCMAdapter
         }
     }
 
-    protected BitbucketData callCreateProjectApi(OpenProjectData project) throws IOException
+    protected BitbucketProjectData callCreateProjectApi(OpenProjectData project) throws IOException
     {
         BitbucketProject bbProject = createBitbucketProject(project);
 
-        BitbucketData projectData = client.callHttp(getAdapterApiUri(),
+        BitbucketProjectData projectData = client.callHttp(getAdapterApiUri(),
                 bbProject, false,
-                RestClient.HTTP_VERB.POST, BitbucketData.class);
+                RestClient.HTTP_VERB.POST, BitbucketProjectData.class);
 
         if (project.specialPermissionSet)
         {
@@ -329,7 +327,7 @@ public class BitbucketAdapter implements ISCMAdapter
         return data;
     }
 
-    protected void setProjectPermissions(BitbucketData data,
+    protected void setProjectPermissions(BitbucketProjectData data,
             String pathFragment, String groupOrUser,
             PROJECT_PERMISSIONS rights)
             throws IOException
@@ -393,4 +391,14 @@ public class BitbucketAdapter implements ISCMAdapter
     {
         throw new NotImplementedException();
     }
+    
+    @Override
+    public String createRepoNameFromComponentName 
+        (String projectKey, String componentName) 
+    {
+        return String.format("%s-%s", projectKey,
+                componentName).toLowerCase()
+                        .replace('_', '-');
+    }
+    
 }

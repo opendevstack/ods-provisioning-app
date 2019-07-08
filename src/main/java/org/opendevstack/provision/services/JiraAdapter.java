@@ -9,9 +9,10 @@ import java.util.Map.Entry;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.model.Component;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
+import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
@@ -552,18 +553,13 @@ public class JiraAdapter implements IBugtrackerAdapter
 
         Map<String, String> createdComponents = new HashMap<>();
 
-        Map<String, Map<String, List<Link>>> repositories = data.repositories;
+        Map<String, Map<URL_TYPE, String>> repositories = data.repositories;
         if (repositories != null)
         {
-            for (Entry<String, Map<String, List<Link>>> repo : repositories
+            for (Entry<String, Map<URL_TYPE, String>> repo : repositories
                     .entrySet())
             {
-                String href = null;
-                for (Link link : repo.getValue().get("self"))
-                {
-                    href = link.getHref();
-                    break;
-                }
+                String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
 
                 logger.debug("Repo {} {} for project {} ",
                         repo.getKey(), href, data.projectKey);

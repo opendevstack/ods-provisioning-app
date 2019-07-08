@@ -14,13 +14,17 @@
 
 package org.opendevstack.provision.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.bitbucket.Link;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -182,39 +186,86 @@ public class ProjectData
     public static ProjectData fromOpenProjectData
         (OpenProjectData open) 
     {
-        ProjectData project = new ProjectData();
+        ProjectData legacyProject = new ProjectData();
         
-        project.key = open.projectKey;
-        project.name = open.projectName;
-        project.description = open.description;
+        legacyProject.key = open.projectKey;
+        legacyProject.name = open.projectName;
+        legacyProject.description = open.description;
         
         // roles & users
-        project.createpermissionset = open.specialPermissionSet;
-        project.admin = open.projectAdminUser;
-        project.adminGroup = open.projectAdminGroup;
-        project.readonlyGroup = open.projectReadonlyGroup;
-        project.userGroup = open.projectUserGroup;
+        legacyProject.createpermissionset = open.specialPermissionSet;
+        legacyProject.admin = open.projectAdminUser;
+        legacyProject.adminGroup = open.projectAdminGroup;
+        legacyProject.readonlyGroup = open.projectReadonlyGroup;
+        legacyProject.userGroup = open.projectUserGroup;
         
         // quickstarters and repos
-        project.repositories = open.repositories;
-        project.quickstart = open.quickstarters;
+        Map<String, Map<URL_TYPE, String>> openRepositories =
+                open.repositories;
+        
+        Map<String, Map<String, List<Link>>> legacyRepositories =
+                new HashMap<>();
+
+        if (openRepositories != null)
+        {
+            for (Map.Entry<String, Map<URL_TYPE, String>> openRepo : 
+                openRepositories.entrySet())
+            {
+                String openRepoName = openRepo.getKey();
+                
+                Map<URL_TYPE, String> openRepoLinks = 
+                        openRepo.getValue();
+                
+                if (openRepoLinks == null) {
+                    continue;
+                }
+                
+                List<Link> cloneLinks = new ArrayList<>();
+                Link sshLink = new Link();
+                    sshLink.setName("ssh");
+                    sshLink.setHref(openRepoLinks.get(URL_TYPE.URL_CLONE_SSH));
+                cloneLinks.add(sshLink);
+                
+                Link httpLink = new Link();
+                    httpLink.setName("http");
+                    httpLink.setHref(openRepoLinks.get(URL_TYPE.URL_CLONE_HTTP));
+                cloneLinks.add(httpLink);
+                
+                Map<String, List<Link>> legacyRepoMap = new HashMap<>();
+                legacyRepoMap.put("clone", cloneLinks);
+                
+                List<Link> browseLinks = new ArrayList<>();
+                Link browseLink = new Link();
+                    browseLink.setName("null");
+                    browseLink.setHref(openRepoLinks.get(URL_TYPE.URL_BROWSE_HTTP));
+                browseLinks.add(browseLink);
+                
+                legacyRepoMap.put("self", browseLinks);
+                
+                legacyRepositories.put(openRepoName, legacyRepoMap);
+            }
+        }
+        
+        legacyProject.repositories = legacyRepositories;
+        
+        legacyProject.quickstart = open.quickstarters;
         
         // urls & config
-        project.jiraconfluencespace = open.bugtrackerSpace;
-        project.jiraUrl = open.bugtrackerUrl;
-        project.confluenceUrl = open.collaborationSpaceUrl;
+        legacyProject.jiraconfluencespace = open.bugtrackerSpace;
+        legacyProject.jiraUrl = open.bugtrackerUrl;
+        legacyProject.confluenceUrl = open.collaborationSpaceUrl;
         
-        project.openshiftproject = open.platformRuntime;
-        project.bitbucketUrl = open.scmvcsUrl;
-        project.openshiftConsoleDevEnvUrl = open.platformDevEnvironmentUrl;
-        project.openshiftConsoleTestEnvUrl = open.platformTestEnvironmentUrl;
-        project.openshiftJenkinsUrl = open.platformBuildEngineUrl;
+        legacyProject.openshiftproject = open.platformRuntime;
+        legacyProject.bitbucketUrl = open.scmvcsUrl;
+        legacyProject.openshiftConsoleDevEnvUrl = open.platformDevEnvironmentUrl;
+        legacyProject.openshiftConsoleTestEnvUrl = open.platformTestEnvironmentUrl;
+        legacyProject.openshiftJenkinsUrl = open.platformBuildEngineUrl;
         
         // state
-        project.lastJobs = open.lastExecutionJobs;
+        legacyProject.lastJobs = open.lastExecutionJobs;
         
         
-        return project;
+        return legacyProject;
     }
 
     /**
@@ -239,7 +290,50 @@ public class ProjectData
         open.projectUserGroup = project.userGroup;
         
         // quickstarters and repos
-        open.repositories = project.repositories;
+
+        Map<String, Map<String, List<Link>>> legacyRepos =
+                project.repositories;
+        
+        Map<String, Map<URL_TYPE, String>> repositories =
+                new HashMap<>();
+        
+        if (legacyRepos != null) {
+            for (Map.Entry<String, Map<String, List<Link>>> legacyRepo :
+                legacyRepos.entrySet())
+            {
+                String repoName = legacyRepo.getKey();
+                Map<URL_TYPE, String> newRepoLinks = new HashMap<>();
+                Map<String, List<Link>> legacyRepLinks = 
+                        legacyRepo.getValue();
+                
+                if (legacyRepLinks == null) {
+                    continue;
+                }
+                
+                List<Link> cloneRepos = legacyRepLinks.get("clone");
+                for (Link cloneRepoLink : cloneRepos) 
+                {
+                    if ("ssh".equals(cloneRepoLink.getName())) {
+                        newRepoLinks.put(URL_TYPE.URL_CLONE_SSH,
+                                cloneRepoLink.getHref());
+                    } else if ("http".equals(cloneRepoLink.getName())) {
+                        newRepoLinks.put(URL_TYPE.URL_CLONE_HTTP,
+                                cloneRepoLink.getHref());
+                    }
+                }
+
+                List<Link> selfRepos = legacyRepLinks.get("self");
+                for (Link selfRepoLink : selfRepos) 
+                {
+                        newRepoLinks.put(URL_TYPE.URL_BROWSE_HTTP,
+                                selfRepoLink.getHref());
+                }
+                
+                repositories.put(repoName, newRepoLinks);
+            }
+        }
+
+        open.repositories = repositories;
         open.quickstarters = project.quickstart;
         
         // urls & config
