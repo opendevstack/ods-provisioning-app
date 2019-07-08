@@ -14,7 +14,10 @@
 package org.opendevstack.provision.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +32,6 @@ import org.springframework.stereotype.Component;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
@@ -48,6 +50,7 @@ import okhttp3.Response;
  * prevent redundant code.
  *
  * @author Torsten Jaeschke
+ * @author Clemens Utschig
  */
 
 @Component
@@ -66,13 +69,16 @@ public class RestClient {
   
   private Map<String, OkHttpClient> cache = new HashMap<>();
 
+  private static final List<Integer> RETRY_HTTP_CODES = 
+	new ArrayList<>(Arrays.asList(401, 403, 404, 409, 500));
+  
   @Autowired
   CrowdUserDetailsService crowdUserDetailsService;
 
   @Autowired
   CustomAuthenticationManager manager;
 
-  public static enum HTTP_VERB {
+  public enum HTTP_VERB {
 	  PUT, 
 	  POST,
 	  GET,
@@ -110,8 +116,10 @@ public class RestClient {
 	  {
 		  callHttpInternal(url, null, null, false, HTTP_VERB.HEAD, null, null);
 	  } catch (HttpException httpX) {
-		  if (httpX.getResponseCode() != 401) 
+		  if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
 		  {
+			  callHttpInternal(url, null, null, true, HTTP_VERB.HEAD, null, null);
+		  } else {
 			  throw httpX;
 		  }
 	  }
@@ -119,21 +127,43 @@ public class RestClient {
 
   public <T> T callHttp(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
+			      throws HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  try 
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, returnType, null);
+	  } catch (HttpException httpException) {
+		  if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
+		  {
+			  logger.debug("401 - retrying with direct auth");
+			  return callHttpInternal(url, input, crowdCookieValue, true, verb, returnType, null);
+		  } else {
+			  throw httpException;
+		  }
+	  }
   }
 
   public <T> T callHttpTypeRef(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
-			      throws JsonMappingException, HttpException, IOException
+			      throws HttpException, IOException
   {
-	  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  try
+	  {
+		  return callHttpInternal(url, input, crowdCookieValue, directAuth, verb, null, returnType);
+	  } catch (HttpException httpException) {
+	    if (RETRY_HTTP_CODES.contains(httpException.getResponseCode()))
+	    {
+		  logger.debug("401 - retrying with direct auth");
+		  return callHttpInternal(url, input, crowdCookieValue, true, verb, null, returnType);
+	    } else {
+		  throw httpException;
+	    }
+      }
   }
   
   private <T> T callHttpInternal(String url, Object input, String crowdCookieValue, 
 		  boolean directAuth, HTTP_VERB verb, Class returnType, TypeReference returnTypeRef)
-      throws JsonMappingException, HttpException, IOException
+      throws HttpException, IOException
   {
 	Preconditions.checkNotNull(url, "Url cannot be null");
 	Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
@@ -162,27 +192,33 @@ public class RestClient {
     okhttp3.Request.Builder builder = new Request.Builder();
     builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept", "application/json");
     
-    if (HTTP_VERB.PUT.equals(verb))
-    {
-        builder = builder.put(body);
-    } else if (HTTP_VERB.GET.equals(verb))
-    {
-    	builder = builder.get();
-    } else if (HTTP_VERB.POST.equals(verb))
-    {
-    	builder = builder.post(body);
-    } else if (HTTP_VERB.HEAD.equals(verb))
-    {
-    	builder = builder.head();
+    switch (verb) {
+    	case PUT:
+            builder = builder.put(body);
+            break;
+    	case GET:
+    		builder = builder.get();
+    		break;
+    	case POST:
+        	builder = builder.post(body);
+        	break;
+    	case HEAD:
+        	builder = builder.head();
+        	break;
+        default:
+        	builder = builder.head();
+        	break;
     }
     
     Response response = null;
     if (directAuth)
     {
+    	String currentUser = 
+    		SecurityContextHolder.getContext().getAuthentication().getName();
+    	logger.debug("Authenticating rest call with {}", currentUser);
     	String credentials =
-			Credentials.basic(this.crowdUserDetailsService.
-				loadUserByToken(crowdCookieValue).getUsername(),
-				manager.getUserPassword());
+			Credentials.basic(
+				currentUser, manager.getUserPassword());
     	builder = builder.addHeader("Authorization", credentials);
     	response = getClientFresh(crowdCookieValue).newCall(builder.build()).execute();
     }
@@ -192,10 +228,8 @@ public class RestClient {
     }
     	    
     String respBody = response.body().string();
-    response.close();
-    logger.debug(url + " > " + response.code() + 
-    	(respBody == null || respBody.trim().length() == 0 ?
-    		"" : (": \n" + respBody  )) + " : " + verb);
+    logger.debug(url + " > " + verb + " >> " + response.code() + 
+    	": \n" + respBody);
     
     if (response.code() < 200 || response.code() >= 300)
     {
@@ -210,7 +244,7 @@ public class RestClient {
     {
     	if (returnType.isAssignableFrom(String.class)) 
     	{
-    		return (T)new String(respBody);
+    		return (T)respBody;
     	}
     	return (T)new ObjectMapper().readValue(respBody, returnType);
     } else
@@ -235,21 +269,14 @@ public class RestClient {
     Request request = new Request.Builder()
         .url(url).post(body)
         .build();
-    Response response = null;
-    try 
+    try (Response response = getClient(null).newCall(request).execute();)
     {
-    	response = getClient(null).newCall(request).execute();
-    	if (response.isSuccessful()) 
+    	if (!response.isSuccessful() || 
+            response.body().string().contains("Invalid username and password")) 
     	{
-    		logger.debug("Successful form based auth");
-    	} else {
     		throw new IOException("Could not authenticate: " + username + 
     			" : " + response.body());
     	}
-    }
-    finally {
-    	if (response != null)
-    		response.close();
     }
   }
 

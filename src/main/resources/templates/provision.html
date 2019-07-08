@@ -37,7 +37,7 @@
                     <label for="projects">Select existing project:</label>
                     <select class="form-control" id="projects" name="key">
                         <option value=""></option>
-                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.name}">Project name</option>
+                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.key + ' - ' + jiraProject.value.name}">Project name</option>
                     </select>
                 </div>
                 <div class="table-responsive hidden" id="infoProjectTable">
@@ -138,13 +138,13 @@
                 <!-- cutschig user and admin group --> 
                 <div class="form-group" id="projectTypeDiv">
                     <label for="projectType"  class="control-label">Project Type</label>
-                    <select class="form-control projectType-chooser" name="projectType">
+                    <select class="form-control projectType-chooser" name="projectType" id="projectType">
                     	<option th:each="pType : ${projectTypes}" th:value="${pType}" th:text="${pType}" />
                     </select>
                 </div>                
                 <!-- cutschig user and admin group --> 
                 <div class="form-group hidden" id="auserdiv">
-                    <label for="adminuser"  class="control-label">Admin user</label>
+                    <label for="admin"  class="control-label">Admin user</label>
                     <input type="text" class="form-control" name="admin" placeholder="Admin user" maxlength="80" id="admin"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
@@ -282,7 +282,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" id="resButton">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="resButton" name="result">Close</button>
                 </div>
             </div>
 

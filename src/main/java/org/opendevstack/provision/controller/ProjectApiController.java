@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -68,9 +69,9 @@ public class ProjectApiController {
   private static final String STR_LOGFILE_KEY = "loggerFileName";
   
   @Autowired
-  private JiraAdapter jiraAdapter;
+  JiraAdapter jiraAdapter;
   @Autowired
-  private ConfluenceAdapter confluenceAdapter;
+  ConfluenceAdapter confluenceAdapter;
   @Autowired
   private BitbucketAdapter bitbucketAdapter;
   @Autowired
@@ -135,9 +136,10 @@ public class ProjectApiController {
       
         if (project.jiraconfluencespace)
         {
-        	if (storage.listProjectHistory().containsKey(project.key))
+        	if (storage.getProject(project.key) != null)
         	{
-        		throw new IOException("Project with key " + project.key + " already exists");
+        		throw new IOException(
+        			String.format("Project with key (%s) already exists" , project.key));
         	}
 	
 	        //create JIRA project
@@ -159,7 +161,7 @@ public class ProjectApiController {
       // option to store data in other data sources
       String filePath = storage.storeProject(project);
       if (filePath != null) {
-        logger.debug("project successful stored: {}", filePath);
+        logger.debug("Project {} successfully stored: {}", project.key, filePath);
       }
       
       // notify user via mail of project creation with embedding links
@@ -168,7 +170,7 @@ public class ProjectApiController {
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
-      logger.error("An error occured while provisioning project: {}", ex);
+      logger.error("An error occured while provisioning project:", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
     	client.removeClient(crowdCookie);
@@ -303,8 +305,11 @@ public class ProjectApiController {
     // create repositories dependent of the chosen quickstarters
     project = bitbucketAdapter.createRepositoriesForProject(project, crowdCookie);
 
+    // create jira components from newly created repos
+    jiraAdapter.createComponentsForProjectRepositories(project, crowdCookie);
+    
     if (project.lastJobs == null) {
-    	project.lastJobs = new ArrayList<String>();
+    	project.lastJobs = new ArrayList<>();
     }
     List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
     for (ExecutionsData exec : execs) {
@@ -387,6 +392,35 @@ public class ProjectApiController {
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) 
   {
     return ResponseEntity.ok(projectTemplateKeyNames);
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
+  public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey
+  	(HttpServletRequest request, @PathVariable String key)
+  {
+	Map<String,String> templatesForKey = new HashMap<>();
+	logger.debug("retrieving templates for key: " + key);
+	
+	Preconditions.checkNotNull(key, "Null template key is not allowed");
+	
+	ProjectData project = new ProjectData();
+	project.projectType = key;
+	
+	String projectTypeKey = jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
+		(project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraAdapter.jiraTemplateKey);
+
+	String projectTypeTemplateKey = 
+		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
+		(project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraAdapter.jiraTemplateType);
+			
+	templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" +
+		projectTypeKey);
+	        
+	templatesForKey.put("collabSpaceTemplate", 
+		confluenceAdapter.calculateConfluenceSpaceTypeAndTemplateFromProjectType
+		(project.key));
+	
+	return ResponseEntity.ok(templatesForKey);
   }
   
   /**

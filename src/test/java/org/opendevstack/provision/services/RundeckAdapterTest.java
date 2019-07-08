@@ -19,31 +19,11 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServi
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.text.AbstractDocument.Content;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
@@ -66,11 +46,7 @@ import java.util.Map;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.eq;
 
 
 /**
@@ -111,7 +87,7 @@ public class RundeckAdapterTest {
   public void getQuickstarter() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
     Job a = Mockito.mock(Job.class);
-    List<Job> jobList = new ArrayList<Job>();
+    List<Job> jobList = new ArrayList<>();
     jobList.add(a);
     doReturn(jobList).when(spyAdapter).getJobs(any());
     int expectedQuickstarterSize = 1;
@@ -229,7 +205,8 @@ public class RundeckAdapterTest {
     assertTrue(expectedProjectData.openshiftproject);
     assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl, 
     		createdProjectData.openshiftConsoleDevEnvUrl);
-    assertEquals(expectedProjectData.openshiftConsoleTestEnvUrl, 
+    assertEquals("openshiftConsoleTestEnvUrl",
+                 expectedProjectData.openshiftConsoleTestEnvUrl,
     		createdProjectData.openshiftConsoleTestEnvUrl);
     assertEquals(expectedProjectData.openshiftJenkinsUrl, 
     		createdProjectData.openshiftJenkinsUrl);
@@ -293,7 +270,6 @@ public class RundeckAdapterTest {
     assertEquals(execVerify.getOptions().get("project_admin"), projectData.admin);
     String groups = execVerify.getOptions().get("project_groups");
     assertNotNull(groups);
-    System.out.println(groups);
     assertTrue(groups.contains("ADMINGROUP=" + projectData.adminGroup) &&
             groups.contains("USERGROUP=" + projectData.userGroup) &&
             groups.contains("READONLYGROUP=" + projectData.readonlyGroup));
@@ -302,15 +278,15 @@ public class RundeckAdapterTest {
   @Test
   public void getEndpointAPIPath () throws Exception 
   {
-	  assertEquals("http://192.168.56.31:4440/rundeck/api/19", 
+	  assertEquals("http://192.168.56.31:4440/api/19",
 		rundeckAdapter.getRundeckAPIPath());
   }
   
   private ProjectData generateDefaultProjectData() {
     ProjectData expected = new ProjectData();
-    expected.openshiftConsoleDevEnvUrl = "https://192.168.99.100:8443/console/project/key-dev";
-    expected.openshiftConsoleTestEnvUrl = "https://192.168.99.100:8443/console/project/key-test";
-    expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
+    expected.openshiftConsoleDevEnvUrl = "https://192.168.56.101:8443/console/project/key-dev";
+    expected.openshiftConsoleTestEnvUrl = "https://192.168.56.101:8443/console/project/key-test";
+    expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
     expected.jiraconfluencespace = true;
     expected.openshiftproject = true;
     expected.key = "key";

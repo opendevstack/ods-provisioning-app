@@ -103,14 +103,14 @@ public class BitbucketAdapterTest {
     ProjectData projectData = getReturnProjectData();    
     RepositoryData repoData = getReturnRepoData();
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any(), eq(null));
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), eq(null));
 
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class), eq(null));
 
     ProjectData result = spyAdapter.createRepositoriesForProject(projectData, crowdCookieValue);
 
     Mockito.verify(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        projectData.quickstart.get(0).get("component_id"), crowdCookieValue);
+       crowdCookieValue);
     for (Entry<String, Map<String, List<Link>>> entry : result.repositories.entrySet()) {
       Map<String, List<Link>> resultLinkMap = entry.getValue();
       assertEquals(repoData.getLinks(), resultLinkMap);
@@ -141,10 +141,11 @@ public class BitbucketAdapterTest {
     projectData.quickstart = quickstarters;
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
+    repoData.setName("testRepoName");
     projectData.key = "testkey";
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData,
-        quickstart.get("component_id"), crowdCookieValue);
+        crowdCookieValue);
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(),
         any(Repository.class), any());
 
@@ -180,7 +181,7 @@ public class BitbucketAdapterTest {
     links.put("clone", linkList);
     repoData.setLinks(links);
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(),
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), 
         any(), any());
     Mockito.doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(),
         any(Repository.class), anyString());
@@ -371,12 +372,14 @@ public class BitbucketAdapterTest {
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    
+    spyAdapter.client = client;
 
 	Mockito.doReturn(repoData1).when(client).callHttp(
 		anyString(), anyString(), anyString(),
 		anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     
-    spyAdapter.createWebHooksForRepository(repoData1, projectData, "someComponent", "crowdCookie");
+    spyAdapter.createWebHooksForRepository(repoData1, projectData, "crowdCookie");
   }
 
 
@@ -420,6 +423,7 @@ public class BitbucketAdapterTest {
   private RepositoryData getReturnRepoData() {
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
+    repoData.setName("testRepo");
     return repoData;
   }
 
