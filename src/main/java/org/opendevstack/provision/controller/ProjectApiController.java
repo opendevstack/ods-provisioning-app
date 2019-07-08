@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -101,7 +99,7 @@ public class ProjectApiController
     boolean ocUpgradeAllowed;
 
     /**
-     * Add a project to JIRA and process subsequent calls to dependent services, to
+     * Create a new projectand process subsequent calls to dependent services, to
      * create a complete project stack.
      *
      * @param newProject the {@link OpenProjectData} containing the request information
@@ -157,11 +155,20 @@ public class ProjectApiController
                 // create the bugtracker project
                 newProject = jiraAdapter
                         .createBugtrackerProjectForODSProject(newProject);
-
+                
+                Preconditions.checkNotNull(newProject.bugtrackerUrl,
+                        jiraAdapter.getClass() + 
+                        " did not return bugTracker url");
+                
                 // create confluence space
                 newProject = confluenceAdapter
                         .createCollaborationSpaceForODSProject(
                                 newProject);
+
+                Preconditions.checkNotNull(newProject.collaborationSpaceUrl,
+                        confluenceAdapter.getClass() + 
+                        " did not return collabSpace url");
+                
                 logger.debug("Updated project: {}",
                         new ObjectMapper().writer()
                                 .withDefaultPrettyPrinter()
@@ -348,12 +355,36 @@ public class ProjectApiController
             // create a bitbucket project
             project = bitbucketAdapter.createSCMProjectForODSProject(
                     project);
+            
+            Preconditions.checkNotNull(project.scmvcsUrl,
+                    bitbucketAdapter.getClass() + 
+                    " did not return scmvcs url");
+            
             // create auxilaries - for design and for the ocp artifacts
             String[] auxiliaryRepositories = { "occonfig-artifacts",
                     "design" };
+            
+            int existingRepoCount = 
+                    (project.repositories == null ? 0 : 
+                            project.repositories.size());
+                        
             project = bitbucketAdapter
                     .createAuxiliaryRepositoriesForODSProject(project,
                             auxiliaryRepositories);
+
+            /*
+            Preconditions.checkNotNull(
+                    project.repositories,
+                    bitbucketAdapter.getClass() + 
+                    " did not create aux repositories");
+                    
+            Preconditions.checkState(
+                    project.repositories.size() == 
+                    existingRepoCount + auxiliaryRepositories.length,
+                    bitbucketAdapter.getClass() + 
+                    " did not return created aux repos!");
+            */
+            
             // provision OpenShift project via rundeck
             project = rundeckAdapter.createPlatformProjects(project);
         }

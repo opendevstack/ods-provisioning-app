@@ -53,12 +53,12 @@ public interface IJobExecutionAdapter extends IServiceAdapter
             throws IOException;
 
     /**
-     * Create repositories based on passed {@link OpenProjectData#quickstarters}
+     * Create platform components based on passed {@link OpenProjectData#quickstarters}
      * @param project the project containing quickstarters - 
      * to derive the names from
      * @return the project filled with {@link OpenProjectData#lastExecutionJobs} 
-     * which contains the URLs to the jobs kicked off.
-     * @throws IOException
+     * which contain the URLs to the jobs kicked off.
+     * @throws IOException in case the platform components could NOT be provisioned
      */
     public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(
             OpenProjectData project) throws IOException;

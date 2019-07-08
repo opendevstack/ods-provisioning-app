@@ -52,6 +52,7 @@ import static org.mockito.ArgumentMatchers.*;
 
 /**
  * @author Torsten Jaeschke
+ * @author utschig
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
@@ -128,11 +129,17 @@ public class ProjectApiControllerTest
     @Test
     public void addProjectWithoutOCPosNeg() throws Exception
     {
+
+        OpenProjectData bugTrackProject =
+                copyFromProject(data);
+        bugTrackProject.bugtrackerUrl = "bugtracker";
+        bugTrackProject.collaborationSpaceUrl = "collspace";
+
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull())).thenReturn(data);
+                isNotNull())).thenReturn(bugTrackProject);
         Mockito.when(confluenceAdapter
                 .createCollaborationSpaceForODSProject(isNotNull()))
-                .thenReturn(data);
+                .thenReturn(bugTrackProject);
         Mockito.doNothing().when(mailAdapter)
                 .notifyUsersAboutProject(data);
         Mockito.when(storage.storeProject(data))
@@ -170,21 +177,32 @@ public class ProjectApiControllerTest
     public void addProjectWithOC() throws Exception
     {
         data.platformRuntime = true;
+        
+        OpenProjectData bugTrackProject =
+                copyFromProject(data);
+        bugTrackProject.bugtrackerUrl = "bugtracker";
+        bugTrackProject.collaborationSpaceUrl = "collspace";
+        
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
-                isNotNull())).thenReturn(data);
+                isNotNull())).thenReturn(bugTrackProject);
         Mockito.when(confluenceAdapter
                 .createCollaborationSpaceForODSProject(isNotNull()))
-                .thenReturn(data);
+                .thenReturn(bugTrackProject);
+
+        OpenProjectData projectSCM = 
+                copyFromProject(bugTrackProject);
+        
+        projectSCM.scmvcsUrl = "scmspace";
         Mockito.when(bitbucketAdapter
                 .createSCMProjectForODSProject(isNotNull()))
-                .thenReturn(data);
+                .thenReturn(projectSCM);
         Mockito.when(bitbucketAdapter
                 .createComponentRepositoriesForODSProject(isNotNull()))
                 .thenReturn(data);
         Mockito.when(bitbucketAdapter
                 .createAuxiliaryRepositoriesForODSProject(isNotNull(),
                         isNotNull()))
-                .thenReturn(data);
+                .thenReturn(projectSCM);
         Mockito.when(rundeckAdapter
                 .createPlatformProjects(isNotNull()))
                 .thenReturn(data);
@@ -425,9 +443,15 @@ public class ProjectApiControllerTest
         Mockito.when(confluenceAdapter
                 .createCollaborationSpaceForODSProject(isNotNull()))
                 .thenReturn(data);
+
+        OpenProjectData projectSCM = 
+                copyFromProject(data);
+        
+        projectSCM.scmvcsUrl = "scmspace";
+
         Mockito.when(bitbucketAdapter
                 .createSCMProjectForODSProject(isNotNull()))
-                .thenReturn(data);
+                .thenReturn(projectSCM);
         Mockito.when(bitbucketAdapter
                 .createComponentRepositoriesForODSProject(isNotNull()))
                 .thenReturn(data);
@@ -531,6 +555,9 @@ public class ProjectApiControllerTest
 
         OpenProjectData dataReturn = this.copyFromProject(data);
         apiController.shortenDescription(dataReturn);
+
+        dataReturn.bugtrackerUrl = "bugtracker";
+        dataReturn.collaborationSpaceUrl = "collspace";
 
         Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(
                 isNotNull())).thenReturn(dataReturn);

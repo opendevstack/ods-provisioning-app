@@ -30,9 +30,9 @@ public interface IBugtrackerAdapter extends IServiceAdapter
      * Create a bugtracker project based on name and key
      * @param project the project including the project's name and key 
      * {@link OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-     * @return the project filled with {@link ProjectData#jiraUrl}
+     * @return the project filled with {@link OpenProjectData#bugtrackerUrl}
      * @throws IOException in case something occurs during the outbound 
-     * call to the bugtracker
+     * call to the bugtracker service implementation
      */
     public OpenProjectData createBugtrackerProjectForODSProject(
             OpenProjectData project)
