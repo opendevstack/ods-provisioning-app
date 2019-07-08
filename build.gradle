@@ -117,8 +117,8 @@ dependencies {
     compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
 
     //frontend webjars
-    compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:jquery:3.2.1'
+    compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:react:15.5.4'
     compile 'org.webjars.bower:font-awesome:4.7.0'
     compile 'org.webjars.bower:lodash:4.17.4'
@@ -162,7 +162,7 @@ dependencies {
     compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9'
     compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.4'
-    compile group: 'com.google.guava', name: 'guava', version: '23.0'
+    compile group: 'com.google.guava', name: 'guava', version: '20.0'
 
 }
 

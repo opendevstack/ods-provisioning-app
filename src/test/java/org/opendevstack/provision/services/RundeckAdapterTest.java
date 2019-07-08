@@ -205,7 +205,8 @@ public class RundeckAdapterTest {
     assertTrue(expectedProjectData.openshiftproject);
     assertEquals(expectedProjectData.openshiftConsoleDevEnvUrl, 
     		createdProjectData.openshiftConsoleDevEnvUrl);
-    assertEquals(expectedProjectData.openshiftConsoleTestEnvUrl, 
+    assertEquals("openshiftConsoleTestEnvUrl",
+                 expectedProjectData.openshiftConsoleTestEnvUrl,
     		createdProjectData.openshiftConsoleTestEnvUrl);
     assertEquals(expectedProjectData.openshiftJenkinsUrl, 
     		createdProjectData.openshiftJenkinsUrl);
@@ -277,15 +278,15 @@ public class RundeckAdapterTest {
   @Test
   public void getEndpointAPIPath () throws Exception 
   {
-	  assertEquals("http://192.168.56.31:4440/rundeck/api/19", 
+	  assertEquals("http://192.168.56.31:4440/api/19",
 		rundeckAdapter.getRundeckAPIPath());
   }
   
   private ProjectData generateDefaultProjectData() {
     ProjectData expected = new ProjectData();
-    expected.openshiftConsoleDevEnvUrl = "https://192.168.99.100:8443/console/project/key-dev";
-    expected.openshiftConsoleTestEnvUrl = "https://192.168.99.100:8443/console/project/key-test";
-    expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.99.100.nip.io";
+    expected.openshiftConsoleDevEnvUrl = "https://192.168.56.101:8443/console/project/key-dev";
+    expected.openshiftConsoleTestEnvUrl = "https://192.168.56.101:8443/console/project/key-test";
+    expected.openshiftJenkinsUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
     expected.jiraconfluencespace = true;
     expected.openshiftproject = true;
     expected.key = "key";

@@ -188,8 +188,27 @@ public class ProjectApiControllerTest {
         isNotNull(), isNull());
     Mockito.verify(bitbucketAdapter, Mockito.times(1)).createRepositoriesForProject(
             isNotNull(),isNull());
+    // jira components
+    Mockito.verify(jiraAdapter, Mockito.times(1)).
+    	createComponentsForProjectRepositories(isNotNull(), isNull());    
   }
-  
+
+  @Test
+  public void addProjectAgainstExistingOne() throws Exception {
+	Mockito.doNothing().when(client).removeClient(anyString());
+
+    Mockito.when(storage.getProject(data.key)).thenReturn(data);
+
+	mockMvc
+        .perform(post("/api/v1/project")
+            .content(asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+        .andExpect(MockMvcResultMatchers.content().
+        		string(CoreMatchers.containsString(data.key + ") already exists")))
+        .andDo(MockMvcResultHandlers.print());
+  }
   
   @Test
   public void addProjectEmptyAndBadRequest() throws Exception {
