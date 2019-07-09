@@ -50,9 +50,6 @@ public class BitbucketAdapter implements ISCMAdapter
     private static final Logger logger = LoggerFactory
             .getLogger(BitbucketAdapter.class);
 
-    @Autowired
-    RundeckAdapter rundeckAdapter;
-
     @Value("${bitbucket.api.path}")
     private String bitbucketApiPath;
 

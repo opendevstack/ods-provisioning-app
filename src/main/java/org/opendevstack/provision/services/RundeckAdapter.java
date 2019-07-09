@@ -51,9 +51,6 @@ public class RundeckAdapter implements IJobExecutionAdapter
     private static final Logger logger = LoggerFactory
             .getLogger(RundeckAdapter.class);
 
-    public static final String COMPONENT_ID_KEY = "component_id";
-    public static final String COMPONENT_TYPE_KEY = "component_type";
-
     @Autowired
     private RundeckJobStore jobStore;
 
@@ -133,7 +130,8 @@ public class RundeckAdapter implements IJobExecutionAdapter
             for (Map<String, String> options : project.quickstarters)
             {
                 Job job = jobStore
-                        .getJob(options.get(COMPONENT_TYPE_KEY));
+                        .getJob(options.get(
+                                OpenProjectData.COMPONENT_TYPE_KEY));
 
                 String url = String.format("%s%s/job/%s/run",
                         rundeckUri, rundeckApiPath, job.getId());
@@ -144,8 +142,8 @@ public class RundeckAdapter implements IJobExecutionAdapter
                 String packageName = String.format("%s.%s",
                         String.format(groupPattern,
                                 project.projectKey.toLowerCase()),
-                        options.get(COMPONENT_ID_KEY).replace('-',
-                                '_'));
+                        options.get(OpenProjectData.COMPONENT_ID_KEY).
+                                replace('-', '_'));
                 Execution execution = new Execution();
 
                 options.put("group_id", groupId);

@@ -180,6 +180,7 @@ public class ProjectApiControllerTest
     public void addProjectWithOC() throws Exception
     {
         data.platformRuntime = true;
+        data.quickstarters = null;
         
         OpenProjectData bugTrackProject =
                 copyFromProject(data);
@@ -446,6 +447,7 @@ public class ProjectApiControllerTest
     public void updateProjectWithAndWithoutOC() throws Exception
     {
         data.platformRuntime = false;
+        data.quickstarters = null;
 
         OpenProjectData bugTrackProject = copyFromProject(data);
         String collaborationSpaceURL = "collspace";

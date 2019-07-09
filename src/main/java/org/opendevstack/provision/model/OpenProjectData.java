@@ -31,9 +31,17 @@ public class OpenProjectData
 {
 
     /**
-     * The key to derive get the quickstarter name 
+     * The key to get the chosen name for the quickstarter 
      */
     public static final String COMPONENT_ID_KEY = "component_id";
+    /**
+     * The key to get the type of the quickstarter
+     */
+    public static final String COMPONENT_TYPE_KEY = "component_type";
+    /**
+     * The quickstarters type as description
+     */
+    public static final String COMPONENT_DESC_KEY = "component_description";
     /**
      * The unique name of the project, must not be null
      */
@@ -47,9 +55,10 @@ public class OpenProjectData
      */
     public String projectKey = null;
     /**
-     * Map of quickstarters used, to get the 
+     * Map of quickstarters used, to get the chosen
      * name of the quickstarter picked, use
-     * {@link #COMPONENT_ID_KEY} against the map contained
+     * {@link #COMPONENT_ID_KEY} against the map contained.
+     * To get the quickstarter's type use {@link #COMPONENT_TYPE_KEY}
      */
     public List<Map<String, String>> quickstarters = null;
     /**
