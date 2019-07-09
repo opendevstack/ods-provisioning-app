@@ -10,7 +10,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.*;
-import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ import java.util.Map.Entry;
  *     https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
-public class JiraAdapter implements IBugtrackerAdapter {
+public class JiraAdapter extends BaseAtlassianAdapter implements IBugtrackerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(JiraAdapter.class);
 
@@ -74,14 +74,18 @@ public class JiraAdapter implements IBugtrackerAdapter {
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
 
-  @Autowired RestClient client;
-
   @Autowired ConfigurableEnvironment environment;
 
   @Autowired List<String> projectTemplateKeyNames;
 
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
+
+  public JiraAdapter(
+      @Value("${jira.admin_user}") String adminUser,
+      @Value("${jira.admin_password}") String adminPassword) {
+    super(adminUser, adminPassword);
+  }
 
   private FullJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
       throws IOException {
@@ -114,7 +118,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
     FullJiraProject created =
-        client.callHttp(path, jiraProject, false, RestClient.HTTP_VERB.POST, FullJiraProject.class);
+        client.callHttp(path, jiraProject, false, HTTP_VERB.POST, FullJiraProject.class);
     FullJiraProject returnProject =
         new FullJiraProject(
             created.getSelf(),
@@ -138,7 +142,6 @@ public class JiraAdapter implements IBugtrackerAdapter {
    * Create permission set for jira project
    *
    * @param project the project
-   * @param crowdCookieValue the crowd cookie
    * @return the number of created permission sets
    */
   protected int createPermissions(OpenProjectData project) {
@@ -186,8 +189,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
         String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
         singleScheme =
-            client.callHttp(
-                path, singleScheme, true, RestClient.HTTP_VERB.POST, PermissionScheme.class);
+            client.callHttp(path, singleScheme, true, HTTP_VERB.POST, PermissionScheme.class);
 
         // update jira project
         path =
@@ -195,7 +197,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
                 "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
-        client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
+        client.callHttp(path, small, true, HTTP_VERB.PUT, FullJiraProject.class);
 
         updatedPermissions++;
       }
@@ -257,7 +259,6 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
   public boolean projectKeyExists(String key) {
     Preconditions.checkNotNull(key, "Key for keyExists cannot be null");
-    getSessionId();
     Map<String, String> projectKeyMap = getProjects(key);
 
     return (projectKeyMap.containsKey(key) || (projectKeyMap.containsValue(key)));
@@ -273,13 +274,9 @@ public class JiraAdapter implements IBugtrackerAdapter {
             : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
 
     try {
+
       List<FullJiraProject> projects =
-          client.callHttpTypeRef(
-              url,
-              null,
-              false,
-              RestClient.HTTP_VERB.GET,
-              new TypeReference<List<FullJiraProject>>() {});
+          callRestService(url, null, HTTP_VERB.GET, new TypeReference<List<FullJiraProject>>() {});
       return convertJiraProjectToKeyMap(projects);
     } catch (JsonMappingException e) {
       // if for some odd reason serialization fails ...
@@ -353,7 +350,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
       logger.debug(
           "Attempting to create shortcut ({}) for: {}", shortcut.getId(), shortcut.getName());
       try {
-        client.callHttp(path, shortcut, false, RestClient.HTTP_VERB.POST, Shortcut.class);
+        client.callHttp(path, shortcut, false, HTTP_VERB.POST, Shortcut.class);
         createdShortcuts++;
       } catch (HttpException httpEx) {
         if (httpEx.getResponseCode() == 401) {
@@ -489,7 +486,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
         component.setDescription(
             String.format("Technology component %s stored at %s", repo.getKey(), href));
         try {
-          client.callHttp(path, component, false, RestClient.HTTP_VERB.POST, null);
+          client.callHttp(path, component, false, HTTP_VERB.POST, null);
           createdComponents.put(component.getName(), component.getDescription());
         } catch (HttpException httpEx) {
           String error =
