@@ -118,9 +118,22 @@ public class RestClient {
     }
   }
 
+  public <T> T callHttpWithDirectAuth(
+          String url, Object input, HTTP_VERB verb, Class<T> returnType, String userName,
+          String userPassword)
+          throws IOException {
+    try {
+      CredentialsInfo credentials = new CredentialsInfo(userName,userPassword);
+      return callHttpInternal(url, input, true, verb, returnType, null, credentials);
+    } catch (HttpException httpException) {
+      logger.error("callHttpWithDirectAuth failded",httpException);
+      throw httpException;
+    }
+  }
+
   public <T> T callHttpTypeRef(
       String url, Object input, boolean directAuth, HTTP_VERB verb, TypeReference<T> returnType)
-      throws HttpException, IOException {
+      throws IOException {
     try {
       return callHttpInternal(url, input, directAuth, verb, null, returnType);
     } catch (HttpException httpException) {
@@ -253,11 +266,15 @@ public class RestClient {
   public void callHttpBasicFormAuthenticate(String url) throws IOException {
     Preconditions.checkNotNull(url, "Url cannot be null");
     String username = manager.getUserName();
+    String password = manager.getUserPassword();
+    callHttpBasicFormAuthenticate(url, username, password);
+  }
 
+  public void callHttpBasicFormAuthenticate(String url, String username, String password) throws IOException {
     RequestBody body =
         new FormBody.Builder()
             .add("j_username", username)
-            .add("j_password", manager.getUserPassword())
+            .add("j_password",password )
             .build();
     Request request = new Request.Builder().url(url).post(body).build();
     try (Response response = getClient(null).newCall(request).execute(); ) {

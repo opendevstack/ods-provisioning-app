@@ -117,8 +117,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       throws IOException {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
-    FullJiraProject created =
-        client.callHttp(path, jiraProject, false, HTTP_VERB.POST, FullJiraProject.class);
+    FullJiraProject created = callHttp(path, jiraProject, HTTP_VERB.POST, FullJiraProject.class);
+
     FullJiraProject returnProject =
         new FullJiraProject(
             created.getSelf(),
@@ -189,7 +189,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
         String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
         singleScheme =
-            client.callHttp(path, singleScheme, true, HTTP_VERB.POST, PermissionScheme.class);
+            callHttp(path, singleScheme,  HTTP_VERB.POST, PermissionScheme.class);
 
         // update jira project
         path =
@@ -197,7 +197,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
-        client.callHttp(path, small, true, HTTP_VERB.PUT, FullJiraProject.class);
+        callHttp(path, small,  HTTP_VERB.PUT, FullJiraProject.class);
 
         updatedPermissions++;
       }
@@ -289,7 +289,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   private void getSessionId() {
     try {
-      client.getSessionId(jiraUri);
+      super.getSessionId(jiraUri);
     } catch (IOException ex) {
       logger.error("Can not get session id", ex);
     }
@@ -349,7 +349,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       logger.debug(
           "Attempting to create shortcut ({}) for: {}", shortcut.getId(), shortcut.getName());
       try {
-        client.callHttp(path, shortcut, false, HTTP_VERB.POST, Shortcut.class);
+        callHttp(path, shortcut, HTTP_VERB.POST, Shortcut.class);
         createdShortcuts++;
       } catch (HttpException httpEx) {
         if (httpEx.getResponseCode() == 401) {
@@ -409,7 +409,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public OpenProjectData createBugtrackerProjectForODSProject(OpenProjectData project)
       throws IOException {
     try {
-      client.getSessionId(jiraUri);
+      getSessionId(jiraUri);
 
       logger.debug("Creating new jira project");
 
@@ -485,7 +485,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         component.setDescription(
             String.format("Technology component %s stored at %s", repo.getKey(), href));
         try {
-          client.callHttp(path, component, false, HTTP_VERB.POST, null);
+          callHttp(path, component,  HTTP_VERB.POST, null);
           createdComponents.put(component.getName(), component.getDescription());
         } catch (HttpException httpEx) {
           String error =

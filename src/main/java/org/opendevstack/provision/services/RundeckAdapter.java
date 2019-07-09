@@ -15,7 +15,6 @@
 package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
  */
 
 @Service
-public class RundeckAdapter implements IJobExecutionAdapter
+public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionAdapter
 {
 
     private static final Logger logger = LoggerFactory
@@ -102,10 +101,14 @@ public class RundeckAdapter implements IJobExecutionAdapter
     private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
 
     @Autowired
-    private RestClient client;
-
-    @Autowired
     IODSAuthnzAdapter manager;
+
+    public RundeckAdapter(
+            @Value("${rundeck.admin_user}") String adminUser,
+            @Value("${rundeck.admin_password}") String adminPassword) {
+        super(adminUser, adminPassword);
+    }
+
 
     public List<Job> getQuickstarters()
     {
@@ -152,10 +155,11 @@ public class RundeckAdapter implements IJobExecutionAdapter
                 execution.setOptions(options);
                 try
                 {
-                    ExecutionsData data = client.callHttp(url,
-                            execution, false,
-                            RestClient.HTTP_VERB.POST,
-                            ExecutionsData.class);
+
+                    ExecutionsData data = callHttpWithTypeWithoutAuthentication(url,
+                                                          execution,
+                                                          RestClient.HTTP_VERB.POST,
+                                                          ExecutionsData.class);
 
                     if (data.getError())
                     {
@@ -227,8 +231,8 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     }
                     execution.setOptions(options);
 
-                    ExecutionsData data = client.callHttp(url,
-                            execution, false,
+                    ExecutionsData data = callHttp(url,
+                            execution,
                             RestClient.HTTP_VERB.POST,
                             ExecutionsData.class);
 
@@ -266,16 +270,11 @@ public class RundeckAdapter implements IJobExecutionAdapter
         return project;
     }
 
-    /**
-     * method to authenticate against rundeck to store the JSESSIONID in the
-     * associated cookiejar
-     */
-    protected void authenticate() throws IOException
-    {
-        client.callHttpBasicFormAuthenticate(
-                String.format("%s%s/j_security_check", rundeckUri,
-                        rundeckSystemPath));
-    }
+  /** method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar */
+  protected void authenticate() throws IOException {
+    String url = String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath);
+    callHttpBasicFormAuthenticate(url);
+  }
 
     protected List<Job> getJobs(String group) throws IOException
     {
@@ -285,15 +284,13 @@ public class RundeckAdapter implements IJobExecutionAdapter
         String jobsUrl = String.format("%s%s/project/%s/jobs",
                 rundeckUri, rundeckApiPath, rundeckProject);
 
-        Map<String, String> jobPath = 
+        Map<String, String> jobPath =
                 new HashMap<>();
         jobPath.put("groupPath", group);
-        
-        List<Job> jobs = client.callHttpTypeRef(jobsUrl,
-                jobPath, false, RestClient.HTTP_VERB.GET,
-                new TypeReference<List<Job>>()
-                {
-                });
+
+        List<Job> jobs = callHttpWithTypeRefWithoutAuthentication(
+                jobsUrl, jobPath, RestClient.HTTP_VERB.GET,
+                new TypeReference<List<Job>>() {});
 
         enabledJobs = jobs.stream().filter(Job::isEnabled)
                 .collect(Collectors.toList());
