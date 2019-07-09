@@ -9,12 +9,7 @@ import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.bitbucket.Link;
-import org.opendevstack.provision.model.jira.Component;
-import org.opendevstack.provision.model.jira.FullJiraProject;
-import org.opendevstack.provision.model.jira.Permission;
-import org.opendevstack.provision.model.jira.PermissionScheme;
-import org.opendevstack.provision.model.jira.Shortcut;
+import org.opendevstack.provision.model.jira.*;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
@@ -479,24 +474,29 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
     Map<String, String> createdComponents = new HashMap<>();
 
-    Map<String, Map<String, List<Link>>> repositories = data.repositories;
+    Map<String, Map<URL_TYPE, String>> repositories = data.repositories;
     if (repositories != null) {
-      for (Entry<String, Map<String, List<Link>>> repo : repositories.entrySet()) {
-        String href = null;
-        for (Link link : repo.getValue().get("self")) {
-          href = link.getHref();
-          break;
-        }
+      for (Entry<String, Map<URL_TYPE, String>> repo : repositories.entrySet()) {
+        String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
 
         logger.debug("Repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
 
-        Map<String, Map<URL_TYPE, String>> repositories = data.repositories;
-        if (repositories != null)
-        {
-            for (Entry<String, Map<URL_TYPE, String>> repo : repositories
-                    .entrySet())
-            {
-                String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
+        Component component = new Component();
+        component.setName(
+            String.format(
+                "Technology%s", repo.getKey().replace(data.projectKey.toLowerCase(), "")));
+        component.setProject(data.projectKey);
+        component.setDescription(
+            String.format("Technology component %s stored at %s", repo.getKey(), href));
+        try {
+          client.callHttp(path, component, false, RestClient.HTTP_VERB.POST, null);
+          createdComponents.put(component.getName(), component.getDescription());
+        } catch (HttpException httpEx) {
+          String error =
+              String.format(
+                  "Could not create jira component for %s - error %s",
+                  component.getName(), httpEx.getMessage());
+          logger.error(error);
 
           if (httpEx.getResponseCode() == 401) {
             // if you get a 401 here - we can't reach the project, so stop
