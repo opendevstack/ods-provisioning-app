@@ -274,7 +274,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
 
     try {
-
       List<FullJiraProject> projects =
           callRestService(url, null, HTTP_VERB.GET, null,new TypeReference<List<FullJiraProject>>() {});
       return convertJiraProjectToKeyMap(projects);

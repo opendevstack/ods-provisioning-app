@@ -14,6 +14,7 @@
 package org.opendevstack.provision.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
@@ -235,15 +236,17 @@ public class RestClient {
           response.code(), "Could not " + verb + " > " + url + " : " + respBody);
     }
 
+    ObjectMapper objectMapper = new ObjectMapper();
+    //objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     if (returnType == null && returnTypeRef == null) {
       return null;
     } else if (returnType != null) {
       if (returnType.isAssignableFrom(String.class)) {
         return (T) respBody;
       }
-      return (T) new ObjectMapper().readValue(respBody, returnType);
+      return (T) objectMapper.readValue(respBody, returnType);
     } else {
-      return (T) new ObjectMapper().readValue(respBody, returnTypeRef);
+      return (T) objectMapper.readValue(respBody, returnTypeRef);
     }
   }
 
