@@ -237,7 +237,7 @@ public class RestClient {
     }
 
     ObjectMapper objectMapper = new ObjectMapper();
-    //objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     if (returnType == null && returnTypeRef == null) {
       return null;
     } else if (returnType != null) {

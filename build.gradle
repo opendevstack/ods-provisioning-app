@@ -140,7 +140,7 @@ dependencies {
 
     //jsonschema2pojo-grade-plugin
     // Required if generating equals, hashCode, or toString methods
-    compile 'org.apache.commons:commons-lang3:jar:3.9'
+    compile 'commons-lang:commons-lang:2.6'
 
 
     compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
