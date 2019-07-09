@@ -27,6 +27,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -161,7 +162,8 @@ public class ProjectApiController
                         " did not return bugTracker url");
                 
                 // create confluence space
-                newProject = confluenceAdapter
+                newProject.collaborationSpaceUrl = 
+                        confluenceAdapter
                         .createCollaborationSpaceForODSProject(
                                 newProject);
 
@@ -178,6 +180,7 @@ public class ProjectApiController
             // create the delivery chain, including scm repos, and platform project
             newProject = createDeliveryChain(newProject);
 
+            // add shortcuts into the space
             jiraAdapter.addShortcutsToProject(newProject);
 
             // store the project data
@@ -341,9 +344,9 @@ public class ProjectApiController
             OpenProjectData project)
             throws IOException
     {
-        logger.debug("Create delivery chain for: {}, platform? {}, scm {}",
+        logger.debug("Create delivery chain for: {}, platform? {}, create scm: {}",
                 project.projectKey, project.platformRuntime, 
-                project.scmvcsUrl);
+                (project.scmvcsUrl == null ? true : false));
 
         if (!project.platformRuntime)
         {
@@ -352,8 +355,9 @@ public class ProjectApiController
 
         if (project.scmvcsUrl == null)
         {
-            // create a bitbucket project
-            project = bitbucketAdapter.createSCMProjectForODSProject(
+            // create the bugtracker project
+            project.scmvcsUrl = 
+                bitbucketAdapter.createSCMProjectForODSProject(
                     project);
             
             Preconditions.checkNotNull(project.scmvcsUrl,
@@ -361,61 +365,68 @@ public class ProjectApiController
                     " did not return scmvcs url");
             
             // create auxilaries - for design and for the ocp artifacts
-            String[] auxiliaryRepositories = { "occonfig-artifacts",
-                    "design" };
+            String[] auxiliaryRepositories = 
+                { "occonfig-artifacts", "design" };
             
-            int existingRepoCount = 
-                    (project.repositories == null ? 0 : 
-                            project.repositories.size());
-                        
-            project = bitbucketAdapter
+            project.repositories = 
+                    bitbucketAdapter
                     .createAuxiliaryRepositoriesForODSProject(project,
                             auxiliaryRepositories);
-
-            /*
-            Preconditions.checkNotNull(
-                    project.repositories,
-                    bitbucketAdapter.getClass() + 
-                    " did not create aux repositories");
-                    
-            Preconditions.checkState(
-                    project.repositories.size() == 
-                    existingRepoCount + auxiliaryRepositories.length,
-                    bitbucketAdapter.getClass() + 
-                    " did not return created aux repos!");
-            */
             
-            // provision OpenShift project via rundeck
+            // provision platform projects
             project = rundeckAdapter.createPlatformProjects(project);
         }
-
-        // create repositories dependent of the chosen quickstartersers
-        project = bitbucketAdapter
+        
+        int newQuickstarters = 
+                (project.quickstarters == null ? 
+                        0 : project.quickstarters.size());
+        
+        int existingComponentRepos =
+                (project.repositories == null ?
+                        0 : project.repositories.size());
+        
+        // create repositories dependent of the chosen quickstarters
+        project.repositories = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project);
+        
+        logger.debug("New quickstarters {}, existing repos: {}",
+                newQuickstarters, existingComponentRepos);
+        
+        Preconditions.checkState(
+                project.repositories.size() == 
+                existingComponentRepos + newQuickstarters,
+                String.format("Class: %s did not create repositories for %s new quickstarters", 
+                        bitbucketAdapter.getClass(), newQuickstarters));
+        
+        // based on the (changed) repository names, update the 
+        // quickstarters
+        addRepositoryUrlsToQuickstarters(project);
 
         // create jira components from newly created repos
         jiraAdapter.createComponentsForProjectRepositories(project);
 
         // add the long running execution links from the 
-        // IJobExecutionAdapter
+        // IJobExecutionAdapter, so the consumer can track them
         if (project.lastExecutionJobs == null)
         {
             project.lastExecutionJobs = new ArrayList<>();
         }
-        List<ExecutionsData> execs = rundeckAdapter
+        List<ExecutionsData> jobs = rundeckAdapter
                 .provisionComponentsBasedOnQuickstarters(project);
-        for (ExecutionsData exec : execs)
+        for (ExecutionsData singleJob : jobs)
         {
-            project.lastExecutionJobs.add(exec.getPermalink());
+            project.lastExecutionJobs.add(singleJob.getPermalink());
         }
 
         return project;
     }
 
     /**
-     * Get a list with all projects in the system defined by their key
+     * Get a list with all projects in the ODS prov system defined by their key.
+     * In this case the quickstarters {@link OpenProjectData#quickstarters}
+     * contain also the description of the quickstarter that was used
      * @param id the project's key
-     * @return Response with a complete project list
+     * @return Response with a complete project list of {@link OpenProjectData}
      */
     @RequestMapping(method = RequestMethod.GET, value = "/{id}")
     public ResponseEntity<OpenProjectData> getProject(
@@ -429,16 +440,17 @@ public class ProjectApiController
         if (project.quickstarters != null)
         {
             List<Map<String, String>> enhancedStarters = new ArrayList<>();
-            for (Map<String, String> quickstarterser : project.quickstarters)
+            for (Map<String, String> quickstarters : project.quickstarters)
             {
                 Job job = jobStore.getJob(
-                        quickstarterser.get("component_type"));
+                        quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY));
                 if (job != null)
                 {
-                    quickstarterser.put("component_description",
+                    quickstarters.put(
+                            OpenProjectData.COMPONENT_DESC_KEY,
                             job.getDescription());
                 }
-                enhancedStarters.add(quickstarterser);
+                enhancedStarters.add(quickstarters);
             }
             project.quickstarters = enhancedStarters;
         }
@@ -469,7 +481,8 @@ public class ProjectApiController
     }
 
     /**
-     * Get all available (project) template keys
+     * Get all available (project) template keys, which can be used later
+     * in {@link OpenProjectData#projectType}
      * @return a list of available template keys
      */
     @RequestMapping(method = RequestMethod.GET, value = "/templates")
@@ -515,7 +528,8 @@ public class ProjectApiController
     }
 
     /**
-     * Validate the project's key name. Duplicates are not allowed in JIRA.
+     * Validate the project's key name. Duplicates are not allowed in most 
+     * bugtrackers.
      * 
      * @param name the project's name to validate against
      * @return Response with HTTP status. If 406 a project with this key exists in
@@ -561,5 +575,41 @@ public class ProjectApiController
                     99);
         }
     }
+    
+    private void addRepositoryUrlsToQuickstarters
+        (OpenProjectData project)
+    {
+        if (project.quickstarters == null || project.repositories == null) 
+        {
+            return;
+        }
+        
+        for (Map<String, String> option : project.quickstarters)
+        {
+            String projectComponentKey =
+                    option.get(OpenProjectData.COMPONENT_ID_KEY);
+            
+            // recreate the repo name that the scmadapter (hopefully)
+            // also used
+            String repoName = 
+                    bitbucketAdapter.createRepoNameFromComponentName
+                    (project.projectKey, projectComponentKey);
+            
+            logger.debug(String.format(
+                    "Trying to find repo %s in %s", repoName, 
+                    project.repositories.keySet()));
 
+            Map<URL_TYPE, String> repoUrls = 
+                    project.repositories.get(repoName);
+            
+            if (repoUrls == null) 
+            {
+                return;
+            }
+                        
+            option.put("git_url_ssh", repoUrls.get(URL_TYPE.URL_CLONE_SSH));
+            option.put("git_url_http", repoUrls.get(URL_TYPE.URL_CLONE_HTTP));
+        }
+    }
+    
 }

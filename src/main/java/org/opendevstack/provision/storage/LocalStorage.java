@@ -113,12 +113,17 @@ public class LocalStorage implements IStorage
                                 file.getName().substring(0, 14),
                                 formatter);
 
-                        ProjectData temp = MAPPER.readValue(project,
-                                ProjectData.class);
+                        ProjectData temp = null;
+                        
+                        try 
+                        {
+                            temp = MAPPER.readValue(project,
+                                    ProjectData.class);
+                        } catch (Exception MapperEx) {}
 
                         OpenProjectData data = null;
 
-                        if (temp.key != null)
+                        if (temp != null && temp.key != null)
                         {
                             data = ProjectData.toOpenProjectData(
                                     (ProjectData) temp);

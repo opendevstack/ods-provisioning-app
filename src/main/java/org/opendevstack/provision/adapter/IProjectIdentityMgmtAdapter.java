@@ -15,23 +15,12 @@ package org.opendevstack.provision.adapter;
 
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
 
 /**
- * Generic identity mgmt adapter - called to create the necessary ID groups used
- * later in {@link JiraAdapter}, {@link ConfluenceAdapter} and
- * {@link RundeckAdapter}
+ * Generic identity mgmt adapter - called to create the necessary identity groups 
+ * used in {@link IBugtrackerAdapter}, {@link ICollaborationAdapter} and {@link ISCMAdapter}
  * 
- * In case authentication is needed - manager gives you the username and
- * principal the password <code>
- * CrowdUserDetails userDetails =
- *       (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
- * 
- * '@'Autowired
- * CustomAuthenticationManager manager;
- * </code>
+ * In case authentication is needed - use {@link IODSAuthnzAdapter} to get the data
  * 
  * @author utschig
  */
@@ -42,7 +31,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter
      * Verify if a given group exists - in case it's passed down from the initial
      * screen
      * 
-     * @param groupName
+     * @param groupName the name of the group, must not be null
      * @return true in case the group exists otherwise false
      */
     public boolean groupExists(String groupName);
@@ -51,7 +40,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter
      * Verify if a given user exists - in case it's passed down from the initial
      * screen
      * 
-     * @param userName
+     * @param userName the name of the user, must not be null
      * @return true in case the user exists otherwise false
      */
     public boolean userExists(String userName);

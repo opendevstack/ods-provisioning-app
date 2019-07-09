@@ -36,9 +36,9 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.SpaceData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
+import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,10 +84,10 @@ public class ConfluenceAdapterTest
                 .callCreateSpaceApi(any(Space.class));
         when(spaceData.getUrl()).thenReturn("testUrl");
 
-        OpenProjectData createdProject = spyAdapter
+        String createdProjectString = spyAdapter
                 .createCollaborationSpaceForODSProject(project);
 
-        assertEquals("testUrl", createdProject.collaborationSpaceUrl);
+        assertEquals("testUrl", createdProjectString);
     }
 
     @Test

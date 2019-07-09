@@ -125,8 +125,8 @@ public class RundeckAdapterTest
         job.setId(PROJECT_ID);
 
         Map<String, String> testjob = new HashMap<>();
-        testjob.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
-        testjob.put(RundeckAdapter.COMPONENT_TYPE_KEY, COMPONENT_ID);
+        testjob.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
+        testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, COMPONENT_ID);
 
         List<Map<String, String>> quickstart = new ArrayList<>();
 
@@ -318,7 +318,7 @@ public class RundeckAdapterTest
     {
         Execution exec = new Execution();
         Map<String, String> options = new HashMap<>();
-        options.put(RundeckAdapter.COMPONENT_ID_KEY, COMPONENT_ID);
+        options.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
         options.put("group_id",
                 String.format("org.opendevstack.%s", PROJECT_KEY));
         options.put("project_id", PROJECT_KEY);

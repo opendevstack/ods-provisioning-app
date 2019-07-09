@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,9 +39,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.model.Component;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
+import org.opendevstack.provision.model.bitbucket.RepositoryData;
+import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
@@ -376,10 +379,23 @@ public class JiraAdapterTests
                                 "data/repositoryTestData.txt"),
                         reference);
 
+        String repoName = "ai00000001-fe-angular";
+                
+        RepositoryData legacyRepoData =
+                new RepositoryData();
+        legacyRepoData.setName(repoName);
+        legacyRepoData.setLinks(repos.get(repoName));
+        
         JiraAdapter mocked = Mockito.spy(jiraAdapter);
         OpenProjectData apiInput = getTestProject("ai00000001");
         apiInput.projectKey = "ai00000001";
-        apiInput.repositories = repos;
+        
+        Map<String, Map<URL_TYPE, String>> openDataRepo =
+                new HashMap<>();
+        
+        openDataRepo.put(legacyRepoData.getName(), 
+                legacyRepoData.convertRepoToOpenDataProjectRepo());
+        apiInput.repositories = openDataRepo;
 
         Map<String, String> created = mocked
                 .createComponentsForProjectRepositories(apiInput);
@@ -400,7 +416,7 @@ public class JiraAdapterTests
         // test with uppercase projects
         apiInput = getTestProject("Ai00000001");
         apiInput.projectKey = "Ai00000001";
-        apiInput.repositories = repos;
+        apiInput.repositories = openDataRepo;
 
         created = mocked.createComponentsForProjectRepositories(
                 apiInput);
@@ -413,7 +429,6 @@ public class JiraAdapterTests
         created = mocked.createComponentsForProjectRepositories(
                 apiInput);
         assertEquals(0, created.size());
-
     }
 
     private FullJiraProject getReturnProject()

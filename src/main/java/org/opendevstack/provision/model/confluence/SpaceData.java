@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.model;
+package org.opendevstack.provision.model.confluence;
 
 import javax.annotation.Generated;
 
