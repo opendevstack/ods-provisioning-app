@@ -132,22 +132,14 @@ public class RestClient {
     }
   }
 
-  public <T> T callHttpTypeRefWithDirectAuth(
-      String url,
-      Object input,
-      HTTP_VERB verb,
-      TypeReference<T> returnType,
-      String userName,
-      String userPassword)
-      throws HttpException, IOException {
-    return callHttpTypeRefWithDirectAuth(
-        url, input, verb, returnType, Credentials.basic(userName, userPassword));
-  }
+
 
   public <T> T callHttpTypeRefWithDirectAuth(
-      String url, Object input, HTTP_VERB verb, TypeReference<T> returnType, String credentials)
+      String url, Object input, HTTP_VERB verb, Class returnType,TypeReference<T> returnTypeRef, String userName,
+      String userPassword)
       throws IOException {
-    return callHttpInternal(url, input, true, verb, null, returnType, credentials);
+    CredentialsInfo credentials = new CredentialsInfo(userName,userPassword);
+    return callHttpInternal(url, input, true, verb, returnType, returnTypeRef, credentials);
   }
 
   private <T> T callHttpInternal(
@@ -158,7 +150,7 @@ public class RestClient {
       Class returnType,
       TypeReference returnTypeRef)
       throws HttpException, IOException {
-    String credentials = Credentials.basic(manager.getUserName(), manager.getUserPassword());
+    CredentialsInfo credentials = new CredentialsInfo(manager.getUserName(),manager.getUserPassword());
     return callHttpInternal(url, input, directAuth, verb, returnType, returnTypeRef, credentials);
   }
 
@@ -169,7 +161,7 @@ public class RestClient {
       HTTP_VERB verb,
       Class returnType,
       TypeReference returnTypeRef,
-      String credentials)
+      CredentialsInfo credentials)
       throws IOException {
     Preconditions.checkNotNull(url, "Url cannot be null");
     Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
@@ -226,9 +218,9 @@ public class RestClient {
 
     Response response = null;
     if (directAuth) {
-      logger.debug("Authenticating rest call with {}", manager.getUserName());
+      logger.debug("Authenticating rest call with user {}", credentials.getUserName());
 
-      builder = builder.addHeader("Authorization", credentials);
+      builder = builder.addHeader("Authorization", credentials.getCredentials());
       response = getClientFresh(manager.getToken()).newCall(builder.build()).execute();
     } else {
       response =

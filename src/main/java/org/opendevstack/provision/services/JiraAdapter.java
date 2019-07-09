@@ -38,7 +38,7 @@ import java.util.Map.Entry;
  *     https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
-public class JiraAdapter extends BaseAtlassianAdapter implements IBugtrackerAdapter {
+public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(JiraAdapter.class);
 
@@ -276,7 +276,7 @@ public class JiraAdapter extends BaseAtlassianAdapter implements IBugtrackerAdap
     try {
 
       List<FullJiraProject> projects =
-          callRestService(url, null, HTTP_VERB.GET, new TypeReference<List<FullJiraProject>>() {});
+          callRestService(url, null, HTTP_VERB.GET, null,new TypeReference<List<FullJiraProject>>() {});
       return convertJiraProjectToKeyMap(projects);
     } catch (JsonMappingException e) {
       // if for some odd reason serialization fails ...
