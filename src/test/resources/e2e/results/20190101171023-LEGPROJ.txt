@@ -1,0 +1,96 @@
+{
+  "admins" : [ ],
+  "name" : "Legacyproject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "key" : "legproj",
+  "jiraId" : "10848",
+  "tags" : [ ],
+  "quickstart" : [ {
+    "component_type" : "9992a587-959c-4ceb-8e3f-c1390e40c582",
+    "component_id" : "be-python-flask",
+    "git_url_ssh" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-be-python-flask.git",
+    "git_url_http" : "https://cd_user@bitbucket.ods.bb/scm/legproj/legproj-be-python-flask.git",
+    "group_id" : "com.bix-digital.legproj",
+    "project_id" : "legproj",
+    "package_name" : "com.bix_digital.legproj.be_python_flask",
+    "joblink" : "http://rundeck.ods.bb/project/Quickstarters/execution/show/745"
+  }, {
+    "component_type" : "9992a587-959c-4ceb-8e3f-c1390e40c582",
+    "component_id" : "logviewer",
+    "git_url_http" : "https://cd_user@bitbucket.ods.bb/scm/legproj/legproj-firewall-logviewer.git",
+    "git_url_ssh" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-firewall-logviewer.git",
+    "group_id" : "com.bix-digital.legproj",
+    "project_id" : "legproj",
+    "package_name" : "com.bix_digital.legproj.firewall_logviewer",
+    "joblink" : "http://rundeck.ods.bb/project/Quickstarters/execution/show/761"
+  } ],
+  "jiraconfluencespace" : true,
+  "openshiftproject" : true,
+  "jiraUrl" : "https://jira.ods.bb/browse/legproj",
+  "confluenceUrl" : "https://confluence.ods.bb/display/legproj",
+  "bitbucketUrl" : "https://bitbucket.ods.bb/projects/legproj",
+  "repositories" : {
+    "legproj-occonfig-artifacts" : {
+      "clone" : [ {
+        "name" : "ssh",
+        "href" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-occonfig-artifacts.git"
+      }, {
+        "name" : "http",
+        "href" : "https://bitbucket.ods.bb/scm/legproj/legproj-occonfig-artifacts.git"
+      } ],
+      "self" : [ {
+        "name" : null,
+        "href" : "https://bitbucket.ods.bb/projects/legproj/repos/legproj-occonfig-artifacts/browse"
+      } ]
+    },
+    "legproj-design" : {
+      "clone" : [ {
+        "name" : "http",
+        "href" : "https://bitbucket.ods.bb/scm/legproj/legproj-design.git"
+      }, {
+        "name" : "ssh",
+        "href" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-design.git"
+      } ],
+      "self" : [ {
+        "name" : null,
+        "href" : "https://bitbucket.ods.bb/projects/legproj/repos/legproj-design/browse"
+      } ]
+    },
+    "legproj-be-python-flask" : {
+      "clone" : [ {
+        "name" : "ssh",
+        "href" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-be-python-flask.git"
+      }, {
+        "name" : "http",
+        "href" : "https://bitbucket.ods.bb/scm/legproj/legproj-be-python-flask.git"
+      } ],
+      "self" : [ {
+        "name" : null,
+        "href" : "https://bitbucket.ods.bb/projects/legproj/repos/legproj-be-python-flask/browse"
+      } ]
+    },
+    "legproj-firewall-logviewer" : {
+      "clone" : [ {
+        "name" : "http",
+        "href" : "https://bitbucket.ods.bb/scm/legproj/legproj-firewall-logviewer.git"
+      }, {
+        "name" : "ssh",
+        "href" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-firewall-logviewer.git"
+      } ],
+      "self" : [ {
+        "name" : null,
+        "href" : "https://bitbucket.ods.bb/projects/legproj/repos/legproj-firewall-logviewer/browse"
+      } ]
+    }
+  },
+  "openshiftJenkinsUrl" : "https://jenkins-legproj-cd.192.168.56.101.nip.io",
+  "openshiftConsoleDevEnvUrl" : "https://192.168.56.101.nip.io/console/project/legproj-dev",
+  "openshiftConsoleTestEnvUrl" : "https://192.168.56.101.nip.io/console/project/legproj-test",
+  "adminGroup" : "BI-AS-ATLASSIAN-P-legproj-MANAGER",
+  "userGroup" : "BI-AS-ATLASSIAN-P-legproj-TEAM",
+  "admin" : "clemens",
+  "readonlyGroup" : "BI-AS-ATLASSIAN-P-legproj-STAKEHOLDER",
+  "createpermissionset" : true,
+  "lastJobs" : [ "http://rundeck.ods.bb/project/Quickstarters/execution/show/723" ],
+  "projectType" : "default"
+}

@@ -1,0 +1,66 @@
+{
+	"admins": [
+	],
+	"name": "TestProject",
+	"description": "Environment to learn Openshift and Bitbucket.",
+	"key": "TestP",
+	"jiraId": "10848",
+	"tags": [
+	],
+	"quickstart": null,
+	"jiraconfluencespace": true,
+	"openshiftproject": true,
+	"jiraUrl": "https://jira.ods.bb/browse/TestP",
+	"confluenceUrl": "https://confluence.ods.bb/display/TestP",
+	"bitbucketUrl": "https://bitbucket.ods.bb/projects/TestP",
+	"repositories": {
+		"testp-occonfig-artifacts": {
+			"clone": [
+				{
+					"name": "ssh",
+					"href": "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git"
+				},
+				{
+					"name": "http",
+					"href": "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git"
+				}
+			],
+			"self": [
+				{
+					"name": null,
+					"href": "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+				}
+			]
+		},
+		"testp-design": {
+			"clone": [
+				{
+					"name": "http",
+					"href": "https://bitbucket.ods.bb/scm/testp/testp-design.git"
+				},
+				{
+					"name": "ssh",
+					"href": "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git"
+				}
+			],
+			"self": [
+				{
+					"name": null,
+					"href": "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+				}
+			]
+		}
+	},
+	"openshiftJenkinsUrl": "https://jenkins-testp-cd.192.168.56.101.nip.io",
+	"openshiftConsoleDevEnvUrl": "https://192.168.56.101.nip.io/console/project/testp-dev",
+	"openshiftConsoleTestEnvUrl": "https://192.168.56.101.nip.io/console/project/testp-test",
+	"adminGroup": "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+	"userGroup": "BI-AS-ATLASSIAN-P-TestP-TEAM",
+	"admin": "clemens",
+	"readonlyGroup": "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+	"createpermissionset": true,
+	"lastJobs": [
+		"http://rundeck.ods.bb/project/Quickstarters/execution/show/723"
+	],
+	"projectType": "default"
+}

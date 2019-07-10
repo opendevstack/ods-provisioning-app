@@ -1,0 +1,1 @@
+{"id":306,"name":"Jenkins","createdDate":1560885611460,"updatedDate":1560885611460,"events":["repo:refs_changed","pr:merged","pr:declined"],"configuration":{},"url":"https://webhook-proxy-testp-cd.192.168.56.101.nip.io?trigger_secret=lkjsd99","active":true}
