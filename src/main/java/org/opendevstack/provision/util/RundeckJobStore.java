@@ -79,4 +79,15 @@ public class RundeckJobStore
         }
         return jobList;
     }
+    
+    @Override
+    public String toString() 
+    {
+        return jobs.keySet().toString(); 
+    }
+    
+    public int size () 
+    {
+        return jobs.size();
+    }
 }

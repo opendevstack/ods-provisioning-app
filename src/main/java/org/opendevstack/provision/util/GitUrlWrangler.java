@@ -37,6 +37,9 @@ public class GitUrlWrangler
     public String buildGitUrl(String username, String technicalUser,
             String cloneURL) throws UnsupportedEncodingException
     {
+        if (username == null) {
+            return cloneURL;
+        }
         String result = cloneURL;
         if (cloneURL.startsWith("http"))
         {

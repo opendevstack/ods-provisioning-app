@@ -148,7 +148,7 @@ public class ProjectApiController
                 {
                     {
                         throw new IOException(String.format(
-                                "Project with key (%s) already exists: {}",
+                                "Project with key (%s) already exists: (%s)",
                                 newProject.projectKey, projectLoad.projectKey));
                     }
                 }
@@ -171,7 +171,7 @@ public class ProjectApiController
                         confluenceAdapter.getClass() + 
                         " did not return collabSpace url");
                 
-                logger.debug("Updated project: {}",
+                logger.debug("Updated project with collaboration information:\n {}",
                         new ObjectMapper().writer()
                                 .withDefaultPrettyPrinter()
                                 .writeValueAsString(newProject));
@@ -301,8 +301,13 @@ public class ProjectApiController
                     && (updatedProject.repositories != null))
             {
                 storedExistingProject.repositories.putAll(updatedProject.repositories);
+            } else if (updatedProject.repositories != null) {
+                storedExistingProject.repositories = storedExistingProject.repositories;
             }
             
+            // add the new executions - so people can track what's going on
+            storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
+
             // store the updated project
             if (storage.updateStoredProject(storedExistingProject))
             {
@@ -312,8 +317,6 @@ public class ProjectApiController
             // notify user via mail of project updates with embedding links
             mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
-            // add the executions - so people can track what's going on
-            storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
             return ResponseEntity.ok().body(storedExistingProject);
         } catch (Exception ex)
         {
@@ -386,17 +389,28 @@ public class ProjectApiController
                         0 : project.repositories.size());
         
         // create repositories dependent of the chosen quickstarters
-        project.repositories = bitbucketAdapter
+        Map<String, Map<URL_TYPE, String>> newComponentRepos = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project);
+        if (newComponentRepos != null)
+        {
+            if (project.repositories != null) 
+            {
+                project.repositories.putAll(newComponentRepos);
+            } else {
+                project.repositories = newComponentRepos;
+            }
+        }
         
-        logger.debug("New quickstarters {}, existing repos: {}",
-                newQuickstarters, existingComponentRepos);
+        logger.debug("New quickstarters {}, existing repos: {}, new repos; {}",
+                newQuickstarters, existingComponentRepos, 
+                project.repositories.size());
         
         Preconditions.checkState(
                 project.repositories.size() == 
                 existingComponentRepos + newQuickstarters,
-                String.format("Class: %s did not create repositories for %s new quickstarters", 
-                        bitbucketAdapter.getClass(), newQuickstarters));
+                String.format("Class: %s did not create %s new repositories "
+                        + "for new quickstarters, existing repos: %s", 
+                        bitbucketAdapter.getClass(), newQuickstarters, existingComponentRepos));
         
         // based on the (changed) repository names, update the 
         // quickstarters
@@ -413,6 +427,8 @@ public class ProjectApiController
         }
         List<ExecutionsData> jobs = rundeckAdapter
                 .provisionComponentsBasedOnQuickstarters(project);
+        logger.debug("New executions: {}", jobs.size());
+        
         for (ExecutionsData singleJob : jobs)
         {
             project.lastExecutionJobs.add(singleJob.getPermalink());
@@ -581,11 +597,14 @@ public class ProjectApiController
     {
         if (project.quickstarters == null || project.repositories == null) 
         {
+            logger.debug("NOthing to do on project {}", project.projectKey);
             return;
         }
         
         for (Map<String, String> option : project.quickstarters)
         {
+            logger.debug("options: " + option);
+            
             String projectComponentKey =
                     option.get(OpenProjectData.COMPONENT_ID_KEY);
             

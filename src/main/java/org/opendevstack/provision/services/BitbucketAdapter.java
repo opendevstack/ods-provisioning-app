@@ -110,8 +110,6 @@ public class BitbucketAdapter implements ISCMAdapter
             OpenProjectData project)
             throws IOException
     {
-        List<Map<String, String>> newOptions = new ArrayList<>();
-        
         Map<String, Map<URL_TYPE, String>> createdRepositories 
             = new HashMap<>();
         
@@ -190,7 +188,6 @@ public class BitbucketAdapter implements ISCMAdapter
                 }
                 createdRepositories.put(repoName, componentRepository);
             }
-            project.quickstarters = newOptions;
         }
         
         return createdRepositories;
@@ -205,8 +202,8 @@ public class BitbucketAdapter implements ISCMAdapter
         for (String name : auxiliaryRepos)
         {
             Repository repo = new Repository();
-            String repoName = String.format("%s-%s",
-                    project.projectKey.toLowerCase(), name);
+            String repoName = createRepoNameFromComponentName(
+                    project.projectKey, name);
             repo.setName(repoName);
 
             if (project.specialPermissionSet)
@@ -315,6 +312,15 @@ public class BitbucketAdapter implements ISCMAdapter
         RepositoryData data = client.callHttp(path, repo,
                 false, RestClient.HTTP_VERB.POST,
                 RepositoryData.class);
+        
+        if (data == null) 
+        {
+            throw new IOException(
+                    String.format(
+                            "Repo %s, for project %s could not be created"
+                            + " - no response from endpoint, please check logs",
+                    repo.getName(), projectKey));
+        }
 
         setRepositoryPermissions(data, projectKey, ID_GROUPS,
                 repo.getUserGroup());

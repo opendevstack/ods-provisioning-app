@@ -125,14 +125,30 @@ public class RundeckAdapter implements IJobExecutionAdapter
         authenticate();
 
         List<ExecutionsData> executionList = new ArrayList<>();
+        
+        if (jobStore.size() == 0) 
+        {
+            jobStore.addJobs(getJobs(projectOpenshiftGroup));
+        }
+        
         if (project.quickstarters != null)
         {
             for (Map<String, String> options : project.quickstarters)
             {
+                String jobId = options.get(
+                        OpenProjectData.COMPONENT_TYPE_KEY);
+                String jobName = options.get(
+                        OpenProjectData.COMPONENT_ID_KEY);
+                
                 Job job = jobStore
-                        .getJob(options.get(
-                                OpenProjectData.COMPONENT_TYPE_KEY));
-
+                        .getJob(jobId);
+                
+                if (job == null) {
+                    throw new IOException(
+                            String.format("Cannot find job %s with id: %s, jobs: %s",
+                                    jobName, jobId, jobStore.toString()));
+                }
+                
                 String url = String.format("%s%s/job/%s/run",
                         rundeckUri, rundeckApiPath, job.getId());
                 String groupId = String
