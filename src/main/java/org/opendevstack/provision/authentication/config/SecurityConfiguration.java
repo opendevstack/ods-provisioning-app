@@ -70,8 +70,7 @@ import net.sf.ehcache.CacheManager;
 @EnableEncryptableProperties
 @ConditionalOnProperty(
         name = "provision.auth.provider",
-        havingValue = "crowd",
-        matchIfMissing = false)
+        havingValue = "crowd")
 public class SecurityConfiguration
         extends WebSecurityConfigurerAdapter
 {

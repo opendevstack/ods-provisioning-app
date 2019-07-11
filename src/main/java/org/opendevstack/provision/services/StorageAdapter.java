@@ -54,7 +54,7 @@ public class StorageAdapter
                 .listProjectHistory();
         Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
-        Collection<GrantedAuthority> authorities = authManager.getAuthorities();
+        Collection<? extends GrantedAuthority> authorities = authManager.getAuthorities();
         logger.debug("User: {} \n {}", authManager.getUserName(),
                 authorities);
 

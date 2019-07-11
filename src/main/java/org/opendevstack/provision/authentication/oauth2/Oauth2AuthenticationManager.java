@@ -1,4 +1,4 @@
-package org.opendevstack.provision.authentication.keycloak;
+package org.opendevstack.provision.authentication.oauth2;
 
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Component("provisioningAppAuthenticationManager")
-@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "keycloak")
-public class KeycloakAuthenticationManager implements IODSAuthnzAdapter {
+@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
+public class Oauth2AuthenticationManager implements IODSAuthnzAdapter  {
 
   @Autowired private SessionAwarePasswordHolder userPassword;
 
@@ -43,14 +44,14 @@ public class KeycloakAuthenticationManager implements IODSAuthnzAdapter {
   }
 
   /** @see IODSAuthnzAdapter#getAuthorities() */
-  public Collection<GrantedAuthority> getAuthorities() {
+  public Collection<? extends GrantedAuthority> getAuthorities() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     if (auth == null) {
       return new ArrayList<>();
     }
 
-    User userDetails = (User) auth.getPrincipal();
+    DefaultOAuth2User userDetails = (DefaultOAuth2User) auth.getPrincipal();
 
     return userDetails.getAuthorities();
   }
@@ -120,7 +121,7 @@ public class KeycloakAuthenticationManager implements IODSAuthnzAdapter {
 
   @Override
   public String addGroup(String groupName) throws IdMgmtException {
-    throw new IdMgmtException("Feature 'adding group/role to keycloak' is not implemented");
+    throw new IdMgmtException("Feature 'adding group/role to OAuth 2' is not implemented");
   }
 
   @Override

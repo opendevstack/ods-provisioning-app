@@ -49,7 +49,7 @@ public interface IODSAuthnzAdapter
      * Get all granted authorities of the current user
      * @return granted authorities, never null
      */
-    public Collection<GrantedAuthority> getAuthorities ();
+    public Collection<? extends GrantedAuthority> getAuthorities ();
 
     /**
      * Get the currently logged' in user's email 

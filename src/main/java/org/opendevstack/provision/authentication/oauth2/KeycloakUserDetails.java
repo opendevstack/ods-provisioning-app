@@ -1,4 +1,4 @@
-package org.opendevstack.provision.authentication.keycloak;
+package org.opendevstack.provision.authentication.oauth2;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;

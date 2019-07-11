@@ -14,9 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -27,6 +25,7 @@ import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -116,8 +115,8 @@ public class DefaultController
 
     @RequestMapping("/login")
     public String login(Model model) {
-        if (isAuthProviderKeycloak()) {
-            return "keycloakLogin";
+        if (isAuthProviderOauth2()) {
+            return "oauth2Login";//direkt zu keycloak weiterleiten?
         }
         return "crowdLogin";
 
@@ -143,6 +142,8 @@ public class DefaultController
         {
             return LOGIN_REDIRECT;
         }
+        final Set<String> userRoles = getUserRoles();
+
         model.addAttribute("classActiveAbout", ACTIVE);
         model.addAttribute("aboutChanges",
                 storageAdapter.listAboutChangesData().aboutDataList);
@@ -164,6 +165,18 @@ public class DefaultController
         return "about";
     }
 
+    public static Set<String> getUserRoles() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
+        Set<String> roles = new HashSet<>();
+
+        if (null != authentication) {
+            authentication.getAuthorities()
+                    .forEach(e -> roles.add(e.getAuthority()));
+        }
+        return roles;
+    }
+    
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public String logoutPage()
     {
@@ -178,12 +191,10 @@ public class DefaultController
 
     private boolean isAuthenticated()
     {
-        //return (manager.getUserPassword() != null);
-        if (isAuthProviderKeycloak()) {
+        if (isAuthProviderOauth2()) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            boolean authenticated = authentication.isAuthenticated();
 
-            return authenticated;
+            return authentication.isAuthenticated();
         }
         return (manager.getUserPassword() != null);
     }
@@ -219,7 +230,7 @@ public class DefaultController
         this.bitbucketAdapter = bitbucketAdapter;
     }
 
-    private boolean isAuthProviderKeycloak() {
-        return authProvider.equals("keycloak");
+    private boolean isAuthProviderOauth2() {
+        return authProvider.equals("oauth2");
     }
 }

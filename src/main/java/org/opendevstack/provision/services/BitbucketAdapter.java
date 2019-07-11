@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 /**
  * Service to interact with Bitbucket and to create projects and repositories
  *
- * @author Brokmeier, Pascal´
+ * @author Brokmeier, Pascal
  * @author utschig 
  */
 @Service
