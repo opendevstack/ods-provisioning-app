@@ -28,6 +28,8 @@ import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
+import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -195,14 +197,23 @@ public class ProjectApiController
             mailAdapter.notifyUsersAboutProject(newProject);
 
             return ResponseEntity.ok().body(newProject);
-        } catch (Exception ex)
+        } catch (Exception exProvisionNew)
         {
-            logger.error(
-                    "An error occured while provisioning project:",
-                    ex);
+            Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
+                    cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
+            
+            String error = (cleanupResults.size() == 0) ?
+                    String.format("An error occured while creating project %s, reason %s"
+                            + " - but all cleaned up!", 
+                            newProject.projectKey, exProvisionNew.getMessage()) :
+                    String.format("An error occured while creating project %s, reason %s"
+                            + " - cleanup attempted, but [%s] components are still there!", 
+                            newProject.projectKey, exProvisionNew.getMessage(),
+                            cleanupResults);
+                                
+            logger.error(error);
             return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ex.getMessage());
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         } finally
         {
             client.removeClient(manager.getToken());
@@ -318,13 +329,24 @@ public class ProjectApiController
             mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
             return ResponseEntity.ok().body(storedExistingProject);
-        } catch (Exception ex)
+        } catch (Exception exProvision)
         {
-            logger.error("An error occured while updating project: "
-                    + updatedProject.projectKey, ex);
+            Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
+                    cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, updatedProject);
+            
+            String error = (cleanupResults.size() == 0) ?
+                    String.format("An error occured while updating project %s, reason %s"
+                            + " - but all cleaned up!", 
+                            updatedProject.projectKey, exProvision.getMessage()) :
+                    String.format("An error occured while updating project %s, reason %s"
+                            + " - cleanup attempted, but [%s] components are still there!", 
+                            updatedProject.projectKey, exProvision.getMessage(),
+                            cleanupResults);
+                                
+            logger.error(error);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ex.getMessage());
+                    .body(error);
         } finally
         {
             client.removeClient(manager.getToken());
@@ -631,4 +653,33 @@ public class ProjectApiController
         }
     }
     
+    /**
+     * In case something breaks during provisioniong, this method is called 
+     * @param stage the lifecycle stage
+     * @param project the project including any created information
+     */
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
+            OpenProjectData project)
+    {
+        logger.debug("Errors occured - starting cleanup of project {} in phase {}", 
+                project.projectKey, stage);
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents
+            = new HashMap<>();
+        
+        notCleanedUpComponents.putAll(
+                bitbucketAdapter.cleanup(stage, project));
+        
+        notCleanedUpComponents.putAll(
+                confluenceAdapter.cleanup(stage, project));
+        
+        notCleanedUpComponents.putAll(
+                jiraAdapter.cleanup(stage, project));
+        
+        logger.debug("Overall cleanup status of project: {} components left",
+                notCleanedUpComponents.size() ==  0 ? 0 :
+                    notCleanedUpComponents);
+        
+        return notCleanedUpComponents;
+    }
 }

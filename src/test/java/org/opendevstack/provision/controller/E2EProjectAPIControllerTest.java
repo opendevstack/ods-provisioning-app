@@ -27,7 +27,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.contains;
@@ -43,6 +42,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.matchers.And;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -64,11 +64,13 @@ import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -166,9 +168,29 @@ public class E2EProjectAPIControllerTest
                     fresult.getName(), fresult.delete());
         }
     }
-    
+   
+    /**
+     * Test positive - e2e new project - no quickstarters
+     */
     @Test
     public void testProvisionNewSimpleProjectE2E() throws Exception
+    {
+        testProvisionNewSimpleProjectInternal(false);
+    }
+
+    /**
+     * Test negative - e2e new project - no quickstarters,
+     * rollback any external changes - bugtracker, scm,...
+     */
+    @Test
+    public void testProvisionNewSimpleProjectE2EFail() throws Exception
+    {
+        cleanUp();
+        testProvisionNewSimpleProjectInternal(true);
+    }
+
+    public void testProvisionNewSimpleProjectInternal(boolean fail) 
+            throws Exception
     {
         // read the request
         OpenProjectData data =
@@ -281,12 +303,26 @@ public class E2EProjectAPIControllerTest
                 readTestDataTypeRef("rundeck-get-jobs-response",
                         new TypeReference<List<Job>>(){});
         
-        Mockito.when(mockRestClient.callHttpTypeRef(
-                contains(realRundeckAdapter.getAdapterApiUri() + "/project/"),
-                anyMap(), anyBoolean(), 
-                eq(RestClient.HTTP_VERB.GET),
-                any())).
-            thenReturn(jobList);
+        // will cause cleanup
+        String rundeckUrl = 
+                realRundeckAdapter.getAdapterApiUri() + "/project/";
+        if (fail)
+        {
+            Mockito.when(mockRestClient.callHttpTypeRef(
+                    contains(rundeckUrl),
+                    anyMap(), anyBoolean(), 
+                    eq(RestClient.HTTP_VERB.GET),
+                    any())).
+                thenThrow(new IOException("Rundeck TestFail"));
+        } else 
+        {
+            Mockito.when(mockRestClient.callHttpTypeRef(
+                    contains(rundeckUrl),
+                    anyMap(), anyBoolean(), 
+                    eq(RestClient.HTTP_VERB.GET),
+                    any())).
+                thenReturn(jobList);
+        }
         
         // rundeck create-projects job execution
         ExecutionsData execution = 
@@ -308,9 +344,40 @@ public class E2EProjectAPIControllerTest
                                 ProjectApiControllerTest.asJsonString(data))
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
                     .andDo(MockMvcResultHandlers.print()).andReturn();
-        
+
+        if (!fail) 
+        {
+            assertEquals(
+                    MockHttpServletResponse.SC_OK,
+                    resultProjectCreationResponse.getResponse().getStatus());
+        } else
+        {
+            assertEquals(
+                    MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    resultProjectCreationResponse.getResponse().getStatus());
+
+            Mockito.verify(mockRestClient, times(5)).callHttp(anyString(),
+                eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+
+            // delete jira project
+            Mockito.verify(mockRestClient, times(1)).callHttp(
+                    contains(realJiraAdapter.getAdapterApiUri()),
+                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+
+            // delete confluence space
+            Mockito.verify(mockRestClient, times(1)).callHttp(
+                    contains(realConfluenceAdapter.getAdapterApiUri()),
+                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+
+            // delete repos and bitbucket project
+            Mockito.verify(mockRestClient, times(3)).callHttp(
+                    contains(realBitbucketAdapter.getAdapterApiUri()),
+                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+
+            return;
+        }
+            
         // get the project thru its key
         MvcResult resultProjectGetResponse = 
                 mockMvc.perform(
@@ -344,13 +411,28 @@ public class E2EProjectAPIControllerTest
     }
 
 
+    /**
+     * Test positive new quickstarter
+     */
     @Test
-    public void testQuickstarterProvisionOnNewOpenProject () throws Exception 
+    public void testQuickstarterProvisionOnNewOpenProject ()
+            throws Exception 
     {
-        testQuickstarterProvisionConfigurable(null);
+        testQuickstarterProvisionOnNewOpenProject(false);
     }
-    
-    public void testQuickstarterProvisionConfigurable (String projectKey) throws Exception 
+
+    /**
+     * Test NEGATIVE new quickstarter - rollback ONE created repo
+     */
+    @Test
+    public void testQuickstarterProvisionOnNewOpenProjectFail ()
+            throws Exception 
+    {
+        testQuickstarterProvisionOnNewOpenProject(true);
+    }
+
+    public void testQuickstarterProvisionOnNewOpenProject (boolean fail) 
+            throws Exception 
     {
         // read the request
         OpenProjectData dataUpdate =
@@ -401,13 +483,24 @@ public class E2EProjectAPIControllerTest
                 readTestData("rundeck-create-python-qs-response", 
                         ExecutionsData.class);
         
-        Mockito.when(mockRestClient.callHttp(
-                contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
-                any(Execution.class),
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST),
-                eq(ExecutionsData.class))).
-            thenReturn(execution);
+        if (!fail) 
+        {
+            Mockito.when(mockRestClient.callHttp(
+                    contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+                    any(Execution.class),
+                    anyBoolean(),
+                    eq(RestClient.HTTP_VERB.POST),
+                    eq(ExecutionsData.class))).
+                thenReturn(execution);
+        } else {
+            Mockito.when(mockRestClient.callHttp(
+                    contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+                    any(Execution.class),
+                    anyBoolean(),
+                    eq(RestClient.HTTP_VERB.POST),
+                    eq(ExecutionsData.class))).
+                thenThrow(new IOException("Rundeck provision job failed"));
+        }
         
         // update the project with the new quickstarter
         MvcResult resultUpdateResponse = 
@@ -416,9 +509,26 @@ public class E2EProjectAPIControllerTest
                      ProjectApiControllerTest.asJsonString(dataUpdate))
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(MockMvcResultMatchers.status().isOk())
                     .andDo(MockMvcResultHandlers.print()).andReturn();
 
+        if (fail) {
+            assertEquals(
+                    MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    resultUpdateResponse.getResponse().getStatus());
+
+            // delete repos and bitbucket project
+            Mockito.verify(mockRestClient, times(1)).callHttp(
+                    contains(realBitbucketAdapter.getAdapterApiUri()),
+                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+
+            return;
+        } else 
+        {
+            assertEquals(
+                    MockHttpServletResponse.SC_OK,
+                    resultUpdateResponse.getResponse().getStatus());
+        }
+        
         // get the inlined body result
         String resultUpdateData =
                 resultUpdateResponse.getResponse().
@@ -441,6 +551,9 @@ public class E2EProjectAPIControllerTest
                 resultProject.lastExecutionJobs.iterator().next());
     }
 
+    /**
+     * Test legacy upgrade e2e
+     */
     @Test
     public void testLegacyProjectUpgradeOnGet () 
             throws Exception 
@@ -469,6 +582,10 @@ public class E2EProjectAPIControllerTest
                 quickstarters.size());        
     }
 
+    /*
+     * internal test helpers
+     */
+    
     private <T> T readTestData(String name, Class<T> returnType) 
             throws Exception
     {

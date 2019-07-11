@@ -19,6 +19,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
+import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -185,9 +187,11 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     {
                         options.put("joblink", data.getPermalink());
                     }
-                } catch (IOException ex)
+                } catch (Exception rundeckException)
                 {
-                    logger.error("Error in running jobs", ex);
+                    logger.error("Error starting job {} - details {}",
+                            jobName, rundeckException);
+                    throw rundeckException;
                 }
             }
         }
@@ -327,6 +331,13 @@ public class RundeckAdapter implements IJobExecutionAdapter
     public String getAdapterApiUri()
     {
         return rundeckUri + rundeckApiPath;
+    }
+
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        return new HashMap<>();
     }
 
 }

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
@@ -36,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -403,5 +406,90 @@ public class BitbucketAdapter implements ISCMAdapter
                 componentName).toLowerCase()
                         .replace('_', '-');
     }
-    
+
+
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        Preconditions.checkNotNull(stage);
+        Preconditions.checkNotNull(project);
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                new HashMap<>();
+
+        if (project.repositories == null || 
+                project.repositories.size() == 0) 
+        {
+            logger.debug("Project {} not affected from cleanup",
+                    project.projectKey);
+            return leftovers;
+        }
+        
+        Set<String> repositoryNames =
+                project.repositories.keySet();
+        
+        logger.debug("Cleanup of {} scm repositories",
+                repositoryNames);
+        
+        int failedRepoCleanup = 0;
+        
+        for (String repoName : repositoryNames)
+        {
+            try 
+            {
+                String repoPath = 
+                        String.format("%s/projects/%s/repos/%s", 
+                                getAdapterApiUri(),
+                                project.projectKey,
+                                repoName);
+                client.callHttp(repoPath, null,
+                        false, RestClient.HTTP_VERB.DELETE,
+                        null);                
+                logger.debug("Removed scm repo {}",
+                        repoName);
+            } catch (Exception eCreateRepo) 
+            {
+                logger.debug("Could not remove repo {}, error {}",
+                        repoName, eCreateRepo.getMessage());
+                failedRepoCleanup++;
+            }
+        }
+        if (failedRepoCleanup > 0)
+        {
+            leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.SCM_REPO,
+                    failedRepoCleanup);
+        }
+        if (stage.equals(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION)) {
+            return leftovers;
+        }
+        
+        logger.debug("Starting scm project cleanup with url {}",
+                project.scmvcsUrl);
+
+        String projectPath = 
+                String.format("%s/projects/%s", 
+                        getAdapterApiUri(),
+                        project.projectKey);
+        
+        try 
+        {
+            client.callHttp(projectPath, null,
+                    false, RestClient.HTTP_VERB.DELETE,
+                    null);
+        } catch (Exception eProjectDelete) 
+        {
+            logger.debug("Could not remove project {}, error {}",
+                    project.projectKey, eProjectDelete.getMessage());
+            leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.SCM_PROJECT, 1);
+        }
+        
+        project.scmvcsUrl = null;
+        
+        logger.debug("Cleanup done - status: {} components are left ..", 
+                leftovers.size() == 0 ? 0 : leftovers);
+        
+        return leftovers;
+    }
+
 }
