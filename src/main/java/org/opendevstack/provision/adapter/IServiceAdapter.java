@@ -45,7 +45,7 @@ public interface IServiceAdapter
     public static enum CLEANUP_LEFTOVER_COMPONENTS
     {
         COLLABORATION_SPACE, BUGTRACKER_PROJECT,
-        SCM_PROJECT, SCM_REPO
+        SCM_PROJECT, SCM_REPO, QUICKSTARTER_JOBS
     }
     /**
      * Project template key enum

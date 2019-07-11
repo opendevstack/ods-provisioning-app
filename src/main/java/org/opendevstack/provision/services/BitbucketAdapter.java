@@ -460,7 +460,12 @@ public class BitbucketAdapter implements ISCMAdapter
             leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.SCM_REPO,
                     failedRepoCleanup);
         }
-        if (stage.equals(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION)) {
+        if (stage.equals(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION)) 
+        {
+            logger.debug("Cleanup of repos done - status: {} "
+                    + "components are left ..", 
+                    leftovers.size() == 0 ? 0 : leftovers);
+            
             return leftovers;
         }
         

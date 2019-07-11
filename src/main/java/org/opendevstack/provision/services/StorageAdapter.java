@@ -55,14 +55,14 @@ public class StorageAdapter
         Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
         Collection<GrantedAuthority> authorities = authManager.getAuthorities();
-        logger.debug("User: {} \n {}", authManager.getUserName(),
+        logger.debug("User: {} Authorities: {}", authManager.getUserName(),
                 authorities);
 
         for (Map.Entry<String, OpenProjectData> project : allProjects
                 .entrySet())
         {
             OpenProjectData projectData = project.getValue();
-            logger.debug("Project: {} groups: {},{} > {}",
+            logger.debug("Project: {} groups: {},{} - permissioned? {}",
                     projectData.projectKey, projectData.projectAdminGroup,
                     projectData.projectUserGroup,
                     projectData.specialPermissionSet);
@@ -89,11 +89,6 @@ public class StorageAdapter
         }
 
         return filteredProjects;
-    }
-
-    public OpenProjectData getProject(String key)
-    {
-        return storage.getProject(key);
     }
 
     public AboutChangesData listAboutChangesData()

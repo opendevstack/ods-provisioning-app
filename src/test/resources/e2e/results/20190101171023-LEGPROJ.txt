@@ -90,7 +90,7 @@
   "userGroup" : "BI-AS-ATLASSIAN-P-legproj-TEAM",
   "admin" : "clemens",
   "readonlyGroup" : "BI-AS-ATLASSIAN-P-legproj-STAKEHOLDER",
-  "createpermissionset" : true,
+  "createpermissionset" : false,
   "lastJobs" : [ "http://rundeck.ods.bb/project/Quickstarters/execution/show/723" ],
   "projectType" : "default"
 }

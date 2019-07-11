@@ -15,6 +15,7 @@
 package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -139,7 +140,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
             {
                 String jobId = options.get(
                         OpenProjectData.COMPONENT_TYPE_KEY);
-                String jobName = options.get(
+                String quickstarterName = options.get(
                         OpenProjectData.COMPONENT_ID_KEY);
                 
                 Job job = jobStore
@@ -147,8 +148,9 @@ public class RundeckAdapter implements IJobExecutionAdapter
                 
                 if (job == null) {
                     throw new IOException(
-                            String.format("Cannot find job %s with id: %s, jobs: %s",
-                                    jobName, jobId, jobStore.toString()));
+                            String.format("Cannot find job with id: %s, jobs: %s"
+                                    + " to provision quickstarter {}",
+                                    jobId, jobStore.toString(), quickstarterName));
                 }
                 
                 String url = String.format("%s%s/job/%s/run",
@@ -178,8 +180,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     if (data.getError())
                     {
                         throw new IOException(
-                                "Could not provision component: "
-                                        + data.getMessage());
+                                data.getMessage());
                     }
 
                     executionList.add(data);
@@ -189,8 +190,8 @@ public class RundeckAdapter implements IJobExecutionAdapter
                     }
                 } catch (Exception rundeckException)
                 {
-                    logger.error("Error starting job {} - details {}",
-                            jobName, rundeckException);
+                    logger.error("Error starting job for quickstarter {} - details:",
+                            quickstarterName, rundeckException);
                     throw rundeckException;
                 }
             }
@@ -337,7 +338,98 @@ public class RundeckAdapter implements IJobExecutionAdapter
     public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
         (LIFECYCLE_STAGE stage, OpenProjectData project)
     {
-        return new HashMap<>();
+        Preconditions.checkNotNull(stage);
+        Preconditions.checkNotNull(project);
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                new HashMap<>();
+
+        if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) 
+        {
+            logger.debug("Project {} not affected from cleanup",
+                    project.projectKey);
+            return leftovers;            
+        }
+
+        if  (project.quickstarters != null || 
+                project.quickstarters.size() > 0) 
+        {
+            String deleteComponentJob = null;
+            
+            List<Job> jobs = new ArrayList<>();
+            try 
+            {
+                jobs = getJobs(projectOpenshiftGroup);
+            } catch (Exception allExceptions) {}
+            
+            for (Job job : jobs)
+            {
+                if (job.getName()
+                        .equalsIgnoreCase("delete-component"))
+                {
+                    deleteComponentJob = job.getId();
+                }
+            }
+            
+            if (deleteComponentJob == null) 
+            {
+                logger.error("Cannot find delete-components job, hence"
+                        + " cannot clean quickstarters!");
+                
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER_JOBS,
+                        project.quickstarters.size());
+                return leftovers;
+            }
+
+            String deleteComponentJobUrl = String.format("%s%s/job/%s/run",
+                    rundeckUri, rundeckApiPath, deleteComponentJob);
+            
+            int nonDeletedQuickstarters = 0;
+            List<String> quickstartersToDelete =
+                    new ArrayList<>();
+            for (Map<String, String> quickstarterOptions : 
+                project.quickstarters) 
+            {
+                quickstartersToDelete.add(quickstarterOptions.get(
+                        OpenProjectData.COMPONENT_ID_KEY));
+            }
+            
+            logger.debug("Cleanup of quickstarters {}",
+                    quickstartersToDelete);
+            for (String quickstarterName : quickstartersToDelete)
+            {    
+                logger.debug("Cleanup of quickstarter {} thru job {}",
+                        quickstarterName, deleteComponentJob);
+                
+                Execution execution = new Execution();
+                Map<String, String> options = new HashMap<>();
+                    options.put("project_id", project.projectKey.toLowerCase());
+                    options.put("component_id", quickstarterName);
+                try 
+                {
+                    ExecutionsData cleanupData = client.callHttp(
+                            deleteComponentJobUrl,
+                            execution, false,
+                            RestClient.HTTP_VERB.POST,
+                            ExecutionsData.class);
+                } catch (Exception allExecExceptions) {
+                    logger.debug("Could not start delete job for component {}",
+                            quickstarterName);
+                    nonDeletedQuickstarters++;
+                }
+            }
+            
+            if (nonDeletedQuickstarters > 0) 
+            {
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER_JOBS,
+                        nonDeletedQuickstarters);
+            }
+        }
+        
+        logger.debug("Cleanup done - status: {} components are left ..", 
+                leftovers.size() == 0 ? 0 : leftovers);
+        
+        return leftovers;
     }
 
 }
