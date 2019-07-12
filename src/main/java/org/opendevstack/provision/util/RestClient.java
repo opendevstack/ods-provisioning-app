@@ -150,6 +150,18 @@ public class RestClient
         }
     }
 
+    public <T> T callHttpWithDirectAuth(
+        String url, Object input, HTTP_VERB verb, Class<T> returnType, String userName,
+        String userPassword)
+        throws IOException {
+        try {
+            CredentialsInfo credentials = new CredentialsInfo(userName,userPassword);
+            return callHttpInternal(url, input, true, verb, returnType, null, credentials);
+        } catch (HttpException httpException) {
+            logger.error("callHttpWithDirectAuth failded",httpException);
+            throw httpException;
+        }
+    }
     public <T> T callHttpTypeRef(String url, Object input,
             boolean directAuth,
             HTTP_VERB verb, TypeReference<T> returnType)
@@ -174,11 +186,35 @@ public class RestClient
         }
     }
 
-    private <T> T callHttpInternal(String url, Object input, boolean directAuth,
-            HTTP_VERB verb, Class returnType,
-            TypeReference returnTypeRef)
-            throws HttpException, IOException
-    {
+    public <T> T callHttpTypeRefWithDirectAuth(
+        String url, Object input, HTTP_VERB verb, Class returnType,TypeReference<T> returnTypeRef, String userName,
+        String userPassword)
+        throws IOException {
+        CredentialsInfo credentials = new CredentialsInfo(userName,userPassword);
+        return callHttpInternal(url, input, true, verb, returnType, returnTypeRef, credentials);
+    }
+
+    private <T> T callHttpInternal(
+        String url,
+        Object input,
+        boolean directAuth,
+        HTTP_VERB verb,
+        Class returnType,
+        TypeReference returnTypeRef)
+        throws HttpException, IOException {
+        CredentialsInfo credentials = new CredentialsInfo(manager.getUserName(),manager.getUserPassword());
+        return callHttpInternal(url, input, directAuth, verb, returnType, returnTypeRef, credentials);
+    }
+
+    private <T> T callHttpInternal(
+        String url,
+        Object input,
+        boolean directAuth,
+        HTTP_VERB verb,
+        Class returnType,
+        TypeReference returnTypeRef,
+        CredentialsInfo credentials)
+        throws IOException {
         Preconditions.checkNotNull(url, "Url cannot be null");
         Preconditions.checkNotNull(verb, "HTTP Verb cannot be null");
 
@@ -243,9 +279,7 @@ public class RestClient
         {
             logger.debug("Authenticating rest call with {}",
                     manager.getUserName());
-            String credentials = Credentials.basic(manager.getUserName(),
-                    manager.getUserPassword());
-            builder = builder.addHeader("Authorization", credentials);
+            builder = builder.addHeader("Authorization", credentials.getCredentials());
             response = getClientFresh(manager.getToken())
                     .newCall(builder.build()).execute();
         } else
@@ -282,25 +316,24 @@ public class RestClient
         }
     }
 
-    public void callHttpBasicFormAuthenticate(String url)
-            throws IOException
-    {
+    public void callHttpBasicFormAuthenticate(String url) throws IOException {
         Preconditions.checkNotNull(url, "Url cannot be null");
         String username = manager.getUserName();
+        String password = manager.getUserPassword();
+        callHttpBasicFormAuthenticate(url, username, password);
+    }
 
-        RequestBody body = new FormBody.Builder()
+    public void callHttpBasicFormAuthenticate(String url, String username, String password) throws IOException {
+        RequestBody body =
+            new FormBody.Builder()
                 .add("j_username", username)
-                .add("j_password", manager.getUserPassword()).build();
-        Request request = new Request.Builder().url(url).post(body)
+                .add("j_password",password )
                 .build();
-        try (Response response = getClient(null).newCall(request)
-                .execute();)
-        {
-            if (!response.isSuccessful() || response.body().string()
-                    .contains("Invalid username and password"))
-            {
-                throw new IOException("Could not authenticate: "
-                        + username + " : " + response.body());
+        Request request = new Request.Builder().url(url).post(body).build();
+        try (Response response = getClient(null).newCall(request).execute(); ) {
+            if (!response.isSuccessful()
+                || response.body().string().contains("Invalid username and password")) {
+                throw new IOException("Could not authenticate: " + username + " : " + response.body());
             }
         }
     }

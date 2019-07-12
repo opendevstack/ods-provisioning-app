@@ -45,7 +45,7 @@ import com.google.common.base.Preconditions;
  *         https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
-public class JiraAdapter implements IBugtrackerAdapter
+public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapter
 {
 
     private static final Logger logger = LoggerFactory
@@ -95,6 +95,12 @@ public class JiraAdapter implements IBugtrackerAdapter
 
     @Value("${project.template.default.key}")
     private String defaultProjectKey;
+
+    public JiraAdapter(
+        @Value("${jira.admin_user}") String adminUser,
+        @Value("${jira.admin_password}") String adminPassword) {
+        super(adminUser, adminPassword);
+    }
 
     private FullJiraProject createProjectInJira(
             OpenProjectData project,
