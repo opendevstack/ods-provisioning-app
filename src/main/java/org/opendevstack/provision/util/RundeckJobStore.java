@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.model.rundeck.Job;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Jobstore that will be created as bean to store rundeck Jobs centrally.
  * Prevent unnecessary calls to rundeck API
@@ -79,4 +81,32 @@ public class RundeckJobStore
         }
         return jobList;
     }
+    
+    @Override
+    public String toString() 
+    {
+        return jobs.keySet().toString(); 
+    }
+    
+    public int size () 
+    {
+        return jobs.size();
+    }
+    
+    public String getJobIdForJobName(String jobName) 
+    {
+        Preconditions.checkNotNull(jobName, 
+                "Jobname cannot be null");
+        
+        for (Job job : jobs.values())
+        {
+            if (job.getName()
+                    .equalsIgnoreCase(jobName))
+            {
+                return job.getId();
+            }
+        }
+        return null;
+    }
+    
 }

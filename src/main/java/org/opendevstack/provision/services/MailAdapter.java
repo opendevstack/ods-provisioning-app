@@ -53,7 +53,7 @@ public class MailAdapter
 
     // open because of testing
     @Value("${mail.enabled:false}")
-    boolean isMailEnabled;
+    public boolean isMailEnabled;
 
     @Autowired
     private TemplateEngine templateEngine;

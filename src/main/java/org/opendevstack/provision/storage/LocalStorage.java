@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.base.Preconditions;
 
 /**
  * Class handling local storage of JSON files for a simple historization
@@ -119,7 +120,9 @@ public class LocalStorage implements IStorage
                         {
                             temp = MAPPER.readValue(project,
                                     ProjectData.class);
-                        } catch (Exception MapperEx) {}
+                        } catch (Exception MapperEx) {
+                            // legacy :)
+                        }
 
                         OpenProjectData data = null;
 
@@ -127,13 +130,13 @@ public class LocalStorage implements IStorage
                         {
                             data = ProjectData.toOpenProjectData(
                                     (ProjectData) temp);
-                            logger.debug("Project {} legacy format",
+                            logger.debug("Project {} is in legacy format, upgrading.",
                                 data.projectKey);
                         } else
                         {
                             data = MAPPER.readValue(project,
                                     OpenProjectData.class);
-                            logger.debug("Project {} std format",
+                            logger.debug("Project {} is in std format",
                                     data.projectKey);
                         }
                         data.physicalLocation = file
@@ -165,11 +168,12 @@ public class LocalStorage implements IStorage
         {
             if (project.projectKey.equalsIgnoreCase(id))
             {
-                logger.debug("found project with id {}",
+                logger.debug("found project with id {} - returning",
                         project.projectKey);
                 return project;
             }
         }
+        logger.debug("Could not find project with id {}", id);
         return null;
     }
 
@@ -207,7 +211,8 @@ public class LocalStorage implements IStorage
     @Value("${project.storage.local}")
     public void setLocalStoragePath(String localStoragePath)
     {
-        this.localStoragePath = localStoragePath;
+        this.localStoragePath = localStoragePath +
+                File.separator;
     }
 
     public String getLocalStoragePath()
@@ -238,6 +243,8 @@ public class LocalStorage implements IStorage
                     "Successfully copied project {} to {}",
                     project.projectKey, fileName);
             logger.debug("JSON Object: {}", json);
+            
+            fileName = new File(fileName).getAbsolutePath();
             project.physicalLocation = fileName;
             return fileName;
         }
@@ -285,22 +292,21 @@ public class LocalStorage implements IStorage
         }
     }
 
-    private OpenProjectData readObjectFromString(String project)
-            throws IOException
+    @Override
+    public String getStoragePath()
     {
-        ProjectData temp = MAPPER.readValue(project,
-                ProjectData.class);
-
-        if (temp.key != null)
-        {
-            logger.debug("Project legacy format");
-            return ProjectData.toOpenProjectData((ProjectData) temp);
-        } else
-        {
-            logger.debug("Project std format");
-            return MAPPER.readValue(project, OpenProjectData.class);
-        }
-
+        return this.localStoragePath;
     }
 
+    @Override
+    public boolean deleteProject(OpenProjectData project)
+    {
+        Preconditions.checkNotNull(project, 
+                "cannot delete null project");
+        Preconditions.checkNotNull(project.physicalLocation);
+        
+        logger.debug("Deleting project {}, location {}",
+                project.projectKey, project.physicalLocation);
+        return new File(project.physicalLocation).delete();
+    }
 }

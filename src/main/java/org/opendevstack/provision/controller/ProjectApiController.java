@@ -28,11 +28,14 @@ import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
+import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
@@ -79,7 +82,7 @@ public class ProjectApiController
     @Autowired
     private MailAdapter mailAdapter;
     @Autowired
-    private IStorage storage;
+    private IStorage directStorage;
     @Autowired
     private RundeckJobStore jobStore;
     @Autowired
@@ -91,6 +94,9 @@ public class ProjectApiController
     @Autowired
     private List<String> projectTemplateKeyNames;
 
+    @Autowired
+    private StorageAdapter filteredStorage;
+    
     // open for testing
     @Autowired
     IODSAuthnzAdapter manager;
@@ -140,19 +146,19 @@ public class ProjectApiController
                         .validateIdSettingsOfProject(newProject);
             }
 
+            // verify the project does NOT exist
+            OpenProjectData projectLoad = directStorage.getProject(newProject.projectKey);
+            if (projectLoad != null)
+            {
+                {
+                    throw new IOException(String.format(
+                            "Project with key (%s) already exists: (%s)",
+                            newProject.projectKey, projectLoad.projectKey));
+                }
+            }
+
             if (newProject.bugtrackerSpace)
             {
-                // verify the project does NOT exist
-                OpenProjectData projectLoad = storage.getProject(newProject.projectKey);
-                if (projectLoad != null)
-                {
-                    {
-                        throw new IOException(String.format(
-                                "Project with key (%s) already exists: {}",
-                                newProject.projectKey, projectLoad.projectKey));
-                    }
-                }
-
                 // create the bugtracker project
                 newProject = jiraAdapter
                         .createBugtrackerProjectForODSProject(newProject);
@@ -171,7 +177,7 @@ public class ProjectApiController
                         confluenceAdapter.getClass() + 
                         " did not return collabSpace url");
                 
-                logger.debug("Updated project: {}",
+                logger.debug("Updated project with collaboration information:\n {}",
                         new ObjectMapper().writer()
                                 .withDefaultPrettyPrinter()
                                 .writeValueAsString(newProject));
@@ -184,7 +190,7 @@ public class ProjectApiController
             jiraAdapter.addShortcutsToProject(newProject);
 
             // store the project data
-            String filePath = storage.storeProject(newProject);
+            String filePath = directStorage.storeProject(newProject);
             if (filePath != null)
             {
                 logger.debug("Project {} successfully stored: {}",
@@ -195,14 +201,23 @@ public class ProjectApiController
             mailAdapter.notifyUsersAboutProject(newProject);
 
             return ResponseEntity.ok().body(newProject);
-        } catch (Exception ex)
+        } catch (Exception exProvisionNew)
         {
-            logger.error(
-                    "An error occured while provisioning project:",
-                    ex);
+            Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
+                    cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
+                        
+            String error = (cleanupResults.size() == 0) ?
+                    String.format("An error occured while creating project %s, reason %s"
+                            + " - but all cleaned up!", 
+                            newProject.projectKey, exProvisionNew.getMessage()) :
+                    String.format("An error occured while creating project %s, reason %s"
+                            + " - cleanup attempted, but [%s] components are still there!", 
+                            newProject.projectKey, exProvisionNew.getMessage(),
+                            cleanupResults);
+                                
+            logger.error(error, exProvisionNew);
             return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ex.getMessage());
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         } finally
         {
             client.removeClient(manager.getToken());
@@ -237,7 +252,7 @@ public class ProjectApiController
                             .withDefaultPrettyPrinter()
                             .writeValueAsString(updatedProject));
 
-            OpenProjectData storedExistingProject = storage
+            OpenProjectData storedExistingProject = directStorage
                     .getProject(updatedProject.projectKey);
 
             if (storedExistingProject == null)
@@ -301,10 +316,15 @@ public class ProjectApiController
                     && (updatedProject.repositories != null))
             {
                 storedExistingProject.repositories.putAll(updatedProject.repositories);
+            } else if (updatedProject.repositories != null) {
+                storedExistingProject.repositories = storedExistingProject.repositories;
             }
             
+            // add the new executions - so people can track what's going on
+            storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
+
             // store the updated project
-            if (storage.updateStoredProject(storedExistingProject))
+            if (directStorage.updateStoredProject(storedExistingProject))
             {
                 logger.debug("project {} successfully updated", updatedProject.projectKey);
             }
@@ -312,16 +332,25 @@ public class ProjectApiController
             // notify user via mail of project updates with embedding links
             mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
-            // add the executions - so people can track what's going on
-            storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
             return ResponseEntity.ok().body(storedExistingProject);
-        } catch (Exception ex)
+        } catch (Exception exProvision)
         {
-            logger.error("An error occured while updating project: "
-                    + updatedProject.projectKey, ex);
+            Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
+                    cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, updatedProject);
+            
+            String error = (cleanupResults.size() == 0) ?
+                    String.format("An error occured while updating project %s, reason %s"
+                            + " - but all cleaned up!", 
+                            updatedProject.projectKey, exProvision.getMessage()) :
+                    String.format("An error occured while updating project %s, reason %s"
+                            + " - cleanup attempted, but [%s] components are still there!", 
+                            updatedProject.projectKey, exProvision.getMessage(),
+                            cleanupResults);
+                                
+            logger.error(error);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ex.getMessage());
+                    .body(error);
         } finally
         {
             client.removeClient(manager.getToken());
@@ -386,17 +415,28 @@ public class ProjectApiController
                         0 : project.repositories.size());
         
         // create repositories dependent of the chosen quickstarters
-        project.repositories = bitbucketAdapter
+        Map<String, Map<URL_TYPE, String>> newComponentRepos = bitbucketAdapter
                 .createComponentRepositoriesForODSProject(project);
+        if (newComponentRepos != null)
+        {
+            if (project.repositories != null) 
+            {
+                project.repositories.putAll(newComponentRepos);
+            } else {
+                project.repositories = newComponentRepos;
+            }
+        }
         
-        logger.debug("New quickstarters {}, existing repos: {}",
-                newQuickstarters, existingComponentRepos);
+        logger.debug("New quickstarters {}, existing repos: {}, new repos; {}",
+                newQuickstarters, existingComponentRepos, 
+                project.repositories.size());
         
         Preconditions.checkState(
                 project.repositories.size() == 
                 existingComponentRepos + newQuickstarters,
-                String.format("Class: %s did not create repositories for %s new quickstarters", 
-                        bitbucketAdapter.getClass(), newQuickstarters));
+                String.format("Class: %s did not create %s new repositories "
+                        + "for new quickstarters, existing repos: %s", 
+                        bitbucketAdapter.getClass(), newQuickstarters, existingComponentRepos));
         
         // based on the (changed) repository names, update the 
         // quickstarters
@@ -413,6 +453,8 @@ public class ProjectApiController
         }
         List<ExecutionsData> jobs = rundeckAdapter
                 .provisionComponentsBasedOnQuickstarters(project);
+        logger.debug("New executions: {}", jobs.size());
+        
         for (ExecutionsData singleJob : jobs)
         {
             project.lastExecutionJobs.add(singleJob.getPermalink());
@@ -432,11 +474,14 @@ public class ProjectApiController
     public ResponseEntity<OpenProjectData> getProject(
             @PathVariable String id)
     {
-        OpenProjectData project = storage.getProject(id);
-        if (project == null)
+        OpenProjectData project = 
+                filteredStorage.getFilteredSingleProject(id);
+        
+        if (project == null) 
         {
             return ResponseEntity.notFound().build();
         }
+        
         if (project.quickstarters != null)
         {
             List<Map<String, String>> enhancedStarters = new ArrayList<>();
@@ -581,11 +626,14 @@ public class ProjectApiController
     {
         if (project.quickstarters == null || project.repositories == null) 
         {
+            logger.debug("Nothing to do on project {}", project.projectKey);
             return;
         }
         
         for (Map<String, String> option : project.quickstarters)
         {
+            logger.debug("options: " + option);
+            
             String projectComponentKey =
                     option.get(OpenProjectData.COMPONENT_ID_KEY);
             
@@ -611,5 +659,105 @@ public class ProjectApiController
             option.put("git_url_http", repoUrls.get(URL_TYPE.URL_CLONE_HTTP));
         }
     }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
+    public ResponseEntity<Object> deleteProject(
+            @PathVariable String id)
+    {
+        OpenProjectData project = 
+                filteredStorage.getFilteredSingleProject(id);
+        
+        if (project == null) 
+        {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
+        
+        if (!leftovers.isEmpty()) 
+        {
+            String error =
+                    String.format("Could not delete all components of project "
+                            + " {} - leftovers {}", project.projectKey,
+                            leftovers);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(error);
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
     
+    @RequestMapping(method = RequestMethod.DELETE)
+    public ResponseEntity<Object> deleteComponents(
+            @RequestBody OpenProjectData deletableComponents)
+    {
+        Preconditions.checkNotNull(deletableComponents,
+                "Cannot delete null project");
+        Preconditions.checkNotNull(deletableComponents.quickstarters, 
+                "No quickstarters to delete are passed");
+        
+        OpenProjectData project =
+                filteredStorage.getFilteredSingleProject(
+                        deletableComponents.projectKey);
+        
+        if (project == null) 
+        {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION,
+                        deletableComponents);
+        
+        if (!leftovers.isEmpty()) 
+        {
+            String error =
+                    String.format("Could not delete all components of project "
+                            + " {} - leftovers {}", project.projectKey,
+                            leftovers);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(error);
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
+    
+    /**
+     * In case something breaks during provisioniong, this method is called 
+     * @param stage the lifecycle stage
+     * @param project the project including any created information
+     */
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
+            OpenProjectData project)
+    {
+        logger.error("Starting cleanup of project {} "
+                + "in phase {}", project.projectKey, stage);
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents
+            = new HashMap<>();
+        
+        notCleanedUpComponents.putAll(
+                rundeckAdapter.cleanup(stage, project));
+
+        notCleanedUpComponents.putAll(
+                bitbucketAdapter.cleanup(stage, project));
+        
+        notCleanedUpComponents.putAll(
+                confluenceAdapter.cleanup(stage, project));
+        
+        notCleanedUpComponents.putAll(
+                jiraAdapter.cleanup(stage, project));
+
+        notCleanedUpComponents.putAll(
+                filteredStorage.cleanup(stage, project));
+        
+        logger.debug("Overall cleanup status of project: {} components left",
+                notCleanedUpComponents.size() ==  0 ? 0 :
+                    notCleanedUpComponents);
+        
+        return notCleanedUpComponents;
+    }
 }

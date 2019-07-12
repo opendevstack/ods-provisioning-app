@@ -16,6 +16,9 @@ package org.opendevstack.provision.adapter;
 
 import java.util.Map;
 
+import org.opendevstack.provision.controller.ProjectApiController;
+import org.opendevstack.provision.model.OpenProjectData;
+
 /**
  * Base interface for all service adapters
  * @author utschig
@@ -23,13 +26,21 @@ import java.util.Map;
 public interface IServiceAdapter
 {
     /**
-     * Permission definitions
+     * Stage the adapters are in during project creation & update
      */
-    public static enum PERMISSION
+    public static enum LIFECYCLE_STAGE
     {
-        PROJECT_ADMIN_USER, PROJECT_ADMIN_GROUP, PROJECT_USER_GROUP, PROJECT_READONLY_GROUP
+        INITIAL_CREATION, QUICKSTARTER_PROVISION
     }
-
+    /**
+     * Enum used for cleanup to define any leftovers after cleanup
+     */
+    public static enum CLEANUP_LEFTOVER_COMPONENTS
+    {
+        COLLABORATION_SPACE, BUGTRACKER_PROJECT,
+        SCM_PROJECT, SCM_REPO, QUICKSTARTER,
+        PLTF_PROJECT, PROJECT_DB
+    }
     /**
      * Project template key enum
      */
@@ -52,4 +63,18 @@ public interface IServiceAdapter
      * @return the URI
      */
     public String getAdapterApiUri();
+    
+    /**
+     * Called by {@link ProjectApiController} in case of error,
+     * and need to cleanup already created resources.
+     * As the API controller has no idea what the {@link IServiceAdapter} 
+     * implementations do, the best we can do is to delegate the work 
+     * for cleanup there as well.
+     * 
+     * @param stage the stage the adapter is currently in
+     * @param project the project
+     * @return a map with component amounts that could not be cleaned up
+     */
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup 
+        (LIFECYCLE_STAGE stage, OpenProjectData project);
 }

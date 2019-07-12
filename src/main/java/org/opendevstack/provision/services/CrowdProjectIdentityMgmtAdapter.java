@@ -177,4 +177,11 @@ public class CrowdProjectIdentityMgmtAdapter
         return new HashMap<>();
     }
 
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        return new HashMap<>();
+    }
+
 }
