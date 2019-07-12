@@ -15,12 +15,8 @@
 package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.google.common.base.Preconditions;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
@@ -31,12 +27,18 @@ import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
 import org.opendevstack.provision.util.rest.Client;
-import org.opendevstack.provision.util.rest.ClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service to interact with rundeck
@@ -122,25 +124,44 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(
       OpenProjectData project) throws IOException {
 
-    List<ExecutionsData> executionList = new ArrayList<>();
-    if (project.quickstarters != null) {
-      for (Map<String, String> options : project.quickstarters) {
-        Job job = jobStore
-            .getJob(options.get(
-                OpenProjectData.COMPONENT_TYPE_KEY));
+        List<ExecutionsData> executionList = new ArrayList<>();
 
-        String url = String.format("%s/job/%s/run",
-            rundeckApiUrl, job.getId());
-        String groupId = String
-            .format(groupPattern,
-                project.projectKey.toLowerCase())
-            .replace('_', '-');
-        String packageName = String.format("%s.%s",
-            String.format(groupPattern,
-                project.projectKey.toLowerCase()),
-            options.get(OpenProjectData.COMPONENT_ID_KEY).
-                replace('-', '_'));
-        Execution execution = new Execution();
+        if (jobStore.size() == 0)
+        {
+            jobStore.addJobs(getJobs(projectOpenshiftGroup));
+        }
+
+        if (project.quickstarters != null)
+        {
+            for (Map<String, String> options : project.quickstarters)
+            {
+                String jobId = options.get(
+                        OpenProjectData.COMPONENT_TYPE_KEY);
+                String quickstarterName = options.get(
+                        OpenProjectData.COMPONENT_ID_KEY);
+
+                Job job = jobStore
+                        .getJob(jobId);
+
+                if (job == null) {
+                    throw new IOException(
+                            String.format("Cannot find job with id: %s, jobs: %s"
+                                    + " to provision quickstarter {}",
+                                    jobId, jobStore.toString(), quickstarterName));
+                }
+
+                String url = String.format("%s/job/%s/run",
+                        rundeckApiUrl, job.getId());
+                String groupId = String
+                        .format(groupPattern,
+                                project.projectKey.toLowerCase())
+                        .replace('_', '-');
+                String packageName = String.format("%s.%s",
+                        String.format(groupPattern,
+                                project.projectKey.toLowerCase()),
+                        options.get(OpenProjectData.COMPONENT_ID_KEY).
+                                replace('-', '_'));
+                Execution execution = new Execution();
 
         options.put("group_id", groupId);
         options.put("project_id", project.projectKey.toLowerCase());
@@ -149,23 +170,27 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
         try {
           ExecutionsData data = callExecution(url, execution);
 
-          if (data.getError()) {
-            throw new IOException(
-                "Could not provision component: "
-                    + data.getMessage());
-          }
+                    if (data.getError())
+                    {
+                        throw new IOException(
+                                data.getMessage());
+                    }
 
-          executionList.add(data);
-          if (data.getPermalink() != null) {
-            options.put("joblink", data.getPermalink());
-          }
-        } catch (IOException ex) {
-          logger.error("Error in running jobs", ex);
+                    executionList.add(data);
+                    if (data.getPermalink() != null)
+                    {
+                        options.put("joblink", data.getPermalink());
+                    }
+                } catch (Exception rundeckException)
+                {
+                    logger.error("Error starting job for quickstarter {} - details:",
+                            quickstarterName, rundeckException);
+                    throw rundeckException;
+                }
+            }
         }
-      }
+        return executionList;
     }
-    return executionList;
-  }
 
   public OpenProjectData createPlatformProjects(OpenProjectData project)
       throws IOException {
@@ -306,4 +331,133 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     return rundeckApiUrl;
   }
 
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        Preconditions.checkNotNull(stage);
+        Preconditions.checkNotNull(project);
+
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                new HashMap<>();
+
+        if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION))
+        {
+            if (project.lastExecutionJobs != null &&
+                    !project.lastExecutionJobs.isEmpty())
+            {
+                String deleteProjectJob =
+                        jobStore.getJobIdForJobName("delete-projects");
+                String deleteProjectJobUrl = String.format("%s%s/job/%s/run",
+                        rundeckApiUrl, deleteProjectJob);
+                if (deleteProjectJob == null)
+                {
+                    logger.error("Cannot find delete-projects job, hence"
+                            + " cannot delete project!");
+                    leftovers.put(
+                            CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+                } else
+                {
+                    logger.debug("Calling delete-projects job for project {}" +
+                            " with id {}",
+                            project.projectKey, deleteProjectJob);
+
+                    Execution execution = new Execution();
+                    Map<String, String> options = new HashMap<>();
+                        options.put("project_id",
+                            project.projectKey.toLowerCase());
+
+                    try
+                    {
+                        ExecutionsData cleanupData = client.callHttp(
+                                deleteProjectJobUrl,
+                                execution, false,
+                                RestClient.HTTP_VERB.POST,
+                                ExecutionsData.class);
+                    } catch (Exception allExecExceptions)
+                    {
+                        logger.debug("Could not start delete job for project {}, {}",
+                                project.projectKey, allExecExceptions.getMessage());
+                        leftovers.put(
+                                CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+                        return leftovers;
+                    }
+                    return leftovers;
+                }
+                return leftovers;
+            } else
+            {
+                logger.debug("Project {} not affected from cleanup",
+                        project.projectKey);
+                return leftovers;
+
+            }
+        }
+
+        if  (project.quickstarters != null ||
+                project.quickstarters.size() > 0)
+        {
+            String deleteComponentJob =
+                    jobStore.getJobIdForJobName("delete-component");
+            if (deleteComponentJob == null)
+            {
+                logger.error("Cannot find delete-components job, hence"
+                        + " cannot clean quickstarters!");
+
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
+                        project.quickstarters.size());
+                return leftovers;
+            }
+
+            String deleteComponentJobUrl = String.format("%s%s/job/%s/run",
+                    rundeckApiUrl, deleteComponentJob);
+
+            int nonDeletedQuickstarters = 0;
+            List<String> quickstartersToDelete =
+                    new ArrayList<>();
+            for (Map<String, String> quickstarterOptions :
+                project.quickstarters)
+            {
+                quickstartersToDelete.add(quickstarterOptions.get(
+                        OpenProjectData.COMPONENT_ID_KEY));
+            }
+
+            logger.debug("Cleanup of quickstarters {}",
+                    quickstartersToDelete);
+            for (String quickstarterName : quickstartersToDelete)
+            {
+                logger.debug("Cleanup of quickstarter {} thru job {}",
+                        quickstarterName, deleteComponentJob);
+
+                Execution execution = new Execution();
+                Map<String, String> options = new HashMap<>();
+                    options.put("project_id", project.projectKey.toLowerCase());
+                    options.put("component_id", quickstarterName);
+                try
+                {
+                    ExecutionsData cleanupData = client.callHttp(
+                            deleteComponentJobUrl,
+                            execution, false,
+                            RestClient.HTTP_VERB.POST,
+                            ExecutionsData.class);
+                } catch (Exception allExecExceptions)
+                {
+                    logger.debug("Could not start delete job for component {}, {}",
+                            quickstarterName, allExecExceptions.getMessage());
+                    nonDeletedQuickstarters++;
+                }
+            }
+
+            if (nonDeletedQuickstarters > 0)
+            {
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
+                        nonDeletedQuickstarters);
+            }
+        }
+
+        logger.debug("Cleanup done - status: {} components are left ..",
+                leftovers.size() == 0 ? 0 : leftovers);
+
+        return leftovers;
+    }
 }
