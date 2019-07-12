@@ -20,6 +20,8 @@ import java.util.Map;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
@@ -32,17 +34,20 @@ import org.springframework.stereotype.Component;
 
 public class SimpleCookieJar implements CookieJar {
 
+  private static final Logger logger = LoggerFactory.getLogger(SimpleCookieJar.class);
+
   /**
    * Set to store the cookies
    */
-  private Map<HttpUrl, List<Cookie>> cookies = new HashMap<>();
+  private Map<String, List<Cookie>> cookies = new HashMap<>();
 
   /**
    * Save cookies from response
    */
   @Override
   public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-    this.cookies.put(url, cookies);
+    logger.debug("Save cookies for host[{}]", url.host());
+    this.cookies.put(url.host(), cookies);
   }
 
   /**
@@ -50,6 +55,7 @@ public class SimpleCookieJar implements CookieJar {
    */
   @Override
   public List<Cookie> loadForRequest(HttpUrl url) {
-    return cookies.getOrDefault(url, new ArrayList<>());
+    logger.debug("Load cookies for host[{}]", url.host());
+    return cookies.getOrDefault(url.host(), new ArrayList<>());
   }
 }

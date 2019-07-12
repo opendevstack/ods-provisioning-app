@@ -1,5 +1,6 @@
 package org.opendevstack.provision.util.rest;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -64,6 +65,16 @@ public class Client {
     return newCall()
         .buildRequest()
         .method(HttpMethod.GET)
+        .json()
+        .mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public ClientCall get(Map<String, String> queryParams) {
+    return newCall()
+        .buildRequest()
+        .method(HttpMethod.GET)
+        .json()
+        .queryParams(queryParams)
         .mediaType(JSON_MEDIA_TYPE);
   }
 
@@ -71,6 +82,16 @@ public class Client {
     return newCall()
         .buildRequest()
         .method(HttpMethod.POST)
+        .json()
+        .mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public ClientCall post(Object body) {
+    return newCall()
+        .buildRequest()
+        .method(HttpMethod.POST)
+        .body(body)
+        .json()
         .mediaType(JSON_MEDIA_TYPE);
   }
 
@@ -78,6 +99,17 @@ public class Client {
     return newCall()
         .buildRequest()
         .method(HttpMethod.PUT)
+        .json()
+        .mediaType(JSON_MEDIA_TYPE);
+
+  }
+
+  public ClientCall put(Object body) {
+    return newCall()
+        .buildRequest()
+        .method(HttpMethod.PUT)
+        .body(body)
+        .json()
         .mediaType(JSON_MEDIA_TYPE);
 
   }
@@ -86,6 +118,7 @@ public class Client {
     return newCall()
         .buildRequest()
         .method(HttpMethod.HEAD)
+        .json()
         .mediaType(JSON_MEDIA_TYPE);
   }
 }

@@ -53,16 +53,11 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   @Autowired
   private RundeckJobStore jobStore;
 
-  @Value("${rundeck.api.path}")
-  private String rundeckApiPath;
+  @Value("${rundeck.api.url}")
+  private String rundeckApiUrl;
 
-  @Value("${rundeck.uri}")
-  private String rundeckUri;
-
-  @Value("${rundeck.system.path}")
-  private String rundeckSystemPath;
-
-  private String preAuthUrl = String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath);
+  @Value("${rundeck.auth.url}")
+  private String preAuthUrl;
 
   @Value("${atlassian.domain}")
   private String rundeckDomain;
@@ -134,8 +129,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
             .getJob(options.get(
                 OpenProjectData.COMPONENT_TYPE_KEY));
 
-        String url = String.format("%s%s/job/%s/run",
-            rundeckUri, rundeckApiPath, job.getId());
+        String url = String.format("%s/job/%s/run",
+            rundeckApiUrl, job.getId());
         String groupId = String
             .format(groupPattern,
                 project.projectKey.toLowerCase())
@@ -184,8 +179,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       for (Job job : jobs) {
         if (job.getName()
             .equalsIgnoreCase(projectCreateOpenshiftJob)) {
-          String url = String.format("%s%s/job/%s/run",
-              rundeckUri, rundeckApiPath, job.getId());
+          String url = String.format("%s/job/%s/run",
+              rundeckApiUrl, job.getId());
           Execution execution = new Execution();
           Map<String, String> options = new HashMap<>();
           options.put("project_id",
@@ -252,8 +247,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   protected List<Job> getJobs(String group) throws IOException {
     List<Job> enabledJobs;
 
-    String jobsUrl = String.format("%s%s/project/%s/jobs",
-        rundeckUri, rundeckApiPath, rundeckProject);
+    String jobsUrl = String.format("%s/project/%s/jobs",
+        rundeckApiUrl, rundeckProject);
 
     Map<String, String> jobPath =
         new HashMap<>();
@@ -269,7 +264,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     List<Job> jobs =restClient
         .get()
         .url(jobsUrl)
-        .content(jobPath)
+        .queryParams(jobPath)
         .preAuthenticated()
         .preAuthUrl(preAuthUrl)
         .preAuthContent(getPreAuthContent())
@@ -293,7 +288,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     return restClient
             .post()
             .url(url)
-            .content(execution)
+            .body(execution)
             .preAuthenticated()
             .preAuthUrl(preAuthUrl)
             .preAuthContent(getPreAuthContent())
@@ -308,7 +303,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   @Override
   public String getAdapterApiUri() {
-    return rundeckUri.concat(rundeckApiPath);
+    return rundeckApiUrl;
   }
 
 }

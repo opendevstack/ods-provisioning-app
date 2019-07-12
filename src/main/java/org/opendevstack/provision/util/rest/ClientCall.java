@@ -1,25 +1,34 @@
 package org.opendevstack.provision.util.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Request.Builder;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.opendevstack.provision.util.CredentialsInfo;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 public class ClientCall {
+
   private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
   private OkHttpClient client;
-  private Request request;
-  private Response response;
+  private Request request = null;
+  private String responseBody = null;
 
   private Request.Builder requestBuilder;
 
@@ -38,8 +47,10 @@ public class ClientCall {
 
   //Request information
   private MediaType mediaType;
-  private Object content;
+  private Object body;
   private String url;
+  private Map<String, String> queryParams;
+  private Map<String, String> header = new HashMap<>();;
 
   //Response information
   private Class returnType = null;
@@ -53,7 +64,6 @@ public class ClientCall {
   /**
    * Set HTTP method for execution
    *
-   * @param method
    * @return ClientCall
    */
   public ClientCall method(HttpMethod method) {
@@ -67,6 +77,11 @@ public class ClientCall {
     return this;
   }
 
+  public ClientCall json() {
+    header.put("Accept","application/json");
+    return this;
+  }
+
   public ClientCall request(Request request) {
     this.request = request;
     return this;
@@ -77,15 +92,9 @@ public class ClientCall {
     return this;
   }
 
-  private Request.Builder getRequestBuilder() {
-    if(this.requestBuilder == null) {
-      buildRequest();
-    }
-    return this.requestBuilder;
-  }
-
-  public ClientCall content(Object content) {
-    this.content = content;
+  public ClientCall body(Object body) {
+    Preconditions.checkNotNull(body, "Body cannot be null");
+    this.body = body;
     return this;
   }
 
@@ -104,14 +113,14 @@ public class ClientCall {
     return this;
   }
 
-
   public ClientCall authenticated() {
     this.isAuthenticated = true;
     return this;
   }
 
   public ClientCall basic() {
-    Preconditions.checkArgument(this.isAuthenticated, "authenticated() has to be called before using basic()");
+    Preconditions.checkArgument(this.isAuthenticated,
+        "authenticated has to be set to use basic");
     isBasicAuth = true;
     return this;
   }
@@ -126,35 +135,155 @@ public class ClientCall {
     return this;
   }
 
+  public ClientCall queryParams(Map<String, String> params) {
+    this.queryParams = params;
+    return this;
+  }
+
   public ClientCall preAuthUrl(String preAuthUrl) {
-    Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated() has to be called before applying preAuthUrl");
+    Preconditions.checkArgument(this.isPreAuthenticated,
+        "preAuthenticated has to be set");
     this.preAuthUrl = preAuthUrl;
     return this;
   }
 
   public ClientCall preAuthContent(Object preAuthContent) {
-    Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated() has to be set before applying preAuthContent");
-    Preconditions.checkArgument(this.preAuthUrl != null, "preAuthUrl() has to be set before applying preAuthContent");
+    Preconditions.checkArgument(this.isPreAuthenticated,
+        "preAuthenticated() has to be set");
+    Preconditions.checkArgument(this.preAuthUrl != null,
+        "preAuthUrl() has to be set");
     this.preAuthContent = preAuthContent;
     return this;
   }
 
-  private String prepareRequestContent() {
-    return null;
+  public ClientCall header(Map<String, String> header) {
+    this.header.putAll(header);
+    return this;
   }
 
 
+  private RequestBody prepareBody(Object body) throws JsonProcessingException {
+    RequestBody requestBody = null;
+    String json = "";
+
+    if (body == null) {
+      logger.debug("The request has no body");
+    } else if (body instanceof String) {
+      json = (String) body;
+      logger.debug("Passed String rest object: [{}]", json);
+      requestBody = RequestBody.create(this.mediaType, json);
+    } else if (body instanceof Map) {
+      logger.debug("Passed parameter map");
+      Map<String, String> paramMap = ((Map) body);
+      FormBody.Builder form = new FormBody.Builder();
+      for (Map.Entry<String, String> param : paramMap.entrySet()) {
+        form.add(param.getKey(), param.getValue());
+      }
+      logger.debug("Created form", json);
+      requestBody = form.build();
+    } else {
+      ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+      json = ow.writeValueAsString(body);
+      logger.debug("Converted rest object: {}", json);
+      requestBody = RequestBody.create(this.mediaType, json);
+    }
+
+    return requestBody;
+  }
+
+  private HttpUrl prepareUrl(String url, Map<String, String> params) {
+    HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+    if (params != null) {
+      for (Map.Entry<String, String> param : params.entrySet()) {
+        urlBuilder.addQueryParameter(param.getKey(), param.getValue());
+      }
+    }
+    HttpUrl preparedUrl = urlBuilder.build();
+    logger.debug("Prepared URL [{}]", preparedUrl);
+    return preparedUrl;
+  }
+
+  private void prepareRequest() throws IOException {
+    Preconditions.checkNotNull(this.method, "method cannot be null");
+    if (requestBuilder == null) {
+      this.buildRequest();
+    }
+    Request.Builder requestBuilder = this.requestBuilder;
+
+    logger.debug("Prepare request for execution");
+
+    requestBuilder.method(this.method.name(), prepareBody(this.body));
+    requestBuilder.url(prepareUrl(this.url, this.queryParams));
+
+    for (Map.Entry<String, String> param : this.header.entrySet()) {
+      requestBuilder.addHeader(param.getKey(), param.getValue());
+    }
+
+    this.request = requestBuilder.build();
+
+    logger.debug("Prepared request: [{}]", request.toString());
+
+  }
+
   /**
    * execute prepared call and deliver response
-   *
-   * @param <T>
-   * @return
    */
   public <T> T execute() throws IOException {
+
     Preconditions.checkNotNull(this.client, "client cannot be null");
     Preconditions.checkNotNull(this.method, "HTTP method has to be set");
-    Preconditions.checkNotNull(this.request, "Request cannot be null");
-    return null;
+
+    if (request == null) {
+      prepareRequest();
+    }
+    try {
+      if (isPreAuthenticated) {
+        logger.info("prepare preauthenticated call");
+        Request preAuthRequest = (new Request.Builder())
+            .url(preAuthUrl)
+            .post(prepareBody(preAuthContent))
+            .build();
+        try (Response preAuthResponse = this.client.newCall(preAuthRequest).execute()) {
+          if (!preAuthResponse.isSuccessful()
+              || preAuthResponse.body().string().contains("Invalid username and password")) {
+            throw new IOException("Could not authenticate: " + preAuthResponse.body().string());
+          }
+          logger.info("Authenticated");
+        }
+      }
+      try (Response callResponse = this.client.newCall(request).execute()) {
+        String responseBody = callResponse.body().string();
+        if (callResponse.code() < 200 || callResponse.code() >= 300) {
+          throw new HttpException(
+              callResponse.code(),
+              "Could not " + request.method() + " > " + url + " : " + responseBody);
+        }
+        logger.debug(
+            url + " > " + request.method() + " >> " + callResponse.code() + ": \n" + responseBody);
+        this.responseBody = responseBody;
+        return evaluateResponse();
+
+      }
+    } catch (IOException ex) {
+      logger.error("Call failed: ", ex);
+      throw ex;
+    }
+  }
+
+  private <T> T evaluateResponse() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    if (returnType == null && typeReference == null) {
+      return null;
+    } else if (returnType != null) {
+      if (returnType.isAssignableFrom(String.class)) {
+        return (T) responseBody;
+      }
+      return (T) objectMapper.readValue(responseBody, returnType);
+    } else {
+      return (T) objectMapper.readValue(responseBody, typeReference);
+    }
+
   }
 
 }

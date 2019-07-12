@@ -258,7 +258,7 @@ public class SecurityConfiguration
      * @return
      * @throws IOException
      */
-    @Bean(name = "customAuthenticationManager")
+    @Bean(name = "provisioningAppAuthenticationManager")
     public AuthenticationManager crowdAuthenticationManager()
             throws IOException
     {
