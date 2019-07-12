@@ -58,5 +58,17 @@
 		"group": "openshift",
 		"description": "deletes an openshift component (for project bhw and component bhw-be: bhw-be)",
 		"project": "Quickstarters"
+	},
+	{
+		"id": "33a85b29-0199-4059-b1fb-d0c254e821",
+		"scheduled": false,
+		"href": "http://rundeck.ods.bb/api/24/job/33a85b29-0199-4059-b1fb-d0c254e821",
+		"scheduleEnabled": true,
+		"enabled": true,
+		"permalink": "http://rundeck.ods.bb/project/Quickstarters/job/show/33a85b29-0199-4059-b1fb-d0c254e821",
+		"name": "delete-projects",
+		"group": "openshift",
+		"description": "deletes an openshift project(for project bhw and component bhw-be: bhw-be)",
+		"project": "Quickstarters"
 	}
 ]

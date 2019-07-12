@@ -17,6 +17,7 @@ package org.opendevstack.provision.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import java.io.File;
 import java.io.IOException;
@@ -421,6 +422,58 @@ public class E2EProjectAPIControllerTest
     }
 
     /**
+     * Test positive new quickstarter and delete project afterwards
+     */
+    @Test
+    public void testQuickstarterProvisionOnNewOpenProjectInclDelete ()
+            throws Exception 
+    {
+        OpenProjectData createdProjectIncludingQuickstarters = 
+            testQuickstarterProvisionOnNewOpenProject(false);
+
+        assertNotNull(createdProjectIncludingQuickstarters);
+        assertNotNull(createdProjectIncludingQuickstarters.projectKey);
+        assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
+        assertEquals(1, 
+                createdProjectIncludingQuickstarters.quickstarters.size());
+        
+        OpenProjectData toClean = new OpenProjectData(); 
+                toClean.projectKey = 
+                        createdProjectIncludingQuickstarters.projectKey;
+                toClean.quickstarters =
+                        createdProjectIncludingQuickstarters.quickstarters;
+
+        // delete the quickstarter IN the project
+        mockMvc.perform(
+                delete("/api/v2/project/").content(
+                        ProjectApiControllerTest.asJsonString(toClean))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk());
+        
+        // delete component thru rundeck
+        Mockito.verify(mockRestClient, times(1)).callHttp(
+                contains("/job/33a85b29-0199-4059-b1fb-d0c254e89fab/run"),
+                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
+                eq(ExecutionsData.class));
+        
+        // delete the ODS project
+        mockMvc.perform(
+                delete("/api/v2/project/" + toClean.projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk());
+        
+        // delete projects rundeck job
+        Mockito.verify(mockRestClient, times(1)).callHttp(
+                contains("/job/33a85b29-0199-4059-b1fb-d0c254e821/run"),
+                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
+                eq(ExecutionsData.class));
+    }
+
+    /**
      * Test NEGATIVE new quickstarter - rollback ONE created repo
      */
     @Test
@@ -430,7 +483,7 @@ public class E2EProjectAPIControllerTest
         testQuickstarterProvisionOnNewOpenProject(true);
     }
 
-    public void testQuickstarterProvisionOnNewOpenProject (boolean fail) 
+    public OpenProjectData testQuickstarterProvisionOnNewOpenProject (boolean fail) 
             throws Exception 
     {
         // read the request
@@ -520,7 +573,7 @@ public class E2EProjectAPIControllerTest
                     contains(realBitbucketAdapter.getAdapterApiUri()),
                     eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
 
-            return;
+            return dataUpdate;
         } else 
         {
             assertEquals(
@@ -548,6 +601,9 @@ public class E2EProjectAPIControllerTest
         assertEquals(1,  resultProject.lastExecutionJobs.size());
         assertEquals(execution.getPermalink(),
                 resultProject.lastExecutionJobs.iterator().next());
+        
+        // return the new fully built project for further use
+        return resultProject;
     }
 
     /**

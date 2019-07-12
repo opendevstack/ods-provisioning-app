@@ -20,8 +20,6 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
-import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -346,37 +344,68 @@ public class RundeckAdapter implements IJobExecutionAdapter
 
         if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) 
         {
-            logger.debug("Project {} not affected from cleanup",
-                    project.projectKey);
-            return leftovers;            
+            if (project.lastExecutionJobs != null &&
+                    !project.lastExecutionJobs.isEmpty()) 
+            {
+                String deleteProjectJob = 
+                        jobStore.getJobIdForJobName("delete-projects");
+                String deleteProjectJobUrl = String.format("%s%s/job/%s/run",
+                        rundeckUri, rundeckApiPath, deleteProjectJob);
+                if (deleteProjectJob == null) 
+                {
+                    logger.error("Cannot find delete-projects job, hence"
+                            + " cannot delete project!");
+                    leftovers.put(
+                            CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+                } else 
+                {
+                    logger.debug("Calling delete-projects job for project {}" +
+                            " with id {}",
+                            project.projectKey, deleteProjectJob);
+
+                    Execution execution = new Execution();
+                    Map<String, String> options = new HashMap<>();
+                        options.put("project_id",
+                            project.projectKey.toLowerCase());
+                
+                    try 
+                    {
+                        ExecutionsData cleanupData = client.callHttp(
+                                deleteProjectJobUrl,
+                                execution, false,
+                                RestClient.HTTP_VERB.POST,
+                                ExecutionsData.class);
+                    } catch (Exception allExecExceptions) 
+                    {
+                        logger.debug("Could not start delete job for project {}, {}",
+                                project.projectKey, allExecExceptions.getMessage());
+                        leftovers.put(
+                                CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+                        return leftovers;
+                    }
+                    return leftovers;
+                }
+                return leftovers;
+            } else 
+            {
+                logger.debug("Project {} not affected from cleanup",
+                        project.projectKey);
+                return leftovers;            
+                
+            }
         }
 
         if  (project.quickstarters != null || 
                 project.quickstarters.size() > 0) 
         {
-            String deleteComponentJob = null;
-            
-            List<Job> jobs = new ArrayList<>();
-            try 
-            {
-                jobs = getJobs(projectOpenshiftGroup);
-            } catch (Exception allExceptions) {}
-            
-            for (Job job : jobs)
-            {
-                if (job.getName()
-                        .equalsIgnoreCase("delete-component"))
-                {
-                    deleteComponentJob = job.getId();
-                }
-            }
-            
+            String deleteComponentJob = 
+                    jobStore.getJobIdForJobName("delete-component");
             if (deleteComponentJob == null) 
             {
                 logger.error("Cannot find delete-components job, hence"
                         + " cannot clean quickstarters!");
                 
-                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER_JOBS,
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
                         project.quickstarters.size());
                 return leftovers;
             }
@@ -412,16 +441,17 @@ public class RundeckAdapter implements IJobExecutionAdapter
                             execution, false,
                             RestClient.HTTP_VERB.POST,
                             ExecutionsData.class);
-                } catch (Exception allExecExceptions) {
-                    logger.debug("Could not start delete job for component {}",
-                            quickstarterName);
+                } catch (Exception allExecExceptions) 
+                {
+                    logger.debug("Could not start delete job for component {}, {}",
+                            quickstarterName, allExecExceptions.getMessage());
                     nonDeletedQuickstarters++;
                 }
             }
             
             if (nonDeletedQuickstarters > 0) 
             {
-                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER_JOBS,
+                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
                         nonDeletedQuickstarters);
             }
         }
@@ -431,5 +461,4 @@ public class RundeckAdapter implements IJobExecutionAdapter
         
         return leftovers;
     }
-
 }

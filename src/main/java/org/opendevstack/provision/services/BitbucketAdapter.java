@@ -417,11 +417,15 @@ public class BitbucketAdapter implements ISCMAdapter
         
         Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
                 new HashMap<>();
-
+        
+        /*
+         * TODO - I suggest we leave the repos as is .. to NOT touch any code
+         * in the remove quickstarter phase
+         */
         if (project.repositories == null || 
                 project.repositories.size() == 0) 
         {
-            logger.debug("Project {} not affected from cleanup",
+            logger.debug("Project {} not affected from cleanup, no repos",
                     project.projectKey);
             return leftovers;
         }

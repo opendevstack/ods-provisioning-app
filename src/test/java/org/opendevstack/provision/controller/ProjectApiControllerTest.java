@@ -73,7 +73,9 @@ public class ProjectApiControllerTest
     private MailAdapter mailAdapter;
     @Mock
     private IStorage storage;
-
+    @Mock
+    private StorageAdapter filteredStorage;
+    
     @Mock
     private RestClient client;
 
@@ -385,8 +387,11 @@ public class ProjectApiControllerTest
                         MockMvcResultMatchers.status().isNotFound())
                 .andDo(MockMvcResultHandlers.print());
 
-        Mockito.when(storage.getProject(anyString()))
-                .thenReturn(data);
+        data.projectKey = "1";
+        
+        Mockito.when(filteredStorage.
+            getFilteredSingleProject("1"))
+            .thenReturn(data);
 
         mockMvc.perform(get("/api/v2/project/1")
                 .accept(MediaType.APPLICATION_JSON))

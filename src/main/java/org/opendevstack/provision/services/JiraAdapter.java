@@ -340,6 +340,7 @@ public class JiraAdapter implements IBugtrackerAdapter
         }
     }
 
+    @Override
     public int addShortcutsToProject(OpenProjectData data)
     {
         if (!data.bugtrackerSpace)
@@ -537,6 +538,7 @@ public class JiraAdapter implements IBugtrackerAdapter
         return template;
     }
 
+    @Override
     public Map<String, String> createComponentsForProjectRepositories(
             OpenProjectData data)
     {

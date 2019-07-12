@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.base.Preconditions;
 
 /**
  * Class handling local storage of JSON files for a simple historization
@@ -289,5 +290,23 @@ public class LocalStorage implements IStorage
                 logger.error(ioE.toString());
             }
         }
+    }
+
+    @Override
+    public String getStoragePath()
+    {
+        return this.localStoragePath;
+    }
+
+    @Override
+    public boolean deleteProject(OpenProjectData project)
+    {
+        Preconditions.checkNotNull(project, 
+                "cannot delete null project");
+        Preconditions.checkNotNull(project.physicalLocation);
+        
+        logger.debug("Deleting project {}, location {}",
+                project.projectKey, project.physicalLocation);
+        return new File(project.physicalLocation).delete();
     }
 }
