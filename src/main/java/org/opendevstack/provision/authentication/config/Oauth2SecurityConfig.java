@@ -38,7 +38,9 @@ public class Oauth2SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     HttpSecurity sec =
-        http.authorizeRequests()
+        http.headers().httpStrictTransportSecurity().disable()
+                .and().cors().disable().csrf().disable()
+      .authorizeRequests()
             .antMatchers(
                 "/",
                 "/fragments/**",
