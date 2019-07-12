@@ -106,6 +106,8 @@ public class RundeckAdapterTest
         OpenProjectData project = new OpenProjectData();
         List<ExecutionsData> expectedExecutions = new ArrayList<>();
         Mockito.doNothing().when(spyAdapter).authenticate();
+        Mockito.doReturn(new ArrayList<>()).when(spyAdapter).
+            getJobs(anyString());
 
         List<ExecutionsData> actualExecutions = spyAdapter
                 .provisionComponentsBasedOnQuickstarters(project);
@@ -137,6 +139,8 @@ public class RundeckAdapterTest
 
         Mockito.doNothing().when(spyAdapter).authenticate();
 
+        Mockito.doReturn(new ArrayList<>()).when(spyAdapter).
+            getJobs(anyString());
         when(jobStore.getJob(anyString())).thenReturn(job);
 
         mockRestClientToReturnExecutionData(Execution.class,

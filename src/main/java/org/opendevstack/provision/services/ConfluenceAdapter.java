@@ -31,6 +31,7 @@ import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -318,4 +319,58 @@ public class ConfluenceAdapter implements ICollaborationAdapter
     {
         throw new NotImplementedException();
     }
+
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        Preconditions.checkNotNull(stage);
+        Preconditions.checkNotNull(project);
+
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                new HashMap<>();
+        
+        if (stage.equals(
+                LIFECYCLE_STAGE.QUICKSTARTER_PROVISION) || 
+            (!project.bugtrackerSpace && 
+                    project.collaborationSpaceUrl == null)) 
+        {
+            logger.debug("Project {} not affected from cleanup",
+                    project.projectKey);
+            return leftovers;
+        }
+        
+        logger.debug("Cleaning up collaboration space: {} with url {}",
+                project.projectKey,
+                project.collaborationSpaceUrl);
+                
+        String confluenceProjectPath = 
+                String.format("%s/api/space/%s", 
+                        getAdapterApiUri(), 
+                        project.projectKey);
+        
+        try 
+        {
+            client.callHttp(
+                confluenceProjectPath, null, true, 
+                HTTP_VERB.DELETE, null);
+
+            project.collaborationSpaceUrl = null;
+        } catch (Exception cex) 
+        {
+            logger.error(
+                    String.format("Could not clean up project"
+                            + " {} error: {}", 
+                            project.projectKey,
+                            cex));
+            leftovers.put(
+                    CLEANUP_LEFTOVER_COMPONENTS.COLLABORATION_SPACE, 1);
+        }
+
+        logger.debug("Cleanup done - status: {} components are left ..", 
+                leftovers.size() == 0 ? 0 : leftovers);
+        
+        return leftovers;
+    }
+
 }

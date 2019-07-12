@@ -62,7 +62,7 @@ public class RestClient {
     PUT,
     POST,
     GET,
-    HEAD
+    HEAD, DELETE
   }
 
   OkHttpClient getClient(String crowdCookie) {
@@ -224,6 +224,9 @@ public class RestClient {
         break;
       case HEAD:
         builder = builder.head();
+                break;
+            case DELETE:
+                builder = builder.delete();
         break;
       default:
         builder = builder.head();

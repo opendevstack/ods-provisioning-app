@@ -11,6 +11,13 @@ import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.*;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.opendevstack.provision.model.jira.Component;
+import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.Permission;
+import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.model.jira.Shortcut;
+import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -509,4 +516,77 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
     return createdComponents;
   }
+
+    @Override
+    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer>  cleanup
+        (LIFECYCLE_STAGE stage, OpenProjectData project)
+    {
+        Preconditions.checkNotNull(stage);
+        Preconditions.checkNotNull(project);
+
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                new HashMap<>();
+        if (stage.equals(
+                LIFECYCLE_STAGE.QUICKSTARTER_PROVISION) ||
+            (!project.bugtrackerSpace &&
+                    project.bugtrackerUrl == null))
+        {
+            logger.debug("Project {} not affected from cleanup",
+                    project.projectKey);
+            return leftovers;
+        }
+        String jiraProjectPath =
+                String.format("%s%s/project/%s", jiraUri,
+                jiraApiPath, project.projectKey);
+
+        logger.debug("Cleaning up bugtracker space: {} with url {}",
+                project.projectKey,
+                project.bugtrackerUrl);
+
+        try
+        {
+            FullJiraProject createdProject =
+                    client.callHttp(
+                            jiraProjectPath, null, true,
+                            HTTP_VERB.GET,
+                            FullJiraProject.class);
+
+            if (project.specialPermissionSet)
+            {
+                String permissionSchemeId =
+                        createdProject.permissionScheme;
+
+                logger.debug("Cleaning up permissionset {}",
+                        permissionSchemeId);
+
+                String jiraPermissionSchemePath =
+                        String.format("%s%s/permissionscheme/%s",
+                                jiraUri, jiraApiPath,
+                                permissionSchemeId);
+
+                client.callHttp(
+                        jiraPermissionSchemePath, null, true,
+                        HTTP_VERB.DELETE, null);
+            }
+
+            client.callHttp(
+                jiraProjectPath, null, true,
+                HTTP_VERB.DELETE, null);
+
+            project.bugtrackerUrl = null;
+        } catch (Exception cex)
+        {
+            logger.error(
+                    String.format("Could not clean up project"
+                            + " {} error: {}",
+                            project.projectKey,
+                            cex));
+            leftovers.put
+                (CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 0);
+        }
+        logger.debug("Cleanup done - status: {} components are left ..",
+                leftovers.size() == 0 ? 0 : leftovers);
+
+        return leftovers;
+    }
 }

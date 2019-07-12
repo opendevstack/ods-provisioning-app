@@ -118,17 +118,11 @@ dependencies {
     compile("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
 
     // oauth2
-
-    //This project is a port of the Spring Security OAuth support that came with Spring Boot 1.x. Support was removed in favor of Spring Security 5’s first class OAuth support. To ease migration, this project exists as a bridge between the old Spring Security OAuth support and Spring Boot 2.x.
-    //compile  'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.1.6.RELEASE'
-
     compile 'org.springframework.security:spring-security-oauth2-core'
     compile 'org.springframework.security:spring-security-oauth2-client'
     compile 'org.springframework.security:spring-security-oauth2-jose'
     compile 'org.springframework.security:spring-security-jwt:1.0.10.RELEASE'
     compile 'org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE'
-// https://mvnrepository.com/artifact/org.springframework.security/spring-security-openid
-    //compile 'org.springframework.security:spring-security-openid' //, version: '5.1.5.RELEASE'
 
 
 

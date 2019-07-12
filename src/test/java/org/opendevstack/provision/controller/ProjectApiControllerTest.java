@@ -614,7 +614,7 @@ public class ProjectApiControllerTest
         apiController.shortenDescription(data);
     }
 
-    private String asJsonString(final Object obj)
+    public static String asJsonString(final Object obj)
     {
         try
         {
