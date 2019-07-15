@@ -247,12 +247,19 @@ public class ClientCall {
         }
 
         if (logger.isTraceEnabled()) {
-          logger.trace("URL: {}, method: {}, response-code: {}, responce-body: {} ",
-                       url , request.method(), callResponse.code() , "\n" + responseBody);
+          logger.trace(
+              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
+              url,
+              request.method(),
+              callResponse.code(),
+              "\n" + responseBody);
         } else {
-          logger.debug("URL: {}, method: {}, response-code: {}, responce-body: {} ",
-                       url , request.method(), callResponse.code() ,
-                       "<body was omitted. Please enable tracing on class in order to see response body>");
+          logger.debug(
+              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
+              url,
+              request.method(),
+              callResponse.code(),
+              "<body was omitted. Please enable tracing on class in order to see response body>");
         }
         this.responseBody = responseBody;
         return evaluateResponse();
@@ -276,5 +283,10 @@ public class ClientCall {
     } else {
       return (T) objectMapper.readValue(responseBody, typeReference);
     }
+  }
+
+  //TODO stefanlack/torsten What is the purpose of method authenticated().basic()
+  public ClientCall basicAuthenticated(CredentialsInfo basicCredentials) {
+    return this.authenticated().basic().credentials(basicCredentials);
   }
 }

@@ -118,8 +118,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
     FullJiraProject created =
-        restClient.callHttp(
-            path, jiraProject, false, RestClient.HTTP_VERB.POST, FullJiraProject.class);
+        client
+            .post()
+            .url(path)
+                .body(jiraProject)
+            .basicAuthenticated(getBasicCredentials())
+            .returnTypeReference(new TypeReference<FullJiraProject>() {})
+            .execute();
+
     FullJiraProject returnProject =
         new FullJiraProject(
             created.getSelf(),
@@ -578,19 +584,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   private Collection<String> getProjectKeys() {
     logger.debug("Getting all visible jira project keys");
     String url = String.format("%s%s/project", jiraUri, jiraApiPath);
-    Map<String, String> params = new HashMap<>();
-    params.put("expand", "key");
     try {
-      // List<FullJiraProject> projects = restClient.callHttpTypeRef(url, null, false,
-      //    RestClient.HTTP_VERB.GET, new TypeReference<List<FullJiraProject>>() {});
       List<JsonNode> projects =
           this.client
               .get()
               .url(url)
-              .queryParams(params)
-              .authenticated()
-              .basic()
-              .credentials(getBasicCredentials())
+              .basicAuthenticated(getBasicCredentials())
               .returnTypeReference(new TypeReference<List<JsonNode>>() {})
               .execute();
       // enabledJobs = jobs.str

@@ -79,6 +79,7 @@ public class Client {
         .mediaType(JSON_MEDIA_TYPE);
   }
 
+  //TODO stefanlack / torsten: why not add mandatory body element as argument to this
   public ClientCall post() {
     return newCall()
         .buildRequest()
