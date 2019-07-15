@@ -2,7 +2,9 @@ package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.util.CredentialsInfo;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.rest.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -18,7 +20,10 @@ public class BaseServiceAdapter {
   @Autowired
   IODSAuthnzAdapter manager;
 
-  @Autowired  RestClient client;
+  @Autowired  RestClient restClient;
+
+  @Autowired
+  Client client;
 
   public BaseServiceAdapter(String userName, String userPassword) {
     this.userName = userName;
@@ -36,12 +41,12 @@ public class BaseServiceAdapter {
 
     if (useTechnicalUser) {
       T t =
-          client.callHttpTypeRefWithDirectAuth(
+          restClient.callHttpTypeRefWithDirectAuth(
               url, input, verb, returnType, returnTypeRef, userName, userPassword);
       return t;
     }
 
-    return client.callHttpTypeRef(
+    return restClient.callHttpTypeRef(
         url, null, false, RestClient.HTTP_VERB.GET, new TypeReference<T>() {});
   }
 
@@ -55,7 +60,7 @@ public class BaseServiceAdapter {
           Class<T> returnType)
           throws IOException {
 
-    return client.callHttp(
+    return restClient.callHttp(
             url, input, false, verb, returnType);
   }
 
@@ -66,16 +71,16 @@ public class BaseServiceAdapter {
             TypeReference<T> returnTypeRef)
             throws IOException {
 
-        return client.callHttpTypeRef(
+        return restClient.callHttpTypeRef(
                 url, input, false, verb, returnTypeRef);
     }
   public <T> T callHttp(String url, Object input, RestClient.HTTP_VERB verb, Class<T> returnType)
       throws IOException {
     if (useTechnicalUser) {
-      return client.callHttpWithDirectAuth(
+      return restClient.callHttpWithDirectAuth(
           url, input, RestClient.HTTP_VERB.POST, returnType, userName, userPassword);
     } else {
-      return client.callHttp(url, input, false, RestClient.HTTP_VERB.POST, returnType);
+      return restClient.callHttp(url, input, false, RestClient.HTTP_VERB.POST, returnType);
     }
   }
 
@@ -83,7 +88,7 @@ public class BaseServiceAdapter {
     if (useTechnicalUser) {
       return;
     }
-    client.getSessionId(url);
+    restClient.getSessionId(url);
   }
 
   public String getUserName() {
@@ -91,9 +96,13 @@ public class BaseServiceAdapter {
   }
   public void callHttpBasicFormAuthenticate(String url) throws IOException {
     if (useTechnicalUser) {
-      client.callHttpBasicFormAuthenticate(url, userName, userPassword);
+      restClient.callHttpBasicFormAuthenticate(url, userName, userPassword);
     } else {
-      client.callHttpBasicFormAuthenticate(url);
+      restClient.callHttpBasicFormAuthenticate(url);
     }
+  }
+
+  public CredentialsInfo getBasicCredentials() {
+    return new CredentialsInfo(userName,userPassword);
   }
 }

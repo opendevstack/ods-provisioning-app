@@ -103,9 +103,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
 
-  @Autowired private RestClient client;
-
-  @Autowired Client restClient;
 
   public RundeckAdapter(
       @Value("${rundeck.admin_user}") String adminUser,
@@ -242,10 +239,10 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     Map<String, String> jobPath = new HashMap<>();
     jobPath.put("groupPath", group);
 
-    // List<Job> jobs = client.callHttpTypeRef(jobsUrl, jobPath, false, RestClient.HTTP_VERB.GET,
+    // List<Job> jobs = restClient.callHttpTypeRef(jobsUrl, jobPath, false, RestClient.HTTP_VERB.GET,
     //   new TypeReference<List<Job>>() {});
     List<Job> jobs =
-        restClient
+            client
             .get()
             .url(jobsUrl)
             .queryParams(jobPath)
@@ -268,7 +265,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   }
 
   private ExecutionsData callExecution(String url, Execution execution) throws IOException {
-    return restClient
+    return client
         .post()
         .url(url)
         .body(execution)
@@ -313,7 +310,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     }
     try {
       ExecutionsData data =
-          client.callHttp(url, execution, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
+          restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
 
       if (data != null && data.getError()) {
         throw new IOException(data.getMessage());

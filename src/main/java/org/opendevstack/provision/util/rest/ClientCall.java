@@ -27,30 +27,29 @@ public class ClientCall {
 
   private Request.Builder requestBuilder;
 
-  //HTTP information
+  // HTTP information
   private HttpMethod method = null;
 
-  //Authentication
+  // Authentication
   private boolean isAuthenticated = false;
   private boolean isBasicAuth = false;
   private CredentialsInfo credentialsInfo;
 
-  //Pre authentication
+  // Pre authentication
   private boolean isPreAuthenticated = false;
   private String preAuthUrl = null;
   private Object preAuthContent;
 
-  //Request information
+  // Request information
   private MediaType mediaType;
   private Object body;
   private String url;
   private Map<String, String> queryParams;
   private Map<String, String> header = new HashMap<>();;
 
-  //Response information
+  // Response information
   private Class returnType = null;
   private TypeReference typeReference = null;
-
 
   public ClientCall(OkHttpClient client) {
     this.client = client;
@@ -73,7 +72,7 @@ public class ClientCall {
   }
 
   public ClientCall json() {
-    header.put("Accept","application/json");
+    header.put("Accept", "application/json");
     return this;
   }
 
@@ -114,8 +113,7 @@ public class ClientCall {
   }
 
   public ClientCall basic() {
-    Preconditions.checkArgument(this.isAuthenticated,
-        "authenticated has to be set to use basic");
+    Preconditions.checkArgument(this.isAuthenticated, "authenticated has to be set to use basic");
     isBasicAuth = true;
     return this;
   }
@@ -136,17 +134,14 @@ public class ClientCall {
   }
 
   public ClientCall preAuthUrl(String preAuthUrl) {
-    Preconditions.checkArgument(this.isPreAuthenticated,
-        "preAuthenticated has to be set");
+    Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated has to be set");
     this.preAuthUrl = preAuthUrl;
     return this;
   }
 
   public ClientCall preAuthContent(Object preAuthContent) {
-    Preconditions.checkArgument(this.isPreAuthenticated,
-        "preAuthenticated() has to be set");
-    Preconditions.checkArgument(this.preAuthUrl != null,
-        "preAuthUrl() has to be set");
+    Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated() has to be set");
+    Preconditions.checkArgument(this.preAuthUrl != null, "preAuthUrl() has to be set");
     this.preAuthContent = preAuthContent;
     return this;
   }
@@ -155,7 +150,6 @@ public class ClientCall {
     this.header.putAll(header);
     return this;
   }
-
 
   private RequestBody prepareBody(Object body) throws JsonProcessingException {
     RequestBody requestBody = null;
@@ -213,16 +207,16 @@ public class ClientCall {
     for (Map.Entry<String, String> param : this.header.entrySet()) {
       requestBuilder.addHeader(param.getKey(), param.getValue());
     }
+    if (isBasicAuth) {
+      requestBuilder.addHeader("Authorization", credentialsInfo.getCredentials());
+    }
 
     this.request = requestBuilder.build();
 
     logger.debug("Prepared request: [{}]", request.toString());
-
   }
 
-  /**
-   * execute prepared call and deliver response
-   */
+  /** execute prepared call and deliver response */
   public <T> T execute() throws IOException {
 
     Preconditions.checkNotNull(this.client, "client cannot be null");
@@ -234,10 +228,8 @@ public class ClientCall {
     try {
       if (isPreAuthenticated) {
         logger.info("prepare preauthenticated call");
-        Request preAuthRequest = (new Request.Builder())
-            .url(preAuthUrl)
-            .post(prepareBody(preAuthContent))
-            .build();
+        Request preAuthRequest =
+            (new Request.Builder()).url(preAuthUrl).post(prepareBody(preAuthContent)).build();
         try (Response preAuthResponse = this.client.newCall(preAuthRequest).execute()) {
           if (!preAuthResponse.isSuccessful()
               || preAuthResponse.body().string().contains("Invalid username and password")) {
@@ -253,11 +245,17 @@ public class ClientCall {
               callResponse.code(),
               "Could not " + request.method() + " > " + url + " : " + responseBody);
         }
-        logger.debug(
-            url + " > " + request.method() + " >> " + callResponse.code() + ": \n" + responseBody);
+
+        if (logger.isTraceEnabled()) {
+          logger.trace("URL: {}, method: {}, response-code: {}, responce-body: {} ",
+                       url , request.method(), callResponse.code() , "\n" + responseBody);
+        } else {
+          logger.debug("URL: {}, method: {}, response-code: {}, responce-body: {} ",
+                       url , request.method(), callResponse.code() ,
+                       "<body was omitted. Please enable tracing on class in order to see response body>");
+        }
         this.responseBody = responseBody;
         return evaluateResponse();
-
       }
     } catch (IOException ex) {
       logger.error("Call failed: ", ex);
@@ -278,7 +276,5 @@ public class ClientCall {
     } else {
       return (T) objectMapper.readValue(responseBody, typeReference);
     }
-
   }
-
 }
