@@ -14,13 +14,11 @@
 
 package org.opendevstack.provision.storage;
 
-import java.io.IOException;
-import java.util.Map;
-
-import javax.management.openmbean.OpenDataException;
-
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Torsten Jaeschke
@@ -50,7 +48,8 @@ public interface IStorage
 
     /**
      * Update an already existing project
-     * @param project the project to update (based on the {@link OpenProjectData#projectKey}
+     * @param project the project to update (based on the 
+     * {@link OpenProjectData#projectKey})
      * @return the filepath of the stored project
      * @throws IOException in case the project cannot be stored
      */
@@ -71,4 +70,12 @@ public interface IStorage
      * @return the changes
      */
     AboutChangesData listAboutChangesData();
+    
+    /**
+     * Return the storage path
+     * @return
+     */
+    String getStoragePath();
+    
+    boolean deleteProject (OpenProjectData project);
 }

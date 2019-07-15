@@ -19,7 +19,10 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -48,8 +51,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.mockito.ArgumentMatchers.*;
 
 /**
  * @author Torsten Jaeschke
@@ -73,7 +77,9 @@ public class ProjectApiControllerTest
     private MailAdapter mailAdapter;
     @Mock
     private IStorage storage;
-
+    @Mock
+    private StorageAdapter filteredStorage;
+    
     @Mock
     private RestClient client;
 
@@ -385,8 +391,11 @@ public class ProjectApiControllerTest
                         MockMvcResultMatchers.status().isNotFound())
                 .andDo(MockMvcResultHandlers.print());
 
-        Mockito.when(storage.getProject(anyString()))
-                .thenReturn(data);
+        data.projectKey = "1";
+        
+        Mockito.when(filteredStorage.
+            getFilteredSingleProject("1"))
+            .thenReturn(data);
 
         mockMvc.perform(get("/api/v2/project/1")
                 .accept(MediaType.APPLICATION_JSON))

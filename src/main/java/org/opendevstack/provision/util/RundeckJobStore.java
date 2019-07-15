@@ -13,11 +13,13 @@
  */
 package org.opendevstack.provision.util;
 
+import com.google.common.base.Preconditions;
+import org.opendevstack.provision.model.rundeck.Job;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.opendevstack.provision.model.rundeck.Job;
 
 /**
  * Jobstore that will be created as bean to store rundeck Jobs centrally.
@@ -90,4 +92,21 @@ public class RundeckJobStore
     {
         return jobs.size();
     }
+    
+    public String getJobIdForJobName(String jobName) 
+    {
+        Preconditions.checkNotNull(jobName, 
+                "Jobname cannot be null");
+        
+        for (Job job : jobs.values())
+        {
+            if (job.getName()
+                    .equalsIgnoreCase(jobName))
+            {
+                return job.getId();
+            }
+        }
+        return null;
+    }
+    
 }

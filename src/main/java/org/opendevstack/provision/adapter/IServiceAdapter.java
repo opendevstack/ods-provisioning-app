@@ -14,10 +14,10 @@
 
 package org.opendevstack.provision.adapter;
 
-import java.util.Map;
-
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
+
+import java.util.Map;
 
 /**
  * Base interface for all service adapters
@@ -25,13 +25,6 @@ import org.opendevstack.provision.model.OpenProjectData;
  */
 public interface IServiceAdapter
 {
-    /**
-     * Permission definitions
-     */
-    public static enum PERMISSION
-    {
-        PROJECT_ADMIN_USER, PROJECT_ADMIN_GROUP, PROJECT_USER_GROUP, PROJECT_READONLY_GROUP
-    }
     /**
      * Stage the adapters are in during project creation & update
      */
@@ -45,7 +38,8 @@ public interface IServiceAdapter
     public static enum CLEANUP_LEFTOVER_COMPONENTS
     {
         COLLABORATION_SPACE, BUGTRACKER_PROJECT,
-        SCM_PROJECT, SCM_REPO, QUICKSTARTER_JOBS
+        SCM_PROJECT, SCM_REPO, QUICKSTARTER,
+        PLTF_PROJECT, PROJECT_DB
     }
     /**
      * Project template key enum

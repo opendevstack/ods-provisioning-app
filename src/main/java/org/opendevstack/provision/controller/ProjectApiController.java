@@ -14,19 +14,9 @@
 
 package org.opendevstack.provision.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.adapter.ICollaborationAdapter;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.adapter.IServiceAdapter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
@@ -35,6 +25,7 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
@@ -45,15 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -81,7 +70,7 @@ public class ProjectApiController
     @Autowired
     private MailAdapter mailAdapter;
     @Autowired
-    private IStorage storage;
+    private IStorage directStorage;
     @Autowired
     private RundeckJobStore jobStore;
     @Autowired
@@ -93,6 +82,9 @@ public class ProjectApiController
     @Autowired
     private List<String> projectTemplateKeyNames;
 
+    @Autowired
+    private StorageAdapter filteredStorage;
+    
     // open for testing
     @Autowired
     IODSAuthnzAdapter manager;
@@ -142,19 +134,19 @@ public class ProjectApiController
                         .validateIdSettingsOfProject(newProject);
             }
 
+            // verify the project does NOT exist
+            OpenProjectData projectLoad = directStorage.getProject(newProject.projectKey);
+            if (projectLoad != null)
+            {
+                {
+                    throw new IOException(String.format(
+                            "Project with key (%s) already exists: (%s)",
+                            newProject.projectKey, projectLoad.projectKey));
+                }
+            }
+
             if (newProject.bugtrackerSpace)
             {
-                // verify the project does NOT exist
-                OpenProjectData projectLoad = storage.getProject(newProject.projectKey);
-                if (projectLoad != null)
-                {
-                    {
-                        throw new IOException(String.format(
-                                "Project with key (%s) already exists: (%s)",
-                                newProject.projectKey, projectLoad.projectKey));
-                    }
-                }
-
                 // create the bugtracker project
                 newProject = jiraAdapter
                         .createBugtrackerProjectForODSProject(newProject);
@@ -186,7 +178,7 @@ public class ProjectApiController
             jiraAdapter.addShortcutsToProject(newProject);
 
             // store the project data
-            String filePath = storage.storeProject(newProject);
+            String filePath = directStorage.storeProject(newProject);
             if (filePath != null)
             {
                 logger.debug("Project {} successfully stored: {}",
@@ -201,7 +193,7 @@ public class ProjectApiController
         {
             Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
                     cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
-            
+                        
             String error = (cleanupResults.size() == 0) ?
                     String.format("An error occured while creating project %s, reason %s"
                             + " - but all cleaned up!", 
@@ -211,7 +203,7 @@ public class ProjectApiController
                             newProject.projectKey, exProvisionNew.getMessage(),
                             cleanupResults);
                                 
-            logger.error(error);
+            logger.error(error, exProvisionNew);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         } finally
@@ -248,7 +240,7 @@ public class ProjectApiController
                             .withDefaultPrettyPrinter()
                             .writeValueAsString(updatedProject));
 
-            OpenProjectData storedExistingProject = storage
+            OpenProjectData storedExistingProject = directStorage
                     .getProject(updatedProject.projectKey);
 
             if (storedExistingProject == null)
@@ -320,7 +312,7 @@ public class ProjectApiController
             storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
 
             // store the updated project
-            if (storage.updateStoredProject(storedExistingProject))
+            if (directStorage.updateStoredProject(storedExistingProject))
             {
                 logger.debug("project {} successfully updated", updatedProject.projectKey);
             }
@@ -470,11 +462,14 @@ public class ProjectApiController
     public ResponseEntity<OpenProjectData> getProject(
             @PathVariable String id)
     {
-        OpenProjectData project = storage.getProject(id);
-        if (project == null)
+        OpenProjectData project = 
+                filteredStorage.getFilteredSingleProject(id);
+        
+        if (project == null) 
         {
             return ResponseEntity.notFound().build();
         }
+        
         if (project.quickstarters != null)
         {
             List<Map<String, String>> enhancedStarters = new ArrayList<>();
@@ -619,7 +614,7 @@ public class ProjectApiController
     {
         if (project.quickstarters == null || project.repositories == null) 
         {
-            logger.debug("NOthing to do on project {}", project.projectKey);
+            logger.debug("Nothing to do on project {}", project.projectKey);
             return;
         }
         
@@ -652,6 +647,71 @@ public class ProjectApiController
             option.put("git_url_http", repoUrls.get(URL_TYPE.URL_CLONE_HTTP));
         }
     }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
+    public ResponseEntity<Object> deleteProject(
+            @PathVariable String id)
+    {
+        OpenProjectData project = 
+                filteredStorage.getFilteredSingleProject(id);
+        
+        if (project == null) 
+        {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
+        
+        if (!leftovers.isEmpty()) 
+        {
+            String error =
+                    String.format("Could not delete all components of project "
+                            + " {} - leftovers {}", project.projectKey,
+                            leftovers);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(error);
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
+    
+    @RequestMapping(method = RequestMethod.DELETE)
+    public ResponseEntity<Object> deleteComponents(
+            @RequestBody OpenProjectData deletableComponents)
+    {
+        Preconditions.checkNotNull(deletableComponents,
+                "Cannot delete null project");
+        Preconditions.checkNotNull(deletableComponents.quickstarters, 
+                "No quickstarters to delete are passed");
+        
+        OpenProjectData project =
+                filteredStorage.getFilteredSingleProject(
+                        deletableComponents.projectKey);
+        
+        if (project == null) 
+        {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+                cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION,
+                        deletableComponents);
+        
+        if (!leftovers.isEmpty()) 
+        {
+            String error =
+                    String.format("Could not delete all components of project "
+                            + " {} - leftovers {}", project.projectKey,
+                            leftovers);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(error);
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
     
     /**
      * In case something breaks during provisioniong, this method is called 
@@ -661,12 +721,15 @@ public class ProjectApiController
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
             OpenProjectData project)
     {
-        logger.debug("Errors occured - starting cleanup of project {} in phase {}", 
-                project.projectKey, stage);
+        logger.error("Starting cleanup of project {} "
+                + "in phase {}", project.projectKey, stage);
         
         Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents
             = new HashMap<>();
         
+        notCleanedUpComponents.putAll(
+                rundeckAdapter.cleanup(stage, project));
+
         notCleanedUpComponents.putAll(
                 bitbucketAdapter.cleanup(stage, project));
         
@@ -675,6 +738,9 @@ public class ProjectApiController
         
         notCleanedUpComponents.putAll(
                 jiraAdapter.cleanup(stage, project));
+
+        notCleanedUpComponents.putAll(
+                filteredStorage.cleanup(stage, project));
         
         logger.debug("Overall cleanup status of project: {} components left",
                 notCleanedUpComponents.size() ==  0 ? 0 :

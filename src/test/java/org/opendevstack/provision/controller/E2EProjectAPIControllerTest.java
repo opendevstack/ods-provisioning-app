@@ -14,26 +14,9 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.*;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,11 +39,7 @@ import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
@@ -78,9 +57,19 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
  * End to end testcase with real result data - only mock is the 
@@ -421,6 +410,58 @@ public class E2EProjectAPIControllerTest
     }
 
     /**
+     * Test positive new quickstarter and delete project afterwards
+     */
+    @Test
+    public void testQuickstarterProvisionOnNewOpenProjectInclDelete ()
+            throws Exception 
+    {
+        OpenProjectData createdProjectIncludingQuickstarters = 
+            testQuickstarterProvisionOnNewOpenProject(false);
+
+        assertNotNull(createdProjectIncludingQuickstarters);
+        assertNotNull(createdProjectIncludingQuickstarters.projectKey);
+        assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
+        assertEquals(1, 
+                createdProjectIncludingQuickstarters.quickstarters.size());
+        
+        OpenProjectData toClean = new OpenProjectData(); 
+                toClean.projectKey = 
+                        createdProjectIncludingQuickstarters.projectKey;
+                toClean.quickstarters =
+                        createdProjectIncludingQuickstarters.quickstarters;
+
+        // delete the quickstarter IN the project
+        mockMvc.perform(
+                delete("/api/v2/project/").content(
+                        ProjectApiControllerTest.asJsonString(toClean))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk());
+        
+        // delete component thru rundeck
+        Mockito.verify(mockRestClient, times(1)).callHttp(
+                contains("/job/33a85b29-0199-4059-b1fb-d0c254e89fab/run"),
+                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
+                eq(ExecutionsData.class));
+        
+        // delete the ODS project
+        mockMvc.perform(
+                delete("/api/v2/project/" + toClean.projectKey)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk());
+        
+        // delete projects rundeck job
+        Mockito.verify(mockRestClient, times(1)).callHttp(
+                contains("/job/33a85b29-0199-4059-b1fb-d0c254e821/run"),
+                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
+                eq(ExecutionsData.class));
+    }
+
+    /**
      * Test NEGATIVE new quickstarter - rollback ONE created repo
      */
     @Test
@@ -430,7 +471,7 @@ public class E2EProjectAPIControllerTest
         testQuickstarterProvisionOnNewOpenProject(true);
     }
 
-    public void testQuickstarterProvisionOnNewOpenProject (boolean fail) 
+    public OpenProjectData testQuickstarterProvisionOnNewOpenProject (boolean fail) 
             throws Exception 
     {
         // read the request
@@ -520,7 +561,7 @@ public class E2EProjectAPIControllerTest
                     contains(realBitbucketAdapter.getAdapterApiUri()),
                     eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
 
-            return;
+            return dataUpdate;
         } else 
         {
             assertEquals(
@@ -548,6 +589,9 @@ public class E2EProjectAPIControllerTest
         assertEquals(1,  resultProject.lastExecutionJobs.size());
         assertEquals(execution.getPermalink(),
                 resultProject.lastExecutionJobs.iterator().next());
+        
+        // return the new fully built project for further use
+        return resultProject;
     }
 
     /**

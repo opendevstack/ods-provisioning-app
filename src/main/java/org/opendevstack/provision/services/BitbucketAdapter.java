@@ -14,22 +14,12 @@
 
 package org.opendevstack.provision.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
-import org.opendevstack.provision.model.bitbucket.BitbucketProject;
-import org.opendevstack.provision.model.bitbucket.Repository;
-import org.opendevstack.provision.model.bitbucket.RepositoryData;
-import org.opendevstack.provision.model.bitbucket.Webhook;
+import org.opendevstack.provision.model.bitbucket.*;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
@@ -38,7 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -417,11 +408,15 @@ public class BitbucketAdapter implements ISCMAdapter
         
         Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
                 new HashMap<>();
-
+        
+        /*
+         * TODO - I suggest we leave the repos as is .. to NOT touch any code
+         * in the remove quickstarter phase
+         */
         if (project.repositories == null || 
                 project.repositories.size() == 0) 
         {
-            logger.debug("Project {} not affected from cleanup",
+            logger.debug("Project {} not affected from cleanup, no repos",
                     project.projectKey);
             return leftovers;
         }
