@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
@@ -105,7 +106,7 @@ public class RundeckAdapterTest
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
         OpenProjectData project = new OpenProjectData();
         List<ExecutionsData> expectedExecutions = new ArrayList<>();
-        Mockito.doNothing().when(spyAdapter).authenticate();
+        //Mockito.doNothing().when(spyAdapter).authenticate();
         Mockito.doReturn(new ArrayList<>()).when(spyAdapter).
             getJobs(anyString());
 
@@ -137,7 +138,7 @@ public class RundeckAdapterTest
 
         Execution exec = generateDefaultExecution();
 
-        Mockito.doNothing().when(spyAdapter).authenticate();
+//        Mockito.doNothing().when(spyAdapter).authenticate();
 
         Mockito.doReturn(new ArrayList<>()).when(spyAdapter).
             getJobs(anyString());
@@ -262,7 +263,7 @@ public class RundeckAdapterTest
 
         spyAdapter = Mockito.spy(rundeckAdapter);
 
-        Mockito.doNothing().when(spyAdapter).authenticate();
+//        Mockito.doNothing().when(spyAdapter).authenticate();
         doReturn(jobs).when(spyAdapter).getJobs(any());
         doReturn(execData).when(client).callHttp(anyString(), any(),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
