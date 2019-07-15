@@ -45,268 +45,196 @@ import com.google.common.base.Preconditions;
  */
 
 @Component
-public class LocalStorage implements IStorage
-{
-    private static final Logger logger = LoggerFactory
-            .getLogger(LocalStorage.class);
+public class LocalStorage implements IStorage {
+  private static final Logger logger = LoggerFactory.getLogger(LocalStorage.class);
 
-    private String localStoragePath;
+  private String localStoragePath;
 
-    private static String FILE_PATH_PATTERN = "%s%s-%s.txt";
+  private static String FILE_PATH_PATTERN = "%s%s-%s.txt";
 
-    private static String ABOUT_CHANGES_LOGFILENAME = "about_change_log";
+  private static String ABOUT_CHANGES_LOGFILENAME = "about_change_log";
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    /**
-     * Store the project in the injected storage path Saves the raw JSON data
-     *
-     * @param project
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public String storeProject(OpenProjectData project)
-            throws IOException
-    {
-        if (project == null || project.projectKey == null
-                || project.projectKey.trim().length() == 0)
-        {
-            throw new IOException(
-                    "Can't store invalid, null or no key project");
-        }
-        return writeFile(project, null);
+  /**
+   * Store the project in the injected storage path Saves the raw JSON data
+   *
+   * @param project
+   * @return
+   * @throws IOException
+   */
+  @Override
+  public String storeProject(OpenProjectData project) throws IOException {
+    if (project == null || project.projectKey == null || project.projectKey.trim().length() == 0) {
+      throw new IOException("Can't store invalid, null or no key project");
     }
+    return writeFile(project, null);
+  }
 
-    /**
-     * Load all files from the defined storage path and map them to the
-     * corresponding object
-     *
-     * TODO Fix comparator, because it does not sort in the correct order
-     *
-     * @return a desc date sorted list of projects
-     */
-    @Override
-    public Map<String, OpenProjectData> listProjectHistory()
-    {
-        HashMap<String, OpenProjectData> history = new HashMap<>();
-        try
-        {
-            File folder = new File(localStoragePath);
-            if (folder.isDirectory())
-            {
-                File[] fileList = folder.listFiles();
-                Arrays.sort(fileList,
-                        LastModifiedFileComparator.LASTMODIFIED_COMPARATOR);
-                for (File file : fileList)
-                {
-                    if (!file.isDirectory() && !file.isHidden()
-                            && file.getName().endsWith(".txt"))
-                    {
-                        logger.debug("File {}:", file);
-                        DateTimeFormatter formatter = DateTimeFormatter
-                                .ofPattern("yyyyMMddHHmmss");
-                        DateTimeFormatter targetDt = DateTimeFormatter
-                                .ofPattern("dd/MM/yyyy HH:mm:ss");
-                        String project = FileUtils
-                                .readFileToString(file);
-                        LocalDateTime dt = LocalDateTime.parse(
-                                file.getName().substring(0, 14),
-                                formatter);
+  /**
+   * Load all files from the defined storage path and map them to the corresponding object
+   *
+   * TODO Fix comparator, because it does not sort in the correct order
+   *
+   * @return a desc date sorted list of projects
+   */
+  @Override
+  public Map<String, OpenProjectData> listProjectHistory() {
+    HashMap<String, OpenProjectData> history = new HashMap<>();
+    try {
+      File folder = new File(localStoragePath);
+      if (folder.isDirectory()) {
+        File[] fileList = folder.listFiles();
+        Arrays.sort(fileList, LastModifiedFileComparator.LASTMODIFIED_COMPARATOR);
+        for (File file : fileList) {
+          if (!file.isDirectory() && !file.isHidden() && file.getName().endsWith(".txt")) {
+            logger.debug("File {}:", file);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            DateTimeFormatter targetDt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String project = FileUtils.readFileToString(file);
+            LocalDateTime dt = LocalDateTime.parse(file.getName().substring(0, 14), formatter);
 
-                        ProjectData temp = null;
-                        
-                        try 
-                        {
-                            temp = MAPPER.readValue(project,
-                                    ProjectData.class);
-                        } catch (Exception MapperEx) {
-                            // legacy :)
-                        }
+            ProjectData temp = null;
 
-                        OpenProjectData data = null;
-
-                        if (temp != null && temp.key != null)
-                        {
-                            data = ProjectData.toOpenProjectData(
-                                    (ProjectData) temp);
-                            logger.debug("Project {} is in legacy format, upgrading.",
-                                data.projectKey);
-                        } else
-                        {
-                            data = MAPPER.readValue(project,
-                                    OpenProjectData.class);
-                            logger.debug("Project {} is in std format",
-                                    data.projectKey);
-                        }
-                        data.physicalLocation = file
-                                .getAbsolutePath();
-
-                        history.put(dt.format(targetDt), data);
-                    }
-                }
+            try {
+              temp = MAPPER.readValue(project, ProjectData.class);
+            } catch (Exception MapperEx) {
+              // legacy :)
             }
-        } catch (IOException ex)
-        {
-            logger.error("Unable to read history", ex);
-        }
 
-        return history;
-    }
+            OpenProjectData data = null;
 
-    @Override
-    public OpenProjectData getProject(String id)
-    {
-        if (id == null)
-        {
-            return null;
-        }
-        Collection<OpenProjectData> allProjects = listProjectHistory()
-                .values();
-
-        for (OpenProjectData project : allProjects)
-        {
-            if (project.projectKey.equalsIgnoreCase(id))
-            {
-                logger.debug("found project with id {} - returning",
-                        project.projectKey);
-                return project;
+            if (temp != null && temp.key != null) {
+              data = ProjectData.toOpenProjectData((ProjectData) temp);
+              logger.debug("Project {} is in legacy format, upgrading.", data.projectKey);
+            } else {
+              data = MAPPER.readValue(project, OpenProjectData.class);
+              logger.debug("Project {} is in std format", data.projectKey);
             }
+            data.physicalLocation = file.getAbsolutePath();
+
+            history.put(dt.format(targetDt), data);
+          }
         }
-        logger.debug("Could not find project with id {}", id);
-        return null;
+      }
+    } catch (IOException ex) {
+      logger.error("Unable to read history", ex);
     }
 
-    @Override
-    public boolean updateStoredProject(OpenProjectData projectNew)
-            throws IOException
-    {
-        if (projectNew == null || projectNew.projectKey == null
-                || projectNew.projectKey.trim().length() == 0)
-        {
-            throw new IOException(
-                    "Can't update invalid, null or no key project");
-        }
+    return history;
+  }
 
-        OpenProjectData data = getProject(projectNew.projectKey);
+  @Override
+  public OpenProjectData getProject(String id) {
+    if (id == null) {
+      return null;
+    }
+    Collection<OpenProjectData> allProjects = listProjectHistory().values();
 
-        if (data == null)
-        {
-            return false;
-        }
+    for (OpenProjectData project : allProjects) {
+      if (project.projectKey.equalsIgnoreCase(id)) {
+        logger.debug("found project with id {} - returning", project.projectKey);
+        return project;
+      }
+    }
+    logger.debug("Could not find project with id {}", id);
+    return null;
+  }
 
-        try 
-        {
-            logger.debug("Updating existing project {} @ {}",
-                    data.projectKey, data.physicalLocation);
-            writeFile(projectNew, data.physicalLocation);
-            return true;
-        } catch (IOException ex)
-        {
-            logger.error("Unable to read/write files", ex);
-            return false;
-        }
+  @Override
+  public boolean updateStoredProject(OpenProjectData projectNew) throws IOException {
+    if (projectNew == null || projectNew.projectKey == null
+        || projectNew.projectKey.trim().length() == 0) {
+      throw new IOException("Can't update invalid, null or no key project");
     }
 
-    @Value("${project.storage.local}")
-    public void setLocalStoragePath(String localStoragePath)
-    {
-        this.localStoragePath = localStoragePath +
-                File.separator;
+    OpenProjectData data = getProject(projectNew.projectKey);
+
+    if (data == null) {
+      return false;
     }
 
-    public String getLocalStoragePath()
-    {
-        return this.localStoragePath;
+    try {
+      logger.debug("Updating existing project {} @ {}", data.projectKey, data.physicalLocation);
+      writeFile(projectNew, data.physicalLocation);
+      return true;
+    } catch (IOException ex) {
+      logger.error("Unable to read/write files", ex);
+      return false;
     }
+  }
 
-    String writeFile (OpenProjectData project, String fileName) 
-        throws IOException
-    {
-        if (fileName == null) 
-        {
-            LocalDateTime dateTime = LocalDateTime.now();
-            fileName = String.format(FILE_PATH_PATTERN,
-                    localStoragePath,
-                    dateTime.format(DateTimeFormatter
-                            .ofPattern("yyyyMMddHHmmss")),
-                    project.projectKey);
-        }
-        ObjectWriter ow = new ObjectMapper().writer()
-                .withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(project);
-        try (FileWriter file = new FileWriter(fileName, false))
-        {
-            file.write(json);
-            file.close();
-            logger.debug(
-                    "Successfully copied project {} to {}",
-                    project.projectKey, fileName);
-            logger.debug("JSON Object: {}", json);
-            
-            fileName = new File(fileName).getAbsolutePath();
-            project.physicalLocation = fileName;
-            return fileName;
-        }
-    }
-    
-    /**
-     * Test Impl only
-     */
-    @Override
-    public String storeAboutChangesData(AboutChangesData aboutData)
-            throws IOException
-    {
-        ObjectWriter ow = new ObjectMapper().writer()
-                .withDefaultPrettyPrinter();
-        StringWriter writer = new StringWriter();
-        ow.writeValue(writer, aboutData);
-        return writer.getBuffer().toString();
-    }
+  @Value("${project.storage.local}")
+  public void setLocalStoragePath(String localStoragePath) {
+    this.localStoragePath = localStoragePath + File.separator;
+  }
 
-    @Override
-    public AboutChangesData listAboutChangesData()
-    {
-        InputStream aboutChangesStream = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
+  public String getLocalStoragePath() {
+    return this.localStoragePath;
+  }
 
-        try
-        {
-            return (AboutChangesData) new ObjectMapper().readValue(
-                    aboutChangesStream, AboutChangesData.class);
-        } catch (Exception e)
-        {
-            logger.error("Could not deserialize content: "
-                    + e.getMessage());
-            return null;
-        } finally
-        {
-            try
-            {
-                aboutChangesStream.close();
-            } catch (IOException ioE)
-            {
-                logger.error(ioE.toString());
-            }
-        }
+  String writeFile(OpenProjectData project, String fileName) throws IOException {
+    if (fileName == null) {
+      LocalDateTime dateTime = LocalDateTime.now();
+      fileName = String.format(FILE_PATH_PATTERN, localStoragePath,
+          dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), project.projectKey);
     }
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    String json = ow.writeValueAsString(project);
+    try (FileWriter file = new FileWriter(fileName, false)) {
+      file.write(json);
+      file.close();
+      logger.debug("Successfully copied project {} to {}", project.projectKey, fileName);
+      logger.debug("JSON Object: {}", json);
 
-    @Override
-    public String getStoragePath()
-    {
-        return this.localStoragePath;
+      fileName = new File(fileName).getAbsolutePath();
+      project.physicalLocation = fileName;
+      return fileName;
     }
+  }
 
-    @Override
-    public boolean deleteProject(OpenProjectData project)
-    {
-        Preconditions.checkNotNull(project, 
-                "cannot delete null project");
-        Preconditions.checkNotNull(project.physicalLocation);
-        
-        logger.debug("Deleting project {}, location {}",
-                project.projectKey, project.physicalLocation);
-        return new File(project.physicalLocation).delete();
+  /**
+   * Test Impl only
+   */
+  @Override
+  public String storeAboutChangesData(AboutChangesData aboutData) throws IOException {
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    StringWriter writer = new StringWriter();
+    ow.writeValue(writer, aboutData);
+    return writer.getBuffer().toString();
+  }
+
+  @Override
+  public AboutChangesData listAboutChangesData() {
+    InputStream aboutChangesStream = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
+
+    try {
+      return (AboutChangesData) new ObjectMapper().readValue(aboutChangesStream,
+          AboutChangesData.class);
+    } catch (Exception e) {
+      logger.error("Could not deserialize content: " + e.getMessage());
+      return null;
+    } finally {
+      try {
+        aboutChangesStream.close();
+      } catch (IOException ioE) {
+        logger.error(ioE.toString());
+      }
     }
+  }
+
+  @Override
+  public String getStoragePath() {
+    return this.localStoragePath;
+  }
+
+  @Override
+  public boolean deleteProject(OpenProjectData project) {
+    Preconditions.checkNotNull(project, "cannot delete null project");
+    Preconditions.checkNotNull(project.physicalLocation);
+
+    logger.debug("Deleting project {}, location {}", project.projectKey, project.physicalLocation);
+    return new File(project.physicalLocation).delete();
+  }
 }

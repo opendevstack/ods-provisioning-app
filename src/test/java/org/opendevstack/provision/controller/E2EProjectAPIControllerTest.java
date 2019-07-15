@@ -18,13 +18,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -34,7 +32,6 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.*;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,595 +75,438 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
 /**
- * End to end testcase with real result data - only mock is the 
- * RestClient - to feed the json 
+ * End to end testcase with real result data - only mock is the RestClient - to feed the json
+ * 
  * @author utschig
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
-public class E2EProjectAPIControllerTest
-{
-    private static Logger e2eLogger = LoggerFactory.getLogger(
-            E2EProjectAPIControllerTest.class);
-    
-    @InjectMocks
-    @Autowired
-    private JiraAdapter realJiraAdapter;
-    
-    @InjectMocks
-    @Autowired 
-    private ConfluenceAdapter realConfluenceAdapter;
-    
-    @InjectMocks
-    @Autowired 
-    private BitbucketAdapter realBitbucketAdapter;
+public class E2EProjectAPIControllerTest {
+  private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
-    @InjectMocks
-    @Autowired
-    private RundeckAdapter realRundeckAdapter;
-    
-    @Mock
-    private RestClient mockRestClient;
+  @InjectMocks
+  @Autowired
+  private JiraAdapter realJiraAdapter;
 
-    @InjectMocks
-    @Autowired
-    private ProjectApiController apiController;
+  @InjectMocks
+  @Autowired
+  private ConfluenceAdapter realConfluenceAdapter;
 
-    @Autowired
-    private LocalStorage realStorageAdapter;
+  @InjectMocks
+  @Autowired
+  private BitbucketAdapter realBitbucketAdapter;
 
-    @Autowired
-    private MailAdapter realMailAdapter;
-    
-    private MockMvc mockMvc;
-    
-    // directory containing all the e2e test data
-    private static File testDataDir = 
-            new File("src/test/resources/e2e/");
-    
-    // results directory
-    private static File resultsDir =
-            new File(testDataDir, "results");
-    
-    // do NOT delete on cleanup
-    private static List<String> excludeFromCleanup =
-            Arrays.asList ( "20190101171023-LEGPROJ.txt" );
-    
-    @Before
-    public void setUp()
-    {
-        MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(apiController)
-                .build();
-        
-        // setup storage against test directory
-        realStorageAdapter.setLocalStoragePath
-            (resultsDir.getPath());
-        
-        // disable mail magic
-        realMailAdapter.isMailEnabled = false;
+  @InjectMocks
+  @Autowired
+  private RundeckAdapter realRundeckAdapter;
+
+  @Mock
+  private RestClient mockRestClient;
+
+  @InjectMocks
+  @Autowired
+  private ProjectApiController apiController;
+
+  @Autowired
+  private LocalStorage realStorageAdapter;
+
+  @Autowired
+  private MailAdapter realMailAdapter;
+
+  private MockMvc mockMvc;
+
+  // directory containing all the e2e test data
+  private static File testDataDir = new File("src/test/resources/e2e/");
+
+  // results directory
+  private static File resultsDir = new File(testDataDir, "results");
+
+  // do NOT delete on cleanup
+  private static List<String> excludeFromCleanup = Arrays.asList("20190101171023-LEGPROJ.txt");
+
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+    mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
+
+    // setup storage against test directory
+    realStorageAdapter.setLocalStoragePath(resultsDir.getPath());
+
+    // disable mail magic
+    realMailAdapter.isMailEnabled = false;
+  }
+
+  @AfterClass
+  public static void cleanUp() throws Exception {
+    for (File fresult : resultsDir.listFiles()) {
+      if (fresult.isDirectory() || excludeFromCleanup.contains(fresult.getName())) {
+        continue;
+      }
+      e2eLogger.debug("Deleting file {} result: {}", fresult.getName(), fresult.delete());
     }
-    
-    @AfterClass 
-    public static void cleanUp () throws Exception
-    {
-        for (File fresult : resultsDir.listFiles()) 
-        {
-            if (fresult.isDirectory() || 
-                    excludeFromCleanup.contains(fresult.getName())) 
-            {
-                continue;
-            }
-            e2eLogger.debug("Deleting file {} result: {}",
-                    fresult.getName(), fresult.delete());
-        }
-    }
-   
-    /**
-     * Test positive - e2e new project - no quickstarters
-     */
-    @Test
-    public void testProvisionNewSimpleProjectE2E() throws Exception
-    {
-        testProvisionNewSimpleProjectInternal(false);
-    }
+  }
 
-    /**
-     * Test negative - e2e new project - no quickstarters,
-     * rollback any external changes - bugtracker, scm,...
-     */
-    @Test
-    public void testProvisionNewSimpleProjectE2EFail() throws Exception
-    {
-        cleanUp();
-        testProvisionNewSimpleProjectInternal(true);
-    }
+  /**
+   * Test positive - e2e new project - no quickstarters
+   */
+  @Test
+  public void testProvisionNewSimpleProjectE2E() throws Exception {
+    testProvisionNewSimpleProjectInternal(false);
+  }
 
-    public void testProvisionNewSimpleProjectInternal(boolean fail) 
-            throws Exception
-    {
-        // read the request
-        OpenProjectData data =
-                readTestData("ods-create-project-request", 
-                        OpenProjectData.class);
-        
-        // jira server create project response
-        FullJiraProject jiraProject = 
-                readTestData("jira-create-project-response", 
-                        FullJiraProject.class);
-        
-        Mockito.when(mockRestClient.callHttp(
-                contains(realJiraAdapter.getAdapterApiUri() + "/project"), 
-                any(FullJiraProject.class), 
-                anyBoolean(), 
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(FullJiraProject.class))).thenReturn(jiraProject);
-        
-        // session id
-        Mockito.doNothing().when(mockRestClient).getSessionId(null);
-        
-        // get confluence blueprints
-        List<Blueprint> blList = 
-              readTestDataTypeRef(
-                      "confluence-get-blueprints-response", 
-                      new TypeReference<List<Blueprint>>(){});
+  /**
+   * Test negative - e2e new project - no quickstarters, rollback any external changes - bugtracker,
+   * scm,...
+   */
+  @Test
+  public void testProvisionNewSimpleProjectE2EFail() throws Exception {
+    cleanUp();
+    testProvisionNewSimpleProjectInternal(true);
+  }
 
-        Mockito.when(mockRestClient.callHttpTypeRef(
-                contains("dialog/web-items"), 
-                eq(null), anyBoolean(), 
-                eq(RestClient.HTTP_VERB.GET), 
-                any())).thenReturn(blList);
+  public void testProvisionNewSimpleProjectInternal(boolean fail) throws Exception {
+    // read the request
+    OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
-        // get jira servers for confluence space
-        List<JiraServer> jiraservers = 
-                readTestDataTypeRef(
-                        "confluence-get-jira-servers-response", 
-                        new TypeReference<List<JiraServer>>(){});
-        
-        Mockito.when(mockRestClient.callHttpTypeRef(
-                contains("jiraanywhere/1.0/servers"), 
-                eq(null), anyBoolean(), 
-                eq(RestClient.HTTP_VERB.GET), 
-                any())).thenReturn(jiraservers);
+    // jira server create project response
+    FullJiraProject jiraProject =
+        readTestData("jira-create-project-response", FullJiraProject.class);
 
-        // create confluence space
-        SpaceData confluenceSpace =
-                readTestData("confluence-create-space-response", 
-                        SpaceData.class);
-        
-        Mockito.when(mockRestClient.callHttp(
-                contains("space-blueprint/create-space"), 
-                any(Space.class), 
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(SpaceData.class))).
-            thenReturn(confluenceSpace);
-        
-        // bitbucket main project creation
-        BitbucketProjectData bitbucketProjectData = 
-                readTestData("bitbucket-create-project-response",
-                        BitbucketProjectData.class);
-        
-        Mockito.when(mockRestClient.callHttp(
-                contains(realBitbucketAdapter.getAdapterApiUri()),
-                any (BitbucketProject.class), 
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(BitbucketProjectData.class))).
-            thenReturn(bitbucketProjectData);
-        
-        // bitbucket aux repo creation - oc-config
-        RepositoryData bitbucketRepositoryDataOCConfig =
-                readTestData("bitbucket-create-repo-occonfig-response", 
-                        RepositoryData.class);
+    Mockito.when(mockRestClient.callHttp(contains(realJiraAdapter.getAdapterApiUri() + "/project"),
+        any(FullJiraProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        eq(FullJiraProject.class))).thenReturn(jiraProject);
 
-        Repository occonfigRepo = new Repository();
-            occonfigRepo.setName(bitbucketRepositoryDataOCConfig.getName());
-            
-        Mockito.when(mockRestClient.callHttp(
-                contains(realBitbucketAdapter.getAdapterApiUri()),
-                refEq(occonfigRepo, "adminGroup", "userGroup"),
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(RepositoryData.class))).
-            thenReturn(bitbucketRepositoryDataOCConfig);
-        
-        // bitbucket aux repo creation - design repo
-        RepositoryData bitbucketRepositoryDataDesign = 
-                readTestData("bitbucket-create-repo-design-response", 
-                        RepositoryData.class);
-    
-        Repository designRepo = new Repository();
-            designRepo.setName(bitbucketRepositoryDataDesign.getName());
-            
-        Mockito.when(mockRestClient.callHttp(
-                contains(realBitbucketAdapter.getAdapterApiUri()),
-                refEq(designRepo, "adminGroup", "userGroup"),
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(RepositoryData.class))).
-            thenReturn(bitbucketRepositoryDataDesign);
-        
-        // basic auth rundeck
-        Mockito.doNothing().when(mockRestClient).
-            callHttpBasicFormAuthenticate(anyString());
+    // session id
+    Mockito.doNothing().when(mockRestClient).getSessionId(null);
 
-        // populate the rundeck jobs
-        List<Job> jobList = 
-                readTestDataTypeRef("rundeck-get-jobs-response",
-                        new TypeReference<List<Job>>(){});
-        
-        // will cause cleanup
-        String rundeckUrl = 
-                realRundeckAdapter.getAdapterApiUri() + "/project/";
-        if (fail)
-        {
-            Mockito.when(mockRestClient.callHttpTypeRef(
-                    contains(rundeckUrl),
-                    anyMap(), anyBoolean(), 
-                    eq(RestClient.HTTP_VERB.GET),
-                    any())).
-                thenThrow(new IOException("Rundeck TestFail"));
-        } else 
-        {
-            Mockito.when(mockRestClient.callHttpTypeRef(
-                    contains(rundeckUrl),
-                    anyMap(), anyBoolean(), 
-                    eq(RestClient.HTTP_VERB.GET),
-                    any())).
-                thenReturn(jobList);
-        }
-        
-        // rundeck create-projects job execution
-        ExecutionsData execution = 
-                readTestData("rundeck-create-project-response", 
-                        ExecutionsData.class);
-        
-        Mockito.when(mockRestClient.callHttp(
-                contains("job/00f767ef-347f-480e-8ad3-bf2aed3abf5d/run"),
-                any(Execution.class),
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST),
-                eq(ExecutionsData.class))).
-            thenReturn(execution);
-                
-        // create the ODS project
-        MvcResult resultProjectCreationResponse = 
-                mockMvc.perform(
-                        post("/api/v2/project").content(
-                                ProjectApiControllerTest.asJsonString(data))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON))
-                    .andDo(MockMvcResultHandlers.print()).andReturn();
+    // get confluence blueprints
+    List<Blueprint> blList = readTestDataTypeRef("confluence-get-blueprints-response",
+        new TypeReference<List<Blueprint>>() {});
 
-        if (!fail) 
-        {
-            assertEquals(
-                    MockHttpServletResponse.SC_OK,
-                    resultProjectCreationResponse.getResponse().getStatus());
-        } else
-        {
-            assertEquals(
-                    MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    resultProjectCreationResponse.getResponse().getStatus());
+    Mockito.when(mockRestClient.callHttpTypeRef(contains("dialog/web-items"), eq(null),
+        anyBoolean(), eq(RestClient.HTTP_VERB.GET), any())).thenReturn(blList);
 
-            Mockito.verify(mockRestClient, times(5)).callHttp(anyString(),
-                eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+    // get jira servers for confluence space
+    List<JiraServer> jiraservers = readTestDataTypeRef("confluence-get-jira-servers-response",
+        new TypeReference<List<JiraServer>>() {});
 
-            // delete jira project
-            Mockito.verify(mockRestClient, times(1)).callHttp(
-                    contains(realJiraAdapter.getAdapterApiUri()),
-                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+    Mockito.when(mockRestClient.callHttpTypeRef(contains("jiraanywhere/1.0/servers"), eq(null),
+        anyBoolean(), eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jiraservers);
 
-            // delete confluence space
-            Mockito.verify(mockRestClient, times(1)).callHttp(
-                    contains(realConfluenceAdapter.getAdapterApiUri()),
-                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+    // create confluence space
+    SpaceData confluenceSpace = readTestData("confluence-create-space-response", SpaceData.class);
 
-            // delete repos and bitbucket project
-            Mockito.verify(mockRestClient, times(3)).callHttp(
-                    contains(realBitbucketAdapter.getAdapterApiUri()),
-                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+    Mockito
+        .when(mockRestClient.callHttp(contains("space-blueprint/create-space"), any(Space.class),
+            anyBoolean(), eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class)))
+        .thenReturn(confluenceSpace);
 
-            return;
-        }
-            
-        // get the project thru its key
-        MvcResult resultProjectGetResponse = 
-                mockMvc.perform(
-                        get("/api/v2/project/" + data.projectKey)
-                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(
-                            MockMvcResultMatchers.status().isOk())
-                    .andDo(MockMvcResultHandlers.print()).andReturn();
-        
-        // verify responses
-        assertEquals(
-                resultProjectCreationResponse.getResponse().
-                    getContentAsString(),
-                resultProjectGetResponse.getResponse().
-                    getContentAsString());
+    // bitbucket main project creation
+    BitbucketProjectData bitbucketProjectData =
+        readTestData("bitbucket-create-project-response", BitbucketProjectData.class);
 
-        OpenProjectData resultProject =
-                new ObjectMapper().readValue(
-                        resultProjectGetResponse.getResponse().
-                            getContentAsString(),
-                        OpenProjectData.class);
-        
-        // verify the execution
-        assertEquals(1, resultProject.lastExecutionJobs.size());
-        assertEquals(
-                execution.getPermalink(),
-                resultProject.lastExecutionJobs.iterator().next());
-        
-        // verify 2 repos are created
-        assertEquals(2, resultProject.repositories.size());
+    Mockito.when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
+        any(BitbucketProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        eq(BitbucketProjectData.class))).thenReturn(bitbucketProjectData);
+
+    // bitbucket aux repo creation - oc-config
+    RepositoryData bitbucketRepositoryDataOCConfig =
+        readTestData("bitbucket-create-repo-occonfig-response", RepositoryData.class);
+
+    Repository occonfigRepo = new Repository();
+    occonfigRepo.setName(bitbucketRepositoryDataOCConfig.getName());
+
+    Mockito
+        .when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
+            refEq(occonfigRepo, "adminGroup", "userGroup"), anyBoolean(),
+            eq(RestClient.HTTP_VERB.POST), eq(RepositoryData.class)))
+        .thenReturn(bitbucketRepositoryDataOCConfig);
+
+    // bitbucket aux repo creation - design repo
+    RepositoryData bitbucketRepositoryDataDesign =
+        readTestData("bitbucket-create-repo-design-response", RepositoryData.class);
+
+    Repository designRepo = new Repository();
+    designRepo.setName(bitbucketRepositoryDataDesign.getName());
+
+    Mockito
+        .when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
+            refEq(designRepo, "adminGroup", "userGroup"), anyBoolean(),
+            eq(RestClient.HTTP_VERB.POST), eq(RepositoryData.class)))
+        .thenReturn(bitbucketRepositoryDataDesign);
+
+    // basic auth rundeck
+    Mockito.doNothing().when(mockRestClient).callHttpBasicFormAuthenticate(anyString());
+
+    // populate the rundeck jobs
+    List<Job> jobList =
+        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+
+    // will cause cleanup
+    String rundeckUrl = realRundeckAdapter.getAdapterApiUri() + "/project/";
+    if (fail) {
+      Mockito.when(mockRestClient.callHttpTypeRef(contains(rundeckUrl), anyMap(), anyBoolean(),
+          eq(RestClient.HTTP_VERB.GET), any())).thenThrow(new IOException("Rundeck TestFail"));
+    } else {
+      Mockito.when(mockRestClient.callHttpTypeRef(contains(rundeckUrl), anyMap(), anyBoolean(),
+          eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jobList);
     }
 
+    // rundeck create-projects job execution
+    ExecutionsData execution =
+        readTestData("rundeck-create-project-response", ExecutionsData.class);
 
-    /**
-     * Test positive new quickstarter
-     */
-    @Test
-    public void testQuickstarterProvisionOnNewOpenProject ()
-            throws Exception 
-    {
+    Mockito.when(mockRestClient.callHttp(contains("job/00f767ef-347f-480e-8ad3-bf2aed3abf5d/run"),
+        any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        eq(ExecutionsData.class))).thenReturn(execution);
+
+    // create the ODS project
+    MvcResult resultProjectCreationResponse = mockMvc
+        .perform(post("/api/v2/project").content(ProjectApiControllerTest.asJsonString(data))
+            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print()).andReturn();
+
+    if (!fail) {
+      assertEquals(MockHttpServletResponse.SC_OK,
+          resultProjectCreationResponse.getResponse().getStatus());
+    } else {
+      assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          resultProjectCreationResponse.getResponse().getStatus());
+
+      Mockito.verify(mockRestClient, times(5)).callHttp(anyString(), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      // delete jira project
+      Mockito.verify(mockRestClient, times(1)).callHttp(
+          contains(realJiraAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      // delete confluence space
+      Mockito.verify(mockRestClient, times(1)).callHttp(
+          contains(realConfluenceAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      // delete repos and bitbucket project
+      Mockito.verify(mockRestClient, times(3)).callHttp(
+          contains(realBitbucketAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      return;
+    }
+
+    // get the project thru its key
+    MvcResult resultProjectGetResponse = mockMvc
+        .perform(get("/api/v2/project/" + data.projectKey).accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk()).andDo(MockMvcResultHandlers.print())
+        .andReturn();
+
+    // verify responses
+    assertEquals(resultProjectCreationResponse.getResponse().getContentAsString(),
+        resultProjectGetResponse.getResponse().getContentAsString());
+
+    OpenProjectData resultProject = new ObjectMapper().readValue(
+        resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+
+    // verify the execution
+    assertEquals(1, resultProject.lastExecutionJobs.size());
+    assertEquals(execution.getPermalink(), resultProject.lastExecutionJobs.iterator().next());
+
+    // verify 2 repos are created
+    assertEquals(2, resultProject.repositories.size());
+  }
+
+
+  /**
+   * Test positive new quickstarter
+   */
+  @Test
+  public void testQuickstarterProvisionOnNewOpenProject() throws Exception {
+    testQuickstarterProvisionOnNewOpenProject(false);
+  }
+
+  /**
+   * Test positive new quickstarter and delete project afterwards
+   */
+  @Test
+  public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
+    OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
+
+    assertNotNull(createdProjectIncludingQuickstarters);
+    assertNotNull(createdProjectIncludingQuickstarters.projectKey);
+    assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
+    assertEquals(1, createdProjectIncludingQuickstarters.quickstarters.size());
+
+    OpenProjectData toClean = new OpenProjectData();
+    toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
+    toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
+
+    // delete the quickstarter IN the project
+    mockMvc
+        .perform(delete("/api/v2/project/").content(ProjectApiControllerTest.asJsonString(toClean))
+            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
+
+    // delete component thru rundeck
+    Mockito.verify(mockRestClient, times(1)).callHttp(
+        contains("/job/33a85b29-0199-4059-b1fb-d0c254e89fab/run"), isA(Execution.class),
+        anyBoolean(), eq(HTTP_VERB.POST), eq(ExecutionsData.class));
+
+    // delete the ODS project
+    mockMvc
+        .perform(delete("/api/v2/project/" + toClean.projectKey)
+            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
+
+    // delete projects rundeck job
+    Mockito.verify(mockRestClient, times(1)).callHttp(
+        contains("/job/33a85b29-0199-4059-b1fb-d0c254e821/run"), isA(Execution.class), anyBoolean(),
+        eq(HTTP_VERB.POST), eq(ExecutionsData.class));
+  }
+
+  /**
+   * Test NEGATIVE new quickstarter - rollback ONE created repo
+   */
+  @Test
+  public void testQuickstarterProvisionOnNewOpenProjectFail() throws Exception {
+    testQuickstarterProvisionOnNewOpenProject(true);
+  }
+
+  public OpenProjectData testQuickstarterProvisionOnNewOpenProject(boolean fail) throws Exception {
+    // read the request
+    OpenProjectData dataUpdate =
+        readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
+
+    // if project does not exist, create it thru the test
+    if (realStorageAdapter.getProject(dataUpdate.projectKey) == null) {
+      testProvisionNewSimpleProjectE2E();
     }
 
-    /**
-     * Test positive new quickstarter and delete project afterwards
-     */
-    @Test
-    public void testQuickstarterProvisionOnNewOpenProjectInclDelete ()
-            throws Exception 
-    {
-        OpenProjectData createdProjectIncludingQuickstarters = 
-            testQuickstarterProvisionOnNewOpenProject(false);
+    OpenProjectData currentlyStoredProject = realStorageAdapter.getProject(dataUpdate.projectKey);
 
-        assertNotNull(createdProjectIncludingQuickstarters);
-        assertNotNull(createdProjectIncludingQuickstarters.projectKey);
-        assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
-        assertEquals(1, 
-                createdProjectIncludingQuickstarters.quickstarters.size());
-        
-        OpenProjectData toClean = new OpenProjectData(); 
-                toClean.projectKey = 
-                        createdProjectIncludingQuickstarters.projectKey;
-                toClean.quickstarters =
-                        createdProjectIncludingQuickstarters.quickstarters;
+    assertNull(currentlyStoredProject.quickstarters);
 
-        // delete the quickstarter IN the project
-        mockMvc.perform(
-                delete("/api/v2/project/").content(
-                        ProjectApiControllerTest.asJsonString(toClean))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(MockMvcResultMatchers.status().isOk());
-        
-        // delete component thru rundeck
-        Mockito.verify(mockRestClient, times(1)).callHttp(
-                contains("/job/33a85b29-0199-4059-b1fb-d0c254e89fab/run"),
-                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
-                eq(ExecutionsData.class));
-        
-        // delete the ODS project
-        mockMvc.perform(
-                delete("/api/v2/project/" + toClean.projectKey)
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
-            .andDo(MockMvcResultHandlers.print())
-            .andExpect(MockMvcResultMatchers.status().isOk());
-        
-        // delete projects rundeck job
-        Mockito.verify(mockRestClient, times(1)).callHttp(
-                contains("/job/33a85b29-0199-4059-b1fb-d0c254e821/run"),
-                isA(Execution.class), anyBoolean(), eq(HTTP_VERB.POST), 
-                eq(ExecutionsData.class));
+    // bitbucket repo creation for new quickstarter
+    RepositoryData bitbucketRepositoryDataQSRepo =
+        readTestData("bitbucket-create-repo-python-qs-response", RepositoryData.class);
+
+    Repository qsrepo = new Repository();
+    qsrepo.setName(bitbucketRepositoryDataQSRepo.getName());
+
+    Mockito.when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
+        refEq(qsrepo, "adminGroup", "userGroup"), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        eq(RepositoryData.class))).thenReturn(bitbucketRepositoryDataQSRepo);
+
+    // get the rundeck jobs
+    List<Job> jobList =
+        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+
+    Mockito.when(mockRestClient.callHttpTypeRef(
+        contains(realRundeckAdapter.getAdapterApiUri() + "/project/"), anyMap(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jobList);
+
+    // rundeck python job execution
+    ExecutionsData execution =
+        readTestData("rundeck-create-python-qs-response", ExecutionsData.class);
+
+    if (!fail) {
+      Mockito.when(mockRestClient.callHttp(contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+          any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+          eq(ExecutionsData.class))).thenReturn(execution);
+    } else {
+      Mockito.when(mockRestClient.callHttp(contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+          any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+          eq(ExecutionsData.class))).thenThrow(new IOException("Rundeck provision job failed"));
     }
 
-    /**
-     * Test NEGATIVE new quickstarter - rollback ONE created repo
-     */
-    @Test
-    public void testQuickstarterProvisionOnNewOpenProjectFail ()
-            throws Exception 
-    {
-        testQuickstarterProvisionOnNewOpenProject(true);
+    // update the project with the new quickstarter
+    MvcResult resultUpdateResponse = mockMvc
+        .perform(put("/api/v2/project").content(ProjectApiControllerTest.asJsonString(dataUpdate))
+            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print()).andReturn();
+
+    if (fail) {
+      assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          resultUpdateResponse.getResponse().getStatus());
+
+      // delete repos and bitbucket project
+      Mockito.verify(mockRestClient, times(1)).callHttp(
+          contains(realBitbucketAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      return dataUpdate;
+    } else {
+      assertEquals(MockHttpServletResponse.SC_OK, resultUpdateResponse.getResponse().getStatus());
     }
 
-    public OpenProjectData testQuickstarterProvisionOnNewOpenProject (boolean fail) 
-            throws Exception 
-    {
-        // read the request
-        OpenProjectData dataUpdate =
-                readTestData("ods-update-project-python-qs-request", 
-                        OpenProjectData.class);
+    // get the inlined body result
+    String resultUpdateData = resultUpdateResponse.getResponse().getContentAsString();
+    assertNotNull(resultUpdateData);
 
-        // if project does not exist, create it thru the test
-        if (realStorageAdapter.getProject(dataUpdate.projectKey) == null)
-        {
-            testProvisionNewSimpleProjectE2E();
-        }
-        
-        OpenProjectData currentlyStoredProject =
-                realStorageAdapter.getProject(dataUpdate.projectKey);
-        
-        assertNull(currentlyStoredProject.quickstarters);
+    // convert into a project pojo
+    OpenProjectData resultProject =
+        new ObjectMapper().readValue(resultUpdateData, OpenProjectData.class);
 
-        // bitbucket repo creation for new quickstarter
-        RepositoryData bitbucketRepositoryDataQSRepo =
-                readTestData("bitbucket-create-repo-python-qs-response", 
-                        RepositoryData.class);
+    List<Map<String, String>> createdQuickstarters = resultProject.quickstarters;
 
-        Repository qsrepo = new Repository();
-            qsrepo.setName(bitbucketRepositoryDataQSRepo.getName());
-            
-        Mockito.when(mockRestClient.callHttp(
-                contains(realBitbucketAdapter.getAdapterApiUri()),
-                refEq(qsrepo, "adminGroup", "userGroup"),
-                anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), 
-                eq(RepositoryData.class))).
-            thenReturn(bitbucketRepositoryDataQSRepo);
+    assertNotNull(createdQuickstarters);
+    assertEquals(1, createdQuickstarters.size());
 
-        // get the rundeck jobs
-        List<Job> jobList = 
-                readTestDataTypeRef("rundeck-get-jobs-response",
-                        new TypeReference<List<Job>>(){});
-        
-        Mockito.when(mockRestClient.callHttpTypeRef(
-                contains(realRundeckAdapter.getAdapterApiUri() + "/project/"),
-                anyMap(), anyBoolean(), 
-                eq(RestClient.HTTP_VERB.GET),
-                any())).
-            thenReturn(jobList);
+    assertEquals(1, resultProject.lastExecutionJobs.size());
+    assertEquals(execution.getPermalink(), resultProject.lastExecutionJobs.iterator().next());
 
-        // rundeck python job execution
-        ExecutionsData execution = 
-                readTestData("rundeck-create-python-qs-response", 
-                        ExecutionsData.class);
-        
-        if (!fail) 
-        {
-            Mockito.when(mockRestClient.callHttp(
-                    contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
-                    any(Execution.class),
-                    anyBoolean(),
-                    eq(RestClient.HTTP_VERB.POST),
-                    eq(ExecutionsData.class))).
-                thenReturn(execution);
-        } else {
-            Mockito.when(mockRestClient.callHttp(
-                    contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
-                    any(Execution.class),
-                    anyBoolean(),
-                    eq(RestClient.HTTP_VERB.POST),
-                    eq(ExecutionsData.class))).
-                thenThrow(new IOException("Rundeck provision job failed"));
-        }
-        
-        // update the project with the new quickstarter
-        MvcResult resultUpdateResponse = 
-                mockMvc.perform(
-                        put("/api/v2/project").content(
-                     ProjectApiControllerTest.asJsonString(dataUpdate))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON))
-                    .andDo(MockMvcResultHandlers.print()).andReturn();
+    // return the new fully built project for further use
+    return resultProject;
+  }
 
-        if (fail) {
-            assertEquals(
-                    MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    resultUpdateResponse.getResponse().getStatus());
+  /**
+   * Test legacy upgrade e2e
+   */
+  @Test
+  public void testLegacyProjectUpgradeOnGet() throws Exception {
+    // get the project thru its key
+    MvcResult resultLegacyProjectGetResponse =
+        mockMvc.perform(get("/api/v2/project/LEGPROJ").accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk()).andDo(MockMvcResultHandlers.print())
+            .andReturn();
 
-            // delete repos and bitbucket project
-            Mockito.verify(mockRestClient, times(1)).callHttp(
-                    contains(realBitbucketAdapter.getAdapterApiUri()),
-                    eq(null), anyBoolean(), eq(HTTP_VERB.DELETE), eq(null));
+    OpenProjectData resultLegacyProject = new ObjectMapper().readValue(
+        resultLegacyProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
-            return dataUpdate;
-        } else 
-        {
-            assertEquals(
-                    MockHttpServletResponse.SC_OK,
-                    resultUpdateResponse.getResponse().getStatus());
-        }
-        
-        // get the inlined body result
-        String resultUpdateData =
-                resultUpdateResponse.getResponse().
-                getContentAsString();
-        assertNotNull(resultUpdateData);
-        
-        // convert into a project pojo
-        OpenProjectData resultProject =
-                new ObjectMapper().readValue(resultUpdateData,
-                        OpenProjectData.class);
-        
-        List<Map<String,String>> createdQuickstarters =
-                resultProject.quickstarters;
-                
-        assertNotNull(createdQuickstarters);
-        assertEquals(1, createdQuickstarters.size());
+    // verify 4 repos are there - 2 base 2 qs
+    assertEquals(4, resultLegacyProject.repositories.size());
 
-        assertEquals(1,  resultProject.lastExecutionJobs.size());
-        assertEquals(execution.getPermalink(),
-                resultProject.lastExecutionJobs.iterator().next());
-        
-        // return the new fully built project for further use
-        return resultProject;
+    // verify 2 quickstarters are there
+    assertEquals(2, resultLegacyProject.quickstarters.size());
+  }
+
+  /*
+   * internal test helpers
+   */
+
+  private <T> T readTestData(String name, Class<T> returnType) throws Exception {
+    return new ObjectMapper().readValue(findTestFile(name), returnType);
+  }
+
+  private <T> T readTestDataTypeRef(String name, TypeReference<T> returnType) throws Exception {
+    return new ObjectMapper().readValue(findTestFile(name), returnType);
+  }
+
+  private File findTestFile(String fileName) throws IOException {
+    Preconditions.checkNotNull(fileName, "File cannot be null");
+    if (!fileName.endsWith(".json")) {
+      fileName = fileName + ".json";
     }
-
-    /**
-     * Test legacy upgrade e2e
-     */
-    @Test
-    public void testLegacyProjectUpgradeOnGet () 
-            throws Exception 
-    {
-        // get the project thru its key
-        MvcResult resultLegacyProjectGetResponse = 
-                mockMvc.perform(
-                        get("/api/v2/project/LEGPROJ")
-                    .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(
-                            MockMvcResultMatchers.status().isOk())
-                    .andDo(MockMvcResultHandlers.print()).andReturn();
-        
-        OpenProjectData resultLegacyProject =
-                new ObjectMapper().readValue(
-                        resultLegacyProjectGetResponse.getResponse().
-                            getContentAsString(),
-                        OpenProjectData.class);
-        
-        // verify 4 repos are there - 2 base 2 qs
-        assertEquals(4, resultLegacyProject.
-                repositories.size());
-        
-        // verify 2 quickstarters are there
-        assertEquals(2, resultLegacyProject.
-                quickstarters.size());        
+    File dataFile = new File(testDataDir, fileName);
+    if (!dataFile.exists()) {
+      throw new IOException("Cannot find testfile with name:" + dataFile.getName());
     }
-
-    /*
-     * internal test helpers
-     */
-    
-    private <T> T readTestData(String name, Class<T> returnType) 
-            throws Exception
-    {
-        return new ObjectMapper().readValue(
-                findTestFile(name), returnType);
-    }
-
-    private <T> T readTestDataTypeRef(String name, TypeReference<T> returnType) 
-            throws Exception
-    {
-        return new ObjectMapper().readValue(
-                findTestFile(name), returnType);
-    }
-
-    private File findTestFile (String fileName) throws IOException 
-    {
-        Preconditions.checkNotNull(fileName, "File cannot be null");
-        if (!fileName.endsWith(".json")) 
-        {
-            fileName = fileName + ".json";
-        }
-        File dataFile = new File (testDataDir, fileName);
-        if (!dataFile.exists()) {
-            throw new IOException("Cannot find testfile with name:" +
-                    dataFile.getName());
-        }
-        return dataFile;
-    }
+    return dataFile;
+  }
 }

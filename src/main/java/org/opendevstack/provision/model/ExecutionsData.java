@@ -15,96 +15,79 @@
 package org.opendevstack.provision.model;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * error:
- * {"error":true,"apiversion":19,"errorCode":"api.error.job.options-invalid","message":"Job
+ * error: {"error":true,"apiversion":19,"errorCode":"api.error.job.options-invalid","message":"Job
  * options were not valid: Option 'git_url_https' is required."}
  *
  * @author Torsten Jaeschke
  */
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ExecutionsData
-{
-    Integer id;
-    String status;
-    String href;
-    String errorCode;
-    String message;
-    boolean error;
-    String permalink;
+public class ExecutionsData {
+  Integer id;
+  String status;
+  String href;
+  String errorCode;
+  String message;
+  boolean error;
+  String permalink;
 
-    public Integer getId()
-    {
-        return id;
-    }
+  public Integer getId() {
+    return id;
+  }
 
-    public void setId(Integer id)
-    {
-        this.id = id;
-    }
+  public void setId(Integer id) {
+    this.id = id;
+  }
 
-    public String getStatus()
-    {
-        return status;
-    }
+  public String getStatus() {
+    return status;
+  }
 
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
+  public void setStatus(String status) {
+    this.status = status;
+  }
 
-    public String getHref()
-    {
-        return href;
-    }
+  public String getHref() {
+    return href;
+  }
 
-    public void setHref(String href)
-    {
-        this.href = href;
-    }
+  public void setHref(String href) {
+    this.href = href;
+  }
 
-    public void setPermalink(String permalink)
-    {
-        this.permalink = permalink;
-    }
+  public void setPermalink(String permalink) {
+    this.permalink = permalink;
+  }
 
-    public String getPermalink()
-    {
-        return this.permalink;
-    }
+  public String getPermalink() {
+    return this.permalink;
+  }
 
-    public void setErrorCode(String errorCode)
-    {
-        this.errorCode = errorCode;
-    }
+  public void setErrorCode(String errorCode) {
+    this.errorCode = errorCode;
+  }
 
-    public String getErrorCode()
-    {
-        return this.errorCode;
-    }
+  public String getErrorCode() {
+    return this.errorCode;
+  }
 
-    public void setError(boolean error)
-    {
-        this.error = error;
-    }
+  public void setError(boolean error) {
+    this.error = error;
+  }
 
-    public boolean getError()
-    {
-        return error;
-    }
+  public boolean getError() {
+    return error;
+  }
 
-    public void setMessage(String message)
-    {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public String getMessage()
-    {
-        return this.message;
-    }
+  public String getMessage() {
+    return this.message;
+  }
 
 }

@@ -17,7 +17,6 @@ package org.opendevstack.provision.authentication;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -37,277 +36,231 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.google.common.base.Preconditions;
 
 /**
- * Custom Authentication manager to integrate the password storing for rundeck
- * authentication
+ * Custom Authentication manager to integrate the password storing for rundeck authentication
  *
  * @author Torsten Jaeschke
  */
 @Component
-public class CustomAuthenticationManager
-        implements AuthenticationManager, IODSAuthnzAdapter
-{
+public class CustomAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
-    private SecurityServerClient securityServerClient;
+  private SecurityServerClient securityServerClient;
 
-    @Autowired
-    private SessionAwarePasswordHolder userPassword;
+  @Autowired
+  private SessionAwarePasswordHolder userPassword;
 
-    /**
-     * @see IODSAuthnzAdapter#getUserPassword()
-     */
-    public String getUserPassword()
-    {
-        return userPassword.getPassword();
-    }
-    
-    /**
-     * @see IODSAuthnzAdapter#getUserName()
-     */    
-    public String getUserName ()
-    {
-        return userPassword.getUsername();
-    }
-    
-    /**
-     * @see IODSAuthnzAdapter#getToken()
-     */    
-    public String getToken ()
-    {
-        return userPassword.getToken();
-    }
+  /**
+   * @see IODSAuthnzAdapter#getUserPassword()
+   */
+  public String getUserPassword() {
+    return userPassword.getPassword();
+  }
 
-    /**
-     * @see IODSAuthnzAdapter#getAuthorities()
-     */    
-    public Collection<GrantedAuthority> getAuthorities () 
-    {
-        Authentication auth = SecurityContextHolder 
-                .getContext().getAuthentication();
-        
-        if (auth == null) 
-        {
-            return new ArrayList<>();
-        }
-        
-        CrowdUserDetails userDetails = (CrowdUserDetails)auth.getPrincipal();
-        
-        return userDetails.getAuthorities();
-    }
-    
-    /**
-     * @see IODSAuthnzAdapter#getAuthorities()
-     */    
-    public String getUserEmail () 
-    {
-        Authentication auth = SecurityContextHolder 
-                .getContext().getAuthentication();
-        
-        if (auth == null) 
-        {
-            return null;
-        }
-        
-        if (!(auth.getPrincipal() instanceof CrowdUserDetails)) {
-            return null;
-        }
-        
-        CrowdUserDetails userDetails = (CrowdUserDetails)auth.getPrincipal();
-        
-        return userDetails.getEmail();
-    }
-    
-    /**
-     * open for testing
-     */
-    void setUserPassword(String userPassword)
-    {
-        this.userPassword.setPassword(userPassword);
+  /**
+   * @see IODSAuthnzAdapter#getUserName()
+   */
+  public String getUserName() {
+    return userPassword.getUsername();
+  }
+
+  /**
+   * @see IODSAuthnzAdapter#getToken()
+   */
+  public String getToken() {
+    return userPassword.getToken();
+  }
+
+  /**
+   * @see IODSAuthnzAdapter#getAuthorities()
+   */
+  public Collection<GrantedAuthority> getAuthorities() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    if (auth == null) {
+      return new ArrayList<>();
     }
 
-    /**
-     * open for testing
-     */
-    public void setUserName(String userName)
-    {
-        this.userPassword.setUsername(userName);
-    }
-        
-    /**
-     * Constructor with secure SOAP client for crowd authentication
-     * 
-     * @param securityServerClient
-     */
-    public CustomAuthenticationManager(
-            SecurityServerClient securityServerClient)
-    {
-        this.securityServerClient = securityServerClient;
+    CrowdUserDetails userDetails = (CrowdUserDetails) auth.getPrincipal();
+
+    return userDetails.getAuthorities();
+  }
+
+  /**
+   * @see IODSAuthnzAdapter#getAuthorities()
+   */
+  public String getUserEmail() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    if (auth == null) {
+      return null;
     }
 
-    /**
-     * specific authentication method implementation 
-     * for crowd integration
-     *
-     * @param authenticationContext the auth context passed from spring
-     * @return the user's token
-     * @throws RemoteException
-     * @throws InvalidAuthorizationTokenException
-     * @throws InvalidAuthenticationException
-     * @throws InactiveAccountException
-     * @throws ApplicationAccessDeniedException
-     * @throws ExpiredCredentialException
-     */
-    @Override
-    public String authenticate(
-            UserAuthenticationContext authenticationContext)
-            throws RemoteException,
-            InvalidAuthorizationTokenException,
-            InvalidAuthenticationException, InactiveAccountException,
-            ApplicationAccessDeniedException,
-            ExpiredCredentialException
-    {
-        Preconditions.checkNotNull(authenticationContext);
-        
-        if (authenticationContext.getApplication() == null)
-        {
-            authenticationContext.setApplication(this
-                    .getSecurityServerClient()
-                    .getSoapClientProperties().getApplicationName());
-        }
-
-        String token = this.getSecurityServerClient()
-                .authenticatePrincipal(authenticationContext);
-        userPassword.setToken(token);
-        userPassword.setUsername(authenticationContext.getName());
-        userPassword.setPassword(authenticationContext.getCredential()
-                .getCredential());
-        return token;
+    if (!(auth.getPrincipal() instanceof CrowdUserDetails)) {
+      return null;
     }
 
-    /**
-     * authenticate via crowd token
-     *
-     * @param authenticationContext
-     * @return
-     * @throws ApplicationAccessDeniedException
-     * @throws InvalidAuthenticationException
-     * @throws InvalidAuthorizationTokenException
-     * @throws InactiveAccountException
-     * @throws RemoteException
-     */
-    @Override
-    public String authenticateWithoutValidatingPassword(
-            UserAuthenticationContext authenticationContext)
-            throws ApplicationAccessDeniedException,
-            InvalidAuthenticationException,
-            InvalidAuthorizationTokenException,
-            InactiveAccountException, RemoteException
-    {
-        Preconditions.checkNotNull(authenticationContext);
-        return this.getSecurityServerClient().createPrincipalToken(
-                authenticationContext.getName(),
-                authenticationContext.getValidationFactors());
+    CrowdUserDetails userDetails = (CrowdUserDetails) auth.getPrincipal();
+
+    return userDetails.getEmail();
+  }
+
+  /**
+   * open for testing
+   */
+  void setUserPassword(String userPassword) {
+    this.userPassword.setPassword(userPassword);
+  }
+
+  /**
+   * open for testing
+   */
+  public void setUserName(String userName) {
+    this.userPassword.setUsername(userName);
+  }
+
+  /**
+   * Constructor with secure SOAP client for crowd authentication
+   * 
+   * @param securityServerClient
+   */
+  public CustomAuthenticationManager(SecurityServerClient securityServerClient) {
+    this.securityServerClient = securityServerClient;
+  }
+
+  /**
+   * specific authentication method implementation for crowd integration
+   *
+   * @param authenticationContext the auth context passed from spring
+   * @return the user's token
+   * @throws RemoteException
+   * @throws InvalidAuthorizationTokenException
+   * @throws InvalidAuthenticationException
+   * @throws InactiveAccountException
+   * @throws ApplicationAccessDeniedException
+   * @throws ExpiredCredentialException
+   */
+  @Override
+  public String authenticate(UserAuthenticationContext authenticationContext)
+      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
+      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+    Preconditions.checkNotNull(authenticationContext);
+
+    if (authenticationContext.getApplication() == null) {
+      authenticationContext.setApplication(
+          this.getSecurityServerClient().getSoapClientProperties().getApplicationName());
     }
 
-    /**
-     * simple authentication with username and password
-     *
-     * @param username users username
-     * @param password users password
-     * @return the users token
-     * @throws RemoteException
-     * @throws InvalidAuthorizationTokenException
-     * @throws InvalidAuthenticationException
-     * @throws InactiveAccountException
-     * @throws ApplicationAccessDeniedException
-     * @throws ExpiredCredentialException
-     */
-    @Override
-    public String authenticate(String username, String password)
-            throws RemoteException,
-            InvalidAuthorizationTokenException,
-            InvalidAuthenticationException, InactiveAccountException,
-            ApplicationAccessDeniedException,
-            ExpiredCredentialException
-    {
+    String token = this.getSecurityServerClient().authenticatePrincipal(authenticationContext);
+    userPassword.setToken(token);
+    userPassword.setUsername(authenticationContext.getName());
+    userPassword.setPassword(authenticationContext.getCredential().getCredential());
+    return token;
+  }
 
-        Preconditions.checkNotNull(username);
-        Preconditions.checkNotNull(password);
-        String token = this.getSecurityServerClient()
-                .authenticatePrincipalSimple(username, password);
-        userPassword.setToken(token);
-        userPassword.setUsername(username);
-        userPassword.setPassword(password);
-        return token;
-    }
+  /**
+   * authenticate via crowd token
+   *
+   * @param authenticationContext
+   * @return
+   * @throws ApplicationAccessDeniedException
+   * @throws InvalidAuthenticationException
+   * @throws InvalidAuthorizationTokenException
+   * @throws InactiveAccountException
+   * @throws RemoteException
+   */
+  @Override
+  public String authenticateWithoutValidatingPassword(
+      UserAuthenticationContext authenticationContext)
+      throws ApplicationAccessDeniedException, InvalidAuthenticationException,
+      InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
+    Preconditions.checkNotNull(authenticationContext);
+    return this.getSecurityServerClient().createPrincipalToken(authenticationContext.getName(),
+        authenticationContext.getValidationFactors());
+  }
 
-    /**
-     * proof if user is authenticated
-     *
-     * @param token the users token
-     * @param validationFactors and additional auth factors, eg. IP
-     * @return true in case the token is valid
-     * @throws RemoteException
-     * @throws InvalidAuthorizationTokenException
-     * @throws ApplicationAccessDeniedException
-     * @throws InvalidAuthenticationException
-     */
-    @Override
-    public boolean isAuthenticated(String token,
-            ValidationFactor[] validationFactors)
-            throws RemoteException,
-            InvalidAuthorizationTokenException,
-            ApplicationAccessDeniedException,
-            InvalidAuthenticationException
-    {
-        Preconditions.checkNotNull(token);
-        userPassword.setToken(token);
-        return this.getSecurityServerClient().isValidToken(token,
-                validationFactors);
-    }
+  /**
+   * simple authentication with username and password
+   *
+   * @param username users username
+   * @param password users password
+   * @return the users token
+   * @throws RemoteException
+   * @throws InvalidAuthorizationTokenException
+   * @throws InvalidAuthenticationException
+   * @throws InactiveAccountException
+   * @throws ApplicationAccessDeniedException
+   * @throws ExpiredCredentialException
+   */
+  @Override
+  public String authenticate(String username, String password)
+      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
+      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
 
-    /**
-     * Invalidate a session based on a user#s token
-     *
-     * @param token the users token
-     * @throws RemoteException
-     * @throws InvalidAuthorizationTokenException
-     * @throws InvalidAuthenticationException
-     */
-    @Override
-    public void invalidate(String token) throws RemoteException,
-            InvalidAuthorizationTokenException,
-            InvalidAuthenticationException
-    {
-        Preconditions.checkNotNull(token);
-        this.getSecurityServerClient().invalidateToken(token);
-        userPassword.clear();
-    }
+    Preconditions.checkNotNull(username);
+    Preconditions.checkNotNull(password);
+    String token = this.getSecurityServerClient().authenticatePrincipalSimple(username, password);
+    userPassword.setToken(token);
+    userPassword.setUsername(username);
+    userPassword.setPassword(password);
+    return token;
+  }
 
-    @Override
-    public void invalidateIdentity () throws Exception
-    {
-        invalidate(getToken());
-    }
-    
-    /**
-     * get the internal secure client
-     *
-     * @return the secure client for crowd connect
-     */
-    @Override
-    public SecurityServerClient getSecurityServerClient()
-    {
-        return this.securityServerClient;
-    }
+  /**
+   * proof if user is authenticated
+   *
+   * @param token the users token
+   * @param validationFactors and additional auth factors, eg. IP
+   * @return true in case the token is valid
+   * @throws RemoteException
+   * @throws InvalidAuthorizationTokenException
+   * @throws ApplicationAccessDeniedException
+   * @throws InvalidAuthenticationException
+   */
+  @Override
+  public boolean isAuthenticated(String token, ValidationFactor[] validationFactors)
+      throws RemoteException, InvalidAuthorizationTokenException, ApplicationAccessDeniedException,
+      InvalidAuthenticationException {
+    Preconditions.checkNotNull(token);
+    userPassword.setToken(token);
+    return this.getSecurityServerClient().isValidToken(token, validationFactors);
+  }
 
-    /**
-     * Set the secure client for injection in tests
-     *
-     * @param securityServerClient
-     */
-    void setSecurityServerClient(
-            SecurityServerClient securityServerClient)
-    {
-        this.securityServerClient = securityServerClient;
-    }
+  /**
+   * Invalidate a session based on a user#s token
+   *
+   * @param token the users token
+   * @throws RemoteException
+   * @throws InvalidAuthorizationTokenException
+   * @throws InvalidAuthenticationException
+   */
+  @Override
+  public void invalidate(String token)
+      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException {
+    Preconditions.checkNotNull(token);
+    this.getSecurityServerClient().invalidateToken(token);
+    userPassword.clear();
+  }
+
+  @Override
+  public void invalidateIdentity() throws Exception {
+    invalidate(getToken());
+  }
+
+  /**
+   * get the internal secure client
+   *
+   * @return the secure client for crowd connect
+   */
+  @Override
+  public SecurityServerClient getSecurityServerClient() {
+    return this.securityServerClient;
+  }
+
+  /**
+   * Set the secure client for injection in tests
+   *
+   * @param securityServerClient
+   */
+  void setSecurityServerClient(SecurityServerClient securityServerClient) {
+    this.securityServerClient = securityServerClient;
+  }
 }

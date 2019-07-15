@@ -17,7 +17,6 @@ package org.opendevstack.provision.services;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
@@ -29,167 +28,125 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-
 import com.google.common.base.Preconditions;
 
 /**
- * Service to interact with the underlying storage system to liast the project
- * history
+ * Service to interact with the underlying storage system to liast the project history
  *
  * @author Torsten Jaeschke
  */
 
 @Service
-public class StorageAdapter implements IServiceAdapter
-{
+public class StorageAdapter implements IServiceAdapter {
 
-    @Autowired
-    IStorage storage;
+  @Autowired
+  IStorage storage;
 
-    @Autowired
-    IODSAuthnzAdapter authManager;
-    
-    private static final Logger logger = LoggerFactory
-            .getLogger(StorageAdapter.class);
+  @Autowired
+  IODSAuthnzAdapter authManager;
 
-    public Map<String, OpenProjectData> listProjectHistory()
-    {
-        Map<String, OpenProjectData> allProjects = storage
-                .listProjectHistory();
-        Map<String, OpenProjectData> filteredProjects = new HashMap<>();
+  private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
 
-        Collection<GrantedAuthority> authorities = authManager.getAuthorities();
-        logger.debug("User: {} Authorities: {}", authManager.getUserName(),
-                authorities);
+  public Map<String, OpenProjectData> listProjectHistory() {
+    Map<String, OpenProjectData> allProjects = storage.listProjectHistory();
+    Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
-        for (Map.Entry<String, OpenProjectData> project : allProjects
-                .entrySet())
-        {
-            OpenProjectData projectData = project.getValue();
-            logger.debug("Project: {} groups: {},{} - permissioned? {}",
-                    projectData.projectKey, projectData.projectAdminGroup,
-                    projectData.projectUserGroup,
-                    projectData.specialPermissionSet);
+    Collection<GrantedAuthority> authorities = authManager.getAuthorities();
+    logger.debug("User: {} Authorities: {}", authManager.getUserName(), authorities);
 
-            if (!projectData.specialPermissionSet)
-            {
-                filteredProjects.put(projectData.projectKey, projectData);
-            } else
-            {
-                for (GrantedAuthority authority : authorities)
-                {
-                    if (authority.getAuthority()
-                            .equalsIgnoreCase(projectData.projectAdminGroup)
-                            || authority.getAuthority()
-                                    .equalsIgnoreCase(
-                                            projectData.projectUserGroup))
-                    {
-                        filteredProjects.put(projectData.projectKey,
-                                projectData);
-                        break;
-                    }
-                }
-            }
+    for (Map.Entry<String, OpenProjectData> project : allProjects.entrySet()) {
+      OpenProjectData projectData = project.getValue();
+      logger.debug("Project: {} groups: {},{} - permissioned? {}", projectData.projectKey,
+          projectData.projectAdminGroup, projectData.projectUserGroup,
+          projectData.specialPermissionSet);
+
+      if (!projectData.specialPermissionSet) {
+        filteredProjects.put(projectData.projectKey, projectData);
+      } else {
+        for (GrantedAuthority authority : authorities) {
+          if (authority.getAuthority().equalsIgnoreCase(projectData.projectAdminGroup)
+              || authority.getAuthority().equalsIgnoreCase(projectData.projectUserGroup)) {
+            filteredProjects.put(projectData.projectKey, projectData);
+            break;
+          }
         }
-
-        return filteredProjects;
+      }
     }
 
-    public AboutChangesData listAboutChangesData()
-    {
-        return storage.listAboutChangesData();
+    return filteredProjects;
+  }
+
+  public AboutChangesData listAboutChangesData() {
+    return storage.listAboutChangesData();
+  }
+
+  void setStorage(IStorage storage) {
+    this.storage = storage;
+  }
+
+  @Override
+  public Map<String, String> getProjects(String filter) {
+    Collection<OpenProjectData> filteredProjects = listProjectHistory().values();
+
+    Map<String, String> filteredKeys = new HashMap<>();
+
+    for (OpenProjectData fProject : filteredProjects) {
+      if (filter.equalsIgnoreCase(fProject.projectKey)) {
+        filteredKeys.put(fProject.projectKey, fProject.description);
+      }
     }
+    return filteredKeys;
+  }
 
-    void setStorage(IStorage storage)
-    {
-        this.storage = storage;
-    }
+  @Override
+  public String getAdapterApiUri() {
+    return storage.getStoragePath();
+  }
 
-    @Override
-    public Map<String, String> getProjects(String filter)
-    {
-        Collection<OpenProjectData> filteredProjects =
-                listProjectHistory().values();
+  @Override
+  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
+      OpenProjectData project) {
+    Preconditions.checkNotNull(stage);
+    Preconditions.checkNotNull(project);
 
-        Map<String, String> filteredKeys =
-                new HashMap<>();
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
 
-        for (OpenProjectData fProject : filteredProjects) 
-        {
-            if (filter.equalsIgnoreCase(fProject.projectKey)) 
-            {
-                filteredKeys.put(fProject.projectKey, 
-                        fProject.description);
-            }    
-        }
-        return filteredKeys;
-    }
+    if (!stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
+      logger.debug("Project {} not affected from cleanup", project.projectKey);
+      return leftovers;
+    } else {
+      OpenProjectData toBeDeleted = storage.getProject(project.projectKey);
 
-    @Override
-    public String getAdapterApiUri()
-    {
-        return storage.getStoragePath();
-    }
-
-    @Override
-    public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
-            LIFECYCLE_STAGE stage, OpenProjectData project)
-    {
-        Preconditions.checkNotNull(stage);
-        Preconditions.checkNotNull(project);
-        
-        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
-                new HashMap<>();
-        
-        if (!stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) 
-        {
-            logger.debug("Project {} not affected from cleanup",
-                    project.projectKey);            
-            return leftovers;
-        } else 
-        {
-            OpenProjectData toBeDeleted = 
-                    storage.getProject(project.projectKey);
-            
-            if (toBeDeleted == null) 
-            {
-                logger.debug("Project {} not affected from cleanup, "
-                        + "as it was never stored", project.projectKey);
-                return leftovers;
-            }
-            
-            boolean deleted =
-                    storage.deleteProject(toBeDeleted);
-            
-            if (!deleted) 
-            {
-                leftovers.put(
-                        CLEANUP_LEFTOVER_COMPONENTS.PROJECT_DB, 1);
-            }
-        }
-
-        logger.debug("Cleanup done - status: {} components are left ..", 
-                leftovers.size() == 0 ? 0 : leftovers);
-        
+      if (toBeDeleted == null) {
+        logger.debug("Project {} not affected from cleanup, " + "as it was never stored",
+            project.projectKey);
         return leftovers;
+      }
+
+      boolean deleted = storage.deleteProject(toBeDeleted);
+
+      if (!deleted) {
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PROJECT_DB, 1);
+      }
     }
-    
-    public OpenProjectData getFilteredSingleProject (String projectkey) 
-    {
-        Preconditions.checkNotNull(projectkey, 
-                "Cannot find null project");
-        
-        // we use the filtering here to enforce security
-        Collection<OpenProjectData> userProjects =
-            listProjectHistory().values();
-        
-        for (OpenProjectData fProject : userProjects) 
-        {
-            if (projectkey.equalsIgnoreCase(fProject.projectKey)) 
-            {
-                return fProject;
-            }    
-        }
-        return null;
+
+    logger.debug("Cleanup done - status: {} components are left ..",
+        leftovers.size() == 0 ? 0 : leftovers);
+
+    return leftovers;
+  }
+
+  public OpenProjectData getFilteredSingleProject(String projectkey) {
+    Preconditions.checkNotNull(projectkey, "Cannot find null project");
+
+    // we use the filtering here to enforce security
+    Collection<OpenProjectData> userProjects = listProjectHistory().values();
+
+    for (OpenProjectData fProject : userProjects) {
+      if (projectkey.equalsIgnoreCase(fProject.projectKey)) {
+        return fProject;
+      }
     }
+    return null;
+  }
 }

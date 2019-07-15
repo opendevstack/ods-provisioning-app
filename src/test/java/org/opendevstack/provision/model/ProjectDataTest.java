@@ -1,4 +1,5 @@
-/* Copyright 2017-2019 the original author or authors.
+/*
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,10 +15,8 @@
 package org.opendevstack.provision.model;
 
 import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Test;
 
 /**
@@ -26,58 +25,55 @@ import org.junit.Test;
  * @author utschig
  *
  */
-public class ProjectDataTest
-{
+public class ProjectDataTest {
 
-    @Test
-    public void testEquals()
-    {
-        ProjectData data = new ProjectData();
-        data.key = "key";
-        data.name = "name";
+  @Test
+  public void testEquals() {
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
 
-        ProjectData dataCheck = new ProjectData();
-        dataCheck.key = "key";
-        dataCheck.name = "name";
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
 
-        assertNotEquals(null, dataCheck);
+    assertNotEquals(null, dataCheck);
 
-        assertEquals(dataCheck, data);
+    assertEquals(dataCheck, data);
 
-        data.name = null;
-        assertNotEquals(dataCheck, data);
+    data.name = null;
+    assertNotEquals(dataCheck, data);
 
-        dataCheck.name = null;
-        assertEquals(dataCheck, data);
-    }
+    dataCheck.name = null;
+    assertEquals(dataCheck, data);
+  }
 
-    @Test
-    public void testHashcode()
-    {
-        List<ProjectData> dataL = new ArrayList<>();
+  @Test
+  public void testHashcode() {
+    List<ProjectData> dataL = new ArrayList<>();
 
-        ProjectData data = new ProjectData();
-        data.key = "key";
-        data.name = "name";
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
 
-        dataL.add(data);
-        dataL.add(data);
+    dataL.add(data);
+    dataL.add(data);
 
-        assertTrue(dataL.contains(data));
+    assertTrue(dataL.contains(data));
 
-        ProjectData dataCheck = new ProjectData();
-        dataCheck.key = "key";
-        dataCheck.name = "name";
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
 
-        dataL.add(dataCheck);
+    dataL.add(dataCheck);
 
-        assertEquals(3, dataL.size());
+    assertEquals(3, dataL.size());
 
-        data.name = null;
-        dataL.add(data);
+    data.name = null;
+    dataL.add(data);
 
-        assertEquals(4, dataL.size());
-        assertTrue(dataL.contains(data));
-    }
+    assertEquals(4, dataL.size());
+    assertTrue(dataL.contains(data));
+  }
 
 }

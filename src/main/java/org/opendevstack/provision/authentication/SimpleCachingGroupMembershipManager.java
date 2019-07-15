@@ -17,10 +17,8 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
 import com.atlassian.crowd.exception.UserNotFoundException;
@@ -36,71 +34,53 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
  * 
  * @author utschig
  */
-public class SimpleCachingGroupMembershipManager
-        extends CachingGroupMembershipManager
-{
-    /**
-     * security server client
-     */
-    final SecurityServerClient securityServerClient;
-    /**
-     * cache
-     */
-    final BasicCache basicCache;
+public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipManager {
+  /**
+   * security server client
+   */
+  final SecurityServerClient securityServerClient;
+  /**
+   * cache
+   */
+  final BasicCache basicCache;
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(SimpleCachingGroupMembershipManager.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(SimpleCachingGroupMembershipManager.class);
 
-    public SimpleCachingGroupMembershipManager(
-            SecurityServerClient securityServerClient,
-            UserManager userManager, GroupManager groupManager,
-            BasicCache basicCache)
-    {
-        super(securityServerClient, userManager, groupManager,
-                basicCache);
-        this.securityServerClient = securityServerClient;
-        this.basicCache = basicCache;
+  public SimpleCachingGroupMembershipManager(SecurityServerClient securityServerClient,
+      UserManager userManager, GroupManager groupManager, BasicCache basicCache) {
+    super(securityServerClient, userManager, groupManager, basicCache);
+    this.securityServerClient = securityServerClient;
+    this.basicCache = basicCache;
+  }
+
+  @Override
+  public List getMemberships(String user) throws RemoteException,
+      InvalidAuthorizationTokenException, InvalidAuthenticationException, UserNotFoundException {
+    List<String> groupsForUser = basicCache.getAllMemberships(user);
+    if (groupsForUser == null || groupsForUser.isEmpty()) {
+      long startTime = System.currentTimeMillis();
+      String[] groupMemberships = securityServerClient.findGroupMemberships(user);
+
+      if (groupMemberships == null) {
+        return new ArrayList<>();
+      }
+
+      for (String group : groupMemberships) {
+        basicCache.addGroupToUser(user, group);
+        logger.debug("add group/user to cache ({} / {})", user, group);
+      }
+      logger.debug("add to cache ({}) took: {} ms", user, (System.currentTimeMillis() - startTime));
+
+      return new ArrayList<>(Arrays.asList(groupMemberships));
+    } else {
+      long startTime = System.currentTimeMillis();
+      for (String group : groupsForUser) {
+        logger.debug("retrieve from cache ({} / {})", user, group);
+      }
+      logger.debug("retrieve from cache ({}) took: {} ms", user,
+          (System.currentTimeMillis() - startTime));
+      return groupsForUser;
     }
-
-    @Override
-    public List getMemberships(String user) throws RemoteException,
-            InvalidAuthorizationTokenException,
-            InvalidAuthenticationException, UserNotFoundException
-    {
-        List<String> groupsForUser = basicCache
-                .getAllMemberships(user);
-        if (groupsForUser == null || groupsForUser.isEmpty())
-        {
-            long startTime = System.currentTimeMillis();
-            String[] groupMemberships = securityServerClient
-                    .findGroupMemberships(user);
-
-            if (groupMemberships == null)
-            {
-                return new ArrayList<>();
-            }
-
-            for (String group : groupMemberships)
-            {
-                basicCache.addGroupToUser(user, group);
-                logger.debug("add group/user to cache ({} / {})",
-                        user, group);
-            }
-            logger.debug("add to cache ({}) took: {} ms", user,
-                    (System.currentTimeMillis() - startTime));
-
-            return new ArrayList<>(Arrays.asList(groupMemberships));
-        } else
-        {
-            long startTime = System.currentTimeMillis();
-            for (String group : groupsForUser)
-            {
-                logger.debug("retrieve from cache ({} / {})", user,
-                        group);
-            }
-            logger.debug("retrieve from cache ({}) took: {} ms", user,
-                    (System.currentTimeMillis() - startTime));
-            return groupsForUser;
-        }
-    }
+  }
 }

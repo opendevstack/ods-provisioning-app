@@ -18,100 +18,83 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.model.rundeck.Job;
-
 import com.google.common.base.Preconditions;
 
 /**
- * Jobstore that will be created as bean to store rundeck Jobs centrally.
- * Prevent unnecessary calls to rundeck API
+ * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevent unnecessary calls
+ * to rundeck API
  *
  * @author Torsten Jaeschke
  */
 
-public class RundeckJobStore
-{
-    private Map<String, Job> jobs = new HashMap<>();
+public class RundeckJobStore {
+  private Map<String, Job> jobs = new HashMap<>();
 
-    public void addJob(Job job)
-    {
-        this.jobs.put(job.getId(), job);
-    }
+  public void addJob(Job job) {
+    this.jobs.put(job.getId(), job);
+  }
 
-    public void addJobs(List<Job> jobs)
-    {
-        for (Job job : jobs)
-        {
-            this.jobs.put(job.getId(), job);
-        }
+  public void addJobs(List<Job> jobs) {
+    for (Job job : jobs) {
+      this.jobs.put(job.getId(), job);
     }
+  }
 
-    /**
-     * remove a specified job from the store
-     *
-     * @param id
-     */
-    public void removeJob(String id)
-    {
-        this.jobs.remove(id);
-    }
+  /**
+   * remove a specified job from the store
+   *
+   * @param id
+   */
+  public void removeJob(String id) {
+    this.jobs.remove(id);
+  }
 
-    /**
-     * retrieve a specified job
-     *
-     * @param id
-     * @return
-     */
-    public Job getJob(String id)
-    {
-        return jobs.get(id);
-    }
+  /**
+   * retrieve a specified job
+   *
+   * @param id
+   * @return
+   */
+  public Job getJob(String id) {
+    return jobs.get(id);
+  }
 
-    /**
-     * get a job list specified with their IDs
-     * 
-     * @param jobIds
-     * @return
-     */
-    public List<Job> getJobs(List<String> jobIds)
-    {
-        ArrayList<Job> jobList = new ArrayList<>();
-        for (String id : jobIds)
-        {
-            jobList.add(jobs.get(id));
-        }
-        return jobList;
+  /**
+   * get a job list specified with their IDs
+   * 
+   * @param jobIds
+   * @return
+   */
+  public List<Job> getJobs(List<String> jobIds) {
+    ArrayList<Job> jobList = new ArrayList<>();
+    for (String id : jobIds) {
+      jobList.add(jobs.get(id));
     }
-    
-    @Override
-    public String toString() 
-    {
-        String jobsString = "";
-        for (String job : jobs.keySet()) 
-        {
-            jobsString = jobsString + " " + job;
-        }
-        return jobsString; 
+    return jobList;
+  }
+
+  @Override
+  public String toString() {
+    String jobsString = "";
+    for (String job : jobs.keySet()) {
+      jobsString = jobsString + " " + job;
     }
-    
-    public int size () 
-    {
-        return jobs.size();
+    return jobsString;
+  }
+
+  public int size() {
+    return jobs.size();
+  }
+
+  public String getJobIdForJobName(String jobName) {
+    Preconditions.checkNotNull(jobName, "Jobname cannot be null");
+
+    for (Job job : jobs.values()) {
+      if (job.getName().equalsIgnoreCase(jobName)) {
+        return job.getId();
+      }
     }
-    
-    public String getJobIdForJobName(String jobName) 
-    {
-        Preconditions.checkNotNull(jobName, 
-                "Jobname cannot be null");
-        
-        for (Job job : jobs.values())
-        {
-            if (job.getName()
-                    .equalsIgnoreCase(jobName))
-            {
-                return job.getId();
-            }
-        }
-        return null;
-    }
-    
+    return null;
+  }
+
 }

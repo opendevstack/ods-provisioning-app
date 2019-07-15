@@ -15,37 +15,30 @@
 package org.opendevstack.provision.model.confluence;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torsten Jaeschke
  */
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Blueprint
-{
-    private String blueprintModuleCompleteKey;
-    private String contentBlueprintId;
+public class Blueprint {
+  private String blueprintModuleCompleteKey;
+  private String contentBlueprintId;
 
-    public String getBlueprintModuleCompleteKey()
-    {
-        return blueprintModuleCompleteKey;
-    }
+  public String getBlueprintModuleCompleteKey() {
+    return blueprintModuleCompleteKey;
+  }
 
-    public void setBlueprintModuleCompleteKey(
-            String blueprintModuleCompleteKey)
-    {
-        this.blueprintModuleCompleteKey = blueprintModuleCompleteKey;
-    }
+  public void setBlueprintModuleCompleteKey(String blueprintModuleCompleteKey) {
+    this.blueprintModuleCompleteKey = blueprintModuleCompleteKey;
+  }
 
-    public String getContentBlueprintId()
-    {
-        return contentBlueprintId;
-    }
+  public String getContentBlueprintId() {
+    return contentBlueprintId;
+  }
 
-    public void setContentBlueprintId(String contentBlueprintId)
-    {
-        this.contentBlueprintId = contentBlueprintId;
-    }
+  public void setContentBlueprintId(String contentBlueprintId) {
+    this.contentBlueprintId = contentBlueprintId;
+  }
 }

@@ -36,81 +36,68 @@ import org.thymeleaf.context.Context;
  * @author Brokmeier, Pascal
  */
 @Service
-public class MailAdapter
-{
+public class MailAdapter {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(MailAdapter.class);
-    private static final String STR_LOGFILE_KEY = "loggerFileName";
+  private static final Logger logger = LoggerFactory.getLogger(MailAdapter.class);
+  private static final String STR_LOGFILE_KEY = "loggerFileName";
 
-    private JavaMailSender mailSender;
+  private JavaMailSender mailSender;
 
-    @Autowired
-    IODSAuthnzAdapter manager;
-    
-    @Value("${provison.mail.sender}")
-    private String mailSenderAddress;
+  @Autowired
+  IODSAuthnzAdapter manager;
 
-    // open because of testing
-    @Value("${mail.enabled:false}")
-    public boolean isMailEnabled;
+  @Value("${provison.mail.sender}")
+  private String mailSenderAddress;
 
-    @Autowired
-    private TemplateEngine templateEngine;
+  // open because of testing
+  @Value("${mail.enabled:false}")
+  public boolean isMailEnabled;
 
-    @Autowired
-    public MailAdapter(JavaMailSender mailSender)
-    {
-        this.mailSender = mailSender;
+  @Autowired
+  private TemplateEngine templateEngine;
+
+  @Autowired
+  public MailAdapter(JavaMailSender mailSender) {
+    this.mailSender = mailSender;
+  }
+
+  public void notifyUsersAboutProject(OpenProjectData data) {
+    if (!isMailEnabled) {
+      logger.debug("Email disabled, returning");
+      return;
     }
+    String recipient = manager.getUserEmail();
+    MimeMessagePreparator messagePreparator = mimeMessage -> {
+      MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+      messageHelper.setFrom(mailSenderAddress);
+      messageHelper.setTo(recipient);
+      messageHelper.setSubject("ODS Project provision update");
+      messageHelper.setText(build(data), true);
+    };
 
-    public void notifyUsersAboutProject(OpenProjectData data)
-    {
-        if (!isMailEnabled)
-        {
-            logger.debug("Email disabled, returning");
-            return;
-        }
-        String recipient = manager.getUserEmail();
-        MimeMessagePreparator messagePreparator = mimeMessage -> {
-            MimeMessageHelper messageHelper = new MimeMessageHelper(
-                    mimeMessage);
-            messageHelper.setFrom(mailSenderAddress);
-            messageHelper.setTo(recipient);
-            messageHelper.setSubject("ODS Project provision update");
-            messageHelper.setText(build(data), true);
-        };
+    Thread sendThread = new Thread(() -> {
+      try {
+        MDC.put(STR_LOGFILE_KEY, data.projectKey);
+        mailSender.send(messagePreparator);
+      } catch (MailException e) {
+        logger.error("Error in sending mail for project: " + data.projectKey, e);
+      } finally {
+        MDC.remove(STR_LOGFILE_KEY);
+      }
+    });
 
-        Thread sendThread = new Thread(() -> {
-            try
-            {
-                MDC.put(STR_LOGFILE_KEY, data.projectKey);
-                mailSender.send(messagePreparator);
-            } catch (MailException e)
-            {
-                logger.error("Error in sending mail for project: "
-                        + data.projectKey, e);
-            } finally
-            {
-                MDC.remove(STR_LOGFILE_KEY);
-            }
-        });
+    sendThread.start();
+    logger.debug("Mail for project: {} sent", data.projectKey);
+  }
 
-        sendThread.start();
-        logger.debug("Mail for project: {} sent", data.projectKey);
+  String build(OpenProjectData data) {
+    try {
+      Context context = new Context();
+      context.setVariable("project", data);
+      return templateEngine.process("mailTemplate", context);
+    } catch (SpelEvaluationException ex) {
+      logger.error("Error in creating mail template", ex);
     }
-
-    String build(OpenProjectData data)
-    {
-        try
-        {
-            Context context = new Context();
-            context.setVariable("project", data);
-            return templateEngine.process("mailTemplate", context);
-        } catch (SpelEvaluationException ex)
-        {
-            logger.error("Error in creating mail template", ex);
-        }
-        return "";
-    }
+    return "";
+  }
 }

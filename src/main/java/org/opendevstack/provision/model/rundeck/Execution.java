@@ -15,27 +15,22 @@
 package org.opendevstack.provision.model.rundeck;
 
 import java.util.Map;
-
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torsten Jaeschke
  */
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Execution
-{
-    private Map<String, String> options;
+public class Execution {
+  private Map<String, String> options;
 
-    public Map<String, String> getOptions()
-    {
-        return options;
-    }
+  public Map<String, String> getOptions() {
+    return options;
+  }
 
-    public void setOptions(Map<String, String> options)
-    {
-        this.options = options;
-    }
+  public void setOptions(Map<String, String> options) {
+    this.options = options;
+  }
 }

@@ -37,7 +37,6 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientProperties;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
-
 import static org.junit.Assert.*;
 
 /**
@@ -46,153 +45,119 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-@WithMockUser(username = CustomAuthenticationManagerTest.USER, roles = {
-        "ADMIN" })
-public class CustomAuthenticationManagerTest
-{
+@WithMockUser(username = CustomAuthenticationManagerTest.USER, roles = {"ADMIN"})
+public class CustomAuthenticationManagerTest {
 
-    private static final String TOKEN = "token";
+  private static final String TOKEN = "token";
 
-    /**
-     * This is for tests only
-     */
-    static final String USER = "test";
-    @SuppressWarnings("squid:S2068")
-    static final String TEST_CRED = "test";
+  /**
+   * This is for tests only
+   */
+  static final String USER = "test";
+  @SuppressWarnings("squid:S2068")
+  static final String TEST_CRED = "test";
 
-    @Autowired
-    CustomAuthenticationManager manager;
+  @Autowired
+  CustomAuthenticationManager manager;
 
-    @Mock
-    private SecurityServerClient securityServerClient;
+  @Mock
+  private SecurityServerClient securityServerClient;
 
-    @Before
-    public void setUp() throws Exception
-    {
-        String token = TOKEN;
-        ValidationFactor[] factors = new ValidationFactor[0];
-        Mockito.when(securityServerClient.isValidToken("", factors))
-                .thenReturn(true);
+  @Before
+  public void setUp() throws Exception {
+    String token = TOKEN;
+    ValidationFactor[] factors = new ValidationFactor[0];
+    Mockito.when(securityServerClient.isValidToken("", factors)).thenReturn(true);
 
-        Mockito.doThrow(new RemoteException())
-                .when(securityServerClient).invalidateToken("remote");
-        Mockito.doThrow(new InvalidAuthorizationTokenException())
-                .when(securityServerClient)
-                .invalidateToken("invalid_token");
-        Mockito.doThrow(new InvalidAuthenticationException(token))
-                .when(securityServerClient)
-                .invalidateToken("invalid_auth");
-        manager.setSecurityServerClient(securityServerClient);
-    }
+    Mockito.doThrow(new RemoteException()).when(securityServerClient).invalidateToken("remote");
+    Mockito.doThrow(new InvalidAuthorizationTokenException()).when(securityServerClient)
+        .invalidateToken("invalid_token");
+    Mockito.doThrow(new InvalidAuthenticationException(token)).when(securityServerClient)
+        .invalidateToken("invalid_auth");
+    manager.setSecurityServerClient(securityServerClient);
+  }
 
-    @Test
-    public void setUserPassword() throws Exception
-    {
-        String pass = TEST_CRED;
+  @Test
+  public void setUserPassword() throws Exception {
+    String pass = TEST_CRED;
 
-        manager.setUserPassword(pass);
+    manager.setUserPassword(pass);
 
-        assertEquals(pass, manager.getUserPassword());
-    }
+    assertEquals(pass, manager.getUserPassword());
+  }
 
-    @Test
-    public void authenticateWithContext() throws Exception
-    {
-        SecurityServerClient client = Mockito
-                .mock(SecurityServerClientImpl.class);
-        Mockito.when(client.authenticatePrincipal(getContext()))
-                .thenReturn(null);
-        Mockito.when(client.getSoapClientProperties())
-                .thenReturn(getProps());
+  @Test
+  public void authenticateWithContext() throws Exception {
+    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
+    Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
+    Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
 
-        manager.setSecurityServerClient(client);
+    manager.setSecurityServerClient(client);
 
-        assertNull(manager.authenticate(getContext()));
-    }
+    assertNull(manager.authenticate(getContext()));
+  }
 
-    @Test
-    public void authenticateWithoutValidatingPassword()
-            throws Exception
-    {
-        SecurityServerClient client = Mockito
-                .mock(SecurityServerClientImpl.class);
-        Mockito.when(client.authenticatePrincipal(getContext()))
-                .thenReturn(null);
-        Mockito.when(client.getSoapClientProperties())
-                .thenReturn(getProps());
+  @Test
+  public void authenticateWithoutValidatingPassword() throws Exception {
+    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
+    Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
+    Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
 
-        manager.setSecurityServerClient(client);
+    manager.setSecurityServerClient(client);
 
-        assertNull(manager
-                .authenticateWithoutValidatingPassword(getContext()));
-    }
+    assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
+  }
 
-    @Test
-    public void authenticateWithUsernameAndPassword() throws Exception
-    {
-        SecurityServerClient client = Mockito
-                .mock(SecurityServerClientImpl.class);
-        Mockito.when(
-                client.authenticatePrincipalSimple(USER, TEST_CRED))
-                .thenReturn("login");
+  @Test
+  public void authenticateWithUsernameAndPassword() throws Exception {
+    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
+    Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
 
-        manager.setSecurityServerClient(client);
+    manager.setSecurityServerClient(client);
 
-        assertEquals("login", manager.authenticate(USER, TEST_CRED));
-    }
+    assertEquals("login", manager.authenticate(USER, TEST_CRED));
+  }
 
-    @Test
-    public void isAuthenticated() throws Exception
-    {
-        assertTrue(
-                manager.isAuthenticated("", new ValidationFactor[0]));
-    }
+  @Test
+  public void isAuthenticated() throws Exception {
+    assertTrue(manager.isAuthenticated("", new ValidationFactor[0]));
+  }
 
-    @Test(expected = RemoteException.class)
-    public void invalidateWithRemoteException() throws Exception
-    {
-        manager.invalidate("remote");
-    }
+  @Test(expected = RemoteException.class)
+  public void invalidateWithRemoteException() throws Exception {
+    manager.invalidate("remote");
+  }
 
-    @Test(expected = InvalidAuthorizationTokenException.class)
-    public void invalidateWithInvalidAuthorizationTokenException()
-            throws Exception
-    {
-        manager.invalidate("invalid_token");
-    }
+  @Test(expected = InvalidAuthorizationTokenException.class)
+  public void invalidateWithInvalidAuthorizationTokenException() throws Exception {
+    manager.invalidate("invalid_token");
+  }
 
-    @Test(expected = InvalidAuthenticationException.class)
-    public void invalidateWithInvalidAuthenticationException()
-            throws Exception
-    {
-        manager.invalidate("invalid_auth");
-    }
+  @Test(expected = InvalidAuthenticationException.class)
+  public void invalidateWithInvalidAuthenticationException() throws Exception {
+    manager.invalidate("invalid_auth");
+  }
 
-    @Test
-    public void getSecurityServerClient() throws Exception
-    {
-        assertNotNull(manager.getSecurityServerClient());
-        assertTrue((manager
-                .getSecurityServerClient() instanceof SecurityServerClient));
-    }
+  @Test
+  public void getSecurityServerClient() throws Exception {
+    assertNotNull(manager.getSecurityServerClient());
+    assertTrue((manager.getSecurityServerClient() instanceof SecurityServerClient));
+  }
 
-    private UserAuthenticationContext getContext()
-    {
-        UserAuthenticationContext context = new UserAuthenticationContext();
-        context.setName(USER);
-        context.setValidationFactors(new ValidationFactor[0]);
-        PasswordCredential credential = new PasswordCredential(USER);
-        context.setCredential(credential);
-        return context;
-    }
+  private UserAuthenticationContext getContext() {
+    UserAuthenticationContext context = new UserAuthenticationContext();
+    context.setName(USER);
+    context.setValidationFactors(new ValidationFactor[0]);
+    PasswordCredential credential = new PasswordCredential(USER);
+    context.setCredential(credential);
+    return context;
+  }
 
-    private SoapClientProperties getProps()
-    {
-        Properties plainProps = new Properties();
-        plainProps.setProperty("application.name", USER);
-        SoapClientProperties props = SoapClientPropertiesImpl
-                .newInstanceFromProperties(plainProps);
-        return props;
-    }
+  private SoapClientProperties getProps() {
+    Properties plainProps = new Properties();
+    plainProps.setProperty("application.name", USER);
+    SoapClientProperties props = SoapClientPropertiesImpl.newInstanceFromProperties(plainProps);
+    return props;
+  }
 
 }

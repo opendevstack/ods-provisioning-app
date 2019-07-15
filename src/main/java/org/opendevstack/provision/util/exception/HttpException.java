@@ -20,24 +20,20 @@ import java.io.IOException;
  * 
  * @author utschig
  */
-public class HttpException extends IOException
-{
-    private final int httpResponseCode;
+public class HttpException extends IOException {
+  private final int httpResponseCode;
 
-    public HttpException(int code, String message)
-    {
-        super(message);
-        httpResponseCode = code;
-    }
+  public HttpException(int code, String message) {
+    super(message);
+    httpResponseCode = code;
+  }
 
-    public int getResponseCode()
-    {
-        return httpResponseCode;
-    }
+  public int getResponseCode() {
+    return httpResponseCode;
+  }
 
-    @Override
-    public String getMessage()
-    {
-        return super.getMessage() + " Errorcode: " + httpResponseCode;
-    }
+  @Override
+  public String getMessage() {
+    return super.getMessage() + " Errorcode: " + httpResponseCode;
+  }
 }

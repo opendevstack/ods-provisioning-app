@@ -15,76 +15,65 @@
 package org.opendevstack.provision.model.jira;
 
 import java.util.List;
-
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ "name", "description", "permissions" })
-public class PermissionScheme
-{
+@JsonPropertyOrder({"name", "description", "permissions"})
+public class PermissionScheme {
 
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("description")
-    private String description;
-    @JsonProperty("permissions")
-    private List<Permission> permissions = null;
-    @JsonProperty("id")
-    private String id;
+  @JsonProperty("name")
+  private String name;
+  @JsonProperty("description")
+  private String description;
+  @JsonProperty("permissions")
+  private List<Permission> permissions = null;
+  @JsonProperty("id")
+  private String id;
 
-    @JsonProperty("name")
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty("name")
-    public void setName(String name)
-    {
-        this.name = name;
-    }
+  @JsonProperty("name")
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty("description")
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty("description")
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty("description")
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
+  @JsonProperty("description")
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    @JsonProperty("id")
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty("id")
+  public String getId() {
+    return id;
+  }
 
-    @JsonProperty("id")
-    public void setId(String id)
-    {
-        this.id = id;
-    }
+  @JsonProperty("id")
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @JsonProperty("permissions")
-    public List<Permission> getPermissions()
-    {
-        return permissions;
-    }
+  @JsonProperty("permissions")
+  public List<Permission> getPermissions() {
+    return permissions;
+  }
 
-    @JsonProperty("permissions")
-    public void setPermissions(List<Permission> permissions)
-    {
-        this.permissions = permissions;
-    }
+  @JsonProperty("permissions")
+  public void setPermissions(List<Permission> permissions) {
+    this.permissions = permissions;
+  }
 
 }

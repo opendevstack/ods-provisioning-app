@@ -19,76 +19,63 @@ import javax.annotation.Generated;
 /**
  * @author Torsten Jaeschke
  */
-@Generated(value = { "JSON-to-Pojo-Generator" })
-public class Space
-{
-    private String spaceKey = null;
-    private String name = null;
-    private String description = null;
-    private String spaceBlueprintId = null;
-    private Context context = null;
+@Generated(value = {"JSON-to-Pojo-Generator"})
+public class Space {
+  private String spaceKey = null;
+  private String name = null;
+  private String description = null;
+  private String spaceBlueprintId = null;
+  private Context context = null;
 
-    public String getSpaceKey()
-    {
-        return spaceKey;
-    }
+  public String getSpaceKey() {
+    return spaceKey;
+  }
 
-    public void setSpaceKey(String spaceKey)
-    {
-        this.spaceKey = spaceKey;
-    }
+  public void setSpaceKey(String spaceKey) {
+    this.spaceKey = spaceKey;
+  }
 
-    public String getName()
-    {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name)
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getDescription()
-    {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public String getSpaceBlueprintId()
-    {
-        return spaceBlueprintId;
-    }
+  public String getSpaceBlueprintId() {
+    return spaceBlueprintId;
+  }
 
-    public void setSpaceBlueprintId(String spaceBlueprintId)
-    {
-        this.spaceBlueprintId = spaceBlueprintId;
-    }
+  public void setSpaceBlueprintId(String spaceBlueprintId) {
+    this.spaceBlueprintId = spaceBlueprintId;
+  }
 
-    public Context getContext()
-    {
-        return context;
-    }
+  public Context getContext() {
+    return context;
+  }
 
-    public void setContext(Context context)
-    {
-        this.context = context;
-    }
+  public void setContext(Context context) {
+    this.context = context;
+  }
 
-    /*
-     * {
-     * 
-     * "spaceKey":"FDSSSDF", "name":"fdsssdf", "description":"",
-     * "spaceBlueprintId":"557f8a6a-667c-4eee-ac39-519396805199", "context": {
-     * "jira-server":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "jira-project":"10200",
-     * "name":"fdsssdf", "spaceKey":"FDSSSDF", "description":"",
-     * "noPageTitlePrefix":"true", "atl_token":"undefined",
-     * "jira-server-id":"06509280-5441-3f2e-b5d1-60fcc24a85aa",
-     * "project-key":"FDSSS", "project-name":"fdsssdf", "ContentPageTitle":"fdsssdf"
-     * } }
-     */
+  /*
+   * {
+   * 
+   * "spaceKey":"FDSSSDF", "name":"fdsssdf", "description":"",
+   * "spaceBlueprintId":"557f8a6a-667c-4eee-ac39-519396805199", "context": {
+   * "jira-server":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "jira-project":"10200", "name":"fdsssdf",
+   * "spaceKey":"FDSSSDF", "description":"", "noPageTitlePrefix":"true", "atl_token":"undefined",
+   * "jira-server-id":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "project-key":"FDSSS",
+   * "project-name":"fdsssdf", "ContentPageTitle":"fdsssdf" } }
+   */
 
 }
