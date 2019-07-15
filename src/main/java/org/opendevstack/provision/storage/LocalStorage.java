@@ -136,7 +136,7 @@ public class LocalStorage implements IStorage {
     } catch (IOException ex) {
       logger.error("Unable to read history", ex);
     }
-    return project;
+    return null;
   }
 
   @Override
