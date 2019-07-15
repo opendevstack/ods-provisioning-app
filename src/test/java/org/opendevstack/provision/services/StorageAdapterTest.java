@@ -32,10 +32,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import static org.junit.Assert.*;
 
 /**
@@ -44,88 +42,77 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class StorageAdapterTest
-{
+public class StorageAdapterTest {
 
-    @Mock
-    LocalStorage storage;
+  @Mock
+  LocalStorage storage;
 
-    @Autowired
-    private WebApplicationContext context;
+  @Autowired
+  private WebApplicationContext context;
 
-    @Autowired
-    StorageAdapter adapter;
+  @Autowired
+  StorageAdapter adapter;
 
-    @Before
-    public void setUp() throws Exception
-    {
-        MockitoAnnotations.initMocks(this);
+  @Before
+  public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+  }
+
+  @Test
+  public void listProjectHistoryNoAuth() throws Exception {
+    Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<>());
+    adapter.setStorage(storage);
+
+    assertTrue(adapter.listProjectHistory().isEmpty());
+  }
+
+  @Test
+  public void listProjectHistoryWithAuth() throws Exception {
+    try {
+      // open project
+      OpenProjectData data = new OpenProjectData();
+      data.projectName = "testproject";
+      data.projectKey = "testpprojectKey";
+      data.projectAdminGroup = "testgroup";
+
+      // case sensitive right group
+      OpenProjectData dataProtected = new OpenProjectData();
+      dataProtected.projectName = "testprojectProtected";
+      dataProtected.projectKey = "testprojectProtected";
+      dataProtected.projectAdminGroup = "testgroup";
+      dataProtected.specialPermissionSet = true;
+
+      // wrong group
+      OpenProjectData dataProtectedWrong = new OpenProjectData();
+      dataProtectedWrong.projectName = "testprojectProtectedW";
+      dataProtectedWrong.projectKey = "testprojectProtectedW";
+      dataProtectedWrong.projectAdminGroup = "testgroupW";
+      dataProtectedWrong.specialPermissionSet = true;
+
+      // group upper lower case
+      OpenProjectData dataProtectedCase = new OpenProjectData();
+      dataProtectedCase.projectName = "testprojectProtectedC";
+      dataProtectedCase.projectKey = "testprojectProtectedC";
+      dataProtectedCase.projectAdminGroup = "testGroup";
+      dataProtectedCase.specialPermissionSet = true;
+
+      Map<String, OpenProjectData> projects = new HashMap<>();
+      projects.put(data.projectKey, data);
+      projects.put(dataProtected.projectKey, dataProtected);
+      projects.put(dataProtectedWrong.projectKey, dataProtectedWrong);
+      projects.put(dataProtectedCase.projectKey, dataProtectedCase);
+
+      Mockito.when(storage.listProjectHistory()).thenReturn(projects);
+      adapter.setStorage(storage);
+
+      SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
+
+      Map<String, OpenProjectData> testresult = adapter.listProjectHistory();
+      assertEquals(3, testresult.size());
+      assertFalse(testresult.containsKey(dataProtectedWrong.projectKey));
+    } finally {
+      SecurityContextHolder.clearContext();
     }
-
-    @Test
-    public void listProjectHistoryNoAuth() throws Exception
-    {
-        Mockito.when(storage.listProjectHistory())
-                .thenReturn(new HashMap<>());
-        adapter.setStorage(storage);
-
-        assertTrue(adapter.listProjectHistory().isEmpty());
-    }
-
-    @Test
-    public void listProjectHistoryWithAuth() throws Exception
-    {
-        try
-        {
-            // open project
-            OpenProjectData data = new OpenProjectData();
-            data.projectName = "testproject";
-            data.projectKey = "testpprojectKey";
-            data.projectAdminGroup = "testgroup";
-
-            // case sensitive right group
-            OpenProjectData dataProtected = new OpenProjectData();
-            dataProtected.projectName = "testprojectProtected";
-            dataProtected.projectKey = "testprojectProtected";
-            dataProtected.projectAdminGroup = "testgroup";
-            dataProtected.specialPermissionSet = true;
-
-            // wrong group
-            OpenProjectData dataProtectedWrong = new OpenProjectData();
-            dataProtectedWrong.projectName = "testprojectProtectedW";
-            dataProtectedWrong.projectKey = "testprojectProtectedW";
-            dataProtectedWrong.projectAdminGroup = "testgroupW";
-            dataProtectedWrong.specialPermissionSet = true;
-
-            // group upper lower case
-            OpenProjectData dataProtectedCase = new OpenProjectData();
-            dataProtectedCase.projectName = "testprojectProtectedC";
-            dataProtectedCase.projectKey = "testprojectProtectedC";
-            dataProtectedCase.projectAdminGroup = "testGroup";
-            dataProtectedCase.specialPermissionSet = true;
-
-            Map<String, OpenProjectData> projects = new HashMap<>();
-            projects.put(data.projectKey, data);
-            projects.put(dataProtected.projectKey, dataProtected);
-            projects.put(dataProtectedWrong.projectKey, dataProtectedWrong);
-            projects.put(dataProtectedCase.projectKey, dataProtectedCase);
-
-            Mockito.when(storage.listProjectHistory())
-                    .thenReturn(projects);
-            adapter.setStorage(storage);
-
-            SecurityContextHolder.getContext()
-                    .setAuthentication(new TestAuthentication());
-
-            Map<String, OpenProjectData> testresult = adapter
-                    .listProjectHistory();
-            assertEquals(3, testresult.size());
-            assertFalse(
-                    testresult.containsKey(dataProtectedWrong.projectKey));
-        } finally
-        {
-            SecurityContextHolder.clearContext();
-        }
-    }
+  }
 
 }

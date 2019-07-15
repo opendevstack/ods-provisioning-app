@@ -1,6 +1,7 @@
 package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,6 +14,9 @@ public class BaseServiceAdapter {
   final boolean useTechnicalUser;
   final String userName;
   final String userPassword;
+
+  @Autowired
+  IODSAuthnzAdapter manager;
 
   @Autowired  RestClient client;
 
@@ -82,6 +86,9 @@ public class BaseServiceAdapter {
     client.getSessionId(url);
   }
 
+  public String getUserName() {
+    return useTechnicalUser ? userName : manager.getUserName();
+  }
   public void callHttpBasicFormAuthenticate(String url) throws IOException {
     if (useTechnicalUser) {
       client.callHttpBasicFormAuthenticate(url, userName, userPassword);

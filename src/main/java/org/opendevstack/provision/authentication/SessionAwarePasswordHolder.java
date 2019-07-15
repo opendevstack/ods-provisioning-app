@@ -19,58 +19,48 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Torsten Jaeschke
- * Instead of hooking into the security context of spring,
- * we build another threadlocal to hold security information
+ * @author Torsten Jaeschke Instead of hooking into the security context of spring, we build another
+ *         threadlocal to hold security information
  */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class SessionAwarePasswordHolder
-{
-    private String password = null;
-    private String token = null;
-    private String username = null;
+public class SessionAwarePasswordHolder {
+  private String password = null;
+  private String token = null;
+  private String username = null;
 
-    public String getPassword()
-    {
-        return password;
-    }
+  public String getPassword() {
+    return password;
+  }
 
-    public void setPassword(String password)
-    {
-        this.password = password;
-    }
-    
-    public String getToken()
-    {
-        return token;
-    }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-    public void setToken(String token)
-    {
-        this.token = token;
-    }
+  public String getToken() {
+    return token;
+  }
 
-    public String getUsername()
-    {
-        return username;
-    }
+  public void setToken(String token) {
+    this.token = token;
+  }
 
-    public void setUsername(String username)
-    {
-        this.username = username;
-    }
-    
-    @Override
-    public String toString () 
-    {
-        return String.format("user: %s token %s", 
-                username, token);
-    }
-    
-    public void clear () {
-        this.username = null;
-        this.password = null;
-        this.token = null;
-    }
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("user: %s token %s", username, token);
+  }
+
+  public void clear() {
+    this.username = null;
+    this.password = null;
+    this.token = null;
+  }
 }

@@ -16,7 +16,6 @@ package org.opendevstack.provision.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -48,69 +47,60 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class QuickstarterApiControllerTest
-{
-    private MockMvc mockMvc;
+public class QuickstarterApiControllerTest {
+  private MockMvc mockMvc;
 
-    @Autowired
-    private WebApplicationContext context;
+  @Autowired
+  private WebApplicationContext context;
 
-    @MockBean
-    RundeckAdapter rundeckAdapter;
+  @MockBean
+  RundeckAdapter rundeckAdapter;
 
-    private List<Job> jobs;
-    private OpenProjectData project;
-    private List<ExecutionsData> executions = new ArrayList<>();
+  private List<Job> jobs;
+  private OpenProjectData project;
+  private List<ExecutionsData> executions = new ArrayList<>();
 
-    @Before
-    public void init()
-    {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        initJobs();
-    }
+  @Before
+  public void init() {
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    initJobs();
+  }
 
-    private void initJobs()
-    {
-        project = new OpenProjectData();
-        project.projectKey = "TST";
-        project.projectName = "name";
+  private void initJobs() {
+    project = new OpenProjectData();
+    project.projectKey = "TST";
+    project.projectName = "name";
 
-        jobs = new ArrayList<>();
-        Job job = new Job();
-        job.setName("Job");
-        job.setDescription("Description");
-        jobs.add(job);
-    }
+    jobs = new ArrayList<>();
+    Job job = new Job();
+    job.setName("Job");
+    job.setDescription("Description");
+    jobs.add(job);
+  }
 
-    @Test
-    public void getQuickstarters() throws Exception
-    {
-        Mockito.when(rundeckAdapter.getQuickstarters())
-                .thenReturn(jobs);
+  @Test
+  public void getQuickstarters() throws Exception {
+    Mockito.when(rundeckAdapter.getQuickstarters()).thenReturn(jobs);
 
-        mockMvc.perform(get("/api/v1/quickstarter")).andExpect(
-                MockMvcResultMatchers.status().is2xxSuccessful());
-    }
+    mockMvc.perform(get("/api/v1/quickstarter"))
+        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+  }
 
-    @Test
-    public void executeJobs() throws Exception
-    {
-        Mockito.when(rundeckAdapter.provisionComponentsBasedOnQuickstarters(project))
-                .thenReturn(executions);
+  @Test
+  public void executeJobs() throws Exception {
+    Mockito.when(rundeckAdapter.provisionComponentsBasedOnQuickstarters(project))
+        .thenReturn(executions);
 
-        mockMvc.perform(post("/api/v1/quickstarter/provision")
-                .content(getBody())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status()
-                        .is2xxSuccessful())
-                .andReturn().getResponse().toString();
-    }
+    mockMvc
+        .perform(post("/api/v1/quickstarter/provision").content(getBody())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful()).andReturn().getResponse()
+        .toString();
+  }
 
-    private String getBody() throws Exception
-    {
-        ObjectWriter ow = new ObjectMapper().writer()
-                .withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(project);
-        return json;
-    }
+  private String getBody() throws Exception {
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    String json = ow.writeValueAsString(project);
+    return json;
+  }
 }

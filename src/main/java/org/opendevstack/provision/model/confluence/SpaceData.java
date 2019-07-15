@@ -15,59 +15,49 @@
 package org.opendevstack.provision.model.confluence;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Torsten Jaeschke
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SpaceData
-{
-    private String key = null;
-    private String name = null;
-    private String description = null;
-    private String url = null;
+public class SpaceData {
+  private String key = null;
+  private String name = null;
+  private String description = null;
+  private String url = null;
 
-    public String getKey()
-    {
-        return key;
-    }
+  public String getKey() {
+    return key;
+  }
 
-    public void setKey(String key)
-    {
-        this.key = key;
-    }
+  public void setKey(String key) {
+    this.key = key;
+  }
 
-    public String getName()
-    {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name)
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getDescription()
-    {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public String getUrl()
-    {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url)
-    {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 }

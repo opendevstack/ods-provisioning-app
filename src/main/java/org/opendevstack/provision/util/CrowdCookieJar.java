@@ -27,80 +27,71 @@ import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 
 /**
- * Custom cookie jar with the ability to inject a crowd cookie manually if the
- * domains are different.
+ * Custom cookie jar with the ability to inject a crowd cookie manually if the domains are
+ * different.
  *
  * @author Torsten Jaeschke
  */
 
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class CrowdCookieJar implements CookieJar
-{
+public class CrowdCookieJar implements CookieJar {
 
-    String domain;
-    private Set<Cookie> cookies = new HashSet<>();
+  String domain;
+  private Set<Cookie> cookies = new HashSet<>();
 
-    private String crowdSSOCookieName;
+  private String crowdSSOCookieName;
 
-    /**
-     * Save cookies from response
-     *
-     * @param url
-     * @param cookies
-     */
-    @Override
-    public void saveFromResponse(HttpUrl url, List<Cookie> cookies)
-    {
-        this.cookies.clear();
-        this.cookies.addAll(cookies);
+  /**
+   * Save cookies from response
+   *
+   * @param url
+   * @param cookies
+   */
+  @Override
+  public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+    this.cookies.clear();
+    this.cookies.addAll(cookies);
+  }
+
+  /**
+   * Load cookies to include in request
+   *
+   * @param url
+   * @return
+   */
+  @Override
+  public List<Cookie> loadForRequest(HttpUrl url) {
+    if (cookies != null) {
+      return Lists.newArrayList(cookies);
     }
+    return new ArrayList<>();
 
-    /**
-     * Load cookies to include in request
-     *
-     * @param url
-     * @return
-     */
-    @Override
-    public List<Cookie> loadForRequest(HttpUrl url)
-    {
-        if (cookies != null)
-        {
-            return Lists.newArrayList(cookies);
-        }
-        return new ArrayList<>();
+  }
 
-    }
+  /**
+   * Add a custom crwod cookie
+   *
+   * @param cookieValue
+   */
+  public void addCrowdCookie(String cookieValue) {
+    Cookie.Builder cookieBuilder = new Cookie.Builder();
+    Cookie crowdCookie = cookieBuilder.name(crowdSSOCookieName).domain(domain).path("/").httpOnly()
+        .value(cookieValue).build();
+    cookies.add(crowdCookie);
+  }
 
-    /**
-     * Add a custom crwod cookie
-     *
-     * @param cookieValue
-     */
-    public void addCrowdCookie(String cookieValue)
-    {
-        Cookie.Builder cookieBuilder = new Cookie.Builder();
-        Cookie crowdCookie = cookieBuilder.name(crowdSSOCookieName)
-                .domain(domain).path("/").httpOnly()
-                .value(cookieValue).build();
-        cookies.add(crowdCookie);
-    }
+  @Value("${atlassian.domain}")
+  public void setDomain(String domain) {
+    this.domain = domain;
+  }
 
-    @Value("${atlassian.domain}")
-    public void setDomain(String domain)
-    {
-        this.domain = domain;
-    }
+  @Value("${crowd.sso.cookie.name}")
+  public void setSSOCookieName(String cookieName) {
+    crowdSSOCookieName = cookieName;
+  }
 
-    @Value("${crowd.sso.cookie.name}")
-    public void setSSOCookieName(String cookieName)
-    {
-        crowdSSOCookieName = cookieName;
-    }
-
-    public void clear()
-    {
-        cookies = new HashSet<>();
-    }
+  public void clear() {
+    cookies = new HashSet<>();
+  }
 }

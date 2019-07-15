@@ -16,7 +16,6 @@ package org.opendevstack.provision.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -37,83 +36,65 @@ import okhttp3.HttpUrl;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class CrowdCookieJarTest
-{
+public class CrowdCookieJarTest {
 
-    private CrowdCookieJar crowdCookieJar;
+  private CrowdCookieJar crowdCookieJar;
 
-    @Value("${crowd.sso.cookie.name}")
-    private String crowdSSOCookieName;
+  @Value("${crowd.sso.cookie.name}")
+  private String crowdSSOCookieName;
 
-    @Before
-    public void setUp()
-    {
-        crowdCookieJar = new CrowdCookieJar();
+  @Before
+  public void setUp() {
+    crowdCookieJar = new CrowdCookieJar();
+  }
+
+  @Test
+  public void saveFromResponse() throws Exception {
+    crowdCookieJar.saveFromResponse(getUrl(), getCookies());
+    assertEquals(crowdCookieJar.loadForRequest(getUrl()), getCookies());
+  }
+
+  @Test
+  public void loadForRequest() throws Exception {
+    crowdCookieJar.saveFromResponse(getUrl(), getCookies());
+    assertEquals(crowdCookieJar.loadForRequest(getUrl()), getCookies());
+  }
+
+  @Test
+  public void loadForRequestWClear() throws Exception {
+    crowdCookieJar.clear();
+    assertEquals(0, crowdCookieJar.loadForRequest(null).size());
+  }
+
+  @Test
+  public void loadForRequestWithoutCookies() throws Exception {
+    assertEquals(0, crowdCookieJar.loadForRequest(getUrl()).size());
+  }
+
+  @Test
+  public void addCrowdCookie() throws Exception {
+    crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
+    crowdCookieJar.setDomain("localhost");
+    crowdCookieJar.saveFromResponse(getUrl(), getCookies());
+    crowdCookieJar.addCrowdCookie("test");
+    List<Cookie> cookies = crowdCookieJar.loadForRequest(getUrl());
+
+    for (Cookie cookie : cookies) {
+      if (cookie.name().equalsIgnoreCase(crowdSSOCookieName)) {
+        assertTrue(true);
+      }
     }
+  }
 
-    @Test
-    public void saveFromResponse() throws Exception
-    {
-        crowdCookieJar.saveFromResponse(getUrl(), getCookies());
-        assertEquals(crowdCookieJar.loadForRequest(getUrl()),
-                getCookies());
-    }
+  private HttpUrl getUrl() {
+    HttpUrl url = new HttpUrl.Builder().host("localhost").scheme("http").build();
+    return url;
+  }
 
-    @Test
-    public void loadForRequest() throws Exception
-    {
-        crowdCookieJar.saveFromResponse(getUrl(), getCookies());
-        assertEquals(crowdCookieJar.loadForRequest(getUrl()),
-                getCookies());
-    }
-
-    @Test
-    public void loadForRequestWClear() throws Exception
-    {
-        crowdCookieJar.clear();
-        assertEquals(0, crowdCookieJar.loadForRequest(null).size());
-    }
-
-    @Test
-    public void loadForRequestWithoutCookies() throws Exception
-    {
-        assertEquals(0,
-                crowdCookieJar.loadForRequest(getUrl()).size());
-    }
-
-    @Test
-    public void addCrowdCookie() throws Exception
-    {
-        crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
-        crowdCookieJar.setDomain("localhost");
-        crowdCookieJar.saveFromResponse(getUrl(), getCookies());
-        crowdCookieJar.addCrowdCookie("test");
-        List<Cookie> cookies = crowdCookieJar
-                .loadForRequest(getUrl());
-
-        for (Cookie cookie : cookies)
-        {
-            if (cookie.name().equalsIgnoreCase(crowdSSOCookieName))
-            {
-                assertTrue(true);
-            }
-        }
-    }
-
-    private HttpUrl getUrl()
-    {
-        HttpUrl url = new HttpUrl.Builder().host("localhost")
-                .scheme("http").build();
-        return url;
-    }
-
-    private List<Cookie> getCookies()
-    {
-        List<Cookie> cookies = new ArrayList<>();
-        cookies.add(new Cookie.Builder().name("ck1").value("ck1")
-                .domain("localhost").build());
-        cookies.add(new Cookie.Builder().name("ck2").value("ck2")
-                .domain("localhost").build());
-        return cookies;
-    }
+  private List<Cookie> getCookies() {
+    List<Cookie> cookies = new ArrayList<>();
+    cookies.add(new Cookie.Builder().name("ck1").value("ck1").domain("localhost").build());
+    cookies.add(new Cookie.Builder().name("ck2").value("ck2").domain("localhost").build());
+    return cookies;
+  }
 }

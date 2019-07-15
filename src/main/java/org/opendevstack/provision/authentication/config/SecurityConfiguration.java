@@ -57,8 +57,7 @@ import java.util.Properties;
 
 /**
  *
- * Class for setting the security configuration and security related
- * configurations
+ * Class for setting the security configuration and security related configurations
  *
  * @author Brokmeier, Pascal
  */
@@ -80,20 +79,15 @@ public class SecurityConfiguration
      * @throws Exception
      */
     @Override
-    protected void configure(HttpSecurity http) throws Exception
-    {
-        http.authenticationProvider(crowdAuthenticationProvider())
-                .headers().httpStrictTransportSecurity().disable()
-                .and().cors().disable().csrf().disable()
-                .addFilter(crowdSSOAuthenticationProcessingFilter())
-                .authorizeRequests()
-                .antMatchers("/", "/fragments/**", "/webjars/**",
-                        "/js/**", "/json/**", "/favicon.ico",
+  protected void configure(HttpSecurity http) throws Exception {
+    http.authenticationProvider(crowdAuthenticationProvider()).headers()
+        .httpStrictTransportSecurity().disable().and().cors().disable().csrf().disable()
+        .addFilter(crowdSSOAuthenticationProcessingFilter()).authorizeRequests()
+        .antMatchers("/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico",
                         "/login")
-                .permitAll().anyRequest().authenticated().and()
-                .formLogin().loginPage("/login").permitAll()
-                .defaultSuccessUrl("/home").and().logout()
-                .addLogoutHandler(crowdLogoutHandler()).permitAll();
+        .permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll()
+        .defaultSuccessUrl("/home").and().logout().addLogoutHandler(crowdLogoutHandler())
+        .permitAll();
     }
 
     @Value("${crowd.application.name}")
@@ -114,19 +108,15 @@ public class SecurityConfiguration
      * @return
      * @throws IOException
      */
-    public Properties getProps() throws IOException
-    {
+  public Properties getProps() throws IOException {
 
         Properties prop = new Properties();
-        try (InputStream in = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream("crowd.properties"))
-        {
+    try (InputStream in =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream("crowd.properties")) {
             prop.load(in);
         }
         prop.setProperty("application.name", crowdApplicationName);
-        prop.setProperty("application.password",
-                crowdApplicationPassword);
+    prop.setProperty("application.password", crowdApplicationPassword);
         prop.setProperty("crowd.server.url", crowdServerUrl);
         prop.setProperty("cookie.domain", cookieDomain);
         return prop;
@@ -139,8 +129,7 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    public CrowdLogoutHandler crowdLogoutHandler() throws IOException
-    {
+  public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
         CrowdLogoutHandler clh = new CrowdLogoutHandler();
         clh.setHttpAuthenticator(httpAuthenticator());
         return clh;
@@ -153,32 +142,27 @@ public class SecurityConfiguration
      * @throws Exception
      */
     @Bean
-    public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter()
-            throws Exception
-    {
+  public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter() throws Exception {
         SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
         filter.setHttpAuthenticator(httpAuthenticator());
         filter.setAuthenticationManager(authenticationManager());
         filter.setFilterProcessesUrl("/j_security_check");
-        filter.setAuthenticationSuccessHandler(
-                authenticationSuccessHandler());
-        filter.setAuthenticationFailureHandler(
-                authenticationFailureHandler());
+    filter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
+    filter.setAuthenticationFailureHandler(authenticationFailureHandler());
         filter.setUsernameParameter("username");
         filter.setPasswordParameter("password");
         return filter;
     }
 
     /**
-     * Define a success handler to proceed after a crowd authentication, if it has
-     * been successful
+   * Define a success handler to proceed after a crowd authentication, if it has been successful
      *
      * @return
      */
     @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler()
-    {
-        SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+  public AuthenticationSuccessHandler authenticationSuccessHandler() {
+    SavedRequestAwareAuthenticationSuccessHandler successHandler =
+        new SavedRequestAwareAuthenticationSuccessHandler();
         successHandler.setDefaultTargetUrl("/home");
         successHandler.setUseReferer(true);
         successHandler.setAlwaysUseDefaultTargetUrl(true);
@@ -191,9 +175,9 @@ public class SecurityConfiguration
      * @return
      */
     @Bean
-    public AuthenticationFailureHandler authenticationFailureHandler()
-    {
-        UsernameStoringAuthenticationFailureHandler failureHandler = new UsernameStoringAuthenticationFailureHandler();
+  public AuthenticationFailureHandler authenticationFailureHandler() {
+    UsernameStoringAuthenticationFailureHandler failureHandler =
+        new UsernameStoringAuthenticationFailureHandler();
         failureHandler.setDefaultFailureUrl("/login?error=true");
         failureHandler.setUseForward(true);
         return failureHandler;
@@ -223,8 +207,7 @@ public class SecurityConfiguration
      * @return
      */
     @Bean
-    public BasicCache getCache()
-    {
+  public BasicCache getCache() {
         return new CacheImpl(getCacheManager());
     }
 
@@ -234,33 +217,26 @@ public class SecurityConfiguration
      * @return
      */
     @Bean
-    public CacheManager getCacheManager()
-    {
+  public CacheManager getCacheManager() {
         return getEhCacheFactory().getObject();
     }
 
     @Bean
-    public EhCacheManagerFactoryBean getEhCacheFactory()
-    {
+  public EhCacheManagerFactoryBean getEhCacheFactory() {
         EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-        factoryBean.setConfigLocation(
-                new ClassPathResource("crowd-ehcache.xml"));
+    factoryBean.setConfigLocation(new ClassPathResource("crowd-ehcache.xml"));
         return factoryBean;
     }
 
     /**
-     * define a custom authentication manager, which is able to hold the password
-     * for rundeck
+   * define a custom authentication manager, which is able to hold the password for rundeck
      *
      * @return
      * @throws IOException
      */
     @Bean(name = "provisioningAppAuthenticationManager")
-    public AuthenticationManager crowdAuthenticationManager()
-            throws IOException
-    {
-        return new CustomAuthenticationManager(
-                securityServerClient());
+  public AuthenticationManager crowdAuthenticationManager() throws IOException {
+    return new CustomAuthenticationManager(securityServerClient());
     }
 
     /**
@@ -270,10 +246,8 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    public HttpAuthenticator httpAuthenticator() throws IOException
-    {
-        return new HttpAuthenticatorImpl(
-                crowdAuthenticationManager());
+  public HttpAuthenticator httpAuthenticator() throws IOException {
+    return new HttpAuthenticatorImpl(crowdAuthenticationManager());
     }
 
     /**
@@ -283,10 +257,8 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    public UserManager userManager() throws IOException
-    {
-        return new CachingUserManager(securityServerClient(),
-                getCache());
+  public UserManager userManager() throws IOException {
+    return new CachingUserManager(securityServerClient(), getCache());
     }
 
     /**
@@ -296,10 +268,8 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    public GroupManager groupManager() throws IOException
-    {
-        return new CachingGroupManager(securityServerClient(),
-                getCache());
+  public GroupManager groupManager() throws IOException {
+    return new CachingGroupManager(securityServerClient(), getCache());
     }
 
     /**
@@ -309,9 +279,7 @@ public class SecurityConfiguration
      * @throws Exception
      */
     @Override
-    protected void configure(AuthenticationManagerBuilder auth)
-            throws Exception
-    {
+  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(crowdAuthenticationProvider());
     }
 
@@ -322,15 +290,11 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    public CrowdUserDetailsService crowdUserDetailsService()
-            throws IOException
-    {
+  public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
         CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
         cusd.setUserManager(userManager());
-        cusd.setGroupMembershipManager(
-                new SimpleCachingGroupMembershipManager(
-                        securityServerClient(), userManager(),
-                        groupManager(), getCache()));
+    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient(),
+        userManager(), groupManager(), getCache()));
         cusd.setAuthorityPrefix("");
         return cusd;
     }
@@ -342,11 +306,8 @@ public class SecurityConfiguration
      * @throws IOException
      */
     @Bean
-    RemoteCrowdAuthenticationProvider crowdAuthenticationProvider()
-            throws IOException
-    {
-        return new RemoteCrowdAuthenticationProvider(
-                crowdAuthenticationManager(), httpAuthenticator(),
+  RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
+    return new RemoteCrowdAuthenticationProvider(crowdAuthenticationManager(), httpAuthenticator(),
                 crowdUserDetailsService());
     }
 }

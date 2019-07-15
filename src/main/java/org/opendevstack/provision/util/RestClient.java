@@ -25,26 +25,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
 /**
- * Abstraction to handle the OkHTTP client and use it in the same way from
- * different classes to prevent redundant code.
+ * Abstraction to handle the OkHTTP client and use it in the same way from different classes to
+ * prevent redundant code.
  *
  * @author Torsten Jaeschke
  * @author Clemens Utschig
  */
 @Component
-public class RestClient
-{
-    private static final Logger logger = LoggerFactory
-            .getLogger(RestClient.class);
+public class RestClient {
+  private static final Logger logger = LoggerFactory.getLogger(RestClient.class);
 
-    private static final MediaType JSON_MEDIA_TYPE = MediaType
-            .parse("application/json; charset=utf-8");
+  private static final MediaType JSON_MEDIA_TYPE =
+      MediaType.parse("application/json; charset=utf-8");
 
     CrowdCookieJar cookieJar;
 
@@ -54,62 +50,47 @@ public class RestClient
 
     private Map<String, OkHttpClient> cache = new HashMap<>();
 
-    private static final List<Integer> RETRY_HTTP_CODES = new ArrayList<>(
-            Arrays.asList(401, 403, 404, 409, 500));
+  private static final List<Integer> RETRY_HTTP_CODES =
+      new ArrayList<>(Arrays.asList(401, 403, 404, 409, 500));
 
     @Autowired
     IODSAuthnzAdapter manager;
 
   public enum HTTP_VERB {
-    PUT,
-    POST,
-    GET,
-    HEAD, DELETE
+    PUT, POST, GET, HEAD, DELETE
   }
 
-    OkHttpClient getClient(String crowdCookie)
-    {
+  OkHttpClient getClient(String crowdCookie) {
 
         OkHttpClient client = cache.get(crowdCookie);
-        if (client != null)
-        {
+    if (client != null) {
             return client;
         }
 
         OkHttpClient.Builder builder = new Builder();
-        if (null != crowdCookie)
-        {
+    if (null != crowdCookie) {
             cookieJar.addCrowdCookie(crowdCookie);
         }
-        builder.cookieJar(cookieJar)
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+    builder.cookieJar(cookieJar).connectTimeout(connectTimeout, TimeUnit.SECONDS)
                 .readTimeout(readTimeout, TimeUnit.SECONDS);
         client = builder.build();
         cache.put(crowdCookie, client);
         return client;
     }
 
-    private OkHttpClient getClientFresh(String crowdCookie)
-    {
+  private OkHttpClient getClientFresh(String crowdCookie) {
         cache.remove(crowdCookie);
         cookieJar.clear();
         return getClient(null);
     }
 
-    public void getSessionId(String url) throws IOException
-    {
-        try
-        {
-            callHttpInternal(url, null, false, HTTP_VERB.HEAD,
-                    null, null);
-        } catch (HttpException httpX)
-        {
-            if (RETRY_HTTP_CODES.contains(httpX.getResponseCode()))
-            {
-                callHttpInternal(url, null, true,
-                        HTTP_VERB.HEAD, null, null);
-            } else
-            {
+  public void getSessionId(String url) throws IOException {
+    try {
+      callHttpInternal(url, null, false, HTTP_VERB.HEAD, null, null);
+    } catch (HttpException httpX) {
+      if (RETRY_HTTP_CODES.contains(httpX.getResponseCode())) {
+        callHttpInternal(url, null, true, HTTP_VERB.HEAD, null, null);
+      } else {
                 throw httpX;
             }
         }
@@ -211,12 +192,10 @@ public class RestClient
 
         logger.debug("Calling url: " + url);
 
-        if (input == null)
-        {
+    if (input == null) {
             json = "";
             logger.debug("Null payload");
-        } else if (input instanceof String)
-        {
+    } else if (input instanceof String) {
             json = (String) input;
             logger.debug("Passed String rest object: [{}]", json);
         } else if (input instanceof Map) {
@@ -239,8 +218,8 @@ public class RestClient
         RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
 
         okhttp3.Request.Builder builder = new Request.Builder();
-        builder.url(url).addHeader("X-Atlassian-Token", "no-check")
-                .addHeader("Accept", "application/json");
+    builder.url(url).addHeader("X-Atlassian-Token", "no-check").addHeader("Accept",
+        "application/json");
 
         switch (verb) {
             case PUT:
@@ -269,39 +248,29 @@ public class RestClient
             logger.debug("Authenticating rest call with {}",
                     manager.getUserName());
             builder = builder.addHeader("Authorization", credentials.getCredentials());
-            response = getClientFresh(manager.getToken())
-                    .newCall(builder.build()).execute();
-        } else
-        {
-            response = getClient(manager != null ? manager.getToken() : null )
-                    .newCall(builder.build()).execute();
+      response = getClientFresh(manager.getToken()).newCall(builder.build()).execute();
+    } else {
+      response =
+          getClient(manager != null ? manager.getToken() : null).newCall(builder.build()).execute();
         }
 
         String respBody = response.body().string();
-        logger.debug(url + " > " + verb + " >> " + response.code()
-                + ": \n" + respBody);
+    logger.debug(url + " > " + verb + " >> " + response.code() + ": \n" + respBody);
 
-        if (response.code() < 200 || response.code() >= 300)
-        {
-            throw new HttpException(response.code(), "Could not "
-                    + verb + " > " + url + " : " + respBody);
+    if (response.code() < 200 || response.code() >= 300) {
+      throw new HttpException(response.code(),
+          "Could not " + verb + " > " + url + " : " + respBody);
         }
 
-        if (returnType == null && returnTypeRef == null)
-        {
+    if (returnType == null && returnTypeRef == null) {
             return null;
-        } else if (returnType != null)
-        {
-            if (returnType.isAssignableFrom(String.class))
-            {
+    } else if (returnType != null) {
+      if (returnType.isAssignableFrom(String.class)) {
                 return (T) respBody;
             }
-            return (T) new ObjectMapper().readValue(respBody,
-                    returnType);
-        } else
-        {
-            return (T) new ObjectMapper().readValue(respBody,
-                    returnTypeRef);
+      return (T) new ObjectMapper().readValue(respBody, returnType);
+    } else {
+      return (T) new ObjectMapper().readValue(respBody, returnTypeRef);
         }
     }
 
@@ -328,35 +297,28 @@ public class RestClient
     }
 
     @Autowired
-    public void setCookieJar(CrowdCookieJar cookieJar)
-    {
+  public void setCookieJar(CrowdCookieJar cookieJar) {
         this.cookieJar = cookieJar;
     }
 
-    public int getConnectTimeout()
-    {
+  public int getConnectTimeout() {
         return connectTimeout;
     }
 
-    public void setConnectTimeout(int connectTimeout)
-    {
+  public void setConnectTimeout(int connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
 
-    public int getReadTimeout()
-    {
+  public int getReadTimeout() {
         return readTimeout;
     }
 
-    public void setReadTimeout(int readTimeout)
-    {
+  public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
     }
 
-    public void removeClient(String crowdCookieValue)
-    {
-        if (crowdCookieValue == null)
-        {
+  public void removeClient(String crowdCookieValue) {
+    if (crowdCookieValue == null) {
             return;
         }
         cache.remove(crowdCookieValue);

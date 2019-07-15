@@ -20,27 +20,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 /**
- * Jobstore that will be created as bean to store rundeck Jobs centrally.
- * Prevent unnecessary calls to rundeck API
+ * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevent unnecessary calls
+ * to rundeck API
  *
  * @author Torsten Jaeschke
  */
 
-public class RundeckJobStore
-{
+public class RundeckJobStore {
     private Map<String, Job> jobs = new HashMap<>();
 
-    public void addJob(Job job)
-    {
+  public void addJob(Job job) {
         this.jobs.put(job.getId(), job);
     }
 
-    public void addJobs(List<Job> jobs)
-    {
-        for (Job job : jobs)
-        {
+  public void addJobs(List<Job> jobs) {
+    for (Job job : jobs) {
             this.jobs.put(job.getId(), job);
         }
     }
@@ -50,8 +45,7 @@ public class RundeckJobStore
      *
      * @param id
      */
-    public void removeJob(String id)
-    {
+  public void removeJob(String id) {
         this.jobs.remove(id);
     }
 
@@ -61,8 +55,7 @@ public class RundeckJobStore
      * @param id
      * @return
      */
-    public Job getJob(String id)
-    {
+  public Job getJob(String id) {
         return jobs.get(id);
     }
 
@@ -72,41 +65,36 @@ public class RundeckJobStore
      * @param jobIds
      * @return
      */
-    public List<Job> getJobs(List<String> jobIds)
-    {
+  public List<Job> getJobs(List<String> jobIds) {
         ArrayList<Job> jobList = new ArrayList<>();
-        for (String id : jobIds)
-        {
+    for (String id : jobIds) {
             jobList.add(jobs.get(id));
         }
         return jobList;
     }
-    
+
     @Override
-    public String toString() 
-    {
-        return jobs.keySet().toString(); 
+  public String toString() {
+    String jobsString = "";
+    for (String job : jobs.keySet()) {
+      jobsString = jobsString + " " + job;
     }
-    
-    public int size () 
-    {
+    return jobsString;
+  }
+
+  public int size() {
         return jobs.size();
     }
-    
-    public String getJobIdForJobName(String jobName) 
-    {
-        Preconditions.checkNotNull(jobName, 
-                "Jobname cannot be null");
-        
-        for (Job job : jobs.values())
-        {
-            if (job.getName()
-                    .equalsIgnoreCase(jobName))
-            {
+
+  public String getJobIdForJobName(String jobName) {
+    Preconditions.checkNotNull(jobName, "Jobname cannot be null");
+
+    for (Job job : jobs.values()) {
+      if (job.getName().equalsIgnoreCase(jobName)) {
                 return job.getId();
             }
         }
         return null;
     }
-    
+
 }

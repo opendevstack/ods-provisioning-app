@@ -19,15 +19,13 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 import java.io.IOException;
 import java.util.Map;
-
 /**
- * @author Torsten Jaeschke
- * Interface for the underlying storage
+ * @author Torsten Jaeschke Interface for the underlying storage
  */
-public interface IStorage
-{
+public interface IStorage {
     /**
-     * Store a project 
+   * Store a project
+   * 
      * @param project the project to store
      * @return the filepath the file is stored at
      */
@@ -35,12 +33,14 @@ public interface IStorage
 
     /**
      * Get the project history, ordered by date
+   * 
      * @return the project history as map
      */
     Map<String, OpenProjectData> listProjectHistory();
 
     /**
      * get a project by its key
+   * 
      * @param key the project's key
      * @return the project by its key, or null in case not found
      */
@@ -48,34 +48,35 @@ public interface IStorage
 
     /**
      * Update an already existing project
-     * @param project the project to update (based on the 
-     * {@link OpenProjectData#projectKey})
+   * 
+   * @param project the project to update (based on the {@link OpenProjectData#projectKey})
      * @return the filepath of the stored project
      * @throws IOException in case the project cannot be stored
      */
-    boolean updateStoredProject(OpenProjectData project)
-            throws IOException;
+  boolean updateStoredProject(OpenProjectData project) throws IOException;
 
     /**
      * Store the about changes data
+   * 
      * @param aboutData the data
      * @return the filepath
      * @throws IOException in case the data cannot be stored
      */
-    String storeAboutChangesData(AboutChangesData aboutData)
-            throws IOException;
+  String storeAboutChangesData(AboutChangesData aboutData) throws IOException;
 
     /**
      * Get the about history
+   * 
      * @return the changes
      */
     AboutChangesData listAboutChangesData();
-    
+
     /**
      * Return the storage path
+   * 
      * @return
      */
     String getStoragePath();
-    
-    boolean deleteProject (OpenProjectData project);
+
+  boolean deleteProject(OpenProjectData project);
 }

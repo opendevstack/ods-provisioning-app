@@ -31,80 +31,64 @@ import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToke
  *
  * @author Torsten Jaeschke
  */
-public class SSOAuthProcessingFilter
-        extends CrowdSSOAuthenticationProcessingFilter
-{
+public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFilter {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(SSOAuthProcessingFilter.class);
+  private static final Logger logger = LoggerFactory.getLogger(SSOAuthProcessingFilter.class);
 
-    private HttpAuthenticator httpAuthenticator;
+  private HttpAuthenticator httpAuthenticator;
 
-    /**
-     * Method to handle a successful authentication
-     * 
-     * @param request
-     * @param response
-     * @param chain
-     * @param authResult
-     * @throws IOException
-     * @throws ServletException
-     */
-    @Override
-    protected void successfulAuthentication(
-            HttpServletRequest request, HttpServletResponse response,
-            FilterChain chain, Authentication authResult)
-            throws IOException, ServletException
-    {
-        storeTokenIfCrowd(request, response, authResult);
-        logger.debug("AuthResult {}",
-                authResult.getCredentials().toString());
-        super.successfulAuthentication(request, response, chain,
-                authResult);
-    }
+  /**
+   * Method to handle a successful authentication
+   * 
+   * @param request
+   * @param response
+   * @param chain
+   * @param authResult
+   * @throws IOException
+   * @throws ServletException
+   */
+  @Override
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+      FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    storeTokenIfCrowd(request, response, authResult);
+    logger.debug("AuthResult {}", authResult.getCredentials().toString());
+    super.successfulAuthentication(request, response, chain, authResult);
+  }
 
-    /**
-     * Set the HttpAuthenticator, which handles the authentication via SOAP
-     *
-     * @param httpAuthenticator
-     */
-    public void setHttpAuthenticator(
-            HttpAuthenticator httpAuthenticator)
-    {
-        this.httpAuthenticator = httpAuthenticator;
-        super.setHttpAuthenticator(httpAuthenticator);
-    }
+  /**
+   * Set the HttpAuthenticator, which handles the authentication via SOAP
+   *
+   * @param httpAuthenticator
+   */
+  public void setHttpAuthenticator(HttpAuthenticator httpAuthenticator) {
+    this.httpAuthenticator = httpAuthenticator;
+    super.setHttpAuthenticator(httpAuthenticator);
+  }
 
-    /**
-     * If the authentication has been done via crowd, a cookie is written, because
-     * crowd uses the cookie to authenticate
-     *
-     * @param request
-     * @param response
-     * @param authResult
-     */
-    boolean storeTokenIfCrowd(HttpServletRequest request,
-            HttpServletResponse response, Authentication authResult)
-    {
-        if (authResult instanceof CrowdSSOAuthenticationToken
-                && authResult.getCredentials() != null)
-        {
-            try
-            {
-                httpAuthenticator.setPrincipalToken(request, response,
-                        authResult.getCredentials().toString());
-                return true;
-            } catch (Exception e)
-            {
-                logger.error("Unable to set Crowd SSO token", e);
-                return false;
-            }
-        }
+  /**
+   * If the authentication has been done via crowd, a cookie is written, because crowd uses the
+   * cookie to authenticate
+   *
+   * @param request
+   * @param response
+   * @param authResult
+   */
+  boolean storeTokenIfCrowd(HttpServletRequest request, HttpServletResponse response,
+      Authentication authResult) {
+    if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
+      try {
+        httpAuthenticator.setPrincipalToken(request, response,
+            authResult.getCredentials().toString());
+        return true;
+      } catch (Exception e) {
+        logger.error("Unable to set Crowd SSO token", e);
         return false;
+      }
     }
+    return false;
+  }
 
-    public HttpAuthenticator getAuthenticator()
-    {
-        return httpAuthenticator;
-    }
+  public HttpAuthenticator getAuthenticator() {
+    return httpAuthenticator;
+  }
 }

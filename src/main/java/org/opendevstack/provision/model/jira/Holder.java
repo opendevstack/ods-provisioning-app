@@ -15,44 +15,38 @@
 package org.opendevstack.provision.model.jira;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@Generated(value = { "JSON-to-Pojo-Generator" })
+@Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "type", "parameter" })
-public class Holder
-{
+@JsonPropertyOrder({"type", "parameter"})
+public class Holder {
 
-    @JsonProperty("type")
-    private String type;
-    @JsonProperty("parameter")
-    private String parameter;
+  @JsonProperty("type")
+  private String type;
+  @JsonProperty("parameter")
+  private String parameter;
 
-    @JsonProperty("type")
-    public String getType()
-    {
-        return type;
-    }
+  @JsonProperty("type")
+  public String getType() {
+    return type;
+  }
 
-    @JsonProperty("type")
-    public void setType(String type)
-    {
-        this.type = type;
-    }
+  @JsonProperty("type")
+  public void setType(String type) {
+    this.type = type;
+  }
 
-    @JsonProperty("parameter")
-    public String getParameter()
-    {
-        return parameter;
-    }
+  @JsonProperty("parameter")
+  public String getParameter() {
+    return parameter;
+  }
 
-    @JsonProperty("parameter")
-    public void setParameter(String parameter)
-    {
-        this.parameter = parameter;
-    }
+  @JsonProperty("parameter")
+  public void setParameter(String parameter) {
+    this.parameter = parameter;
+  }
 
 }

@@ -17,7 +17,6 @@ package org.opendevstack.provision.services;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
-
 import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,65 +41,54 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class MailAdapterTest
-{
-    @Mock
-    JavaMailSender mailSender;
+public class MailAdapterTest {
+  @Mock
+  JavaMailSender mailSender;
 
-    @InjectMocks
-    @Autowired
-    MailAdapter mailAdapter;
+  @InjectMocks
+  @Autowired
+  MailAdapter mailAdapter;
 
-    @Autowired
-    CustomAuthenticationManager manager;
-    
-    @Before
-    public void setUp()
-    {
-        MockitoAnnotations.initMocks(this);
-        mailAdapter.manager = manager;
-    }
+  @Autowired
+  CustomAuthenticationManager manager;
 
-    @Test
-    public void notifyUsersAboutProject() throws Exception
-    {
-        MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-        Mockito.doNothing().when(mailSender)
-                .send(any(MimeMessage.class));
-        spyAdapter = new MailAdapter(mailSender);
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+    mailAdapter.manager = manager;
+  }
 
-        spyAdapter.notifyUsersAboutProject(new OpenProjectData());
-    }
+  @Test
+  public void notifyUsersAboutProject() throws Exception {
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
+    spyAdapter = new MailAdapter(mailSender);
 
-    @Test
-    public void notifyUsersMailDisabled() throws Exception
-    {
-        MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-        spyAdapter.isMailEnabled = false;
-        Mockito.verify(mailSender, Mockito.never())
-                .send(any(MimeMessage.class));
-    }
+    spyAdapter.notifyUsersAboutProject(new OpenProjectData());
+  }
 
-    @Test
-    public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull()
-            throws Exception
-    {
-        MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-        Mockito.doNothing().when(mailSender)
-                .send(any(MimeMessage.class));
+  @Test
+  public void notifyUsersMailDisabled() throws Exception {
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    spyAdapter.isMailEnabled = false;
+    Mockito.verify(mailSender, Mockito.never()).send(any(MimeMessage.class));
+  }
 
-        spyAdapter.notifyUsersAboutProject(new OpenProjectData());
-    }
+  @Test
+  public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull() throws Exception {
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
 
-    @Test
-    public void testMailBuild() throws Exception
-    {
-        Mockito.doNothing().when(mailSender)
-                .send(any(MimeMessage.class));
-        MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    spyAdapter.notifyUsersAboutProject(new OpenProjectData());
+  }
 
-        String message = spyAdapter.build(new OpenProjectData());
-        assertNotNull(message);
-        assertTrue(message.trim().length() > 0);
-    }
+  @Test
+  public void testMailBuild() throws Exception {
+    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
+    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+
+    String message = spyAdapter.build(new OpenProjectData());
+    assertNotNull(message);
+    assertTrue(message.trim().length() > 0);
+  }
 }
