@@ -14,15 +14,12 @@
 
 package org.opendevstack.provision.model.rundeck;
 
-import java.util.Map;
-
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * @author Torsten Jaeschke
- */
+import javax.annotation.Generated;
+import java.util.Map;
+
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Execution {

@@ -14,11 +14,8 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,23 +36,23 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
-/**
- * @author Torsten Jaeschke
- */
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class QuickstarterApiControllerTest {
   private MockMvc mockMvc;
 
-  @Autowired
-  private WebApplicationContext context;
+  @Autowired private WebApplicationContext context;
 
-  @MockBean
-  RundeckAdapter rundeckAdapter;
+  @MockBean RundeckAdapter rundeckAdapter;
 
   private List<Job> jobs;
   private ProjectData project;
@@ -63,7 +60,7 @@ public class QuickstarterApiControllerTest {
 
   @Before
   public void init() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();    
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
     initJobs();
   }
 
@@ -82,20 +79,25 @@ public class QuickstarterApiControllerTest {
   @Test
   public void getQuickstarters() throws Exception {
     Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(jobs);
-    
-    mockMvc.perform(get("/api/v1/quickstarter"))
+
+    mockMvc
+        .perform(get("/api/v1/quickstarter"))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
   }
 
   @Test
   public void executeJobs() throws Exception {
     Mockito.when(rundeckAdapter.executeJobs(project)).thenReturn(executions);
-    
-    mockMvc.perform(post("/api/v1/quickstarter/provision")
-        .content(getBody())
-        .contentType(MediaType.APPLICATION_JSON))
-    .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-    .andReturn().getResponse().toString();
+
+    mockMvc
+        .perform(
+            post("/api/v1/quickstarter/provision")
+                .content(getBody())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+        .andReturn()
+        .getResponse()
+        .toString();
   }
 
   private String getBody() throws Exception {

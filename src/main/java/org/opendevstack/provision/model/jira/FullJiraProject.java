@@ -14,20 +14,12 @@
 
 package org.opendevstack.provision.model.jira;
 
+import com.atlassian.jira.rest.client.OptionalIterable;
+import com.atlassian.jira.rest.client.domain.*;
+import com.fasterxml.jackson.annotation.*;
+
 import java.net.URI;
 import java.util.Collection;
-import com.atlassian.jira.rest.client.OptionalIterable;
-import com.atlassian.jira.rest.client.domain.BasicComponent;
-import com.atlassian.jira.rest.client.domain.BasicProjectRole;
-import com.atlassian.jira.rest.client.domain.BasicUser;
-import com.atlassian.jira.rest.client.domain.IssueType;
-import com.atlassian.jira.rest.client.domain.Project;
-import com.atlassian.jira.rest.client.domain.Version;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 /**
  * In line with https://docs.atlassian.com/jira/REST/server/#api/2/project-getProject to allow use
@@ -36,7 +28,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
  *
  * @author Pascal Brokmeier
  */
-//otherwise jackson adds all the nulls and we don't want those in our call to the API
+// otherwise jackson adds all the nulls and we don't want those in our call to the API
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FullJiraProject extends Project {
@@ -51,10 +43,20 @@ public class FullJiraProject extends Project {
     super(null, null, null, null, null, null, null, null, null, null);
   }
 
-  public FullJiraProject(URI self, String key, String name, String description, BasicUser lead,
-      URI uri, Collection<Version> versions, Collection<BasicComponent> components,
-      OptionalIterable<IssueType> issueTypes, Collection<BasicProjectRole> projectRoles,
-      String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
+  public FullJiraProject(
+      URI self,
+      String key,
+      String name,
+      String description,
+      BasicUser lead,
+      URI uri,
+      Collection<Version> versions,
+      Collection<BasicComponent> components,
+      OptionalIterable<IssueType> issueTypes,
+      Collection<BasicProjectRole> projectRoles,
+      String projectTemplateKey,
+      String projectTypeKey,
+      String notificationSchemeId) {
     super(self, key, name, description, lead, uri, versions, components, issueTypes, projectRoles);
     this.projectTemplateKey = projectTemplateKey;
     this.projectTypeKey = projectTypeKey;

@@ -23,11 +23,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Torsten Jaeschke
  */
 @SpringBootApplication
-public class SpringBoot 
-{
+public class SpringBoot {
 
   public static void main(String[] args) throws Exception {
     new SpringApplication(SpringBoot.class).run(args);
   }
 }
-

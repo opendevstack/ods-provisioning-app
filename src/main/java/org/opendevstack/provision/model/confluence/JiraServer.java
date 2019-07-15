@@ -14,13 +14,11 @@
 
 package org.opendevstack.provision.model.confluence;
 
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * @author Torsten Jaeschke
- */
+import javax.annotation.Generated;
+
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JiraServer {

@@ -14,9 +14,6 @@
 
 package org.opendevstack.provision.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,11 +24,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
@@ -48,7 +47,7 @@ public class RundeckJobStoreTest {
   public void addJob() throws Exception {
     Job job = generateTestJobs().get(0);
     jobStore.addJob(generateTestJobs().get(0));
-    
+
     assertEquals(jobStore.getJob("1").getId(), job.getId());
   }
 
@@ -57,7 +56,7 @@ public class RundeckJobStoreTest {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);
-    
+
     assertEquals(jobStore.getJobs(ids), jobs);
   }
 
@@ -83,7 +82,7 @@ public class RundeckJobStoreTest {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);
-    
+
     assertTrue(jobStore.getJobs(ids).size() > 0);
   }
 

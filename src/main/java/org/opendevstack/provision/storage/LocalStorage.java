@@ -14,16 +14,8 @@
 
 package org.opendevstack.provision.storage;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.opendevstack.provision.model.AboutChangesData;
@@ -32,15 +24,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class handling local storage of JSON files for a simple historization
  *
  * @author Torsten Jaeschke
  */
-
 @Component
 public class LocalStorage implements IStorage {
 
@@ -67,21 +63,24 @@ public class LocalStorage implements IStorage {
     LocalDateTime dateTime = LocalDateTime.now();
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(project);
-    String filePath = String.format(FILE_PATH_PATTERN, localStoragePath,
-        dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), project.key);
+    String filePath =
+        String.format(
+            FILE_PATH_PATTERN,
+            localStoragePath,
+            dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
+            project.key);
     try (FileWriter file = new FileWriter(filePath, false)) {
       file.write(json);
       logger.debug("Successfully Copied JSON Object to File...");
       logger.debug("JSON Object: {}", json);
       return filePath;
     }
-
   }
 
   /**
    * Load all files from the defined storage path and map them to the corresponding object
    *
-   * TODO Fix comparator, because it does not sort in the correct order
+   * <p>TODO Fix comparator, because it does not sort in the correct order
    *
    * @return a desc date sorted list of projects
    */
@@ -100,8 +99,8 @@ public class LocalStorage implements IStorage {
             DateTimeFormatter targetDt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String project = FileUtils.readFileToString(file);
             LocalDateTime dt = LocalDateTime.parse(file.getName().substring(0, 14), formatter);
-            history.put(dt.format(targetDt),
-                new ObjectMapper().readValue(project, ProjectData.class));
+            history.put(
+                dt.format(targetDt), new ObjectMapper().readValue(project, ProjectData.class));
           }
         }
       }
@@ -116,7 +115,7 @@ public class LocalStorage implements IStorage {
   public ProjectData getProject(String id) {
     ProjectData project = null;
     if (id == null) {
-    	return project;
+      return project;
     }
     try {
       File folder = new File(localStoragePath);
@@ -179,9 +178,7 @@ public class LocalStorage implements IStorage {
     this.localStoragePath = localStoragePath;
   }
 
-  /**
-   * Test Impl only
-   */
+  /** Test Impl only */
   @Override
   public String storeAboutChangesData(AboutChangesData aboutData) throws IOException {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -192,21 +189,23 @@ public class LocalStorage implements IStorage {
 
   @Override
   public AboutChangesData listAboutChangesData() {
-    InputStream aboutChangesStream = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
+    InputStream aboutChangesStream =
+        Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
 
     try {
-      return (AboutChangesData) new ObjectMapper().readValue(aboutChangesStream,
-          AboutChangesData.class);
+      return (AboutChangesData)
+          new ObjectMapper().readValue(aboutChangesStream, AboutChangesData.class);
     } catch (Exception e) {
       logger.error("Could not deserialize content: " + e.getMessage());
       return null;
     } finally {
-        try {
-          aboutChangesStream.close();
-        } catch (IOException ioE) {
-          logger.error(ioE.toString());
-        }
+      try {
+        aboutChangesStream.close();
+      } catch (IOException ioE) {
+        logger.error(ioE.toString());
+      }
     }
   }
 }

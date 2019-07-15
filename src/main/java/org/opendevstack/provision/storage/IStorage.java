@@ -14,15 +14,13 @@
 
 package org.opendevstack.provision.storage;
 
-import java.io.IOException;
-import java.util.Map;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.ProjectData;
 
-/**
- * @author Torsten Jaeschke
- */
+import java.io.IOException;
+import java.util.Map;
 
+/** @author Torsten Jaeschke */
 public interface IStorage {
   String storeProject(ProjectData project) throws IOException;
 

@@ -40,9 +40,7 @@ import java.net.SocketTimeoutException;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
 @DirtiesContext
@@ -57,12 +55,10 @@ public class RestClientTest {
 
   @Value("${crowd.sso.cookie.name}")
   private String crowdSSOCookieName;
-  
-  @Autowired
-  CustomAuthenticationManager manager;
-  
-  @Autowired
-  RestClient realClient;
+
+  @Autowired CustomAuthenticationManager manager;
+
+  @Autowired RestClient realClient;
 
   @Before
   public void setUp() {
@@ -74,7 +70,6 @@ public class RestClientTest {
     cookieJar.setSSOCookieName(crowdSSOCookieName);
     client.setCookieJar(cookieJar);
   }
-
 
   @Test
   public void getClient() throws Exception {
@@ -97,66 +92,76 @@ public class RestClientTest {
   }
 
   @Test
-  public void callHttpGreen () throws Exception
-  { 
-	  String response = client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.GET, String.class);
-	  
-	  assertNotNull(response);
-	  
-	  ProjectData data = new ProjectData();
-	  
-	  response = client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, HTTP_VERB.POST, String.class);
-	  
-	  assertNotNull(response);  
-  }
-  
-  @Test (expected = NullPointerException.class)
-  public void callHttpMissingVerb () throws Exception
-  { 
-	  client.callHttp(
-		String.format("http://localhost:%d", randomServerPort),
-		"ClemensTest", null, false, null, String.class);
-  }  
-  
-  @Test (expected = NullPointerException.class)
-  public void callHttpMissingUrl () throws Exception
-  { 
-	  client.callHttp(null, "ClemensTest", null, false, null, String.class);
-  }   
+  public void callHttpGreen() throws Exception {
+    String response =
+        client.callHttp(
+            String.format("http://localhost:%d", randomServerPort),
+            "ClemensTest",
+            null,
+            false,
+            HTTP_VERB.GET,
+            String.class);
 
-  @Test (expected = NullPointerException.class)
-  public void callAuthWithoutCredentials () throws Exception
-  { 
-	  client.callHttpBasicFormAuthenticate(
-			 String.format("http://localhost:%d", randomServerPort));
+    assertNotNull(response);
+
+    ProjectData data = new ProjectData();
+
+    response =
+        client.callHttp(
+            String.format("http://localhost:%d", randomServerPort),
+            "ClemensTest",
+            null,
+            false,
+            HTTP_VERB.POST,
+            String.class);
+
+    assertNotNull(response);
   }
 
-  @Test (expected = NullPointerException.class)
-  public void callAuthWithoutUrl () throws Exception
-  { 
-	  client.callHttpBasicFormAuthenticate(null);
+  @Test(expected = NullPointerException.class)
+  public void callHttpMissingVerb() throws Exception {
+    client.callHttp(
+        String.format("http://localhost:%d", randomServerPort),
+        "ClemensTest",
+        null,
+        false,
+        null,
+        String.class);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void callHttpMissingUrl() throws Exception {
+    client.callHttp(null, "ClemensTest", null, false, null, String.class);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void callAuthWithoutCredentials() throws Exception {
+    client.callHttpBasicFormAuthenticate(String.format("http://localhost:%d", randomServerPort));
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void callAuthWithoutUrl() throws Exception {
+    client.callHttpBasicFormAuthenticate(null);
   }
 
   @Test
-  public void callRealClientWrongPort ()
-  {
-	  RestClient spyAdapter = Mockito.spy(client);
+  public void callRealClientWrongPort() {
+    RestClient spyAdapter = Mockito.spy(client);
 
-      try {
-          spyAdapter.callHttp(
-            String.format("http://localhost:%d", 1000),
-            "ClemensTest", null, false, HTTP_VERB.GET, String.class);
-      } catch (SocketTimeoutException se) {
-            // expected in local env
-      } catch (ConnectException ce) {
-          // expected in jenkins
-      } catch (IOException e) {
-          Assert.fail(e.getMessage());
-      }
+    try {
+      spyAdapter.callHttp(
+          String.format("http://localhost:%d", 1000),
+          "ClemensTest",
+          null,
+          false,
+          HTTP_VERB.GET,
+          String.class);
+    } catch (SocketTimeoutException se) {
+      // expected in local env
+    } catch (ConnectException ce) {
+      // expected in jenkins
+    } catch (IOException e) {
+      Assert.fail(e.getMessage());
+    }
   }
-  
 }

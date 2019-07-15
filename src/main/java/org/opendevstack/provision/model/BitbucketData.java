@@ -14,16 +14,14 @@
 
 package org.opendevstack.provision.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.opendevstack.provision.model.bitbucket.Link;
+
+import javax.annotation.Generated;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Generated;
-
-import org.opendevstack.provision.model.bitbucket.Link;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 /**
- *
  * {"key":"SUBTA","id":1,"name":"Subtaskeditor","description":"Das ist ein
  * Testprojekt","public":false,"type":"NORMAL","links":{"self":[{"href":"http://192.168.56.31:7990/projects/SUBTA"}]}}
  *

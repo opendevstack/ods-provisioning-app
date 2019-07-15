@@ -13,33 +13,33 @@
  */
 package org.opendevstack.provision.util;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Custom cookie jar with the ability to inject a crowd cookie manually if the domains are
  * different.
  *
  * @author Torsten Jaeschke
- */ 
-
+ */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class CrowdCookieJar implements CookieJar {
 
   String domain;
   private Set<Cookie> cookies = new HashSet<>();
-  
+
   private String crowdSSOCookieName;
 
   /**
@@ -50,7 +50,7 @@ public class CrowdCookieJar implements CookieJar {
    */
   @Override
   public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-	this.cookies.clear();
+    this.cookies.clear();
     this.cookies.addAll(cookies);
   }
 
@@ -66,7 +66,6 @@ public class CrowdCookieJar implements CookieJar {
       return Lists.newArrayList(cookies);
     }
     return new ArrayList<>();
-
   }
 
   /**
@@ -77,7 +76,13 @@ public class CrowdCookieJar implements CookieJar {
   public void addCrowdCookie(String cookieValue) {
     Cookie.Builder cookieBuilder = new Cookie.Builder();
     Cookie crowdCookie =
-        cookieBuilder.name(crowdSSOCookieName).domain(domain).path("/").httpOnly().value(cookieValue).build();
+        cookieBuilder
+            .name(crowdSSOCookieName)
+            .domain(domain)
+            .path("/")
+            .httpOnly()
+            .value(cookieValue)
+            .build();
     cookies.add(crowdCookie);
   }
 
@@ -87,11 +92,11 @@ public class CrowdCookieJar implements CookieJar {
   }
 
   @Value("${crowd.sso.cookie.name}")
-  public void setSSOCookieName (String cookieName) {
-	  crowdSSOCookieName = cookieName;
+  public void setSSOCookieName(String cookieName) {
+    crowdSSOCookieName = cookieName;
   }
-  
-  public void clear () {
-	  cookies = new HashSet<>();
+
+  public void clear() {
+    cookies = new HashSet<>();
   }
 }

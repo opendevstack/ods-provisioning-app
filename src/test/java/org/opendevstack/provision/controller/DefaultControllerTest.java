@@ -43,59 +43,46 @@ import java.util.HashMap;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-/**
- * Created by TJA on 29.06.2017.
- */
+/** Created by TJA on 29.06.2017. */
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-    classes = SpringBoot.class)
+@SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
 @WithMockUser(username = "test")
 public class DefaultControllerTest {
 
   private MockMvc mockMvc;
 
-  @Autowired
-  DefaultController defaultController;
+  @Autowired DefaultController defaultController;
 
-  @Mock
-  RundeckAdapter rundeckAdapter;
+  @Mock RundeckAdapter rundeckAdapter;
 
-  @Mock
-  CustomAuthenticationManager customAuthenticationManager;
+  @Mock CustomAuthenticationManager customAuthenticationManager;
 
-  @Mock
-  StorageAdapter storageAdapter;
+  @Mock StorageAdapter storageAdapter;
 
-  @Autowired
-  private WebApplicationContext context;
+  @Autowired private WebApplicationContext context;
 
-  @Autowired
-  RundeckAdapter realRundeckAdapter;
-  
-  @Autowired
-  BitbucketAdapter realBitbucketAdapter;
-  
-  @Autowired
-  JiraAdapter realJiraAdapter;
-  
-  @Autowired
-  ConfluenceAdapter realConfluenceAdapter;
-  
+  @Autowired RundeckAdapter realRundeckAdapter;
+
+  @Autowired BitbucketAdapter realBitbucketAdapter;
+
+  @Autowired JiraAdapter realJiraAdapter;
+
+  @Autowired ConfluenceAdapter realConfluenceAdapter;
+
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    mockMvc = MockMvcBuilders
-        .webAppContextSetup(context)
-        //.apply(SecurityMockMvcConfigurers.springSecurity())
-        .build();
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(context)
+            // .apply(SecurityMockMvcConfigurers.springSecurity())
+            .build();
   }
 
   @Test
   public void rootRedirect() throws Exception {
-    mockMvc.perform(get("/"))
-        .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+    mockMvc.perform(get("/")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 
   @Test
@@ -103,7 +90,8 @@ public class DefaultControllerTest {
   public void homeWithoutAuth() throws Exception {
     Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn(null);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/home"))
+    mockMvc
+        .perform(get("/home"))
         .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
         .andDo(MockMvcResultHandlers.print());
   }
@@ -113,32 +101,34 @@ public class DefaultControllerTest {
   public void homeWithAuth() throws Exception {
     Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn("logged_in");
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/home"))
+    mockMvc
+        .perform(get("/home"))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
   }
 
   @Test
   @WithMockUser(username = "test")
-  public void provisionWithAuth() throws Exception 
-  {
-	Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+  public void provisionWithAuth() throws Exception {
+    Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn("logged_in");
     Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(new ArrayList<>());
     defaultController.setRundeckAdapter(rundeckAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-	SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
-    mockMvc.perform(get("/provision"))
-    	.andDo(MockMvcResultHandlers.print())
+    SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
+    mockMvc
+        .perform(get("/provision"))
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
   }
-  
+
   @Test
   public void provisionWithoutAuth() throws Exception {
     Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(new ArrayList<>());
     Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn(null);
     defaultController.setRundeckAdapter(rundeckAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/provision"))
+    mockMvc
+        .perform(get("/provision"))
         .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
         .andDo(MockMvcResultHandlers.print());
   }
@@ -149,8 +139,7 @@ public class DefaultControllerTest {
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/login"))
-        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+    mockMvc.perform(get("/login")).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
   }
 
   @Test
@@ -159,8 +148,7 @@ public class DefaultControllerTest {
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/history"))
-        .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+    mockMvc.perform(get("/history")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 
   @Test
@@ -169,14 +157,12 @@ public class DefaultControllerTest {
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    mockMvc.perform(get("/history"))
-        .andExpect(MockMvcResultMatchers.status().isOk());
+    mockMvc.perform(get("/history")).andExpect(MockMvcResultMatchers.status().isOk());
   }
-  
+
   @Test
   public void logoutPage() throws Exception {
-    mockMvc.perform(get("/logout"))
-        .andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+    mockMvc.perform(get("/logout")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 
   @Test
@@ -185,28 +171,32 @@ public class DefaultControllerTest {
     Mockito.when(storageAdapter.listAboutChangesData()).thenReturn(new AboutChangesData());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(customAuthenticationManager);
-    
+
     // set the real thing
     defaultController.setRundeckAdapter(realRundeckAdapter);
     defaultController.setBitbucketAdapter(realBitbucketAdapter);
-    
-    mockMvc.perform(get("/about"))
-		.andDo(MockMvcResultHandlers.print())
+
+    mockMvc
+        .perform(get("/about"))
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(
-        	realRundeckAdapter.getRundeckAPIPath())))
-        .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(
-        	realBitbucketAdapter.getEndpointUri())))
-	    .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(
-        	realConfluenceAdapter.getConfluenceAPIPath())))
-        .andExpect(MockMvcResultMatchers.content().string(CoreMatchers.containsString(
-            realJiraAdapter.getEndpointUri())));
+        .andExpect(
+            MockMvcResultMatchers.content()
+                .string(CoreMatchers.containsString(realRundeckAdapter.getRundeckAPIPath())))
+        .andExpect(
+            MockMvcResultMatchers.content()
+                .string(CoreMatchers.containsString(realBitbucketAdapter.getEndpointUri())))
+        .andExpect(
+            MockMvcResultMatchers.content()
+                .string(CoreMatchers.containsString(realConfluenceAdapter.getConfluenceAPIPath())))
+        .andExpect(
+            MockMvcResultMatchers.content()
+                .string(CoreMatchers.containsString(realJiraAdapter.getEndpointUri())));
   }
-  
+
   @Test
   public void aboutWithoutAuth() throws Exception {
     Mockito.when(customAuthenticationManager.getUserPassword()).thenReturn(null);
-    mockMvc.perform(get("/about"))
-    	.andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+    mockMvc.perform(get("/about")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 }

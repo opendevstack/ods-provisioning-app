@@ -14,25 +14,15 @@
 
 package org.opendevstack.provision.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RundeckJobStore;
@@ -43,16 +33,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -67,39 +55,28 @@ public class ProjectApiController {
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
-  
-  @Autowired
-  JiraAdapter jiraAdapter;
-  @Autowired
-  ConfluenceAdapter confluenceAdapter;
-  @Autowired
-  private BitbucketAdapter bitbucketAdapter;
-  @Autowired
-  private RundeckAdapter rundeckAdapter;
-  @Autowired
-  private MailAdapter mailAdapter;
-  @Autowired
-  private IStorage storage;
-  @Autowired
-  private RundeckJobStore jobStore;
 
-  @Autowired
-  private RestClient client;
-  
-  @Autowired
-  private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
+  @Autowired JiraAdapter jiraAdapter;
+  @Autowired ConfluenceAdapter confluenceAdapter;
+  @Autowired private BitbucketAdapter bitbucketAdapter;
+  @Autowired private RundeckAdapter rundeckAdapter;
+  @Autowired private MailAdapter mailAdapter;
+  @Autowired private IStorage storage;
+  @Autowired private RundeckJobStore jobStore;
 
-  @Autowired
-  private List<String> projectTemplateKeyNames;
-  
+  @Autowired private RestClient client;
+
+  @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
+
+  @Autowired private List<String> projectTemplateKeyNames;
+
   // open for testing
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired CustomAuthenticationManager manager;
 
   // open for testing
   @Value("${openshift.project.upgrade}")
   boolean ocUpgradeAllowed;
-  
+
   /**
    * Add a project to JIRA and process subsequent calls to dependent services, to create a complete
    * project stack.
@@ -110,71 +87,76 @@ public class ProjectApiController {
    * @return
    */
   @RequestMapping(method = RequestMethod.POST)
-  public ResponseEntity<Object> addProject(HttpServletRequest request, @RequestBody ProjectData project,
+  public ResponseEntity<Object> addProject(
+      HttpServletRequest request,
+      @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-	if (project == null || project.key == null || project.key.trim().length() == 0 || 
-		project.name == null || project.name.trim().length() == 0) 
-	{
-	  return ResponseEntity.badRequest().body("Project key and name are mandatory fields to create a project!");
-	}
-	 
-	// fix for opendevstack/ods-provisioning-app/issues/64
-	shortenDescription(project);
-	
-	project.key = project.key.toUpperCase();
-	MDC.put(STR_LOGFILE_KEY, project.key);
+    if (project == null
+        || project.key == null
+        || project.key.trim().length() == 0
+        || project.name == null
+        || project.name.trim().length() == 0) {
+      return ResponseEntity.badRequest()
+          .body("Project key and name are mandatory fields to create a project!");
+    }
+
+    // fix for opendevstack/ods-provisioning-app/issues/64
+    shortenDescription(project);
+
+    project.key = project.key.toUpperCase();
+    MDC.put(STR_LOGFILE_KEY, project.key);
     logger.debug("Crowd Cookie: {}", crowdCookie);
-    
+
     try {
-        logger.debug("Project to be created: {}",
+      logger.debug(
+          "Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
-      	if (project.createpermissionset) {
-      		projectIdentityMgmtAdapter.validateIdSettingsOfProject(project);
-      	}
-      
-        if (project.jiraconfluencespace)
-        {
-        	if (storage.getProject(project.key) != null)
-        	{
-        		throw new IOException(
-        			String.format("Project with key (%s) already exists" , project.key));
-        	}
-	
-	        //create JIRA project
-	        project = jiraAdapter.createJiraProjectForProject(project, crowdCookie);
-	
-	        //create confluence space
-	        project = confluenceAdapter.createConfluenceSpaceForProject(project, crowdCookie);
-	        logger.debug("Updated project: {}", new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
-	    }
-	    
-	    project = createDeliveryChain(project, crowdCookie);
+      if (project.createpermissionset) {
+        projectIdentityMgmtAdapter.validateIdSettingsOfProject(project);
+      }
 
-	    // clear admin user list for storage to prevent serialization problems
-	    project.admins = new ArrayList<>();
+      if (project.jiraconfluencespace) {
+        if (storage.getProject(project.key) != null) {
+          throw new IOException(String.format("Project with key (%s) already exists", project.key));
+        }
 
-	    jiraAdapter.addShortcutsToProject(project, crowdCookie);
-	    
+        // create JIRA project
+        project = jiraAdapter.createJiraProjectForProject(project, crowdCookie);
+
+        // create confluence space
+        project = confluenceAdapter.createConfluenceSpaceForProject(project, crowdCookie);
+        logger.debug(
+            "Updated project: {}",
+            new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
+      }
+
+      project = createDeliveryChain(project, crowdCookie);
+
+      // clear admin user list for storage to prevent serialization problems
+      project.admins = new ArrayList<>();
+
+      jiraAdapter.addShortcutsToProject(project, crowdCookie);
+
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
       String filePath = storage.storeProject(project);
       if (filePath != null) {
         logger.debug("Project {} successfully stored: {}", project.key, filePath);
       }
-      
+
       // notify user via mail of project creation with embedding links
       mailAdapter.notifyUsersAboutProject(project);
-      
+
       // return project data for further processing
       return ResponseEntity.ok().body(project);
     } catch (Exception ex) {
       logger.error("An error occured while provisioning project:", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
-    	client.removeClient(crowdCookie);
-    	MDC.remove(STR_LOGFILE_KEY);
+      client.removeClient(crowdCookie);
+      MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
@@ -188,48 +170,47 @@ public class ProjectApiController {
    * @return
    */
   @RequestMapping(method = RequestMethod.PUT)
-  public ResponseEntity<Object> updateProject(HttpServletRequest request, @RequestBody ProjectData project,
+  public ResponseEntity<Object> updateProject(
+      HttpServletRequest request,
+      @RequestBody ProjectData project,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
 
-	if (project == null || project.key.trim().length() == 0) {
-		  return ResponseEntity.badRequest().body("Project key is mandatory to call update project!");
-	}
-	MDC.put(STR_LOGFILE_KEY, project.key);
-	  
+    if (project == null || project.key.trim().length() == 0) {
+      return ResponseEntity.badRequest().body("Project key is mandatory to call update project!");
+    }
+    MDC.put(STR_LOGFILE_KEY, project.key);
+
     logger.debug("Update project: " + project.key);
     try {
-      logger.debug("Project: {}",
-        new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
+      logger.debug(
+          "Project: {}",
+          new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(project));
 
-	  ProjectData oldProject = storage.getProject(project.key);
-	  
-	  if (oldProject == null) {
-		  return ResponseEntity.notFound().build();
-	  }
-	  
+      ProjectData oldProject = storage.getProject(project.key);
+
+      if (oldProject == null) {
+        return ResponseEntity.notFound().build();
+      }
+
       project.description = oldProject.description;
       project.name = oldProject.name;
       project.bitbucketUrl = oldProject.bitbucketUrl;
       project.jiraconfluencespace = oldProject.jiraconfluencespace;
       // we purposely allow overwriting openshift settings, to create a project later on
-      if (!oldProject.openshiftproject && project.openshiftproject &&
-    		 !ocUpgradeAllowed) 
-      {
-    	  return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
-    	  	body("Project: " + project.key + " cannot be upgraded to openshift usage");
-      } else if (oldProject.openshiftproject) 
-      {
-    	  // we need to set this, otherwise the provisioniong will not work
-    	  project.openshiftproject = oldProject.openshiftproject;
+      if (!oldProject.openshiftproject && project.openshiftproject && !ocUpgradeAllowed) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Project: " + project.key + " cannot be upgraded to openshift usage");
+      } else if (oldProject.openshiftproject) {
+        // we need to set this, otherwise the provisioniong will not work
+        project.openshiftproject = oldProject.openshiftproject;
       }
-      
-      if (oldProject.createpermissionset) 
-      {
-    	  project.createpermissionset = oldProject.createpermissionset;
-    	  project.admin = oldProject.admin;
-    	  project.adminGroup = oldProject.adminGroup;
-    	  project.userGroup = oldProject.userGroup;
-    	  project.readonlyGroup = oldProject.readonlyGroup;
+
+      if (oldProject.createpermissionset) {
+        project.createpermissionset = oldProject.createpermissionset;
+        project.admin = oldProject.admin;
+        project.adminGroup = oldProject.adminGroup;
+        project.userGroup = oldProject.userGroup;
+        project.readonlyGroup = oldProject.readonlyGroup;
       }
 
       project = createDeliveryChain(project, crowdCookie);
@@ -243,9 +224,8 @@ public class ProjectApiController {
         }
       }
 
-      if ((oldProject.repositories != null) && (project.repositories != null)) 
-      {
-          oldProject.repositories.putAll(project.repositories);
+      if ((oldProject.repositories != null) && (project.repositories != null)) {
+        oldProject.repositories.putAll(project.repositories);
       }
       // store project data. The storage is autowired with an interface to enable the
       // option to store data in other data sources
@@ -256,9 +236,9 @@ public class ProjectApiController {
       mailAdapter.notifyUsersAboutProject(oldProject);
 
       oldProject.lastJobs = project.lastJobs;
-      
+
       /*
-       * 
+       *
        * return project data for further processing
        */
       return ResponseEntity.ok().body(oldProject);
@@ -266,8 +246,8 @@ public class ProjectApiController {
       logger.error("An error occured while updating project: " + project.key, ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     } finally {
-    	client.removeClient(crowdCookie);
-    	MDC.remove(STR_LOGFILE_KEY);
+      client.removeClient(crowdCookie);
+      MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
@@ -278,26 +258,25 @@ public class ProjectApiController {
    * @param project the meta information from the API
    * @param crowdCookie the authenticated user
    * @return the generated, amended Project
-   * @throws IOException 
+   * @throws IOException
    * @throws Exception in case something goes wrong
    */
   private ProjectData createDeliveryChain(ProjectData project, String crowdCookie)
-    throws IOException
-  {
+      throws IOException {
     logger.debug("create delivery chain for:" + project.key + " oc?" + project.openshiftproject);
 
     if (!project.openshiftproject) {
-    	return project;
+      return project;
     }
-    
-    if (project.bitbucketUrl == null) 
-    {
+
+    if (project.bitbucketUrl == null) {
       // create a bitbucket project
       project = bitbucketAdapter.createBitbucketProjectsForProject(project, crowdCookie);
       // create auxilaries - for design and for the ocp artifacts
       String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
-      project = bitbucketAdapter.createAuxiliaryRepositoriesForProject(project, crowdCookie,
-          auxiliaryRepositories);
+      project =
+          bitbucketAdapter.createAuxiliaryRepositoriesForProject(
+              project, crowdCookie, auxiliaryRepositories);
       // provision OpenShift project via rundeck
       project = rundeckAdapter.createOpenshiftProjects(project, crowdCookie);
     }
@@ -307,13 +286,13 @@ public class ProjectApiController {
 
     // create jira components from newly created repos
     jiraAdapter.createComponentsForProjectRepositories(project, crowdCookie);
-    
+
     if (project.lastJobs == null) {
-    	project.lastJobs = new ArrayList<>();
+      project.lastJobs = new ArrayList<>();
     }
     List<ExecutionsData> execs = rundeckAdapter.executeJobs(project);
     for (ExecutionsData exec : execs) {
-    	project.lastJobs.add(exec.getPermalink());
+      project.lastJobs.add(exec.getPermalink());
     }
 
     return project;
@@ -327,11 +306,13 @@ public class ProjectApiController {
    * @return Response with a complete project list
    */
   @RequestMapping(method = RequestMethod.GET, value = "/{id}")
-  public ResponseEntity<ProjectData> getProject(HttpServletRequest request, @PathVariable String id,
+  public ResponseEntity<ProjectData> getProject(
+      HttpServletRequest request,
+      @PathVariable String id,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     ProjectData project = storage.getProject(id);
     if (project == null) {
-    	return ResponseEntity.notFound().build();
+      return ResponseEntity.notFound().build();
     }
     if (project.quickstart != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
@@ -355,7 +336,9 @@ public class ProjectApiController {
    * @return Response with a complete project list
    */
   @RequestMapping(method = RequestMethod.GET, value = "/{system}/all")
-  public ResponseEntity<List<FullJiraProject>> getProjects(HttpServletRequest request, @PathVariable String system,
+  public ResponseEntity<List<FullJiraProject>> getProjects(
+      HttpServletRequest request,
+      @PathVariable String system,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     switch (system) {
       case "jira":
@@ -368,14 +351,15 @@ public class ProjectApiController {
 
   /**
    * Validate the project name. Duplicates are not allowed in JIRA.
-   * 
+   *
    * @param request
    * @param name
    * @param crowdCookie
    * @return Response with HTTP status. If 406 a project with this name exists in JIRA
    */
   @RequestMapping(method = RequestMethod.GET, value = "/validate")
-  public ResponseEntity<Object> validateProject(HttpServletRequest request,
+  public ResponseEntity<Object> validateProject(
+      HttpServletRequest request,
       @RequestParam(value = "name") String name,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     if (jiraAdapter.keyExists(name, crowdCookie)) {
@@ -388,51 +372,51 @@ public class ProjectApiController {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
-  public ResponseEntity<Object> getProjectTemplateKeys(HttpServletRequest request,
-      @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) 
-  {
+  public ResponseEntity<Object> getProjectTemplateKeys(
+      HttpServletRequest request,
+      @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     return ResponseEntity.ok(projectTemplateKeyNames);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
-  public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey
-  	(HttpServletRequest request, @PathVariable String key)
-  {
-	Map<String,String> templatesForKey = new HashMap<>();
-	logger.debug("retrieving templates for key: " + key);
-	
-	Preconditions.checkNotNull(key, "Null template key is not allowed");
-	
-	ProjectData project = new ProjectData();
-	project.projectType = key;
-	
-	String projectTypeKey = jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-		(project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraAdapter.jiraTemplateKey);
+  public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey(
+      HttpServletRequest request, @PathVariable String key) {
+    Map<String, String> templatesForKey = new HashMap<>();
+    logger.debug("retrieving templates for key: " + key);
 
-	String projectTypeTemplateKey = 
-		jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType
-		(project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraAdapter.jiraTemplateType);
-			
-	templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" +
-		projectTypeKey);
-	        
-	templatesForKey.put("collabSpaceTemplate", 
-		confluenceAdapter.calculateConfluenceSpaceTypeAndTemplateFromProjectType
-		(project.key));
-	
-	return ResponseEntity.ok(templatesForKey);
+    Preconditions.checkNotNull(key, "Null template key is not allowed");
+
+    ProjectData project = new ProjectData();
+    project.projectType = key;
+
+    String projectTypeKey =
+        jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType(
+            project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraAdapter.jiraTemplateKey);
+
+    String projectTypeTemplateKey =
+        jiraAdapter.calculateJiraProjectTypeAndTemplateFromProjectType(
+            project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraAdapter.jiraTemplateType);
+
+    templatesForKey.put("bugTrackerTemplate", projectTypeTemplateKey + "#" + projectTypeKey);
+
+    templatesForKey.put(
+        "collabSpaceTemplate",
+        confluenceAdapter.calculateConfluenceSpaceTypeAndTemplateFromProjectType(project.key));
+
+    return ResponseEntity.ok(templatesForKey);
   }
-  
+
   /**
    * Validate the project's key name. Duplicates are not allowed in JIRA.
-   * 
+   *
    * @param request
    * @param name
    * @param crowdCookie
    * @return Response with HTTP status. If 406 a project with this key exists in JIRA
    */
   @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
-  public ResponseEntity<Object> validateKey(HttpServletRequest request,
+  public ResponseEntity<Object> validateKey(
+      HttpServletRequest request,
       @RequestParam(value = "key") String name,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     if (jiraAdapter.keyExists(name, crowdCookie)) {
@@ -447,7 +431,7 @@ public class ProjectApiController {
   /**
    * Generate the Key on server side
    *
-   * TODO make the key pattern dynamic
+   * <p>TODO make the key pattern dynamic
    *
    * @param request
    * @param name
@@ -455,20 +439,18 @@ public class ProjectApiController {
    * @return
    */
   @RequestMapping(method = RequestMethod.GET, value = "/key/generate")
-  public ResponseEntity<Map<String, String>> generateKey(HttpServletRequest request,
+  public ResponseEntity<Map<String, String>> generateKey(
+      HttpServletRequest request,
       @RequestParam(value = "name") String name,
       @CookieValue(value = "crowd.token_key", required = false) String crowdCookie) {
     Map<String, String> proj = new HashMap<>();
     proj.put("key", jiraAdapter.buildProjectKey(name));
     return ResponseEntity.ok(proj);
   }
-  
-  void shortenDescription (ProjectData project) 
-  {
-	if (project != null && project.description != null && project.description.length() > 100) 
-	{
-		project.description = project.description.substring(0, 99);
-	}	  
+
+  void shortenDescription(ProjectData project) {
+    if (project != null && project.description != null && project.description.length() > 100) {
+      project.description = project.description.substring(0, 99);
+    }
   }
-  
 }

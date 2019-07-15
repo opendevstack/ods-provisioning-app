@@ -14,11 +14,8 @@
 
 package org.opendevstack.provision.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
+import okhttp3.Cookie;
+import okhttp3.HttpUrl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +25,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import okhttp3.Cookie;
-import okhttp3.HttpUrl;
 
-/**
- * @author Torsten Jaeschke
- */
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
@@ -67,7 +66,6 @@ public class CrowdCookieJarTest {
     assertEquals(0, crowdCookieJar.loadForRequest(null).size());
   }
 
-  
   @Test
   public void loadForRequestWithoutCookies() throws Exception {
     assertEquals(0, crowdCookieJar.loadForRequest(getUrl()).size());
@@ -75,19 +73,19 @@ public class CrowdCookieJarTest {
 
   @Test
   public void addCrowdCookie() throws Exception {
-	crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
+    crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
     crowdCookieJar.setDomain("localhost");
     crowdCookieJar.saveFromResponse(getUrl(), getCookies());
     crowdCookieJar.addCrowdCookie("test");
     List<Cookie> cookies = crowdCookieJar.loadForRequest(getUrl());
-    
+
     for (Cookie cookie : cookies) {
       if (cookie.name().equalsIgnoreCase(crowdSSOCookieName)) {
         assertTrue(true);
       }
     }
   }
-  
+
   private HttpUrl getUrl() {
     HttpUrl url = new HttpUrl.Builder().host("localhost").scheme("http").build();
     return url;

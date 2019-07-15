@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
  *
  * @author Torsten Jaeschke
  */
-
 @Service
 public class RundeckAdapter {
 
@@ -52,12 +51,9 @@ public class RundeckAdapter {
   public static final String COMPONENT_ID_KEY = "component_id";
   public static final String COMPONENT_TYPE_KEY = "component_type";
 
-  @Autowired
-  private RundeckJobStore jobStore;
+  @Autowired private RundeckJobStore jobStore;
 
-  @Autowired
-  private CrowdUserDetailsService crowdUserDetailsService;
-
+  @Autowired private CrowdUserDetailsService crowdUserDetailsService;
 
   @Value("${rundeck.api.path}")
   private String rundeckApiPath;
@@ -104,13 +100,11 @@ public class RundeckAdapter {
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectPattern;
 
-  private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
-  
-  @Autowired
-  private RestClient client;
+  private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
 
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired private RestClient client;
+
+  @Autowired CustomAuthenticationManager manager;
 
   public List<Job> getQuickstarter() {
     try {
@@ -121,10 +115,9 @@ public class RundeckAdapter {
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) throws IOException
-  {
+  public List<ExecutionsData> executeJobs(ProjectData project) throws IOException {
     authenticate();
-   
+
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstart != null) {
       for (Map<String, String> options : project.quickstart) {
@@ -133,7 +126,9 @@ public class RundeckAdapter {
         String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
         String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
         String packageName =
-            String.format("%s.%s", String.format(groupPattern, project.key.toLowerCase()),
+            String.format(
+                "%s.%s",
+                String.format(groupPattern, project.key.toLowerCase()),
                 options.get(COMPONENT_ID_KEY).replace('-', '_'));
         Execution execution = new Execution();
 
@@ -142,13 +137,14 @@ public class RundeckAdapter {
         options.put("package_name", packageName);
         execution.setOptions(options);
         try {
-            ExecutionsData data = 
-        		client.callHttp(url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
+          ExecutionsData data =
+              client.callHttp(
+                  url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
 
-            if (data.getError()) {
-        	  throw new IOException ("Could not provision component: " + data.getMessage());
-            }
-          
+          if (data.getError()) {
+            throw new IOException("Could not provision component: " + data.getMessage());
+          }
+
           executionList.add(data);
           if (data.getPermalink() != null) {
             options.put("joblink", data.getPermalink());
@@ -164,10 +160,10 @@ public class RundeckAdapter {
   public ProjectData createOpenshiftProjects(ProjectData project, String crowdCookie)
       throws IOException {
 
-	if (project == null) {
-		throw new IOException("Cannot create null project");
-	}
-	  
+    if (project == null) {
+      throw new IOException("Cannot create null project");
+    }
+
     try {
       List<Job> jobs = getJobs(projectOpenshiftGroup);
       for (Job job : jobs) {
@@ -176,47 +172,62 @@ public class RundeckAdapter {
           Execution execution = new Execution();
           Map<String, String> options = new HashMap<>();
           options.put("project_id", project.key.toLowerCase());
-          if (project.createpermissionset) 
-          {
-          	  String entitlementGroups =
-          		"ADMINGROUP=" + project.adminGroup + "," + 
-          		"USERGROUP=" + project.userGroup + "," +
-          		"READONLYGROUP=" + project.readonlyGroup;
-          	  
-              logger.info("project id: {} passed project owner: {} passed groups: {}",
-                      project.key, project.admin, entitlementGroups);
-              
-              options.put("project_admin", project.admin);
-              options.put("project_groups", entitlementGroups);
-          }
-          else 
-          {
-        	// someone is always logged in :)
-        	UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);  
+          if (project.createpermissionset) {
+            String entitlementGroups =
+                "ADMINGROUP="
+                    + project.adminGroup
+                    + ","
+                    + "USERGROUP="
+                    + project.userGroup
+                    + ","
+                    + "READONLYGROUP="
+                    + project.readonlyGroup;
+
+            logger.info(
+                "project id: {} passed project owner: {} passed groups: {}",
+                project.key,
+                project.admin,
+                entitlementGroups);
+
+            options.put("project_admin", project.admin);
+            options.put("project_groups", entitlementGroups);
+          } else {
+            // someone is always logged in :)
+            UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);
             logger.info("project id: {} details: {}", project.key, details);
             options.put("project_admin", details.getUsername());
-          } 
+          }
           execution.setOptions(options);
-          
-          ExecutionsData data = 
-        	client.callHttp(url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
+
+          ExecutionsData data =
+              client.callHttp(
+                  url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
 
           // add openshift based links - for jenkins we know the link - hence create the direct
           // access link to openshift app domain
           project.openshiftJenkinsUrl =
-              "https://" + String.format(projectOpenshiftJenkinsProjectPattern,
-                  project.key.toLowerCase(), projectOpenshiftBaseDomain);
+              "https://"
+                  + String.format(
+                      projectOpenshiftJenkinsProjectPattern,
+                      project.key.toLowerCase(),
+                      projectOpenshiftBaseDomain);
 
           // we can only add the console based links - as no routes are created per default
-          project.openshiftConsoleDevEnvUrl = String.format(projectOpenshiftDevProjectPattern,
-              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
+          project.openshiftConsoleDevEnvUrl =
+              String.format(
+                  projectOpenshiftDevProjectPattern,
+                  projectOpenshiftConsoleUri.trim(),
+                  project.key.toLowerCase());
 
-          project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
-              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
+          project.openshiftConsoleTestEnvUrl =
+              String.format(
+                  projectOpenshiftTestProjectPattern,
+                  projectOpenshiftConsoleUri.trim(),
+                  project.key.toLowerCase());
 
           project.lastJobs = new ArrayList<>();
           project.lastJobs.add(data.getPermalink());
-          
+
           return project;
         }
       }
@@ -227,14 +238,10 @@ public class RundeckAdapter {
     return project;
   }
 
-
-  /**
-   * method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar
-   */
-  protected void authenticate() throws IOException 
-  {
-	  client.callHttpBasicFormAuthenticate(
-		  String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath));
+  /** method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar */
+  protected void authenticate() throws IOException {
+    client.callHttpBasicFormAuthenticate(
+        String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath));
   }
 
   protected List<Job> getJobs(String group) throws IOException {
@@ -248,16 +255,20 @@ public class RundeckAdapter {
     urlBuilder.addQueryParameter("groupPath", group);
 
     List<Job> jobs =
-    	client.callHttpTypeRef(urlBuilder.toString(), null, null, false, RestClient.HTTP_VERB.GET,
-    		new TypeReference<List<Job>>() {});
-    
+        client.callHttpTypeRef(
+            urlBuilder.toString(),
+            null,
+            null,
+            false,
+            RestClient.HTTP_VERB.GET,
+            new TypeReference<List<Job>>() {});
+
     enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
     jobStore.addJobs(enabledJobs);
     return enabledJobs;
   }
 
-  public String getRundeckAPIPath () {
-	  return rundeckUri + rundeckApiPath;
+  public String getRundeckAPIPath() {
+    return rundeckUri + rundeckApiPath;
   }
-  
 }

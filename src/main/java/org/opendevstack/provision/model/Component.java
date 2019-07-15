@@ -14,130 +14,136 @@
 
 package org.opendevstack.provision.model;
 
+import com.fasterxml.jackson.annotation.*;
+
+import javax.annotation.Generated;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Generated;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 /*
-  {
-    "name": "Component 1",
-    "description": "This is a JIRA component",
-    "leadUserName": "fred",
-    "assigneeType": "PROJECT_LEAD",
-    "isAssigneeTypeValid": false,
-    "project": "PROJECTKEY",
-    "projectId": 10000
-  }
- */
+ {
+   "name": "Component 1",
+   "description": "This is a JIRA component",
+   "leadUserName": "fred",
+   "assigneeType": "PROJECT_LEAD",
+   "isAssigneeTypeValid": false,
+   "project": "PROJECTKEY",
+   "projectId": 10000
+ }
+*/
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "name", "description", "leadUserName", "assigneeType", "isAssigneeTypeValid", "project",
-		"projectId" })
+@JsonPropertyOrder({
+  "name",
+  "description",
+  "leadUserName",
+  "assigneeType",
+  "isAssigneeTypeValid",
+  "project",
+  "projectId"
+})
 @Generated(value = {"JSON-to-Pojo-Generator"})
 public class Component {
 
-	@JsonProperty("name")
-	private String name;
-	@JsonProperty("description")
-	private String description;
-	@JsonProperty("leadUserName")
-	private String leadUserName;
-	@JsonProperty("assigneeType")
-	private String assigneeType;
-	@JsonProperty("isAssigneeTypeValid")
-	private Boolean isAssigneeTypeValid;
-	@JsonProperty("project")
-	private String project;
-	@JsonProperty("projectId")
-	private Integer projectId;
-	@JsonIgnore
-	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+  @JsonProperty("name")
+  private String name;
 
-	@JsonProperty("name")
-	public String getName() {
-		return name;
-	}
+  @JsonProperty("description")
+  private String description;
 
-	@JsonProperty("name")
-	public void setName(String name) {
-		this.name = name;
-	}
+  @JsonProperty("leadUserName")
+  private String leadUserName;
 
-	@JsonProperty("description")
-	public String getDescription() {
-		return description;
-	}
+  @JsonProperty("assigneeType")
+  private String assigneeType;
 
-	@JsonProperty("description")
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  @JsonProperty("isAssigneeTypeValid")
+  private Boolean isAssigneeTypeValid;
 
-	@JsonProperty("leadUserName")
-	public String getLeadUserName() {
-		return leadUserName;
-	}
+  @JsonProperty("project")
+  private String project;
 
-	@JsonProperty("leadUserName")
-	public void setLeadUserName(String leadUserName) {
-		this.leadUserName = leadUserName;
-	}
+  @JsonProperty("projectId")
+  private Integer projectId;
 
-	@JsonProperty("assigneeType")
-	public String getAssigneeType() {
-		return assigneeType;
-	}
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-	@JsonProperty("assigneeType")
-	public void setAssigneeType(String assigneeType) {
-		this.assigneeType = assigneeType;
-	}
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
 
-	@JsonProperty("isAssigneeTypeValid")
-	public Boolean getIsAssigneeTypeValid() {
-		return isAssigneeTypeValid;
-	}
+  @JsonProperty("name")
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	@JsonProperty("isAssigneeTypeValid")
-	public void setIsAssigneeTypeValid(Boolean isAssigneeTypeValid) {
-		this.isAssigneeTypeValid = isAssigneeTypeValid;
-	}
+  @JsonProperty("description")
+  public String getDescription() {
+    return description;
+  }
 
-	@JsonProperty("project")
-	public String getProject() {
-		return project;
-	}
+  @JsonProperty("description")
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-	@JsonProperty("project")
-	public void setProject(String project) {
-		this.project = project;
-	}
+  @JsonProperty("leadUserName")
+  public String getLeadUserName() {
+    return leadUserName;
+  }
 
-	@JsonProperty("projectId")
-	public Integer getProjectId() {
-		return projectId;
-	}
+  @JsonProperty("leadUserName")
+  public void setLeadUserName(String leadUserName) {
+    this.leadUserName = leadUserName;
+  }
 
-	@JsonProperty("projectId")
-	public void setProjectId(Integer projectId) {
-		this.projectId = projectId;
-	}
+  @JsonProperty("assigneeType")
+  public String getAssigneeType() {
+    return assigneeType;
+  }
 
-	@JsonAnyGetter
-	public Map<String, Object> getAdditionalProperties() {
-		return this.additionalProperties;
-	}
+  @JsonProperty("assigneeType")
+  public void setAssigneeType(String assigneeType) {
+    this.assigneeType = assigneeType;
+  }
 
-	@JsonAnySetter
-	public void setAdditionalProperty(String name, Object value) {
-		this.additionalProperties.put(name, value);
-	}
+  @JsonProperty("isAssigneeTypeValid")
+  public Boolean getIsAssigneeTypeValid() {
+    return isAssigneeTypeValid;
+  }
 
+  @JsonProperty("isAssigneeTypeValid")
+  public void setIsAssigneeTypeValid(Boolean isAssigneeTypeValid) {
+    this.isAssigneeTypeValid = isAssigneeTypeValid;
+  }
+
+  @JsonProperty("project")
+  public String getProject() {
+    return project;
+  }
+
+  @JsonProperty("project")
+  public void setProject(String project) {
+    this.project = project;
+  }
+
+  @JsonProperty("projectId")
+  public Integer getProjectId() {
+    return projectId;
+  }
+
+  @JsonProperty("projectId")
+  public void setProjectId(Integer projectId) {
+    this.projectId = projectId;
+  }
+
+  @JsonAnyGetter
+  public Map<String, Object> getAdditionalProperties() {
+    return this.additionalProperties;
+  }
+
+  @JsonAnySetter
+  public void setAdditionalProperty(String name, Object value) {
+    this.additionalProperties.put(name, value);
+  }
 }

@@ -14,12 +14,8 @@
 
 package org.opendevstack.provision.filter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,47 +30,45 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
-import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-/**
- * @author Torsten Jaeschke
- */
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class SSOAuthProcessingFilterTest {
 
-  @Mock
-  HttpAuthenticator authenticator;	
-	
-  @Autowired
-  @InjectMocks
-  SSOAuthProcessingFilter filter;
-  
+  @Mock HttpAuthenticator authenticator;
+
+  @Autowired @InjectMocks SSOAuthProcessingFilter filter;
+
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
   }
-  
+
   @Test
   public void storeCrowdToken() throws Exception {
-	  CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
-	  
-	  HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-	  HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+    CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
 
-	  assertTrue(filter.storeTokenIfCrowd(request, response, token));
-	  assertFalse(filter.storeTokenIfCrowd(request, response, null));
+    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+
+    assertTrue(filter.storeTokenIfCrowd(request, response, token));
+    assertFalse(filter.storeTokenIfCrowd(request, response, null));
   }
 
   @Test
-  public void testSuccessfullAuth() throws Exception {	  
-	  HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-	  HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+  public void testSuccessfullAuth() throws Exception {
+    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
-	  CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
-	  
-	  filter.successfulAuthentication(request, response, null, token);
-  }  
+    CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
+
+    filter.successfulAuthentication(request, response, null, token);
+  }
 }

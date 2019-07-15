@@ -14,19 +14,16 @@
 
 package org.opendevstack.provision.authentication;
 
-import java.rmi.RemoteException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
-import com.atlassian.crowd.exception.ExpiredCredentialException;
-import com.atlassian.crowd.exception.InactiveAccountException;
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.exception.*;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
 import com.atlassian.crowd.service.AuthenticationManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.rmi.RemoteException;
 
 /**
  * Custom Authentication manager to integrate the password storing for rundeck authentication
@@ -38,8 +35,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
   private SecurityServerClient securityServerClient;
 
-  @Autowired
-  private SessionAwarePasswordHolder userPassword;
+  @Autowired private SessionAwarePasswordHolder userPassword;
 
   /**
    * get the password from the logged in user
@@ -61,7 +57,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
 
   /**
    * Constructor with secure SOAP client for crowd authentication
-   * 
+   *
    * @param securityServerClient
    */
   public CustomAuthenticationManager(SecurityServerClient securityServerClient) {
@@ -82,8 +78,8 @@ public class CustomAuthenticationManager implements AuthenticationManager {
    */
   public String authenticate(UserAuthenticationContext authenticationContext)
       throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
-    
+          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+
     Preconditions.checkNotNull(authenticationContext);
     setUserPassword(authenticationContext.getCredential().getCredential());
     if (authenticationContext.getApplication() == null) {
@@ -108,11 +104,12 @@ public class CustomAuthenticationManager implements AuthenticationManager {
   public String authenticateWithoutValidatingPassword(
       UserAuthenticationContext authenticationContext)
       throws ApplicationAccessDeniedException, InvalidAuthenticationException,
-      InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
-    
+          InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
+
     Preconditions.checkNotNull(authenticationContext);
-    return this.getSecurityServerClient().createPrincipalToken(authenticationContext.getName(),
-        authenticationContext.getValidationFactors());
+    return this.getSecurityServerClient()
+        .createPrincipalToken(
+            authenticationContext.getName(), authenticationContext.getValidationFactors());
   }
 
   /**
@@ -130,8 +127,8 @@ public class CustomAuthenticationManager implements AuthenticationManager {
    */
   public String authenticate(String username, String password)
       throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
-    
+          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
     setUserPassword(password);
@@ -151,8 +148,8 @@ public class CustomAuthenticationManager implements AuthenticationManager {
    */
   public boolean isAuthenticated(String token, ValidationFactor[] validationFactors)
       throws RemoteException, InvalidAuthorizationTokenException, ApplicationAccessDeniedException,
-      InvalidAuthenticationException {
-    
+          InvalidAuthenticationException {
+
     Preconditions.checkNotNull(token);
     return this.getSecurityServerClient().isValidToken(token, validationFactors);
   }
@@ -167,7 +164,7 @@ public class CustomAuthenticationManager implements AuthenticationManager {
    */
   public void invalidate(String token)
       throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException {
-    
+
     Preconditions.checkNotNull(token);
     this.getSecurityServerClient().invalidateToken(token);
     setUserPassword(null);

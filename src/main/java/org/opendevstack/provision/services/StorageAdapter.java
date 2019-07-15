@@ -14,9 +14,7 @@
 
 package org.opendevstack.provision.services;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.storage.IStorage;
@@ -27,78 +25,76 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service to interact with the underlying storage system to liast the project history
  *
  * @author Torsten Jaeschke
  */
-
 @Service
 public class StorageAdapter {
 
-  @Autowired
-  IStorage storage;
+  @Autowired IStorage storage;
 
   private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
 
   public Map<String, ProjectData> listProjectHistory() {
-	 
-	 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-    	 return new HashMap<>();
-	 }
-	  
-     CrowdUserDetails userDetails =
+
+    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+      return new HashMap<>();
+    }
+
+    CrowdUserDetails userDetails =
         (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-	 
-     // security!
-     if (userDetails == null) {
-    	 return new HashMap<>();
-     }
-     
-	 Map<String, ProjectData> allProjects = storage.listProjectHistory();
-	 Map<String, ProjectData> filteredProjects = new HashMap<>();
-	 
-	 Collection <GrantedAuthority> authorities = userDetails.getAuthorities();
-     logger.debug("User: {} \n {}", userDetails.getUsername(), authorities);
-	 
-	 for (Map.Entry<String, ProjectData> project : allProjects.entrySet()) 
-	 {
-		 ProjectData projectData = project.getValue();
-		 logger.debug("Project: {} groups: {},{} > {}",
-				 projectData.key, projectData.adminGroup,
-				 projectData.userGroup,  projectData.createpermissionset);
-		 
-		 if (!projectData.createpermissionset)
-		 {
-			 filteredProjects.put(projectData.key, projectData);
-		 } else 
-		 {
-			 for (GrantedAuthority authority : authorities) 
-			 {
-				 if (authority.getAuthority().equalsIgnoreCase(projectData.adminGroup) || 
-				     authority.getAuthority().equalsIgnoreCase(projectData.userGroup)) 
-				 {
-					 filteredProjects.put(projectData.key, projectData);
-					 break;
-				 }
-			 }
-		 }
-	 }
-	 
-	 return filteredProjects;
-  }  
-  
+
+    // security!
+    if (userDetails == null) {
+      return new HashMap<>();
+    }
+
+    Map<String, ProjectData> allProjects = storage.listProjectHistory();
+    Map<String, ProjectData> filteredProjects = new HashMap<>();
+
+    Collection<GrantedAuthority> authorities = userDetails.getAuthorities();
+    logger.debug("User: {} \n {}", userDetails.getUsername(), authorities);
+
+    for (Map.Entry<String, ProjectData> project : allProjects.entrySet()) {
+      ProjectData projectData = project.getValue();
+      logger.debug(
+          "Project: {} groups: {},{} > {}",
+          projectData.key,
+          projectData.adminGroup,
+          projectData.userGroup,
+          projectData.createpermissionset);
+
+      if (!projectData.createpermissionset) {
+        filteredProjects.put(projectData.key, projectData);
+      } else {
+        for (GrantedAuthority authority : authorities) {
+          if (authority.getAuthority().equalsIgnoreCase(projectData.adminGroup)
+              || authority.getAuthority().equalsIgnoreCase(projectData.userGroup)) {
+            filteredProjects.put(projectData.key, projectData);
+            break;
+          }
+        }
+      }
+    }
+
+    return filteredProjects;
+  }
+
   public ProjectData getProject(String key) {
-	return storage.getProject(key);
+    return storage.getProject(key);
   }
 
   public AboutChangesData listAboutChangesData() {
     return storage.listAboutChangesData();
   }
 
-  void setStorage (IStorage storage) {
-	this.storage = storage;
+  void setStorage(IStorage storage) {
+    this.storage = storage;
   }
 }

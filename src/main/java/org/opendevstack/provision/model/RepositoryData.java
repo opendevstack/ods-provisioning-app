@@ -14,16 +14,14 @@
 
 package org.opendevstack.provision.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.opendevstack.provision.model.bitbucket.Link;
+
+import javax.annotation.Generated;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Generated;
-
-import org.opendevstack.provision.model.bitbucket.Link;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 /**
- *
  * { "slug": "testrepo", "id": 1, "name": "testrepo", "scmId": "git", "state": "AVAILABLE",
  * "statusMessage": "Available", "forkable": true, "project": { "key": "DRIMM", "id": 4, "name":
  * "drimmes", "description": "dsdfdsfsdfsdf", "public": false, "type": "NORMAL", "links": { "self":
@@ -31,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * "clone": [ { "href": "ssh://git@192.168.56.31:7999/drimm/testrepo.git", "name": "ssh" }, {
  * "href": "http://admin@192.168.56.31:7990/scm/drimm/testrepo.git", "name": "http" } ], "self": [ {
  * "href": "http://192.168.56.31:7990/projects/DRIMM/repos/testrepo/browse" } ] } }
- * 
+ *
  * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})

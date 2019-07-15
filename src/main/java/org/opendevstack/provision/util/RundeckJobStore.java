@@ -13,11 +13,12 @@
  */
 package org.opendevstack.provision.util;
 
+import org.opendevstack.provision.model.rundeck.Job;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.opendevstack.provision.model.rundeck.Job;
 
 /**
  * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevent unnecessary calls
@@ -25,7 +26,6 @@ import org.opendevstack.provision.model.rundeck.Job;
  *
  * @author Torsten Jaeschke
  */
-
 public class RundeckJobStore {
   private Map<String, Job> jobs = new HashMap<>();
 
@@ -60,7 +60,7 @@ public class RundeckJobStore {
 
   /**
    * get a job list specified with their IDs
-   * 
+   *
    * @param jobIds
    * @return
    */

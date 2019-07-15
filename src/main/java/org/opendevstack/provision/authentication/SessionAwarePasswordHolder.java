@@ -18,10 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-/**
- *
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class SessionAwarePasswordHolder {

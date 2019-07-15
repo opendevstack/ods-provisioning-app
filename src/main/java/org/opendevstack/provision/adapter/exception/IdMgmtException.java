@@ -15,18 +15,18 @@ package org.opendevstack.provision.adapter.exception;
 
 /**
  * Root exception type thrown by the Identity Mgmt adapter
+ *
  * @author utschig
  */
 public class IdMgmtException extends Exception {
 
-	private static final long serialVersionUID = 1660470178955845382L;
+  private static final long serialVersionUID = 1660470178955845382L;
 
-	public IdMgmtException (Throwable e) {
-		super(e);
-	}
-	
-	public IdMgmtException (String errMessage) {
-		super(errMessage);
-	}
-	
+  public IdMgmtException(Throwable e) {
+    super(e);
+  }
+
+  public IdMgmtException(String errMessage) {
+    super(errMessage);
+  }
 }

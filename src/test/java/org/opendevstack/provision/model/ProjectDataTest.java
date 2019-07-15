@@ -13,68 +13,66 @@
 
 package org.opendevstack.provision.model;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * Test Project data equals / hashcode
- * @author utschig
  *
+ * @author utschig
  */
 public class ProjectDataTest {
 
-	@Test
-	public void testEquals() {
-		ProjectData data = new ProjectData();
-		data.key = "key";
-		data.name = "name";
-		
-		ProjectData dataCheck = new ProjectData();
-		dataCheck.key = "key";
-		dataCheck.name = "name";
+  @Test
+  public void testEquals() {
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
 
-		assertNotEquals(null, dataCheck);
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
 
-		assertEquals(dataCheck, data);
-		
-		data.name = null;
-		assertNotEquals(dataCheck, data);
-		
-		dataCheck.name = null;
-		assertEquals(dataCheck, data);
-	}
+    assertNotEquals(null, dataCheck);
 
-	
-	@Test
-	public void testHashcode() {
-		List<ProjectData> dataL = new ArrayList<>();
-		
-		ProjectData data = new ProjectData();
-		data.key = "key";
-		data.name = "name";
-		
-		dataL.add(data);
-		dataL.add(data);
-		
-		assertTrue(dataL.contains(data));
-		
-		ProjectData dataCheck = new ProjectData();
-		dataCheck.key = "key";
-		dataCheck.name = "name";
-		
-		dataL.add(dataCheck);
+    assertEquals(dataCheck, data);
 
-		assertEquals(3, dataL.size());
-		
-		data.name = null;
-		dataL.add(data);
+    data.name = null;
+    assertNotEquals(dataCheck, data);
 
-		assertEquals(4, dataL.size());
-		assertTrue(dataL.contains(data));
-	}
-	
+    dataCheck.name = null;
+    assertEquals(dataCheck, data);
+  }
+
+  @Test
+  public void testHashcode() {
+    List<ProjectData> dataL = new ArrayList<>();
+
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
+
+    dataL.add(data);
+    dataL.add(data);
+
+    assertTrue(dataL.contains(data));
+
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
+
+    dataL.add(dataCheck);
+
+    assertEquals(3, dataL.size());
+
+    data.name = null;
+    dataL.add(data);
+
+    assertEquals(4, dataL.size());
+    assertTrue(dataL.contains(data));
+  }
 }

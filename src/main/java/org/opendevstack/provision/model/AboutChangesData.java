@@ -14,12 +14,13 @@
 
 package org.opendevstack.provision.model;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.List;
 
 /**
  * Model for about changes
- * 
+ *
  * @author utschig
  */
 public class AboutChangesData {
@@ -32,4 +33,3 @@ public class AboutChangesData {
     public String what;
   }
 }
-

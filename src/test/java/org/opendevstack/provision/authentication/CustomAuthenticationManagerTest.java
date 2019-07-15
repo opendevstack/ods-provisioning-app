@@ -14,8 +14,15 @@
 
 package org.opendevstack.provision.authentication;
 
-import java.rmi.RemoteException;
-import java.util.Properties;
+import com.atlassian.crowd.embedded.api.PasswordCredential;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
+import com.atlassian.crowd.model.authentication.ValidationFactor;
+import com.atlassian.crowd.service.soap.client.SecurityServerClient;
+import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
+import com.atlassian.crowd.service.soap.client.SoapClientProperties;
+import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,41 +35,32 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.embedded.api.PasswordCredential;
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
-import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
-import com.atlassian.crowd.model.authentication.ValidationFactor;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
-import com.atlassian.crowd.service.soap.client.SoapClientProperties;
-import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
+
+import java.rmi.RemoteException;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-@WithMockUser(username = CustomAuthenticationManagerTest.USER, roles = {"ADMIN"})
+@WithMockUser(
+    username = CustomAuthenticationManagerTest.USER,
+    roles = {"ADMIN"})
 public class CustomAuthenticationManagerTest {
 
   private static final String TOKEN = "token";
 
-  /**
-   * This is for tests only
-   */
+  /** This is for tests only */
   static final String USER = "test";
+
   @SuppressWarnings("squid:S2068")
   static final String TEST_CRED = "test";
 
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired CustomAuthenticationManager manager;
 
-  @Mock
-  private SecurityServerClient securityServerClient;
+  @Mock private SecurityServerClient securityServerClient;
 
   @Before
   public void setUp() throws Exception {
@@ -71,9 +69,11 @@ public class CustomAuthenticationManagerTest {
     Mockito.when(securityServerClient.isValidToken("", factors)).thenReturn(true);
 
     Mockito.doThrow(new RemoteException()).when(securityServerClient).invalidateToken("remote");
-    Mockito.doThrow(new InvalidAuthorizationTokenException()).when(securityServerClient)
+    Mockito.doThrow(new InvalidAuthorizationTokenException())
+        .when(securityServerClient)
         .invalidateToken("invalid_token");
-    Mockito.doThrow(new InvalidAuthenticationException(token)).when(securityServerClient)
+    Mockito.doThrow(new InvalidAuthenticationException(token))
+        .when(securityServerClient)
         .invalidateToken("invalid_auth");
     manager.setSecurityServerClient(securityServerClient);
   }
@@ -81,9 +81,9 @@ public class CustomAuthenticationManagerTest {
   @Test
   public void setUserPassword() throws Exception {
     String pass = TEST_CRED;
-    
+
     manager.setUserPassword(pass);
-    
+
     assertEquals(pass, manager.getUserPassword());
   }
 
@@ -92,7 +92,7 @@ public class CustomAuthenticationManagerTest {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
-    
+
     manager.setSecurityServerClient(client);
 
     assertNull(manager.authenticate(getContext()));
@@ -103,7 +103,7 @@ public class CustomAuthenticationManagerTest {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
-    
+
     manager.setSecurityServerClient(client);
 
     assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
@@ -113,9 +113,9 @@ public class CustomAuthenticationManagerTest {
   public void authenticateWithUsernameAndPassword() throws Exception {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
-    
+
     manager.setSecurityServerClient(client);
-    
+
     assertEquals("login", manager.authenticate(USER, TEST_CRED));
   }
 
@@ -160,5 +160,4 @@ public class CustomAuthenticationManagerTest {
     SoapClientProperties props = SoapClientPropertiesImpl.newInstanceFromProperties(plainProps);
     return props;
   }
-
 }

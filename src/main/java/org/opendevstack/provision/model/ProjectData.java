@@ -14,13 +14,13 @@
 
 package org.opendevstack.provision.model;
 
+import com.atlassian.jira.rest.client.domain.BasicUser;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.opendevstack.provision.model.bitbucket.Link;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.opendevstack.provision.model.bitbucket.Link;
-import com.atlassian.jira.rest.client.domain.BasicUser;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * ProjectData
@@ -45,7 +45,7 @@ public class ProjectData {
   public String openshiftJenkinsUrl = null;
   public String openshiftConsoleDevEnvUrl = null;
   public String openshiftConsoleTestEnvUrl = null;
-  
+
   // permissions
   public String adminGroup = null;
   public String userGroup = null;
@@ -53,12 +53,12 @@ public class ProjectData {
   public String readonlyGroup = null;
 
   public boolean createpermissionset = false;
-  
-  @JsonIgnoreProperties ({"lastJobs"})
+
+  @JsonIgnoreProperties({"lastJobs"})
   public List<String> lastJobs = null;
-  
+
   public String projectType = null;
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -71,10 +71,10 @@ public class ProjectData {
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
-        return true;
+      return true;
     }
     if (obj == null) {
-        return false;
+      return false;
     }
     if (getClass() != obj.getClass()) {
       return false;
@@ -85,24 +85,18 @@ public class ProjectData {
       if (other.key != null) {
         return false;
       }
-    } else if (!key.equals(other.key)) 
-    {
+    } else if (!key.equals(other.key)) {
       return false;
     }
-    
-    if (name == null) 
-    {
-      if (other.name != null)
-      {
+
+    if (name == null) {
+      if (other.name != null) {
         return false;
       }
     } else if (!name.equals(other.name)) {
-        return false;
+      return false;
     }
 
     return true;
   }
-
-
-
 }

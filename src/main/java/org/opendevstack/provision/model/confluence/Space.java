@@ -16,9 +16,7 @@ package org.opendevstack.provision.model.confluence;
 
 import javax.annotation.Generated;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 public class Space {
   private String spaceKey = null;
@@ -69,7 +67,7 @@ public class Space {
 
   /*
    * {
-   * 
+   *
    * "spaceKey":"FDSSSDF", "name":"fdsssdf", "description":"",
    * "spaceBlueprintId":"557f8a6a-667c-4eee-ac39-519396805199", "context": {
    * "jira-server":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "jira-project":"10200", "name":"fdsssdf",
@@ -77,6 +75,5 @@ public class Space {
    * "jira-server-id":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "project-key":"FDSSS",
    * "project-name":"fdsssdf", "ContentPageTitle":"fdsssdf" } }
    */
-
 
 }

@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.services;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import org.opendevstack.provision.model.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
  * Service for mail interaction with the user in the provisioning app
@@ -50,9 +50,8 @@ public class MailAdapter {
   // open because of testing
   @Value("${mail.enabled:false}")
   boolean isMailEnabled;
-  
-  @Autowired
-  private TemplateEngine templateEngine;
+
+  @Autowired private TemplateEngine templateEngine;
 
   // testing only!
   private CrowdUserDetails crowdUserDetails = null;
@@ -63,33 +62,36 @@ public class MailAdapter {
   }
 
   public void notifyUsersAboutProject(ProjectData data) {
-	if (!isMailEnabled) {
-		logger.debug("Email disabled, returning");
-		return;
-	}
+    if (!isMailEnabled) {
+      logger.debug("Email disabled, returning");
+      return;
+    }
     CrowdUserDetails userDetails = getCrowdUserDetails();
     String recipient = userDetails.getEmail();
-    MimeMessagePreparator messagePreparator = mimeMessage -> {
-        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-        messageHelper.setFrom(mailSenderAddress);
-        messageHelper.setTo(recipient);
-        messageHelper.setSubject("ODS Project provision update");
-        messageHelper.setText(build(data), true);
-      };
-      
-      Thread sendThread = new Thread(() -> {
-          try {
-            MDC.put(STR_LOGFILE_KEY, data.key);
-            mailSender.send(messagePreparator);
-          } catch (MailException e) {
-            logger.error("Error in sending mail for project: " + data.key, e);
-          } finally {
-          MDC.remove(STR_LOGFILE_KEY);
-          }
-      });
-      
-      sendThread.start();
-      logger.debug("Mail for project: {} sent", data.key );
+    MimeMessagePreparator messagePreparator =
+        mimeMessage -> {
+          MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+          messageHelper.setFrom(mailSenderAddress);
+          messageHelper.setTo(recipient);
+          messageHelper.setSubject("ODS Project provision update");
+          messageHelper.setText(build(data), true);
+        };
+
+    Thread sendThread =
+        new Thread(
+            () -> {
+              try {
+                MDC.put(STR_LOGFILE_KEY, data.key);
+                mailSender.send(messagePreparator);
+              } catch (MailException e) {
+                logger.error("Error in sending mail for project: " + data.key, e);
+              } finally {
+                MDC.remove(STR_LOGFILE_KEY);
+              }
+            });
+
+    sendThread.start();
+    logger.debug("Mail for project: {} sent", data.key);
   }
 
   String build(ProjectData data) {
