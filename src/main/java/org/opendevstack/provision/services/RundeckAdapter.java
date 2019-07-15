@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
  *
  * @author Torsten Jaeschke
  */
-
 @Service
 public class RundeckAdapter implements IJobExecutionAdapter
 {
@@ -123,6 +122,11 @@ public class RundeckAdapter implements IJobExecutionAdapter
     public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(
             OpenProjectData project) throws IOException
     {
+        if (project == null || project.quickstarters == null) 
+        {
+            return new ArrayList<>();
+        }
+        
         authenticate();
 
         List<ExecutionsData> executionList = new ArrayList<>();
@@ -140,19 +144,6 @@ public class RundeckAdapter implements IJobExecutionAdapter
                         OpenProjectData.COMPONENT_TYPE_KEY);
                 String quickstarterName = options.get(
                         OpenProjectData.COMPONENT_ID_KEY);
-                
-                Job job = jobStore
-                        .getJob(jobId);
-                
-                if (job == null) {
-                    throw new IOException(
-                            String.format("Cannot find job with id: %s, jobs: %s"
-                                    + " to provision quickstarter {}",
-                                    jobId, jobStore.toString(), quickstarterName));
-                }
-                
-                String url = String.format("%s%s/job/%s/run",
-                        rundeckUri, rundeckApiPath, job.getId());
                 String groupId = String
                         .format(groupPattern,
                                 project.projectKey.toLowerCase())
@@ -162,127 +153,88 @@ public class RundeckAdapter implements IJobExecutionAdapter
                                 project.projectKey.toLowerCase()),
                         options.get(OpenProjectData.COMPONENT_ID_KEY).
                                 replace('-', '_'));
-                Execution execution = new Execution();
 
                 options.put("group_id", groupId);
                 options.put("project_id", project.projectKey.toLowerCase());
                 options.put("package_name", packageName);
-                execution.setOptions(options);
-                try
-                {
-                    ExecutionsData data = client.callHttp(url,
-                            execution, false,
-                            RestClient.HTTP_VERB.POST,
-                            ExecutionsData.class);
-
-                    if (data.getError())
-                    {
-                        throw new IOException(
-                                data.getMessage());
-                    }
-
-                    executionList.add(data);
-                    if (data.getPermalink() != null)
-                    {
-                        options.put("joblink", data.getPermalink());
-                    }
-                } catch (Exception rundeckException)
-                {
-                    logger.error("Error starting job for quickstarter {} - details:",
-                            quickstarterName, rundeckException);
-                    throw rundeckException;
-                }
+                
+                executionList.add(prepareAndExecuteJob(jobId, options));
             }
         }
         return executionList;
     }
 
+    @Override
     public OpenProjectData createPlatformProjects(OpenProjectData project)
             throws IOException
     {
 
-        if (project == null)
-        {
-            throw new IOException("Cannot create null project");
-        }
-
+        Preconditions.checkNotNull(project,
+            "Cannot create null project");
+        
         try
         {
             List<Job> jobs = getJobs(projectOpenshiftGroup);
-            for (Job job : jobs)
+            Map<String, String> options = new HashMap<>();
+            options.put("project_id",
+                    project.projectKey.toLowerCase());
+            if (project.specialPermissionSet)
             {
-                if (job.getName()
-                        .equalsIgnoreCase(projectCreateOpenshiftJob))
-                {
-                    String url = String.format("%s%s/job/%s/run",
-                            rundeckUri, rundeckApiPath, job.getId());
-                    Execution execution = new Execution();
-                    Map<String, String> options = new HashMap<>();
-                    options.put("project_id",
-                            project.projectKey.toLowerCase());
-                    if (project.specialPermissionSet)
-                    {
-                        String entitlementGroups = "ADMINGROUP="
-                                + project.projectAdminGroup + ","
-                                + "USERGROUP=" + project.projectUserGroup
-                                + "," + "READONLYGROUP="
-                                + project.projectReadonlyGroup;
+                String entitlementGroups = "ADMINGROUP="
+                        + project.projectAdminGroup + ","
+                        + "USERGROUP=" + project.projectUserGroup
+                        + "," + "READONLYGROUP="
+                        + project.projectReadonlyGroup;
 
-                        logger.debug(
-                                "project id: {} passed project owner: {} passed groups: {}",
-                                project.projectKey, project.projectAdminUser,
-                                entitlementGroups);
+                logger.debug(
+                        "project id: {} passed project owner: {} passed groups: {}",
+                        project.projectKey, project.projectAdminUser,
+                        entitlementGroups);
 
-                        options.put("project_admin", project.projectAdminUser);
-                        options.put("project_groups",
-                                entitlementGroups);
-                    } else
-                    {
-                        // someone is always logged in :)
-                        logger.debug("project id: {} admin: {}",
-                                project.projectKey, manager.getUserName());
-                        options.put("project_admin",
-                                manager.getUserName());
-                    }
-                    execution.setOptions(options);
+                options.put("project_admin", project.projectAdminUser);
+                options.put("project_groups",
+                        entitlementGroups);
+            } else
+            {
+                // someone is always logged in :)
+                logger.debug("project id: {} admin: {}",
+                        project.projectKey, manager.getUserName());
+                options.put("project_admin",
+                        manager.getUserName());
+            }
+            ExecutionsData data =
+                    prepareAndExecuteJob(
+                            projectCreateOpenshiftJob, options);
+            
+            // add openshift based links - for jenkins we know the link - hence create the
+            // direct
+            // access link to openshift app domain
+            project.platformBuildEngineUrl = "https://" + String
+                    .format(projectOpenshiftJenkinsProjectPattern,
+                            project.projectKey.toLowerCase(),
+                            projectOpenshiftBaseDomain);
 
-                    ExecutionsData data = client.callHttp(url,
-                            execution, false,
-                            RestClient.HTTP_VERB.POST,
-                            ExecutionsData.class);
+            // we can only add the console based links - as no routes are created per
+            // default
+            project.platformDevEnvironmentUrl = String.format(
+                    projectOpenshiftDevProjectPattern,
+                    projectOpenshiftConsoleUri.trim(),
+                    project.projectKey.toLowerCase());
 
-                    // add openshift based links - for jenkins we know the link - hence create the
-                    // direct
-                    // access link to openshift app domain
-                    project.platformBuildEngineUrl = "https://" + String
-                            .format(projectOpenshiftJenkinsProjectPattern,
-                                    project.projectKey.toLowerCase(),
-                                    projectOpenshiftBaseDomain);
-
-                    // we can only add the console based links - as no routes are created per
-                    // default
-                    project.platformDevEnvironmentUrl = String.format(
-                            projectOpenshiftDevProjectPattern,
+            project.platformTestEnvironmentUrl = String
+                    .format(projectOpenshiftTestProjectPattern,
                             projectOpenshiftConsoleUri.trim(),
                             project.projectKey.toLowerCase());
 
-                    project.platformTestEnvironmentUrl = String
-                            .format(projectOpenshiftTestProjectPattern,
-                                    projectOpenshiftConsoleUri.trim(),
-                                    project.projectKey.toLowerCase());
+            project.lastExecutionJobs = new ArrayList<>();
+            project.lastExecutionJobs.add(data.getPermalink());
 
-                    project.lastExecutionJobs = new ArrayList<>();
-                    project.lastExecutionJobs.add(data.getPermalink());
-
-                    return project;
-                }
-            }
+            return project;
         } catch (IOException ex)
         {
             logger.error(GENERIC_RUNDECK_ERRMSG, ex);
             throw ex;
         }
-        return project;
     }
 
     /**
@@ -332,6 +284,57 @@ public class RundeckAdapter implements IJobExecutionAdapter
         return rundeckUri + rundeckApiPath;
     }
 
+    private ExecutionsData prepareAndExecuteJob
+        (String jobNameOrId, Map<String, String> options) 
+            throws IOException
+    {
+        Preconditions.checkNotNull(jobNameOrId,
+                "Cannot execute Null Job!");
+        
+        Job job = jobStore
+                .getJob(jobNameOrId);
+
+        if (job == null) 
+        {
+            String jobByName = jobStore.getJobIdForJobName(jobNameOrId);
+            job = jobStore.getJob(jobByName);
+        }
+        
+        if (job == null) {
+            throw new IOException(
+                    String.format("Cannot find job with id: %s, jobs: %s",
+                            jobNameOrId, jobStore.toString()));
+        }
+        
+        String url = String.format("%s%s/job/%s/run",
+                rundeckUri, rundeckApiPath, job.getId());
+
+        Execution execution = new Execution();
+        if (options != null) 
+        {
+            execution.setOptions(options);
+        }
+        try
+        {
+            ExecutionsData data = client.callHttp(url,
+                    execution, false,
+                    RestClient.HTTP_VERB.POST,
+                    ExecutionsData.class);
+
+            if (data != null && data.getError())
+            {
+                throw new IOException(
+                        data.getMessage());
+            }
+            return data;
+        } catch (IOException rundeckException)
+        {
+            logger.error("Error starting job {} - details:",
+                    jobNameOrId, rundeckException);
+            throw rundeckException;
+        }
+    }
+    
     @Override
     public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup
         (LIFECYCLE_STAGE stage, OpenProjectData project)
@@ -349,8 +352,6 @@ public class RundeckAdapter implements IJobExecutionAdapter
             {
                 String deleteProjectJob = 
                         jobStore.getJobIdForJobName("delete-projects");
-                String deleteProjectJobUrl = String.format("%s%s/job/%s/run",
-                        rundeckUri, rundeckApiPath, deleteProjectJob);
                 if (deleteProjectJob == null) 
                 {
                     logger.error("Cannot find delete-projects job, hence"
@@ -363,18 +364,13 @@ public class RundeckAdapter implements IJobExecutionAdapter
                             " with id {}",
                             project.projectKey, deleteProjectJob);
 
-                    Execution execution = new Execution();
                     Map<String, String> options = new HashMap<>();
                         options.put("project_id",
                             project.projectKey.toLowerCase());
                 
                     try 
                     {
-                        ExecutionsData cleanupData = client.callHttp(
-                                deleteProjectJobUrl,
-                                execution, false,
-                                RestClient.HTTP_VERB.POST,
-                                ExecutionsData.class);
+                        prepareAndExecuteJob(deleteProjectJob, options);
                     } catch (Exception allExecExceptions) 
                     {
                         logger.debug("Could not start delete job for project {}, {}",
@@ -400,18 +396,6 @@ public class RundeckAdapter implements IJobExecutionAdapter
         {
             String deleteComponentJob = 
                     jobStore.getJobIdForJobName("delete-component");
-            if (deleteComponentJob == null) 
-            {
-                logger.error("Cannot find delete-components job, hence"
-                        + " cannot clean quickstarters!");
-                
-                leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
-                        project.quickstarters.size());
-                return leftovers;
-            }
-
-            String deleteComponentJobUrl = String.format("%s%s/job/%s/run",
-                    rundeckUri, rundeckApiPath, deleteComponentJob);
             
             int nonDeletedQuickstarters = 0;
             List<String> quickstartersToDelete =
@@ -430,17 +414,13 @@ public class RundeckAdapter implements IJobExecutionAdapter
                 logger.debug("Cleanup of quickstarter {} thru job {}",
                         quickstarterName, deleteComponentJob);
                 
-                Execution execution = new Execution();
                 Map<String, String> options = new HashMap<>();
                     options.put("project_id", project.projectKey.toLowerCase());
                     options.put("component_id", quickstarterName);
                 try 
                 {
-                    ExecutionsData cleanupData = client.callHttp(
-                            deleteComponentJobUrl,
-                            execution, false,
-                            RestClient.HTTP_VERB.POST,
-                            ExecutionsData.class);
+                    prepareAndExecuteJob(
+                        deleteComponentJob, options);
                 } catch (Exception allExecExceptions) 
                 {
                     logger.debug("Could not start delete job for component {}, {}",
@@ -457,7 +437,7 @@ public class RundeckAdapter implements IJobExecutionAdapter
         }
         
         logger.debug("Cleanup done - status: {} components are left ..", 
-                leftovers.size() == 0 ? 0 : leftovers);
+                leftovers.size() == 0 ? 0 : leftovers.size());
         
         return leftovers;
     }

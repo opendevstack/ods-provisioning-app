@@ -85,7 +85,12 @@ public class RundeckJobStore
     @Override
     public String toString() 
     {
-        return jobs.keySet().toString(); 
+        String jobsString = "";
+        for (String job : jobs.keySet()) 
+        {
+            jobsString = jobsString + " " + job;
+        }
+        return jobsString; 
     }
     
     public int size () 

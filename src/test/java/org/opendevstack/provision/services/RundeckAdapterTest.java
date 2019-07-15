@@ -187,6 +187,7 @@ public class RundeckAdapterTest
         String userNameFromCrowd = "crowdUsername";
 
         doReturn(jobs).when(spyAdapter).getJobs(any());
+        doReturn(job1).when(jobStore).getJob(anyString());
 
         mockRestClientToReturnExecutionData(Execution.class,
                 ExecutionsData.class);
@@ -225,7 +226,7 @@ public class RundeckAdapterTest
                 createdOpenProjectData.platformBuildEngineUrl);
     }
 
-    @Test(expected = IOException.class)
+    @Test(expected = NullPointerException.class)
     public void createNullOCProject() throws Exception
     {
         RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
@@ -264,6 +265,9 @@ public class RundeckAdapterTest
 
         Mockito.doNothing().when(spyAdapter).authenticate();
         doReturn(jobs).when(spyAdapter).getJobs(any());
+        
+        doReturn(job1).when(jobStore).getJob(anyString());
+        
         doReturn(execData).when(client).callHttp(anyString(), any(),
                 anyBoolean(), eq(RestClient.HTTP_VERB.POST),
                 any());
