@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Configuration Class for the Keycloak Spring Security Adapter
@@ -38,24 +39,18 @@ public class Oauth2SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     HttpSecurity sec =
-        http.headers().httpStrictTransportSecurity().disable()
-                .and().cors().disable().csrf().disable()
-      .authorizeRequests()
-            .antMatchers(
-                "/",
-                "/fragments/**",
-                "/webjars/**",
-                "/js/**",
-                "/json/**",
-                "/favicon.ico",
-                LOGIN_URI)
-            .permitAll()
-            .anyRequest()
-            .authenticated()
+        http.headers()
+            .httpStrictTransportSecurity()
+            .disable()
             .and()
+            .cors()
+            .disable()
+            .csrf()
+            .disable()
             .authorizeRequests()
             .antMatchers(
                 "/",
+                "/j_security_check/**",
                 "/fragments/**",
                 "/webjars/**",
                 "/js/**",
@@ -76,16 +71,16 @@ public class Oauth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
     //
     ;
-    //    http
-    //       // .logout()
-    //        //.permitAll()
-    //        //
-    //        //.and()
-    //        .logout()
-    //        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-    //        .logoutSuccessUrl(LOGIN_URI)
-    //        .invalidateHttpSession(true)
-    //        .deleteCookies("JSESSIONID")
-    //        .permitAll();
+    http
+        // .logout()
+        // .permitAll()
+        //
+        // .and()
+        .logout()
+        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+        .logoutSuccessUrl(LOGIN_URI)
+        .invalidateHttpSession(true)
+        .deleteCookies("JSESSIONID")
+        .permitAll();
   }
 }
