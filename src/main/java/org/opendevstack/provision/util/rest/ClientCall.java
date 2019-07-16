@@ -6,20 +6,25 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Preconditions;
-import okhttp3.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 public class ClientCall {
 
-  private static final Logger logger = LoggerFactory.getLogger(Client.class);
+  private static final Logger logger = LoggerFactory.getLogger(ClientCall.class);
 
   private OkHttpClient client;
   private Request request = null;
@@ -162,13 +167,13 @@ public class ClientCall {
       logger.debug("Passed String rest object: [{}]", json);
       requestBody = RequestBody.create(this.mediaType, json);
     } else if (body instanceof Map) {
-      logger.debug("Passed parameter map");
       Map<String, String> paramMap = ((Map) body);
+      logger.debug("Passed parameter map, keys: [{}]", paramMap.keySet());
       FormBody.Builder form = new FormBody.Builder();
       for (Map.Entry<String, String> param : paramMap.entrySet()) {
         form.add(param.getKey(), param.getValue());
       }
-      logger.debug("Created form", json);
+      logger.debug("Created form {}", json);
       requestBody = form.build();
     } else {
       ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -285,7 +290,7 @@ public class ClientCall {
     }
   }
 
-  //TODO stefanlack/torsten What is the purpose of method authenticated().basic()
+  // TODO stefanlack/torsten What is the purpose of method authenticated().basic()
   public ClientCall basicAuthenticated(CredentialsInfo basicCredentials) {
     return this.authenticated().basic().credentials(basicCredentials);
   }

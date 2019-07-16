@@ -2,6 +2,11 @@ package org.opendevstack.provision.authentication.oauth2;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +21,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Using Delegation-based strategy for reading OidcUser from {@link OidcUserService}, extracting
@@ -44,12 +43,16 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
 
   private final String userRolesExpression;
 
+  private final Oauth2AuthenticationManager authenticationManager;
+
   @Autowired
   public RoleAwareOAuth2UserService(
       ObjectMapper objectMapper,
-      @Value("${oauth2.user.roles.jsonpointerexpression}") String userRolesExpression) {
+      @Value("${oauth2.user.roles.jsonpointerexpression}") String userRolesExpression,
+      Oauth2AuthenticationManager authenticationManager) {
     this.objectMapper = objectMapper;
     this.userRolesExpression = userRolesExpression;
+    this.authenticationManager = authenticationManager;
   }
 
   @Override
@@ -61,6 +64,8 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     Collection<GrantedAuthority> mappedAuthorities = extractAuthorities(userRequest);
     mappedAuthorities.addAll(oidcUser.getAuthorities());
 
+    String name = oidcUser.getName();
+    authenticationManager.setUserName(name);
     // Create a copy of oidcUser but use the mappedAuthorities instead
     return new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
   }

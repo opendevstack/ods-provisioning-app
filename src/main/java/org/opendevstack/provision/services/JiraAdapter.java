@@ -6,11 +6,24 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.jira.*;
+import org.opendevstack.provision.model.jira.Component;
+import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.Permission;
+import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
@@ -22,11 +35,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /**
  * created by: OPITZ CONSULTING Deutschland GmbH
@@ -89,9 +97,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   private FullJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
       throws IOException {
-    FullJiraProject created;
+
     try {
-      created = this.callJiraCreateProjectApi(toBeCreated);
+      return this.callJiraCreateProjectApi(toBeCreated);
     } catch (HttpException jiracreateException) {
       logger.debug(
           "error creating project with template {}: {}",
@@ -104,24 +112,26 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             jiraTemplateKey);
         toBeCreated.projectTypeKey = jiraTemplateType;
         toBeCreated.projectTemplateKey = jiraTemplateKey;
-        created = this.callJiraCreateProjectApi(toBeCreated);
-        project.projectType = defaultProjectKey;
+        FullJiraProject created = this.callJiraCreateProjectApi(toBeCreated);
+        project.projectType =
+            defaultProjectKey; // TODO stefanlack why introduce this side effect to method
+        // parameter?
+        return created;
       } else {
         throw jiracreateException;
       }
     }
-    return created;
   }
 
   protected FullJiraProject callJiraCreateProjectApi(FullJiraProject jiraProject)
       throws IOException {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
-
+    // jiraProject.
     FullJiraProject created =
         client
             .post()
             .url(path)
-                .body(jiraProject)
+            .body(jiraProject)
             .basicAuthenticated(getBasicCredentials())
             .returnTypeReference(new TypeReference<FullJiraProject>() {})
             .execute();
@@ -132,7 +142,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             created.getKey(),
             jiraProject.getName(),
             jiraProject.getDescription(),
-            null,
+            null, // TODO stefanlack: ask why we are not returing full project details
             null,
             null,
             null,
@@ -447,8 +457,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       FullJiraProject toBeCreated = this.buildJiraProjectPojoFromApiProject(project);
 
-      FullJiraProject created;
-      created = createProjectInJira(project, toBeCreated);
+      FullJiraProject created = createProjectInJira(project, toBeCreated);
 
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());

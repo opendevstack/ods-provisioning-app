@@ -1,8 +1,7 @@
 package org.opendevstack.provision.authentication.oauth2;
 
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
@@ -11,22 +10,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
-
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @Component("provisioningAppAuthenticationManager")
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
-public class Oauth2AuthenticationManager implements IODSAuthnzAdapter  {
+public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
   @Autowired private SessionAwarePasswordHolder userPassword;
-
-
 
   @Override
   public String getUserPassword() {
@@ -83,16 +74,14 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter  {
     this.userPassword.setUsername(userName);
   }
 
-
-
   @Override
-  public void invalidateIdentity () throws Exception
-  {
+  public void invalidateIdentity() throws Exception {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth != null) {
       setUserPassword(null);
-      //new SecurityContextLogoutHandler().logout(request, response, auth);
-    };
+      // new SecurityContextLogoutHandler().logout(request, response, auth);
+    }
+    ;
   }
   /**
    * returns whether the a role with specified name exists in keycloak. (keycloak role = provision
@@ -126,7 +115,7 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter  {
 
   @Override
   public String getAdapterApiUri() {
-      // TODO stefanlack implement getAdapterApiUri for keycloak authentifaction.
+    // TODO stefanlack implement getAdapterApiUri for keycloak authentifaction.
     return "";
   }
 }
