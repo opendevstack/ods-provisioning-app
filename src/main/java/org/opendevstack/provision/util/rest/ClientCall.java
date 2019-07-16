@@ -134,7 +134,18 @@ public class ClientCall {
   }
 
   public ClientCall queryParams(Map<String, String> params) {
-    this.queryParams = params;
+    if (this.queryParams==null) {
+      this.queryParams = params;
+      return this;
+    }
+    this.queryParams.putAll(params);
+    return this;
+  }
+  public ClientCall queryParam(String paramName,String paramValue) {
+    if (this.queryParams==null) {
+      this.queryParams = new HashMap<>();
+    }
+    queryParams.put(paramName,paramValue);
     return this;
   }
 

@@ -305,7 +305,14 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     permissions.put("name", groupOrUser);
 
     // client.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
-    httpPut().url(url).body(permissions).returnType(String.class).execute();
+    Map<String, String> header = new HashMap<>();
+    header.put("Content-Type","application/json");
+    //TODO stefan lack: put fails....
+    httpPut().url(url)
+        .body(permissions)
+        //.header(header)
+        //.queryParams(permissions)
+        .returnType(String.class).execute();
   }
 
   protected void setRepositoryPermissions(
