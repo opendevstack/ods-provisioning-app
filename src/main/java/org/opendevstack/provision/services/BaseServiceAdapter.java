@@ -1,15 +1,13 @@
 package org.opendevstack.provision.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.util.CredentialsInfo;
-import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.rest.Client;
+import org.opendevstack.provision.util.rest.ClientCall;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 public class BaseServiceAdapter {
 
@@ -17,13 +15,9 @@ public class BaseServiceAdapter {
   final String userName;
   final String userPassword;
 
-  @Autowired
-  IODSAuthnzAdapter manager;
+  @Autowired IODSAuthnzAdapter manager;
 
-  @Autowired  RestClient restClient;
-
-  @Autowired
-  Client client;
+  private @Autowired Client client;
 
   public BaseServiceAdapter(String userName, String userPassword) {
     this.userName = userName;
@@ -31,78 +25,35 @@ public class BaseServiceAdapter {
     this.useTechnicalUser = !(isEmpty(userName) || isEmpty((userPassword)));
   }
 
-  public <T> T callRestService(
-      String url,
-      Object input,
-      RestClient.HTTP_VERB verb,
-      Class returnType,
-      TypeReference<T> returnTypeRef)
-      throws IOException {
-
-    if (useTechnicalUser) {
-      T t =
-          restClient.callHttpTypeRefWithDirectAuth(
-              url, input, verb, returnType, returnTypeRef, userName, userPassword);
-      return t;
-    }
-
-    return restClient.callHttpTypeRef(
-        url, null, false, RestClient.HTTP_VERB.GET, new TypeReference<T>() {});
-  }
-
-  /**
-   * Calls the RestService without any additional authentication, even if admin user is set or not.
-   */
-  public <T> T callHttpWithTypeWithoutAuthentication(
-          String url,
-          Object input,
-          RestClient.HTTP_VERB verb,
-          Class<T> returnType)
-          throws IOException {
-
-    return restClient.callHttp(
-            url, input, false, verb, returnType);
-  }
-
-    public <T> T callHttpWithTypeRefWithoutAuthentication(
-            String url,
-            Object input,
-            RestClient.HTTP_VERB verb,
-            TypeReference<T> returnTypeRef)
-            throws IOException {
-
-        return restClient.callHttpTypeRef(
-                url, input, false, verb, returnTypeRef);
-    }
-  public <T> T callHttp(String url, Object input, RestClient.HTTP_VERB verb, Class<T> returnType)
-      throws IOException {
-    if (useTechnicalUser) {
-      return restClient.callHttpWithDirectAuth(
-          url, input, RestClient.HTTP_VERB.POST, returnType, userName, userPassword);
-    } else {
-      return restClient.callHttp(url, input, false, RestClient.HTTP_VERB.POST, returnType);
-    }
-  }
-
-  public void getSessionId(String url) throws IOException {
-    if (useTechnicalUser) {
-      return;
-    }
-    restClient.getSessionId(url);
-  }
-
   public String getUserName() {
     return useTechnicalUser ? userName : manager.getUserName();
   }
-  public void callHttpBasicFormAuthenticate(String url) throws IOException {
-    if (useTechnicalUser) {
-      restClient.callHttpBasicFormAuthenticate(url, userName, userPassword);
-    } else {
-      restClient.callHttpBasicFormAuthenticate(url);
-    }
+
+  public ClientCall httpGet() {
+    return authenticatedCall(HTTP_VERB.GET);
   }
 
-  public CredentialsInfo getBasicCredentials() {
-    return new CredentialsInfo(userName,userPassword);
+  public ClientCall httpPost() {
+    return authenticatedCall(HTTP_VERB.POST);
+  }
+
+  public ClientCall httpPut() {
+    return authenticatedCall(HTTP_VERB.PUT);
+  }
+
+  public ClientCall httpDelete() {
+    return authenticatedCall(HTTP_VERB.DELETE);
+  }
+
+  private ClientCall authenticatedCall(HTTP_VERB verb) {
+    ClientCall call = client.call(verb);
+    if (useTechnicalUser) {
+      return call.basicAuthenticated(getBasicCredentials());
+    }
+    throw new RuntimeException("Crowd or oauth-based authentication not yet implemented!");
+  }
+
+  private CredentialsInfo getBasicCredentials() {
+    return new CredentialsInfo(userName, userPassword);
   }
 }

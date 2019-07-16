@@ -67,10 +67,8 @@ public class Oauth2SecurityConfig extends WebSecurityConfigurerAdapter {
         .failureUrl("/login?error")
         .defaultSuccessUrl("/home")
         .userInfoEndpoint()
-        .oidcUserService(roleAwareOAuth2UserService)
+        .oidcUserService(roleAwareOAuth2UserService);
 
-    //
-    ;
     http
         // .logout()
         // .permitAll()

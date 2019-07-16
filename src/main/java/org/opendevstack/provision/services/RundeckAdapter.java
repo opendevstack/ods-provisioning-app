@@ -16,27 +16,24 @@ package org.opendevstack.provision.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.NotImplementedException;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Execution;
-import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RundeckJobStore;
-import org.opendevstack.provision.util.rest.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang.NotImplementedException;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.model.ExecutionsData;
+import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.rundeck.Execution;
+import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.util.RundeckJobStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 /**
  * Service to interact with rundeck
@@ -102,7 +99,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   private String projectOpenshiftJenkinsProjectPattern;
 
   private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
-
 
   public RundeckAdapter(
       @Value("${rundeck.admin_user}") String adminUser,
@@ -239,11 +235,11 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     Map<String, String> jobPath = new HashMap<>();
     jobPath.put("groupPath", group);
 
-    // List<Job> jobs = restClient.callHttpTypeRef(jobsUrl, jobPath, false, RestClient.HTTP_VERB.GET,
+    // List<Job> jobs = restClient.callHttpTypeRef(jobsUrl, jobPath, false,
+    // RestClient.HTTP_VERB.GET,
     //   new TypeReference<List<Job>>() {});
     List<Job> jobs =
-            client
-            .get()
+        httpGet()
             .url(jobsUrl)
             .queryParams(jobPath)
             .preAuthenticated()
@@ -256,24 +252,11 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     return enabledJobs;
   }
 
-  // TODO stefanlack/tjaeschke: move to BaseServiceAdapter?
   private Map<String, String> getPreAuthContent() {
     Map<String, String> content = new HashMap<>();
     content.put("j_username", userName);
     content.put("j_password", userPassword);
     return content;
-  }
-
-  private ExecutionsData callExecution(String url, Execution execution) throws IOException {
-    return client
-        .post()
-        .url(url)
-        .body(execution)
-        .preAuthenticated()
-        .preAuthUrl(preAuthUrl)
-        .preAuthContent(getPreAuthContent())
-        .returnType(ExecutionsData.class)
-        .execute();
   }
 
   @Override
@@ -309,9 +292,10 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       execution.setOptions(options);
     }
     try {
+      // ExecutionsData data = restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST,
+      // ExecutionsData.class);
       ExecutionsData data =
-          restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
-
+          httpPost().url(url).body(execution).returnType(ExecutionsData.class).execute();
       if (data != null && data.getError()) {
         throw new IOException(data.getMessage());
       }

@@ -1,16 +1,16 @@
 package org.opendevstack.provision.util.rest;
 
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Abstraction to handle the OkHTTP client and use it in the same way from different classes to
@@ -41,16 +41,12 @@ public class Client {
     return new ClientCall(standardClient());
   }
 
-  /**
-   * Build a custom call with a passed client
-   */
+  /** Build a custom call with a passed client */
   public ClientCall newCall(OkHttpClient client) {
     return new ClientCall(client);
   }
 
-  /**
-   * build a standard client
-   */
+  /** build a standard client */
   private OkHttpClient standardClient() {
     return configure().build();
   }
@@ -62,12 +58,25 @@ public class Client {
         .readTimeout(readTimeout, TimeUnit.SECONDS);
   }
 
+  public ClientCall call(HTTP_VERB verb) {
+    switch (verb) {
+      case PUT:
+        return put();
+      case GET:
+        return get();
+      case POST:
+        return post();
+      case HEAD:
+        return head();
+      case DELETE:
+        return delete();
+      default:
+        return head();
+    }
+  }
+
   public ClientCall get() {
-    return newCall()
-        .buildRequest()
-        .method(HttpMethod.GET)
-        .json()
-        .mediaType(JSON_MEDIA_TYPE);
+    return newCall().buildRequest().method(HttpMethod.GET).json().mediaType(JSON_MEDIA_TYPE);
   }
 
   public ClientCall get(Map<String, String> queryParams) {
@@ -79,13 +88,13 @@ public class Client {
         .mediaType(JSON_MEDIA_TYPE);
   }
 
-  //TODO stefanlack / torsten: why not add mandatory body element as argument to this
+  // TODO stefanlack / torsten: why not add mandatory body element as argument to this
   public ClientCall post() {
-    return newCall()
-        .buildRequest()
-        .method(HttpMethod.POST)
-        .json()
-        .mediaType(JSON_MEDIA_TYPE);
+    return newCall().buildRequest().method(HttpMethod.POST).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public ClientCall delete() {
+    return newCall().buildRequest().method(HttpMethod.DELETE).json().mediaType(JSON_MEDIA_TYPE);
   }
 
   public ClientCall post(Object body) {
@@ -98,12 +107,7 @@ public class Client {
   }
 
   public ClientCall put() {
-    return newCall()
-        .buildRequest()
-        .method(HttpMethod.PUT)
-        .json()
-        .mediaType(JSON_MEDIA_TYPE);
-
+    return newCall().buildRequest().method(HttpMethod.PUT).json().mediaType(JSON_MEDIA_TYPE);
   }
 
   public ClientCall put(Object body) {
@@ -113,14 +117,9 @@ public class Client {
         .body(body)
         .json()
         .mediaType(JSON_MEDIA_TYPE);
-
   }
 
   public ClientCall head() {
-    return newCall()
-        .buildRequest()
-        .method(HttpMethod.HEAD)
-        .json()
-        .mediaType(JSON_MEDIA_TYPE);
+    return newCall().buildRequest().method(HttpMethod.HEAD).json().mediaType(JSON_MEDIA_TYPE);
   }
 }
