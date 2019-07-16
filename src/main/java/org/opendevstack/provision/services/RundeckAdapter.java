@@ -47,6 +47,10 @@ public class RundeckAdapter implements IJobExecutionAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
 
+  public static final String DELETE_COMPONENT_JOB = "delete-component";
+  
+  public static final String DELETE_PROJECTS_JOB = "delete-projects";
+  
   @Autowired
   private RundeckJobStore jobStore;
 
@@ -191,7 +195,9 @@ public class RundeckAdapter implements IJobExecutionAdapter {
 
       return project;
     } catch (IOException ex) {
-      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
+      String error = String.format("Cannot execute job for project %s, error: %s",
+          project.projectKey, ex.getMessage());
+      logger.error(error, ex);
       throw ex;
     }
   }
@@ -278,7 +284,7 @@ public class RundeckAdapter implements IJobExecutionAdapter {
 
     if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
       if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
-        String deleteProjectJob = jobStore.getJobIdForJobName("delete-projects");
+        String deleteProjectJob = jobStore.getJobIdForJobName(DELETE_PROJECTS_JOB);
         if (deleteProjectJob == null) {
           logger.error("Cannot find delete-projects job, hence" + " cannot delete project!");
           leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
@@ -308,7 +314,7 @@ public class RundeckAdapter implements IJobExecutionAdapter {
     }
 
     if (project.quickstarters != null || project.quickstarters.size() > 0) {
-      String deleteComponentJob = jobStore.getJobIdForJobName("delete-component");
+      String deleteComponentJob = jobStore.getJobIdForJobName(DELETE_COMPONENT_JOB);
 
       int nonDeletedQuickstarters = 0;
       List<String> quickstartersToDelete = new ArrayList<>();
