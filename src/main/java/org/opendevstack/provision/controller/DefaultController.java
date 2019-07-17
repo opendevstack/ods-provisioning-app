@@ -14,7 +14,11 @@
 
 package org.opendevstack.provision.controller;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -38,167 +42,163 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DefaultController {
-    StorageAdapter storageAdapter;
+  StorageAdapter storageAdapter;
 
-    IODSAuthnzAdapter manager;
+  IODSAuthnzAdapter manager;
 
-    private IJobExecutionAdapter rundeckAdapter;
+  private IJobExecutionAdapter rundeckAdapter;
 
-    private IBugtrackerAdapter jiraAdapter;
+  private IBugtrackerAdapter jiraAdapter;
 
-    private ISCMAdapter bitbucketAdapter;
+  private ISCMAdapter bitbucketAdapter;
 
-    @Autowired
-    private ICollaborationAdapter confluenceAdapter;
+  @Autowired private ICollaborationAdapter confluenceAdapter;
 
-    private static final String LOGIN_REDIRECT = "redirect:/login";
+  private static final String LOGIN_REDIRECT = "redirect:/login";
 
-    private static final String ACTIVE = "active";
+  private static final String ACTIVE = "active";
 
-    @Value("${crowd.user.group}")
-    private String crowdUserGroup;
+  @Value("${crowd.user.group}")
+  private String crowdUserGroup;
 
-    @Value("${crowd.admin.group}")
-    private String crowdAdminGroup;
+  @Value("${crowd.admin.group}")
+  private String crowdAdminGroup;
 
-    @Value("${openshift.project.upgrade}")
-    private boolean ocUpgradeAllowed;
+  @Value("${openshift.project.upgrade}")
+  private boolean ocUpgradeAllowed;
 
-    @Autowired
-    List<String> projectTemplateKeyNames;
+  @Autowired List<String> projectTemplateKeyNames;
 
-    @Value("${provision.auth.provider}")
-    private String authProvider;
+  @Value("${provision.auth.provider}")
+  private String authProvider;
 
-    @RequestMapping("/")
+  @RequestMapping("/")
   public String rootRedirect() {
-        return LOGIN_REDIRECT;
-    }
+    return LOGIN_REDIRECT;
+  }
 
-    @RequestMapping("/home")
+  @RequestMapping("/home")
   String home(Model model) {
     if (!isAuthenticated()) {
-            return LOGIN_REDIRECT;
-        }
-        model.addAttribute("classActiveHome", ACTIVE);
-        return "home";
+      return LOGIN_REDIRECT;
     }
+    model.addAttribute("classActiveHome", ACTIVE);
+    return "home";
+  }
 
-    @RequestMapping("/provision")
+  @RequestMapping("/provision")
   String provisionProject(Model model) {
     if (!isAuthenticated()) {
-            return LOGIN_REDIRECT;
+      return LOGIN_REDIRECT;
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
       model.addAttribute("quickStarter", rundeckAdapter.getQuickstarters());
       model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
       model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
-            model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
+      model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
       model.addAttribute("projectTypes", projectTemplateKeyNames);
-        }
-        model.addAttribute("classActiveNew", ACTIVE);
-        return "provision";
     }
+    model.addAttribute("classActiveNew", ACTIVE);
+    return "provision";
+  }
 
-    @RequestMapping("/login")
-    public String login(Model model) {
-        if (isAuthProviderOauth2()) {
-            return "oauth2Login";//direkt zu keycloak weiterleiten?
-        }
-        return "crowdLogin";
-
+  @RequestMapping("/login")
+  public String login(Model model) {
+    if (isAuthProviderOauth2()) {
+      return "oauth2Login";
     }
+    return "crowdLogin";
+  }
 
-    @RequestMapping("/history")
+  @RequestMapping("/history")
   String history(Model model) {
     if (!isAuthenticated()) {
-            return LOGIN_REDIRECT;
-        }
-        model.addAttribute("classActiveHistory", ACTIVE);
-    model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
-        return "history";
+      return LOGIN_REDIRECT;
     }
+    model.addAttribute("classActiveHistory", ACTIVE);
+    model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
+    return "history";
+  }
 
-    @RequestMapping("/about")
+  @RequestMapping("/about")
   String about(Model model) {
     if (!isAuthenticated()) {
-            return LOGIN_REDIRECT;
-        }
-        final Set<String> userRoles = getUserRoles();
+      return LOGIN_REDIRECT;
+    }
+    final Set<String> userRoles = getUserRoles();
 
-        model.addAttribute("classActiveAbout", ACTIVE);
+    model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
-        // add endpoint map
-        Map<String, String> endpoints = new HashMap<>();
-        endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
-        endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
-        endpoints.put("RUNDECK", rundeckAdapter.getAdapterApiUri());
+    // add endpoint map
+    Map<String, String> endpoints = new HashMap<>();
+    endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
+    endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
+    endpoints.put("RUNDECK", rundeckAdapter.getAdapterApiUri());
     endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
 
-        model.addAttribute("endpointMap", endpoints);
+    model.addAttribute("endpointMap", endpoints);
 
     model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
     model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
-        return "about";
-    }
+    return "about";
+  }
 
-    public static Set<String> getUserRoles() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-        Set<String> roles = new HashSet<>();
+  public static Set<String> getUserRoles() {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    Authentication authentication = securityContext.getAuthentication();
+    Set<String> roles = new HashSet<>();
 
-        if (null != authentication) {
-            authentication.getAuthorities()
-                    .forEach(e -> roles.add(e.getAuthority()));
-        }
-        return roles;
+    if (null != authentication) {
+      authentication.getAuthorities().forEach(e -> roles.add(e.getAuthority()));
     }
-    
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    return roles;
+  }
+
+  @RequestMapping(value = "/logout", method = RequestMethod.GET)
   public String logoutPage() {
     try {
-            manager.invalidateIdentity();
+      manager.invalidateIdentity();
     } catch (Exception eAllLogout) {
-        }
-        return "redirect:/login?logout";
     }
+    return "redirect:/login?logout";
+  }
 
   private boolean isAuthenticated() {
-        if (isAuthProviderOauth2()) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (isAuthProviderOauth2()) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            return authentication.isAuthenticated();
-        }
-        return (manager.getUserPassword() != null);
+      return authentication.isAuthenticated();
     }
+    return (manager.getUserPassword() != null);
+  }
 
-    @Autowired
+  @Autowired
   public void setCustomAuthenticationManager(IODSAuthnzAdapter manager) {
-        this.manager = manager;
-    }
+    this.manager = manager;
+  }
 
-    @Autowired
+  @Autowired
   public void setRundeckAdapter(IJobExecutionAdapter rundeckAdapter) {
-        this.rundeckAdapter = rundeckAdapter;
-    }
+    this.rundeckAdapter = rundeckAdapter;
+  }
 
-    @Autowired
+  @Autowired
   public void setStorageAdapter(StorageAdapter storageAdapter) {
-        this.storageAdapter = storageAdapter;
-    }
+    this.storageAdapter = storageAdapter;
+  }
 
-    @Autowired
+  @Autowired
   public void setBugTrackerAdapter(IBugtrackerAdapter jiraAdapter) {
-        this.jiraAdapter = jiraAdapter;
-    }
+    this.jiraAdapter = jiraAdapter;
+  }
 
-    @Autowired
+  @Autowired
   public void setSCMAdapter(ISCMAdapter bitbucketAdapter) {
-        this.bitbucketAdapter = bitbucketAdapter;
-    }
+    this.bitbucketAdapter = bitbucketAdapter;
+  }
 
-    private boolean isAuthProviderOauth2() {
-        return authProvider.equals("oauth2");
-    }
+  private boolean isAuthProviderOauth2() {
+    return authProvider.equals("oauth2");
+  }
 }

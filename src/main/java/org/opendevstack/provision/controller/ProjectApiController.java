@@ -39,7 +39,6 @@ import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -73,7 +72,6 @@ public class ProjectApiController {
   @Autowired private IJobExecutionAdapter rundeckAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
-  @Autowired private RundeckJobStore jobStore;
   @Autowired private RestClient client;
 
   @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
@@ -413,11 +411,16 @@ public class ProjectApiController {
 
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
+
+      List<Job> allQuickstarterJobs = rundeckAdapter.getQuickstarters();
+
       for (Map<String, String> quickstarters : project.quickstarters) {
-        Job job = jobStore.getJob(quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY));
-        if (job != null) {
-          quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription());
-        }
+        String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
+        allQuickstarterJobs.stream()
+            .filter(j -> quickstarter.equals(j.getId()))
+            .findFirst()
+            .ifPresent(
+                job -> quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription()));
         enhancedStarters.add(quickstarters);
       }
       project.quickstarters = enhancedStarters;
@@ -492,7 +495,7 @@ public class ProjectApiController {
   /**
    * Validate the project's key name. Duplicates are not allowed in most bugtrackers.
    *
-   * @param name the project's name to validate against
+   * @param key the project's name to validate against
    * @return Response with HTTP status. If 406 a project with this key exists in JIRA
    */
   @RequestMapping(method = RequestMethod.GET, value = "/key/validate")

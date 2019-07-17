@@ -14,87 +14,114 @@
 package org.opendevstack.provision.util;
 
 import com.google.common.base.Preconditions;
-import org.opendevstack.provision.model.rundeck.Job;
-
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import org.opendevstack.provision.model.rundeck.Job;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
+
 /**
- * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevent unnecessary calls
- * to rundeck API
+ * Jobstore that will be created as bean to store rundeck Jobs centrally. Prevents unnecessary calls
+ * to rundeck API.
  *
  * @author Torsten Jaeschke
+ * @author Stefan Lack
  */
-
+@Component
+@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class RundeckJobStore {
-    private Map<String, Job> jobs = new HashMap<>();
+  private Map<String, Job> jobs = new HashMap<>();
 
   public void addJob(Job job) {
-        this.jobs.put(job.getId(), job);
-    }
+    this.jobs.put(job.getId(), job);
+  }
 
   public void addJobs(List<Job> jobs) {
-    for (Job job : jobs) {
-            this.jobs.put(job.getId(), job);
-        }
-    }
+    jobs.forEach(this::addJob);
+  }
 
-    /**
-     * remove a specified job from the store
-     *
-     * @param id
-     */
+  /**
+   * remove a specified job from the store
+   *
+   * @param id
+   */
   public void removeJob(String id) {
-        this.jobs.remove(id);
-    }
+    this.jobs.remove(id);
+  }
 
-    /**
-     * retrieve a specified job
-     *
-     * @param id
-     * @return
-     */
-  public Job getJob(String id) {
-        return jobs.get(id);
-    }
+  /**
+   * retrieve a specified job
+   *
+   * @param id
+   * @return
+   */
+  public Job getJobById(String id) {
+    return jobs.get(id);
+  }
 
-    /**
-     * get a job list specified with their IDs
-     * 
-     * @param jobIds
-     * @return
-     */
+  /**
+   * get a job list specified with their IDs
+   *
+   * @param jobIds
+   * @return
+   */
   public List<Job> getJobs(List<String> jobIds) {
-        ArrayList<Job> jobList = new ArrayList<>();
-    for (String id : jobIds) {
-            jobList.add(jobs.get(id));
-        }
-        return jobList;
-    }
+    return jobIds.stream().map(jobs::get).collect(Collectors.toList());
+  }
 
-    @Override
+  @Override
   public String toString() {
-    String jobsString = "";
-    for (String job : jobs.keySet()) {
-      jobsString = jobsString + " " + job;
-    }
-    return jobsString;
+    return String.join(" ", jobs.keySet());
   }
 
   public int size() {
-        return jobs.size();
+    return jobs.size();
+  }
+
+  public Job getJobByNameOrId(String jobNameOrId) throws IOException {
+    Job job = getJobById(jobNameOrId);
+
+    if (job == null) {
+      String jobByName = getJobIdForJobName(jobNameOrId);
+      job = getJobById(jobByName);
     }
+
+    if (job == null) {
+      throw new IOException(
+          String.format(
+              "Cannot find job with name or id: %s! Available jobs: %s",
+              jobNameOrId,
+              jobs.values().stream()
+                  .map(j -> j.toFormattedString())
+                  .collect(Collectors.joining(","))));
+    }
+    return job;
+  }
 
   public String getJobIdForJobName(String jobName) {
     Preconditions.checkNotNull(jobName, "Jobname cannot be null");
 
-    for (Job job : jobs.values()) {
-      if (job.getName().equalsIgnoreCase(jobName)) {
-                return job.getId();
-            }
-        }
-        return null;
-    }
+    return jobs.values().stream()
+        .filter(job -> job.getName().equalsIgnoreCase(jobName))
+        .findFirst()
+        .map(j -> j.getId())
+        .orElseGet(() -> null);
+  }
 
+  public List<Job> getJobsByGroup(String group) {
+    return jobs.values().stream().filter(groupEqual(group)).collect(Collectors.toList());
+  }
+
+  public boolean hasJobWithGroup(String group) {
+    return jobs.values().stream().anyMatch(groupEqual(group));
+  }
+
+  public Predicate<Job> groupEqual(String group) {
+    return candidate -> group.equals(candidate.getGroup());
+  }
 }

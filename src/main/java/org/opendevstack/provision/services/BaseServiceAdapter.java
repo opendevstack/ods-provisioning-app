@@ -17,7 +17,7 @@ public class BaseServiceAdapter {
 
   @Autowired IODSAuthnzAdapter manager;
 
-  private @Autowired Client client;
+  protected  @Autowired Client client;
 
   public BaseServiceAdapter(String userName, String userPassword) {
     this.userName = userName;
@@ -46,11 +46,15 @@ public class BaseServiceAdapter {
   }
 
   private ClientCall authenticatedCall(HTTP_VERB verb) {
-    ClientCall call = client.call(verb);
+    ClientCall call = notAuthenticatedCall(verb);
     if (useTechnicalUser) {
       return call.basicAuthenticated(getBasicCredentials());
     }
     throw new RuntimeException("Crowd or oauth-based authentication not yet implemented!");
+  }
+
+  public ClientCall notAuthenticatedCall(HTTP_VERB verb) {
+    return client.call(verb);
   }
 
   private CredentialsInfo getBasicCredentials() {
