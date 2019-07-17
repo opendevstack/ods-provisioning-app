@@ -300,19 +300,15 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String basePath = getAdapterApiUri();
     String url = String.format("%s/%s/permissions/%s", basePath, data.getKey(), pathFragment);
 
-    Map<String, String> permissions = new HashMap<>();
-    permissions.put("permission", rights.toString());
-    permissions.put("name", groupOrUser);
-
     // client.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
     Map<String, String> header = new HashMap<>();
-    header.put("Content-Type","application/json");
-    //TODO stefan lack: put fails....
-    httpPut().url(url)
-        .body(permissions)
-        //.header(header)
-        //.queryParams(permissions)
-        .returnType(String.class).execute();
+    header.put("Content-Type", "application/json");
+    httpPut()
+        .url(url)
+        .body("")
+        .queryParams(buildPermissionQueryParams(rights.toString(),groupOrUser))
+        .returnType(String.class)
+        .execute();
   }
 
   protected void setRepositoryPermissions(
@@ -321,12 +317,18 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String url =
         String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
 
-    Map<String, String> permissions = new HashMap<>();
-    permissions.put("permission", "REPO_ADMIN");
-    permissions.put("name", groupOrUser);
-
     // client.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
-    httpPut().url(url).body(permissions).returnType(String.class).execute();
+    httpPut().url(url)
+        .body("")
+        .queryParams(buildPermissionQueryParams("REPO_ADMIN", groupOrUser))
+        .returnType(String.class).execute();
+  }
+
+  private Map<String, String> buildPermissionQueryParams(String permission, String groupOrUser) {
+    Map<String, String> permissions = new HashMap<>();
+    permissions.put("permission", permission);
+    permissions.put("name", groupOrUser);
+    return permissions;
   }
 
   static BitbucketProject createBitbucketProject(OpenProjectData jiraProject) {
