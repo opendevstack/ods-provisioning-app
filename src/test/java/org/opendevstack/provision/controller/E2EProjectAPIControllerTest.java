@@ -34,6 +34,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.AdditionalMatchers.and;
+import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.Mockito.*;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -61,6 +63,7 @@ import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,6 +131,9 @@ public class E2EProjectAPIControllerTest {
     @Autowired
     private MailAdapter realMailAdapter;
 
+  @Autowired
+  private RundeckJobStore realJobStore;
+  
     private MockMvc mockMvc;
 
     // directory containing all the e2e test data
@@ -140,7 +146,7 @@ public class E2EProjectAPIControllerTest {
   private static List<String> excludeFromCleanup = Arrays.asList("20190101171023-LEGPROJ.txt");
 
     @Before
-  public void setUp() {
+  public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
 
@@ -149,6 +155,12 @@ public class E2EProjectAPIControllerTest {
 
         // disable mail magic
         realMailAdapter.isMailEnabled = false;
+    
+    // populate the rundeck jobs
+    List<Job> jobList =
+        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+
+    realJobStore.addJobs(jobList);
     }
 
   @AfterClass
@@ -271,7 +283,11 @@ public class E2EProjectAPIControllerTest {
     ExecutionsData execution =
         readTestData("rundeck-create-project-response", ExecutionsData.class);
 
-    Mockito.when(mockRestClient.callHttp(contains("job/00f767ef-347f-480e-8ad3-bf2aed3abf5d/run"),
+    String createJobId = 
+        realJobStore.getJobIdForJobName("create-projects");
+    assertNotNull(createJobId);
+
+    Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createJobId)),
         any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
         eq(ExecutionsData.class))).thenReturn(execution);
 
@@ -288,6 +304,7 @@ public class E2EProjectAPIControllerTest {
       assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     resultProjectCreationResponse.getResponse().getStatus());
 
+      // 5 delete calls, jira / confluence / bitbucket project and two repos
       Mockito.verify(mockRestClient, times(5)).callHttp(anyString(), eq(null), anyBoolean(),
           eq(HTTP_VERB.DELETE), eq(null));
 
@@ -304,6 +321,12 @@ public class E2EProjectAPIControllerTest {
             // delete repos and bitbucket project
             Mockito.verify(mockRestClient, times(3)).callHttp(
           contains(realBitbucketAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      Mockito.verify(mockRestClient, times(2)).callHttp(
+          and(contains(realBitbucketAdapter.getAdapterApiUri()), 
+              contains("repos")), 
+              eq(null), anyBoolean(),
           eq(HTTP_VERB.DELETE), eq(null));
 
             return;
@@ -362,9 +385,13 @@ public class E2EProjectAPIControllerTest {
             .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
 
+    String deleteComponentJobId = 
+        realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_COMPONENT_JOB);
+    assertNotNull(deleteComponentJobId);
+
         // delete component thru rundeck
         Mockito.verify(mockRestClient, times(1)).callHttp(
-        contains("/job/33a85b29-0199-4059-b1fb-d0c254e89fab/run"), isA(Execution.class),
+        contains(createRundeckJobPath(deleteComponentJobId)), isA(Execution.class),
         anyBoolean(), eq(HTTP_VERB.POST), eq(ExecutionsData.class));
 
         // delete the ODS project
@@ -373,9 +400,13 @@ public class E2EProjectAPIControllerTest {
             .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
 
+    String deleteProjectJobId = 
+        realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_PROJECTS_JOB);
+    assertNotNull(deleteProjectJobId);
+
         // delete projects rundeck job
         Mockito.verify(mockRestClient, times(1)).callHttp(
-        contains("/job/33a85b29-0199-4059-b1fb-d0c254e821/run"), isA(Execution.class), anyBoolean(),
+        contains(createRundeckJobPath(deleteProjectJobId)), isA(Execution.class), anyBoolean(),
         eq(HTTP_VERB.POST), eq(ExecutionsData.class));
     }
 
@@ -420,16 +451,21 @@ public class E2EProjectAPIControllerTest {
         contains(realRundeckAdapter.getAdapterApiUri() + "/project/"), anyMap(), anyBoolean(),
         eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jobList);
 
-        // rundeck python job execution
+    // rundeck create component job execution
     ExecutionsData execution =
         readTestData("rundeck-create-python-qs-response", ExecutionsData.class);
 
+    String createPythonComponentQSJob = 
+        realJobStore.getJobIdForJobName("create-rshiny");
+    assertNotNull(createPythonComponentQSJob);
+    
+    // if !fail - return a clean response from rundeck, else let the execution post fail
     if (!fail) {
-      Mockito.when(mockRestClient.callHttp(contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+      Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createPythonComponentQSJob)),
           any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
           eq(ExecutionsData.class))).thenReturn(execution);
         } else {
-      Mockito.when(mockRestClient.callHttp(contains("job/9992a587-959c-4ceb-8e3f-c1390e40c582/run"),
+      Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createPythonComponentQSJob)),
           any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
           eq(ExecutionsData.class))).thenThrow(new IOException("Rundeck provision job failed"));
         }
@@ -444,9 +480,22 @@ public class E2EProjectAPIControllerTest {
       assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     resultUpdateResponse.getResponse().getStatus());
 
-            // delete repos and bitbucket project
+      // delete repository
             Mockito.verify(mockRestClient, times(1)).callHttp(
-          contains(realBitbucketAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
+          and(contains(realBitbucketAdapter.getAdapterApiUri()),
+              contains("repos/" + bitbucketRepositoryDataQSRepo.getName())),
+          eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      // verify project(s) are untouched
+      Mockito.verify(mockRestClient, times(0)).callHttp(
+          contains(realJiraAdapter.getAdapterApiUri()),
+          eq(null), anyBoolean(),
+          eq(HTTP_VERB.DELETE), eq(null));
+
+      Mockito.verify(mockRestClient, times(0)).callHttp(
+          contains(realConfluenceAdapter.getAdapterApiUri()),
+          eq(null), anyBoolean(),
           eq(HTTP_VERB.DELETE), eq(null));
 
             return dataUpdate;
@@ -518,4 +567,9 @@ public class E2EProjectAPIControllerTest {
         }
         return dataFile;
     }
+  
+  private String createRundeckJobPath (String jobId) {
+    Preconditions.checkNotNull(jobId, "job id cannot be null");
+    return String.format("job/%s/run", jobId);
+  }
 }
