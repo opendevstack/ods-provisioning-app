@@ -142,7 +142,6 @@ public class ProjectApiControllerTest {
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
 
@@ -195,7 +194,6 @@ public class ProjectApiControllerTest {
     Mockito.when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
 
@@ -216,7 +214,6 @@ public class ProjectApiControllerTest {
 
   @Test
   public void addProjectAgainstExistingOne() throws Exception {
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     Mockito.when(storage.getProject(data.projectKey)).thenReturn(data);
 
@@ -231,7 +228,6 @@ public class ProjectApiControllerTest {
 
   @Test
   public void addProjectEmptyAndBadRequest() throws Exception {
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     mockMvc
         .perform(post("/api/v2/project").content("{}").contentType(MediaType.APPLICATION_JSON)
@@ -394,7 +390,6 @@ public class ProjectApiControllerTest {
     Mockito.when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     // not existing
     mockMvc
@@ -477,7 +472,6 @@ public class ProjectApiControllerTest {
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
     Mockito.when(storage.storeProject(data)).thenReturn("created");
-    Mockito.doNothing().when(client).removeClient(anyString());
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
 

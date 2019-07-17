@@ -152,7 +152,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     return executionList;
   }
 
-  private void initializeJobsForGroup(String group) {
+  void initializeJobsForGroup(String group) {
     if (!jobStore.hasJobWithGroup(group)) {
       jobStore.addJobs(getJobsFromServer(group));
     }

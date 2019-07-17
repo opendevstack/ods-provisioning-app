@@ -46,7 +46,9 @@ import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
+import org.opendevstack.provision.util.rest.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -293,12 +295,11 @@ public class JiraAdapterTests {
 
     apiInput.bugtrackerSpace = false;
     mocked = Mockito.spy(jiraAdapter);
-    mocked.client = Mockito.spy(RestClient.class);
+    mocked.client = Mockito.spy(Client.class);
     shortcutsAdded = mocked.addShortcutsToProject(apiInput);
     assertEquals(-1, shortcutsAdded);
 
-    Mockito.verify(mocked.client, Mockito.never()).callHttp(any(), anyString(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
+    Mockito.verify(mocked.client, Mockito.never()).call(HTTP_VERB.POST);
 
   }
 

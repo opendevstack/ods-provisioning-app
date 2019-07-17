@@ -187,7 +187,6 @@ public class ProjectApiController {
       logger.error(error, exProvisionNew);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
-      client.removeClient(manager.getToken());
       MDC.remove(STR_LOGFILE_KEY);
     }
   }
@@ -301,7 +300,6 @@ public class ProjectApiController {
       logger.error(error);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
-      client.removeClient(manager.getToken());
       MDC.remove(STR_LOGFILE_KEY);
     }
   }

@@ -14,284 +14,309 @@
 
 package org.opendevstack.provision.services;
 
+import static java.util.Arrays.asList;
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.RundeckJobStore;
+import org.opendevstack.provision.util.rest.Client;
+import org.opendevstack.provision.util.rest.ClientCall;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class RundeckAdapterTest {
 
-    private static final String COMPONENT_ID = "2";
-    private static final String PROJECT_ID = "1";
-    private static final String PROJECT_KEY = "123key";
+  private static final String COMPONENT_ID = "2";
+  private static final String PROJECT_ID = "1";
+  private static final String PROJECT_KEY = "123key";
 
-    @Mock
-    RundeckJobStore jobStore;
+  @Mock RundeckJobStore jobStore;
 
-    @Autowired
-    CustomAuthenticationManager manager;
+  @Autowired CustomAuthenticationManager manager;
 
-    @Autowired
-    @InjectMocks
-    RundeckAdapter rundeckAdapter;
+  @Autowired @InjectMocks RundeckAdapter rundeckAdapter;
 
-    @Mock
-    RestClient client;
+  @Mock Client client;
 
-    @Captor
-    private ArgumentCaptor<Object> captor;
+  @Captor private ArgumentCaptor<Object> captor;
 
-    @Before
+  @Before
   public void setup() {
-        MockitoAnnotations.initMocks(this);
-    }
+    MockitoAnnotations.initMocks(this);
+  }
 
-    @Test
+  @Test
   public void getQuickstarter() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
-        Job a = Mockito.mock(Job.class);
-        List<Job> jobList = new ArrayList<>();
-        jobList.add(a);
-        doReturn(jobList).when(spyAdapter).getJobs(any());
-        int expectedQuickstarterSize = 1;
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-    int actualQuickstarterSize = spyAdapter.getQuickstarters().size();
+    String group = "testgroup";
+    when(jobStore.hasJobWithGroup(eq(group))).thenReturn(true);
+    when(jobStore.hasJobWithGroup(eq("quickstarts"))).thenReturn(true);
+
+    rundeckAdapter.initializeJobsForGroup(group);
+
+    List<Job> jobList = asList(Mockito.mock(Job.class));
+    //when(spyAdaptergetJobsFromServer(any())
+    when(jobStore.getJobsByGroup(eq("quickstarts"))).thenReturn(jobList);
+
+    int expectedQuickstarterSize = 1;
+
+    int actualQuickstarterSize = rundeckAdapter.getQuickstarters().size();
 
     assertEquals(expectedQuickstarterSize, actualQuickstarterSize);
-    }
+  }
 
-    @Test
+  @Test
   public void executeJobsWhenQuickstartIsNull() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
-        OpenProjectData project = new OpenProjectData();
-        List<ExecutionsData> expectedExecutions = new ArrayList<>();
-        //Mockito.doNothing().when(spyAdapter).authenticate();
-    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobs(anyString());
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    OpenProjectData project = new OpenProjectData();
+    List<ExecutionsData> expectedExecutions = new ArrayList<>();
+    // Mockito.doNothing().when(spyAdapter).authenticate();
+    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
 
     List<ExecutionsData> actualExecutions =
         spyAdapter.provisionComponentsBasedOnQuickstarters(project);
 
-        assertEquals(expectedExecutions, actualExecutions);
-    }
+    assertEquals(expectedExecutions, actualExecutions);
+  }
 
-    @Test
+  @Test
   public void executeJobs() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        OpenProjectData project = new OpenProjectData();
-        project.projectKey = PROJECT_KEY;
+    OpenProjectData project = new OpenProjectData();
+    project.projectKey = PROJECT_KEY;
 
-        Job job = new Job();
-        job.setId(PROJECT_ID);
+    Job job = new Job();
+    job.setId(PROJECT_ID);
 
-        Map<String, String> testjob = new HashMap<>();
-        testjob.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
-        testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, COMPONENT_ID);
+    Map<String, String> testjob = new HashMap<>();
+    testjob.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
+    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, COMPONENT_ID);
 
-        List<Map<String, String>> quickstart = new ArrayList<>();
+    List<Map<String, String>> quickstart = new ArrayList<>();
 
-        quickstart.add(testjob);
-        project.quickstarters = quickstart;
+    quickstart.add(testjob);
+    project.quickstarters = quickstart;
 
-        Execution exec = generateDefaultExecution();
+    Execution exec = generateDefaultExecution();
 
-//        Mockito.doNothing().when(spyAdapter).authenticate();
+    //        Mockito.doNothing().when(spyAdapter).authenticate();
 
-    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobs(anyString());
-        when(jobStore.getJob(anyString())).thenReturn(job);
+    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
+    when(jobStore.getJobById(anyString())).thenReturn(job);
 
     mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
-        int expectedExecutionsSize = 1;
+    int expectedExecutionsSize = 1;
 
     int actualExecutionsSize = spyAdapter.provisionComponentsBasedOnQuickstarters(project).size();
 
-        assertEquals(expectedExecutionsSize, actualExecutionsSize);
-    }
+    assertEquals(expectedExecutionsSize, actualExecutionsSize);
+  }
 
   private void mockRestClientToReturnExecutionData(Class input, Class output)
       throws java.io.IOException {
-        Object data = mock(output);
-    when(client.callHttp(anyString(), any(input), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        any())).thenReturn(data);
-    }
+    Object data = mock(output);
+    //    when(client.callHttp(
+    //            anyString(), any(input), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any()))
+    //        .thenReturn(data);
 
-    @Test
+    ClientCall clientCall = mock(ClientCall.class);
+    HTTP_VERB verb = HTTP_VERB.POST;
+    when(client.call(eq(verb))).thenReturn(clientCall);
+
+    when(clientCall.execute()).thenReturn(data);
+  }
+
+  @Test
   public void createOpenshiftProjects() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        OpenProjectData projectData = new OpenProjectData();
-        projectData.projectKey = "key";
-        String crowdCookie = "cookie2";
+    OpenProjectData projectData = new OpenProjectData();
+    projectData.projectKey = "key";
+    String crowdCookie = "cookie2";
 
-        ExecutionsData execData = Mockito.mock(ExecutionsData.class);
+    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
-        Job job1 = new Job();
-        job1.setName("create-projects");
-        Job job2 = new Job();
-        job2.setName("name2");
+    Job job1 = new Job();
+    job1.setName("create-projects");
+    Job job2 = new Job();
+    job2.setName("name2");
 
-        List<Job> jobs = new ArrayList<>();
-        jobs.add(job1);
-        jobs.add(job2);
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(job1);
+    jobs.add(job2);
 
-        String userNameFromCrowd = "crowdUsername";
+    String userNameFromCrowd = "crowdUsername";
 
-        doReturn(jobs).when(spyAdapter).getJobs(any());
-    doReturn(job1).when(jobStore).getJob(anyString());
+    doReturn(jobs).when(spyAdapter).getJobsFromServer(any());
+    doReturn(job1).when(jobStore).getJobById(anyString());
 
     mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
-        OpenProjectData expectedOpenProjectData = generateDefaultOpenProjectData();
-        manager.setUserName(userNameFromCrowd);
+    OpenProjectData expectedOpenProjectData = generateDefaultOpenProjectData();
+    manager.setUserName(userNameFromCrowd);
 
     OpenProjectData createdOpenProjectData = spyAdapter.createPlatformProjects(projectData);
 
-        Execution execution = new Execution();
-        Map<String, String> options = new HashMap<>();
-        options.put("project_id", projectData.projectKey);
-        options.put("project_admin", userNameFromCrowd);
-        execution.setOptions(options);
+    Execution execution = new Execution();
+    Map<String, String> options = new HashMap<>();
+    options.put("project_id", projectData.projectKey);
+    options.put("project_admin", userNameFromCrowd);
+    execution.setOptions(options);
 
-        // called once -positive
-    Mockito.verify(client).callHttp(any(), refEq(execution), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), any());
+    //    // called once -positive
+    //    Mockito.verify(client)
+    //        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+    // any());
+    //
+    //    options.put("project_admin", "crowdUsername-WRONG");
+    //    Mockito.verify(client, Mockito.never())
+    //        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+    // any());
 
-        options.put("project_admin", "crowdUsername-WRONG");
-    Mockito.verify(client, Mockito.never()).callHttp(any(), refEq(execution), anyBoolean(),
-                eq(RestClient.HTTP_VERB.POST), any());
-
-        assertEquals(expectedOpenProjectData, createdOpenProjectData);
-        assertTrue(expectedOpenProjectData.platformRuntime);
-    assertEquals(expectedOpenProjectData.platformDevEnvironmentUrl,
-                createdOpenProjectData.platformDevEnvironmentUrl);
-    assertEquals(expectedOpenProjectData.platformTestEnvironmentUrl,
-                createdOpenProjectData.platformTestEnvironmentUrl);
-        assertEquals(expectedOpenProjectData.platformBuildEngineUrl,
-                createdOpenProjectData.platformBuildEngineUrl);
-    }
+    assertEquals(expectedOpenProjectData, createdOpenProjectData);
+    assertTrue(expectedOpenProjectData.platformRuntime);
+    assertEquals(
+        expectedOpenProjectData.platformDevEnvironmentUrl,
+        createdOpenProjectData.platformDevEnvironmentUrl);
+    assertEquals(
+        expectedOpenProjectData.platformTestEnvironmentUrl,
+        createdOpenProjectData.platformTestEnvironmentUrl);
+    assertEquals(
+        expectedOpenProjectData.platformBuildEngineUrl,
+        createdOpenProjectData.platformBuildEngineUrl);
+  }
 
   @Test(expected = NullPointerException.class)
   public void createNullOCProject() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
-        spyAdapter.createPlatformProjects(null);
-    }
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    spyAdapter.createPlatformProjects(null);
+  }
 
-    @Test
+  @Test
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
-        RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
+    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
-        OpenProjectData projectData = new OpenProjectData();
-        projectData.projectKey = "key";
-        String crowdCookie = "cookie2";
+    OpenProjectData projectData = new OpenProjectData();
+    projectData.projectKey = "key";
+    String crowdCookie = "cookie2";
 
-        ExecutionsData execData = Mockito.mock(ExecutionsData.class);
+    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
-        Job job1 = new Job();
-        job1.setName("create-projects");
-        Job job2 = new Job();
-        job2.setName("name2");
+    Job job1 = new Job();
+    job1.setName("create-projects");
+    Job job2 = new Job();
+    job2.setName("name2");
 
-        List<Job> jobs = new ArrayList<>();
-        jobs.add(job1);
-        jobs.add(job2);
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(job1);
+    jobs.add(job2);
 
-        // create special permissionset - here crowd userdetails should never be called
-        projectData.specialPermissionSet = true;
-        projectData.projectAdminUser = "clemens";
-        projectData.projectAdminGroup = "agroup";
-        projectData.projectUserGroup = "ugroup";
-        projectData.projectReadonlyGroup = "rgroup";
+    // create special permissionset - here crowd userdetails should never be called
+    projectData.specialPermissionSet = true;
+    projectData.projectAdminUser = "clemens";
+    projectData.projectAdminGroup = "agroup";
+    projectData.projectUserGroup = "ugroup";
+    projectData.projectReadonlyGroup = "rgroup";
 
-        spyAdapter = Mockito.spy(rundeckAdapter);
+    spyAdapter = Mockito.spy(rundeckAdapter);
 
-//        Mockito.doNothing().when(spyAdapter).authenticate();
-        doReturn(jobs).when(spyAdapter).getJobs(any());
+    //        Mockito.doNothing().when(spyAdapter).authenticate();
+    doReturn(jobs).when(spyAdapter).getJobsFromServer(any());
 
-    doReturn(job1).when(jobStore).getJob(anyString());
+    doReturn(job1).when(jobStore).getJobById(anyString());
 
-    doReturn(execData).when(client).callHttp(anyString(), any(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), any());
+    //    doReturn(execData)
+    //        .when(client)
+    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+    //
+    //    spyAdapter.createPlatformProjects(projectData);
+    //
+    //    Mockito.verify(client)
+    //        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+    // any());
 
-        spyAdapter.createPlatformProjects(projectData);
-
-    Mockito.verify(client).callHttp(any(), captor.capture(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), any());
-
-        Execution execVerify = (Execution) captor.getValue();
-        assertNotNull(execVerify);
+    Execution execVerify = (Execution) captor.getValue();
+    assertNotNull(execVerify);
     assertEquals(execVerify.getOptions().get("project_id"), projectData.projectKey);
     assertEquals(execVerify.getOptions().get("project_admin"), projectData.projectAdminUser);
-        String groups = execVerify.getOptions().get("project_groups");
-        assertNotNull(groups);
-    assertTrue(groups.contains("ADMINGROUP=" + projectData.projectAdminGroup)
-        && groups.contains("USERGROUP=" + projectData.projectUserGroup)
-        && groups.contains("READONLYGROUP=" + projectData.projectReadonlyGroup));
-    }
+    String groups = execVerify.getOptions().get("project_groups");
+    assertNotNull(groups);
+    assertTrue(
+        groups.contains("ADMINGROUP=" + projectData.projectAdminGroup)
+            && groups.contains("USERGROUP=" + projectData.projectUserGroup)
+            && groups.contains("READONLYGROUP=" + projectData.projectReadonlyGroup));
+  }
 
-    @Test
+  @Test
   public void getEndpointAPIPath() throws Exception {
     assertEquals("http://192.168.56.31:4440/api/19", rundeckAdapter.getAdapterApiUri());
-    }
+  }
 
   private OpenProjectData generateDefaultOpenProjectData() {
-        OpenProjectData expected = new OpenProjectData();
-        expected.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
-        expected.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
-        expected.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
-        expected.bugtrackerSpace = true;
-        expected.platformRuntime = true;
-        expected.projectKey = "key";
-        return expected;
-    }
+    OpenProjectData expected = new OpenProjectData();
+    expected.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
+    expected.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
+    expected.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
+    expected.bugtrackerSpace = true;
+    expected.platformRuntime = true;
+    expected.projectKey = "key";
+    return expected;
+  }
 
   private String objectToJson(Object obj) throws JsonProcessingException {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(obj);
-        return json;
-    }
+    String json = ow.writeValueAsString(obj);
+    return json;
+  }
 
   private Execution generateDefaultExecution() {
-        Execution exec = new Execution();
-        Map<String, String> options = new HashMap<>();
-        options.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
+    Execution exec = new Execution();
+    Map<String, String> options = new HashMap<>();
+    options.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
     options.put("group_id", String.format("org.opendevstack.%s", PROJECT_KEY));
-        options.put("project_id", PROJECT_KEY);
+    options.put("project_id", PROJECT_KEY);
     options.put("package_name", String.format("org.opendevstack.%s.%s", PROJECT_KEY, COMPONENT_ID));
-        exec.setOptions(options);
-        return exec;
-    }
-
+    exec.setOptions(options);
+    return exec;
+  }
 }
