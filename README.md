@@ -115,6 +115,10 @@ provisionfile=create.txt
 curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
 -H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
 ```
+## What happens in error cases
+
+Up to (and including) `v1.1.x` when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up *manually* based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned *off* by specifying the new property 
+`provision.cleanup.incomplete.projects` and setting it to `false`.
 
 # Internal architecture
 
@@ -220,5 +224,5 @@ A. The base configuration in the the `application.properties` in the codebase, t
 
 ## 1.1.x to next major release
 
-1. ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86)) introduces a new API, as described above. 
+1. ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86)) introduces a new `v2` API, as described above. 
 This has impact to *ALL* consumers, the URI to use the `project api` also switches to `v2` with `v1` being removed.
