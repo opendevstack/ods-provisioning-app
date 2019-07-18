@@ -6,6 +6,7 @@
 - Add service framework to hook in different adapter implementations instead of the provided ones
  ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
 - Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
+- Add option to authenticate via oauth2 instead of crowd. ([#170](https://github.com/opendevstack/ods-provisioning-app/issues/170))
 
 ## [1.1.0] - 2019-05-28
 
