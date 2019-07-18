@@ -3,9 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
+- Provision app code does not follow google java conventions as mandated in PMC ([#167](https://github.com/opendevstack/ods-provisioning-app/issues/167))
+- Provision application only writes projectdata for further use in case no errors occur during provision ([#157](https://github.com/opendevstack/ods-provisioning-app/issues/157))
+- Provision app fails to save state of a project in case of (another) project descriptor being corrupted ([#171](https://github.com/opendevstack/ods-provisioning-app/issues/171))
+
+### Changed
 - Add service framework to hook in different adapter implementations instead of the provided ones
  ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
-- Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
 - Add option to authenticate via oauth2 instead of crowd. ([#170](https://github.com/opendevstack/ods-provisioning-app/issues/170))
 
 ## [1.1.0] - 2019-05-28
