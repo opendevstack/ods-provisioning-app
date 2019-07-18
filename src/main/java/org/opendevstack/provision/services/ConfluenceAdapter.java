@@ -294,7 +294,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
     try {
       // client.callHttp(confluenceProjectPath, null, true, HTTP_VERB.DELETE, null);
-      httpPost().url(confluenceProjectPath).execute();
+      httpDelete().body("").url(confluenceProjectPath).execute();
 
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {
