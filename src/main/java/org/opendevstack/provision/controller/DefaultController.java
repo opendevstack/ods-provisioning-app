@@ -58,11 +58,11 @@ public class DefaultController {
 
   private static final String ACTIVE = "active";
 
-  @Value("${crowd.user.group}")
-  private String crowdUserGroup;
+  @Value("${idmanager.group.opendevstack-users}")
+  private String idmanagerUserGroup;
 
-  @Value("${crowd.admin.group}")
-  private String crowdAdminGroup;
+  @Value("${idmanager.group.opendevstack-administrators}")
+  private String idmanagerAdminGroup;
 
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
@@ -93,8 +93,8 @@ public class DefaultController {
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
       model.addAttribute("quickStarter", rundeckAdapter.getQuickstarters());
-      model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
-      model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
+      model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
+      model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
       model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
       model.addAttribute("projectTypes", projectTemplateKeyNames);
     }
@@ -139,8 +139,8 @@ public class DefaultController {
 
     model.addAttribute("endpointMap", endpoints);
 
-    model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
-    model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
+    model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
+    model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
     return "about";
   }
 

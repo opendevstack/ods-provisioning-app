@@ -20,10 +20,10 @@
         <form id="chooseOption">
             <fieldset class="form-group">
                 <legend class="col-form-legend">Choose an option</legend>
-                <div class="radio" sec:authorize="hasAuthority(#vars.crowdUserGroup) or hasAuthority(#vars.crowdAdminGroup)">
+                <div class="radio" sec:authorize="hasAuthority(#vars.idmanagerUserGroup) or hasAuthority(#vars.idmanagerAdminGroup)">
                     <label><input type="radio" name="optradio" id="optExistingInitiave" />Modify existing project</label>
                 </div>
-                <div class="radio" sec:authorize="hasAuthority(#vars.crowdAdminGroup)">
+                <div class="radio" sec:authorize="hasAuthority(#vars.idmanagerAdminGroup)">
                     <label><input type="radio" name="optradio" id="optNewProject" />Create new project</label>
                 </div>
             </fieldset>

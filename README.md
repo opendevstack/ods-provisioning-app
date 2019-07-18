@@ -6,13 +6,13 @@ This application creates new OpenDevStack digital projects. It is the central en
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck - which are the default implementations
 
 ## Basic idea & usage:
-1. An admin (user in a group defined in property `crowd.admin.group`) creates new ODS project. This in turn creates 
+1. An admin (user in a group defined in property `idmanager.group.opendevstack-administrators`) creates new ODS project. This in turn creates 
     - a Jira Project (name based on project `key` & `name`)
     - a Confluence Space (name based on project's `key`)
     - the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `platformRuntime == true`. Internally this is done thru a rest call to rundeck triggering the [create-projects rundeck job](https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml)
     - a Bitbucket Project (name based on project `key`) - in case `platformRuntime == true`. Within this project two default repositories are created `key`-oc-config-artifacts for all `yaml` resources as well as `key`-design for any design artifacts (e.g. sketches)
 
-2. A normal user (user in a group defined in property `crowd.user.group`) creates all resources required for a working component - 
+2. A normal user (user in a group defined in property `idmanager.group.opendevstack-users`) creates all resources required for a working component - 
 this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter. Internally this is done thru a rest call to rundeck - with the picked job as parameter - [here](https://github.com/opendevstack/ods-project-quickstarters/tree/master/rundeck-jobs/quickstarts)
     - Bitbucket repository within the chosen project named `key`-`boilerplate name`
     - Openshift components based on the chosen boilerplate, coming from [ods-quickstarters](https://github.com/opendevstack/ods-project-quickstarters)
