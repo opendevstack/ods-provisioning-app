@@ -134,7 +134,8 @@ public class E2EProjectAPIControllerTest {
   private static File resultsDir = new File(testDataDir, "results");
 
   // do NOT delete on cleanup
-  private static List<String> excludeFromCleanup = Arrays.asList("20190101171023-LEGPROJ.txt");
+  private static List<String> excludeFromCleanup = 
+      Arrays.asList("20190101171023-LEGPROJ.txt", "20190101171024-CRACKED.txt");
 
   @Before
   public void setUp() throws Exception {
@@ -179,6 +180,16 @@ public class E2EProjectAPIControllerTest {
   @Test
   public void testProvisionNewSimpleProjectE2EFail() throws Exception {
     cleanUp();
+    testProvisionNewSimpleProjectInternal(true);
+  }
+
+  /**
+   * Test negative - e2e new project - no quickstarters, but NO cleanup allowed :)
+   */
+  @Test
+  public void testProvisionNewSimpleProjectE2EFailCleanupNotAllowed() throws Exception {
+    cleanUp();
+    apiController.cleanupAllowed = false;
     testProvisionNewSimpleProjectInternal(true);
   }
 
@@ -295,6 +306,14 @@ public class E2EProjectAPIControllerTest {
       assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           resultProjectCreationResponse.getResponse().getStatus());
 
+      // no cleanup happening - so no delete calls
+      if (!apiController.cleanupAllowed) {
+        // 5 delete calls, jira / confluence / bitbucket project and two repos
+        Mockito.verify(mockRestClient, times(0)).callHttp(anyString(), eq(null), anyBoolean(),
+            eq(HTTP_VERB.DELETE), eq(null));
+        return;
+      }
+      
       // 5 delete calls, jira / confluence / bitbucket project and two repos
       Mockito.verify(mockRestClient, times(5)).callHttp(anyString(), eq(null), anyBoolean(),
           eq(HTTP_VERB.DELETE), eq(null));

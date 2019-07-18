@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.mockito.ArgumentMatchers.*;
 
@@ -506,6 +507,34 @@ public class ProjectApiControllerTest {
     }
   }
 
+  @Test
+  public void testProjectDeleteForbidden () {
+    apiController.cleanupAllowed = false;
+    IOException testExForbidden = null;
+    try {
+      this.apiController.deleteProject("1245");
+    } catch (IOException mustbeThrown) {
+      testExForbidden = mustbeThrown;
+      assertEquals("Cleanup of projects is NOT allowed",
+          mustbeThrown.getMessage());
+    }
+    assertNotNull(testExForbidden);
+  }
+  
+  @Test
+  public void testProjectComponentDeleteForbidden () {
+    IOException testExForbidden = null;
+    apiController.cleanupAllowed = false;
+    try {
+      this.apiController.deleteComponents(new OpenProjectData());
+    } catch (IOException mustbeThrown) {
+      testExForbidden = mustbeThrown;
+      assertEquals("Cleanup of projects is NOT allowed",
+          mustbeThrown.getMessage());
+    }
+    assertNotNull(testExForbidden);
+  }
+  
   private OpenProjectData copyFromProject(OpenProjectData origin) {
     OpenProjectData data = new OpenProjectData();
     data.projectKey = origin.projectKey;

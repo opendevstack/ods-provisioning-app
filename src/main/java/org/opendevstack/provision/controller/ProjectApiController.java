@@ -100,7 +100,10 @@ public class ProjectApiController {
   // open for testing
   @Value("${openshift.project.upgrade}")
   boolean ocUpgradeAllowed;
-
+  
+  @Value("${provision.cleanup.incomplete.projects:true}")
+  boolean cleanupAllowed;
+  
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
    * project stack.
@@ -546,13 +549,17 @@ public class ProjectApiController {
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
-  public ResponseEntity<Object> deleteProject(@PathVariable String id) {
+  public ResponseEntity<Object> deleteProject(@PathVariable String id) throws IOException {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
+
+    if (!cleanupAllowed) {
+      throw new IOException("Cleanup of projects is NOT allowed");
+    }
 
     if (project == null) {
       return ResponseEntity.notFound().build();
     }
-
+    
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
 
@@ -567,7 +574,12 @@ public class ProjectApiController {
   }
 
   @RequestMapping(method = RequestMethod.DELETE)
-  public ResponseEntity<Object> deleteComponents(@RequestBody OpenProjectData deletableComponents) {
+  public ResponseEntity<Object> deleteComponents(@RequestBody OpenProjectData deletableComponents)
+      throws IOException {
+    if (!cleanupAllowed) {
+      throw new IOException("Cleanup of projects is NOT allowed");
+    }
+    
     Preconditions.checkNotNull(deletableComponents, "Cannot delete null project");
     Preconditions.checkNotNull(deletableComponents.quickstarters,
         "No quickstarters to delete are passed");
@@ -600,6 +612,11 @@ public class ProjectApiController {
    */
   Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
       OpenProjectData project) {
+    
+    if (!cleanupAllowed) {
+      return new HashMap<>();
+    }
+    
     logger.error("Starting cleanup of project {} " + "in phase {}", project.projectKey, stage);
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.exc.PropertyBindingException;
 import com.google.common.base.Preconditions;
 
 /**
@@ -108,8 +109,14 @@ public class LocalStorage implements IStorage {
               data = ProjectData.toOpenProjectData((ProjectData) temp);
               logger.debug("Project {} is in legacy format, upgrading.", data.projectKey);
             } else {
-              data = MAPPER.readValue(project, OpenProjectData.class);
-              logger.debug("Project {} is in std format", data.projectKey);
+              try {
+                data = MAPPER.readValue(project, OpenProjectData.class);
+                logger.debug("Project {} is in std format", data.projectKey);
+              }
+              catch (PropertyBindingException crackedFileEx) {
+                logger.error("Project {} is CRACKED - skipping", file.getName());
+                continue;
+              }
             }
             data.physicalLocation = file.getAbsolutePath();
 

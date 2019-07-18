@@ -217,3 +217,8 @@ A. Within the Openshift `pod` of the provision app (in `project`dev/test, namely
 A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
 
 # Upgrade notes
+
+## 1.1.x to next major release
+
+1. ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86)) introduces a new API, as described above. 
+This has impact to *ALL* consumers, the URI to use the `project api` also switches to `v2` with `v1` being removed.
