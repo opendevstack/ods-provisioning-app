@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.BitbucketAdapter;
@@ -198,12 +200,12 @@ public class E2EProjectAPIControllerTest {
     OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
     // jira server create project response
-    FullJiraProject jiraProject =
-        readTestData("jira-create-project-response", FullJiraProject.class);
+    LeanJiraProject jiraProject =
+        readTestData("jira-create-project-response",   LeanJiraProject.class);
 
     Mockito.when(mockRestClient.callHttp(contains(realJiraAdapter.getAdapterApiUri() + "/project"),
         any(FullJiraProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(FullJiraProject.class))).thenReturn(jiraProject);
+        eq(LeanJiraProject.class))).thenReturn(jiraProject);
 
     // session id
     Mockito.doNothing().when(mockRestClient).getSessionId(null);

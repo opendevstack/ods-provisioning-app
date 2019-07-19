@@ -12,8 +12,10 @@ import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
@@ -92,9 +94,9 @@ public class JiraAdapter implements IBugtrackerAdapter {
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  private FullJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
+  private LeanJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
       throws IOException {
-    FullJiraProject created;
+    LeanJiraProject created;
     try {
       created = this.callJiraCreateProjectApi(toBeCreated);
     } catch (HttpException jiracreateException) {
@@ -114,17 +116,13 @@ public class JiraAdapter implements IBugtrackerAdapter {
     return created;
   }
 
-  protected FullJiraProject callJiraCreateProjectApi(FullJiraProject jiraProject)
+  protected LeanJiraProject callJiraCreateProjectApi(FullJiraProject jiraProject)
       throws IOException {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
-    FullJiraProject created =
-        client.callHttp(path, jiraProject, false, RestClient.HTTP_VERB.POST, FullJiraProject.class);
-    FullJiraProject returnProject =
-        new FullJiraProject(created.getSelf(), created.getKey(), jiraProject.getName(),
-            jiraProject.getDescription(), null, null, null, null, null, null, null, null, null);
-    returnProject.id = created.id;
-    return returnProject;
+    LeanJiraProject created =
+        client.callHttp(path, jiraProject, false, RestClient.HTTP_VERB.POST, LeanJiraProject.class);
+    return created;
   }
 
   /**
@@ -184,7 +182,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
             project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
-        client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, FullJiraProject.class);
+        client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
 
         updatedPermissions++;
       }
@@ -213,8 +211,8 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
     logger.debug("Creating project of type: {} for project: {}", templateKey, s.projectKey);
 
-    return new FullJiraProject(null, s.projectKey, s.projectName, s.description, lead, null, null,
-        null, null, null, templateKey, templateType, jiraNotificationSchemeId);
+    return new FullJiraProject(null, s.projectKey, s.projectName, s.description, lead, 
+        templateKey, templateType, jiraNotificationSchemeId);
   }
 
   public String buildProjectKey(String name) {
@@ -244,15 +242,11 @@ public class JiraAdapter implements IBugtrackerAdapter {
         : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
 
     try {
-      List<FullJiraProject> projects = client.callHttpTypeRef(url, null, false,
-          RestClient.HTTP_VERB.GET, new TypeReference<List<FullJiraProject>>() {});
+      List<LeanJiraProject> projects = client.callHttpTypeRef(url, null, false,
+          RestClient.HTTP_VERB.GET, new TypeReference<List<LeanJiraProject>>() {});
       return convertJiraProjectToKeyMap(projects);
-    } catch (JsonMappingException e) {
-      // if for some odd reason serialization fails ...
-      Map<String, String> foundProjects = new HashMap<>();
-      foundProjects.put(filter, filter);
-      return foundProjects;
     } catch (IOException e) {
+      logger.error("Could not retrieve jira projects", e);
       return convertJiraProjectToKeyMap(null);
     }
   }
@@ -354,13 +348,13 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
   }
 
-  Map<String, String> convertJiraProjectToKeyMap(List<FullJiraProject> projects) {
+  Map<String, String> convertJiraProjectToKeyMap(List<LeanJiraProject> projects) {
     Map<String, String> keyMap = new HashMap<>();
     if (projects == null || projects.size() == 0) {
       return keyMap;
     }
 
-    for (FullJiraProject project : projects) {
+    for (LeanJiraProject project : projects) {
       keyMap.put(project.getKey(), project.getName());
     }
     return keyMap;
@@ -389,8 +383,8 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
       FullJiraProject toBeCreated = this.buildJiraProjectPojoFromApiProject(project);
 
-      FullJiraProject created;
-      created = createProjectInJira(project, toBeCreated);
+      LeanJiraProject created = 
+          createProjectInJira(project, toBeCreated);
 
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
@@ -487,16 +481,25 @@ public class JiraAdapter implements IBugtrackerAdapter {
         project.bugtrackerUrl);
 
     try {
-      FullJiraProject createdProject =
-          client.callHttp(jiraProjectPath, null, true, HTTP_VERB.GET, FullJiraProject.class);
-
-      if (project.specialPermissionSet) {
-        String permissionSchemeId = createdProject.permissionScheme;
-
-        logger.debug("Cleaning up permissionset {}", permissionSchemeId);
-
+      if (project.specialPermissionSet) 
+      {
+        String permissionSchemeUrl = 
+            String.format("%s/permissionscheme", jiraProjectPath);
+        
+        PermissionSchemeResponse permissionScheme =
+            client.callHttp(permissionSchemeUrl, null, false, HTTP_VERB.GET, PermissionSchemeResponse.class);
+        
+        if (!permissionScheme.getName().contains(project.projectKey)) {
+          logger.debug("Cleaning up permissionset {} {}", 
+              permissionScheme.getId(), permissionScheme.getName());
+        } else {
+          logger.debug("NOT Cleaning up permissionset {} {}, because it's a standard one", 
+              permissionScheme.getId(), permissionScheme.getName());
+          return leftovers;
+        }
+        
         String jiraPermissionSchemePath =
-            String.format("%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionSchemeId);
+            String.format("%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
         client.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
       }

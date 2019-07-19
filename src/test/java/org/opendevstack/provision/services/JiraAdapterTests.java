@@ -43,6 +43,7 @@ import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
@@ -73,7 +74,7 @@ public class JiraAdapterTests {
   @Mock
   CrowdUserDetailsService service;
 
-  List<FullJiraProject> projects = new ArrayList<>();
+  List<LeanJiraProject> projects = new ArrayList<>();
 
   @Mock
   RestClient client;
@@ -127,7 +128,7 @@ public class JiraAdapterTests {
     when(details.getFullName()).thenReturn("achmed meyer");
 
     when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), eq(FullJiraProject.class))).thenReturn(getReturnProject());
+        eq(RestClient.HTTP_VERB.POST), eq(LeanJiraProject.class))).thenReturn(getReturnProject());
 
     OpenProjectData createdProject =
         spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
@@ -159,7 +160,7 @@ public class JiraAdapterTests {
       HttpException ioEx = new HttpException(300, "testerror");
 
       when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
-          any(RestClient.HTTP_VERB.class), eq(FullJiraProject.class))).thenThrow(ioEx);
+          any(RestClient.HTTP_VERB.class), eq(LeanJiraProject.class))).thenThrow(ioEx);
 
       spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
     } catch (HttpException e) {
@@ -172,15 +173,14 @@ public class JiraAdapterTests {
   @Test
   public void callJiraCreateProjectApi() throws IOException {
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    String crowdCookieValue = "value";
-    FullJiraProject expectedProject = new FullJiraProject();
+    LeanJiraProject expectedProject = new LeanJiraProject();
+    expectedProject.key = "1";
 
     when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), eq(FullJiraProject.class))).thenReturn(expectedProject);
+        eq(RestClient.HTTP_VERB.POST), eq(LeanJiraProject.class))).thenReturn(expectedProject);
 
-    FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject);
-
-    assertEquals(expectedProject, createdProject);
+    assertNotNull(spyAdapter.callJiraCreateProjectApi(new FullJiraProject()));
+    
   }
 
   @Test
@@ -232,7 +232,7 @@ public class JiraAdapterTests {
     OpenProjectData apiInput = getTestProject(projectNameTrue);
     apiInput.projectKey = projectNameTrue;
 
-    FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    LeanJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
     projects.add(fullJiraProject);
     Map<String, String> keys = jiraAdapter.convertJiraProjectToKeyMap(projects);
 
@@ -269,11 +269,13 @@ public class JiraAdapterTests {
 
     int updates = mocked.createPermissions(apiInput);
 
+    // create the permission scheme
     Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class));
 
+    // update the project
     Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.PUT), eq(FullJiraProject.class));
+        eq(RestClient.HTTP_VERB.PUT), eq(null));
 
     assertEquals(1, updates);
   }
@@ -360,8 +362,7 @@ public class JiraAdapterTests {
     assertEquals(0, created.size());
   }
 
-  private FullJiraProject getReturnProject() {
-    return new FullJiraProject(URI.create("http://localhost"), "TESTP", null, null, null, null,
-        null, null, null, null, null, null, null);
+  private LeanJiraProject getReturnProject() {
+    return new LeanJiraProject(URI.create("http://localhost"), "TESTP", null, null, null, null, null);
   }
 }
