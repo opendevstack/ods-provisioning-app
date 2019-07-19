@@ -384,9 +384,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
     for (String repoName : repositoryNames) {
       try {
-        String repoPath =
-            String.format(
-                "%s/%s/repos/%s", getAdapterApiUri(), project.projectKey, repoName);
+        String repoPath = String.format("%s/%s/repos/%s", getAdapterApiUri(),
+            project.projectKey, repoName);
         // client.callHttp(repoPath, null, false, RestClient.HTTP_VERB.DELETE, null);
         httpDelete().url(repoPath).returnType(null).execute();
         logger.debug("Removed scm repo {}", repoName);

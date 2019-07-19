@@ -282,6 +282,11 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         || (!project.bugtrackerSpace && project.collaborationSpaceUrl == null)) {
       logger.debug("Project {} not affected from cleanup", project.projectKey);
       return leftovers;
+    } 
+    
+    if (project.collaborationSpaceUrl == null) {
+      logger.debug("Project {} not affected from cleanup", project.projectKey);
+      return new HashMap<>();
     }
 
     logger.debug(
