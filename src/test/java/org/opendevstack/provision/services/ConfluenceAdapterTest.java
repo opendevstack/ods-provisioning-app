@@ -58,6 +58,7 @@ public class ConfluenceAdapterTest {
 
   @Mock
   Client client;
+  RestClient restClient;
 
   @Autowired
   @InjectMocks
@@ -91,46 +92,46 @@ public class ConfluenceAdapterTest {
     spyAdapter.client = client;
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
-//TODO stefanlack
-//    doReturn(expectedSpaceData).when(client).callHttp(anyString(), any(), anyBoolean(),
-//        eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
-//
-//    SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space);
-//
-//    assertEquals(expectedSpaceData, createdSpaceData);
+
+    doReturn(expectedSpaceData).when(restClient).callHttp(anyString(), any(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
+
+    SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space);
+
+    assertEquals(expectedSpaceData, createdSpaceData);
   }
 
   @Test
   public void updateSpacePermissions() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
-//    OpenProjectData project = JiraAdapterTests.getTestProject("name");
-//    project.projectAdminGroup = "adminGroup";
-//    project.projectUserGroup = "userGroup";
-//    project.projectReadonlyGroup = "readGroup";
-//
-//    spyAdapter.client = client;
+    OpenProjectData project = JiraAdapterTests.getTestProject("name");
+    project.projectAdminGroup = "adminGroup";
+    project.projectUserGroup = "userGroup";
+    project.projectReadonlyGroup = "readGroup";
+
+    spyAdapter.client = client;
 
 
-    //TODO stefanlack
-//    doReturn(String.class).when(client).callHttp(anyString(), any(), anyBoolean(),
-//        eq(RestClient.HTTP_VERB.POST), any(String.class.getClass()));
-//
-//    int permissionSets = spyAdapter.updateSpacePermissions(project);
-//
-//    // 3 permission sets
-//    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-//        contains(project.projectAdminGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-//        any(String.class.getClass()));
-//
-//    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-//        contains(project.projectUserGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-//        any(String.class.getClass()));
-//
-//    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-//        contains(project.projectReadonlyGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-//        any(String.class.getClass()));
+    //TODO fix tests after migration org.opendevstack.provision.util.RestClient to org.opendevstack.provision.util.rest.Client
+    doReturn(String.class).when(restClient).callHttp(anyString(), any(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), any(String.class.getClass()));
 
- //   assertEquals(3, permissionSets);
+    int permissionSets = spyAdapter.updateSpacePermissions(project);
+
+    // 3 permission sets
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(anyString(),
+        contains(project.projectAdminGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        any(String.class.getClass()));
+
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(anyString(),
+        contains(project.projectUserGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        any(String.class.getClass()));
+
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(anyString(),
+        contains(project.projectReadonlyGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        any(String.class.getClass()));
+
+    assertEquals(3, permissionSets);
   }
 
   @Test

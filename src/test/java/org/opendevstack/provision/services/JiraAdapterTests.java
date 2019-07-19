@@ -78,7 +78,7 @@ public class JiraAdapterTests {
   List<FullJiraProject> projects = new ArrayList<>();
 
   @Mock
-  RestClient client;
+  RestClient restClient;
 
   @Rule
   public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -123,12 +123,12 @@ public class JiraAdapterTests {
 
     when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
 
-    Mockito.doNothing().when(client).getSessionId(null);
+    Mockito.doNothing().when(restClient).getSessionId(null);
 
     when(details.getUsername()).thenReturn("achmed");
     when(details.getFullName()).thenReturn("achmed meyer");
 
-    when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+    when(restClient.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(FullJiraProject.class))).thenReturn(getReturnProject());
 
     OpenProjectData createdProject =
@@ -160,7 +160,7 @@ public class JiraAdapterTests {
     try {
       HttpException ioEx = new HttpException(300, "testerror");
 
-      when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+      when(restClient.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
           any(RestClient.HTTP_VERB.class), eq(FullJiraProject.class))).thenThrow(ioEx);
 
       spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
@@ -177,7 +177,7 @@ public class JiraAdapterTests {
     String crowdCookieValue = "value";
     FullJiraProject expectedProject = new FullJiraProject();
 
-    when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+    when(restClient.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(FullJiraProject.class))).thenReturn(expectedProject);
 
     FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject);
@@ -239,7 +239,7 @@ public class JiraAdapterTests {
     Map<String, String> keys = jiraAdapter.convertJiraProjectToKeyMap(projects);
 
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
-    Mockito.doNothing().when(client).getSessionId(null);
+    Mockito.doNothing().when(restClient).getSessionId(null);
     Mockito.doReturn(keys).when(mocked).getProjects(projectNameTrue);
 
     assertTrue(mocked.projectKeyExists(projectNameTrue));
@@ -252,7 +252,7 @@ public class JiraAdapterTests {
   @Test
   public void testCreatePermissions() throws Exception {
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
-    Mockito.doNothing().when(client).getSessionId(null);
+    Mockito.doNothing().when(restClient).getSessionId(null);
 
     String projectNameTrue = "TESTP";
     OpenProjectData apiInput = getTestProject(projectNameTrue);
@@ -266,15 +266,15 @@ public class JiraAdapterTests {
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
 
-    when(client.callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+    when(restClient.callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
         eq(PermissionScheme.class))).thenReturn(scheme);
 
     int updates = mocked.createPermissions(apiInput);
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class));
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
         eq(RestClient.HTTP_VERB.PUT), eq(FullJiraProject.class));
 
     assertEquals(1, updates);
@@ -290,7 +290,7 @@ public class JiraAdapterTests {
 
     assertEquals(5, shortcutsAdded);
 
-    Mockito.verify(client, Mockito.times(5)).callHttp(anyString(), any(), anyBoolean(),
+    Mockito.verify(restClient, Mockito.times(5)).callHttp(anyString(), any(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
 
     apiInput.bugtrackerSpace = false;
@@ -336,7 +336,7 @@ public class JiraAdapterTests {
 
     Map<String, String> created = mocked.createComponentsForProjectRepositories(apiInput);
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(endsWith("/rest/api/latest/component"),
+    Mockito.verify(restClient, Mockito.times(1)).callHttp(endsWith("/rest/api/latest/component"),
         any(Component.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST), isNull());
 
     assertEquals(1, created.size());
