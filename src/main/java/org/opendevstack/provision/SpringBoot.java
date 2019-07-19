@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -23,11 +23,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Torsten Jaeschke
  */
 @SpringBootApplication
-public class SpringBoot 
-{
+public class SpringBoot {
 
   public static void main(String[] args) throws Exception {
     new SpringApplication(SpringBoot.class).run(args);
   }
 }
-

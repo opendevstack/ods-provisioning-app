@@ -1,4 +1,5 @@
-/* Copyright 2018 the original author or authors.
+/*
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,67 +15,65 @@
 package org.opendevstack.provision.model;
 
 import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Test;
 
 /**
  * Test Project data equals / hashcode
+ * 
  * @author utschig
  *
  */
 public class ProjectDataTest {
 
-	@Test
-	public void testEquals() {
-		ProjectData data = new ProjectData();
-		data.key = "key";
-		data.name = "name";
-		
-		ProjectData dataCheck = new ProjectData();
-		dataCheck.key = "key";
-		dataCheck.name = "name";
+  @Test
+  public void testEquals() {
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
 
-		assertNotEquals(null, dataCheck);
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
 
-		assertEquals(dataCheck, data);
-		
-		data.name = null;
-		assertNotEquals(dataCheck, data);
-		
-		dataCheck.name = null;
-		assertEquals(dataCheck, data);
-	}
+    assertNotEquals(null, dataCheck);
 
-	
-	@Test
-	public void testHashcode() {
-		List<ProjectData> dataL = new ArrayList<>();
-		
-		ProjectData data = new ProjectData();
-		data.key = "key";
-		data.name = "name";
-		
-		dataL.add(data);
-		dataL.add(data);
-		
-		assertTrue(dataL.contains(data));
-		
-		ProjectData dataCheck = new ProjectData();
-		dataCheck.key = "key";
-		dataCheck.name = "name";
-		
-		dataL.add(dataCheck);
+    assertEquals(dataCheck, data);
 
-		assertEquals(3, dataL.size());
-		
-		data.name = null;
-		dataL.add(data);
+    data.name = null;
+    assertNotEquals(dataCheck, data);
 
-		assertEquals(4, dataL.size());
-		assertTrue(dataL.contains(data));
-	}
-	
+    dataCheck.name = null;
+    assertEquals(dataCheck, data);
+  }
+
+  @Test
+  public void testHashcode() {
+    List<ProjectData> dataL = new ArrayList<>();
+
+    ProjectData data = new ProjectData();
+    data.key = "key";
+    data.name = "name";
+
+    dataL.add(data);
+    dataL.add(data);
+
+    assertTrue(dataL.contains(data));
+
+    ProjectData dataCheck = new ProjectData();
+    dataCheck.key = "key";
+    dataCheck.name = "name";
+
+    dataL.add(dataCheck);
+
+    assertEquals(3, dataL.size());
+
+    data.name = null;
+    dataL.add(data);
+
+    assertEquals(4, dataL.size());
+    assertTrue(dataL.contains(data));
+  }
+
 }

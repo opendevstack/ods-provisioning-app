@@ -1,0 +1,15 @@
+{
+	"key": "TestP",
+	"id": 392,
+	"name": "TestProject",
+	"description": "Environment to learn Openshift and Bitbucket.",
+	"public": false,
+	"type": "NORMAL",
+	"links": {
+		"self": [
+			{
+				"href": "https://bitbucket.ods.bb/projects/TestP"
+			}
+		]
+	}
+}

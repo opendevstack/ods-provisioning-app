@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,24 +17,23 @@ import java.io.IOException;
 
 /**
  * Simple exception to wrap an HTTP non 2xx
+ * 
  * @author utschig
  */
-public class HttpException extends IOException 
-{
-	private final int httpResponseCode;
+public class HttpException extends IOException {
+  private final int httpResponseCode;
 
-	public HttpException(int code, String message) {
-		super(message);
-		httpResponseCode = code;
-	}
-	
-	public int getResponseCode () {
-		return httpResponseCode;
-	}
-	
-	@Override
-	public String getMessage () 
-	{
-		return super.getMessage() + " Errorcode: " + httpResponseCode;
-	}
+  public HttpException(int code, String message) {
+    super(message);
+    httpResponseCode = code;
+  }
+
+  public int getResponseCode() {
+    return httpResponseCode;
+  }
+
+  @Override
+  public String getMessage() {
+    return super.getMessage() + " Errorcode: " + httpResponseCode;
+  }
 }
