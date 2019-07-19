@@ -26,7 +26,7 @@ public class JiraAdapterMT {
   @Test
   public void deletesProjects() {
     // take care that you use an existing jira project that can be deleted. Since this is an
-    // real integration test, it will realy delete the project.
+    // real integration test, it will really delete the project.
     OpenProjectData project = localStorage.getProject("TEST34");
     jiraAdapter.cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
   }
