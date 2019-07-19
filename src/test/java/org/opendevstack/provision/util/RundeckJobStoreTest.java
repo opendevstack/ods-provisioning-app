@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,7 +26,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import static org.junit.Assert.*;
 
 /**
@@ -48,7 +47,7 @@ public class RundeckJobStoreTest {
   public void addJob() throws Exception {
     Job job = generateTestJobs().get(0);
     jobStore.addJob(generateTestJobs().get(0));
-    
+
     assertEquals(jobStore.getJob("1").getId(), job.getId());
   }
 
@@ -57,7 +56,7 @@ public class RundeckJobStoreTest {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);
-    
+
     assertEquals(jobStore.getJobs(ids), jobs);
   }
 
@@ -83,7 +82,7 @@ public class RundeckJobStoreTest {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);
-    
+
     assertTrue(jobStore.getJobs(ids).size() > 0);
   }
 

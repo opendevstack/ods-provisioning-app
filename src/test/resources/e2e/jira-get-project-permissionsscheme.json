@@ -1,0 +1,7 @@
+{
+	"expand": "permissions,user,group,projectRole,field,all",
+	"id": 10911,
+	"self": "https://jira.ods.bb/rest/api/2/permissionscheme/10911",
+	"name": "TESTP PERMISSION SCHEME",
+	"description": "TESTP PERMISSION SCHEME"
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -37,7 +37,6 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientProperties;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
-
 import static org.junit.Assert.*;
 
 /**
@@ -81,9 +80,9 @@ public class CustomAuthenticationManagerTest {
   @Test
   public void setUserPassword() throws Exception {
     String pass = TEST_CRED;
-    
+
     manager.setUserPassword(pass);
-    
+
     assertEquals(pass, manager.getUserPassword());
   }
 
@@ -92,7 +91,7 @@ public class CustomAuthenticationManagerTest {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
-    
+
     manager.setSecurityServerClient(client);
 
     assertNull(manager.authenticate(getContext()));
@@ -103,7 +102,7 @@ public class CustomAuthenticationManagerTest {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
-    
+
     manager.setSecurityServerClient(client);
 
     assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
@@ -113,9 +112,9 @@ public class CustomAuthenticationManagerTest {
   public void authenticateWithUsernameAndPassword() throws Exception {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
-    
+
     manager.setSecurityServerClient(client);
-    
+
     assertEquals("login", manager.authenticate(USER, TEST_CRED));
   }
 

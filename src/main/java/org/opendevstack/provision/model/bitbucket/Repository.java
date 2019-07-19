@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 package org.opendevstack.provision.model.bitbucket;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -34,7 +33,7 @@ public class Repository {
   @JsonIgnoreProperties({"adminGroup", "userGroup"})
   String adminGroup;
   String userGroup;
-    
+
   public String getName() {
     return name;
   }
@@ -60,19 +59,19 @@ public class Repository {
   }
 
   public void setAdminGroup(String adminGroup) {
-	this.adminGroup = adminGroup;
+    this.adminGroup = adminGroup;
   }
 
   public String getAdminGroup() {
-	return this.adminGroup;
+    return this.adminGroup;
   }
 
   public void setUserGroup(String userGroup) {
-	this.userGroup = userGroup;
+    this.userGroup = userGroup;
   }
 
   public String getUserGroup() {
-	return this.userGroup;
+    return this.userGroup;
   }
 
   @Override
@@ -108,6 +107,5 @@ public class Repository {
       return false;
     return true;
   }
-
 
 }

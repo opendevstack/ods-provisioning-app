@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,19 +15,9 @@
 package org.opendevstack.provision.model.jira;
 
 import java.net.URI;
-import java.util.Collection;
-import com.atlassian.jira.rest.client.OptionalIterable;
-import com.atlassian.jira.rest.client.domain.BasicComponent;
-import com.atlassian.jira.rest.client.domain.BasicProjectRole;
-import com.atlassian.jira.rest.client.domain.BasicUser;
-import com.atlassian.jira.rest.client.domain.IssueType;
-import com.atlassian.jira.rest.client.domain.Project;
-import com.atlassian.jira.rest.client.domain.Version;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * In line with https://docs.atlassian.com/jira/REST/server/#api/2/project-getProject to allow use
@@ -36,37 +26,24 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
  *
  * @author Pascal Brokmeier
  */
-//otherwise jackson adds all the nulls and we don't want those in our call to the API
+// otherwise jackson adds all the nulls and we don't want those in our call to
+// the API
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FullJiraProject extends Project {
+public class FullJiraProject extends LeanJiraProject {
 
-  public String projectTemplateKey; // e.g. com.pyxis.greenhopper.jira:gh-scrum-template
-  public String projectTypeKey; // eg business or software
-  public String id;
-  public String permissionScheme; // the permissionSchemeId
-  public String notificationScheme; // the notificationSchemeId
-
+  @JsonProperty("lead")
+  public String lead;
+  
   public FullJiraProject() {
-    super(null, null, null, null, null, null, null, null, null, null);
+    super (null, null,null,null, null, null, null);
   }
 
-  public FullJiraProject(URI self, String key, String name, String description, BasicUser lead,
-      URI uri, Collection<Version> versions, Collection<BasicComponent> components,
-      OptionalIterable<IssueType> issueTypes, Collection<BasicProjectRole> projectRoles,
+  public FullJiraProject(URI self, String key, String name, String description, String lead,
       String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
-    super(self, key, name, description, lead, uri, versions, components, issueTypes, projectRoles);
-    this.projectTemplateKey = projectTemplateKey;
-    this.projectTypeKey = projectTypeKey;
-    this.notificationScheme = notificationSchemeId;
+    super (self, key, name, description, 
+        projectTemplateKey, projectTypeKey, notificationSchemeId);
+    this.lead = lead;
   }
-
-  // needed because Jira API doesn't want the whole user but rather just the unique ID/name of the
-  // user
-  // https://stackoverflow.com/questions/17542240/how-to-serialize-only-the-id-of-a-child-with-jackson
-  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "name")
-  @JsonIdentityReference(alwaysAsId = true) // otherwise first ref as POJO, others as id
-  public BasicUser getLead() {
-    return super.getLead();
-  }
+  
 }
