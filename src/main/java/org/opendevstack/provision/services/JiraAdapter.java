@@ -28,9 +28,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
-import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
@@ -196,9 +194,6 @@ public class JiraAdapter implements IBugtrackerAdapter {
   }
 
   protected FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData s) {
-
-    BasicUser lead = new BasicUser(null, s.projectAdminUser, s.projectAdminUser);
-
     String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType(s,
         JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
 
@@ -211,7 +206,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
     logger.debug("Creating project of type: {} for project: {}", templateKey, s.projectKey);
 
-    return new FullJiraProject(null, s.projectKey, s.projectName, s.description, lead, 
+    return new FullJiraProject(null, s.projectKey, s.projectName, s.description, s.projectAdminUser, 
         templateKey, templateType, jiraNotificationSchemeId);
   }
 

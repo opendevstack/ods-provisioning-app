@@ -15,7 +15,6 @@
 package org.opendevstack.provision.model.jira;
 
 import java.net.URI;
-import com.atlassian.jira.rest.client.domain.BasicUser;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,13 +33,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FullJiraProject extends LeanJiraProject {
 
   @JsonProperty("lead")
-  public BasicUser lead;
+  public String lead;
   
   public FullJiraProject() {
     super (null, null,null,null, null, null, null);
   }
 
-  public FullJiraProject(URI self, String key, String name, String description, BasicUser lead,
+  public FullJiraProject(URI self, String key, String name, String description, String lead,
       String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
     super (self, key, name, description, 
         projectTemplateKey, projectTypeKey, notificationSchemeId);
