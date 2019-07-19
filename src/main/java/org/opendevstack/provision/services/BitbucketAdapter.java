@@ -344,7 +344,7 @@ public class BitbucketAdapter implements ISCMAdapter {
 
     for (String repoName : repositoryNames) {
       try {
-        String repoPath = String.format("%s/projects/%s/repos/%s", getAdapterApiUri(),
+        String repoPath = String.format("%s/%s/repos/%s", getAdapterApiUri(),
             project.projectKey, repoName);
         client.callHttp(repoPath, null, false, RestClient.HTTP_VERB.DELETE, null);
         logger.debug("Removed scm repo {}", repoName);
@@ -365,7 +365,7 @@ public class BitbucketAdapter implements ISCMAdapter {
 
     logger.debug("Starting scm project cleanup with url {}", project.scmvcsUrl);
 
-    String projectPath = String.format("%s/projects/%s", getAdapterApiUri(), project.projectKey);
+    String projectPath = String.format("%s/%s", getAdapterApiUri(), project.projectKey);
 
     try {
       client.callHttp(projectPath, null, false, RestClient.HTTP_VERB.DELETE, null);
