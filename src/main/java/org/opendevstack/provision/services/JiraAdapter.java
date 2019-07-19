@@ -484,7 +484,7 @@ public class JiraAdapter implements IBugtrackerAdapter {
         PermissionSchemeResponse permissionScheme =
             client.callHttp(permissionSchemeUrl, null, false, HTTP_VERB.GET, PermissionSchemeResponse.class);
         
-        if (!permissionScheme.getName().contains(project.projectKey)) {
+        if (permissionScheme.getName().contains(project.projectKey)) {
           logger.debug("Cleaning up permissionset {} {}", 
               permissionScheme.getId(), permissionScheme.getName());
         } else {
