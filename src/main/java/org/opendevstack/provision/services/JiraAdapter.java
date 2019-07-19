@@ -505,9 +505,11 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
+      logger.error("Could not cleanup jira: ", cex);
       logger.error(
-          String.format("Could not clean up project" + " {} error: {}", project.projectKey, cex));
-      leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 0);
+          String.format("Could not clean up project" + " {} error: {}", 
+              project.projectKey, cex.getMessage()));
+      leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
     logger.debug("Cleanup done - status: {} components are left ..",
         leftovers.size() == 0 ? 0 : leftovers);

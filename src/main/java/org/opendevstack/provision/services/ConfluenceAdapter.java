@@ -269,6 +269,10 @@ public class ConfluenceAdapter implements ICollaborationAdapter {
         || (!project.bugtrackerSpace && project.collaborationSpaceUrl == null)) {
       logger.debug("Project {} not affected from cleanup", project.projectKey);
       return leftovers;
+    } 
+    
+    if (project.collaborationSpaceUrl == null) {
+      logger.debug("Project {} not affected from cleanup", project.projectKey);
     }
 
     logger.debug("Cleaning up collaboration space: {} with url {}", project.projectKey,
