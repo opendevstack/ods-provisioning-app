@@ -17,7 +17,7 @@ public class BaseServiceAdapter {
 
   @Autowired IODSAuthnzAdapter manager;
 
-  protected  @Autowired Client client;
+  protected @Autowired Client client;
 
   public BaseServiceAdapter(String userName, String userPassword) {
     this.userName = userName;
@@ -47,17 +47,23 @@ public class BaseServiceAdapter {
 
   private ClientCall authenticatedCall(HTTP_VERB verb) {
     ClientCall call = notAuthenticatedCall(verb);
+
+    // TODO stefanlack: configure switch between technical user credentials from
+    // SessionAwarePasswordHolder in application proerty
+    //  --> make it explicit via property
     if (useTechnicalUser) {
-      return call.basicAuthenticated(getBasicCredentials());
+      return call.basicAuthenticated(getBasicTechnicalUserCredentials());
     }
-    throw new RuntimeException("Crowd or oauth-based authentication not yet implemented!");
+    CredentialsInfo credentialsInfo =
+        new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
+    return call.basicAuthenticated(credentialsInfo);
   }
 
   public ClientCall notAuthenticatedCall(HTTP_VERB verb) {
     return client.call(verb);
   }
 
-  private CredentialsInfo getBasicCredentials() {
+  private CredentialsInfo getBasicTechnicalUserCredentials() {
     return new CredentialsInfo(userName, userPassword);
   }
 }
