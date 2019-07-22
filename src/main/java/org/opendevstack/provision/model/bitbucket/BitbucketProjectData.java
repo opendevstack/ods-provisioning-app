@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,14 +12,11 @@
  * the License.
  */
 
-package org.opendevstack.provision.model;
+package org.opendevstack.provision.model.bitbucket;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Generated;
-
-import org.opendevstack.provision.model.bitbucket.Link;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -32,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class BitbucketData {
+public class BitbucketProjectData {
 
   private String id;
   private String key;

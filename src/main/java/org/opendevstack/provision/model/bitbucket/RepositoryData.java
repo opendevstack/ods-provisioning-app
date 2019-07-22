@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,14 +12,13 @@
  * the License.
  */
 
-package org.opendevstack.provision.model;
+package org.opendevstack.provision.model.bitbucket;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Generated;
-
-import org.opendevstack.provision.model.bitbucket.Link;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -72,5 +71,34 @@ public class RepositoryData {
 
   public void setLinks(Map<String, List<Link>> links) {
     this.links = links;
+  }
+
+  public Map<URL_TYPE, String> convertRepoToOpenDataProjectRepo() {
+    Map<URL_TYPE, String> newRepoLinks = new HashMap<>();
+    if (links == null) {
+      return newRepoLinks;
+    }
+
+    List<Link> cloneRepos = links.get("clone");
+    if (cloneRepos == null) {
+      return newRepoLinks;
+    }
+    for (Link cloneRepoLink : cloneRepos) {
+      if ("ssh".equals(cloneRepoLink.getName())) {
+        newRepoLinks.put(URL_TYPE.URL_CLONE_SSH, cloneRepoLink.getHref());
+      } else if ("http".equals(cloneRepoLink.getName())) {
+        newRepoLinks.put(URL_TYPE.URL_CLONE_HTTP, cloneRepoLink.getHref());
+      }
+    }
+
+    List<Link> selfRepos = links.get("self");
+    if (selfRepos == null) {
+      return newRepoLinks;
+    }
+    for (Link selfRepoLink : selfRepos) {
+      newRepoLinks.put(URL_TYPE.URL_BROWSE_HTTP, selfRepoLink.getHref());
+    }
+
+    return newRepoLinks;
   }
 }

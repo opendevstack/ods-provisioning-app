@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 package org.opendevstack.provision.model.bitbucket;
 
 import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -33,7 +32,6 @@ public class BitbucketProject {
   private String key;
   private String name;
   private String description;
-
 
   public String getKey() {
     return key;

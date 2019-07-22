@@ -9,46 +9,46 @@
 <div class="row-mx-8">
   <div class="row">
     <div class="col-xs-8 col-sm-6">Name:</div>
-    <div class="col-xs-4 col-sm-6"><span th:text="${project.name}"></span></div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.projectName}"></span></div>
   </div>
   <div class="row">
     <div class="col-xs-8 col-sm-6">Key:</div>
-    <div class="col-xs-4 col-sm-6"><span th:text="${project.key}"></span></div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.projectKey}"></span></div>
   </div>
   <div class="row">
     <div class="col-xs-8 col-sm-6">Description:</div>
     <div class="col-xs-4 col-sm-6"><span th:text="${project.description}"></span></div>
   </div>
   <!-- flag some people don't want spaces -->  
-  <div class="row" th:if="${project.jiraUrl != null}">
-    <div class="col-xs-8 col-sm-6">JIRA:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.jiraUrl}}" target="_blank"><span th:text="${project.jiraUrl}"></span></a></div>
+  <div class="row" th:if="${project.bugtrackerUrl != null}">
+    <div class="col-xs-8 col-sm-6">Bugtracker:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.bugtrackerUrl}}" target="_blank"><span th:text="${project.bugtrackerUrl}"></span></a></div>
   </div>
   <!-- flag some people don't want spaces -->  
-  <div class="row" th:if="${project.confluenceUrl != null}">
-    <div class="col-xs-8 col-sm-6">Confluence:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.confluenceUrl}}" target="_blank"><span th:text="${project.confluenceUrl}"></span></a></div>
+  <div class="row" th:if="${project.collaborationSpaceUrl != null}">
+    <div class="col-xs-8 col-sm-6">Collaboration space:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.collaborationSpaceUrl}}" target="_blank"><span th:text="${project.collaborationSpaceUrl}"></span></a></div>
   </div>
-  <div class="row" th:if="${project.bitbucketUrl != null}">
+  <div class="row" th:if="${project.scmvcsUrl != null}">
     <div class="col-xs-8 col-sm-6">Bitbucket:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.bitbucketUrl}}" target="_blank"><span th:text="${project.bitbucketUrl}"></span></a></div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.scmvcsUrl}}" target="_blank"><span th:text="${project.scmvcsUrl}"></span></a></div>
   </div>
   <!-- jenkins -->
-  <div class="row" th:if="${project.openshiftJenkinsUrl != null}">
-    <div class="col-xs-8 col-sm-6">Jenkins:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftJenkinsUrl}}" target="_blank"><span th:text="${project.openshiftJenkinsUrl}"></span></a></div>
+  <div class="row" th:if="${project.platformBuildEngineUrl != null}">
+    <div class="col-xs-8 col-sm-6">Build engine:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.platformBuildEngineUrl}}" target="_blank"><span th:text="${project.platformBuildEngineUrl}"></span></a></div>
   </div>
 
   <!-- dev env -->
-  <div class="row" th:if="${project.openshiftConsoleDevEnvUrl != null}">
-    <div class="col-xs-8 col-sm-6">OC Dev env:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftConsoleDevEnvUrl}}" target="_blank"><span th:text="${project.openshiftConsoleDevEnvUrl}"></span></a></div>
+  <div class="row" th:if="${project.platformDevEnvironmentUrl != null}">
+    <div class="col-xs-8 col-sm-6">Platform Dev env:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.platformDevEnvironmentUrl}}" target="_blank"><span th:text="${project.platformDevEnvironmentUrl}"></span></a></div>
   </div>
 
   <!-- test env -->
-  <div class="row" th:if="${project.openshiftConsoleTestEnvUrl != null}">
-    <div class="col-xs-8 col-sm-6">OC test env:</div>
-    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.openshiftConsoleTestEnvUrl}}" target="_blank"><span th:text="${project.openshiftConsoleTestEnvUrl}"></span></a></div>
+  <div class="row" th:if="${project.platformTestEnvironmentUrl != null}">
+    <div class="col-xs-8 col-sm-6">Platform test env:</div>
+    <div class="col-xs-4 col-sm-6"><a th:href="@{${project.platformTestEnvironmentUrl}}" target="_blank"><span th:text="${project.platformTestEnvironmentUrl}"></span></a></div>
   </div>
 
 </div>

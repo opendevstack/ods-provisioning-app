@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -77,6 +77,5 @@ public class Space {
    * "jira-server-id":"06509280-5441-3f2e-b5d1-60fcc24a85aa", "project-key":"FDSSS",
    * "project-name":"fdsssdf", "ContentPageTitle":"fdsssdf" } }
    */
-
 
 }

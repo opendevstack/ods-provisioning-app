@@ -1,0 +1,83 @@
+[
+	{
+		"name": "Blank space",
+		"description": "Start with a blank space.",
+		"styleClass": "icon-blank-space-large",
+		"iconURL": "/s/en_GB/7702/fee96fdad3b600d4843bc89ccaf16ec6d71d5b89/9.0.4/_/download/resources//com.atlassian.confluence.plugins.confluence-create-content-plugin:resources/images/preview-default-template.png",
+		"itemModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-item",
+		"blueprintModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint",
+		"contentBlueprintId": "0a78670e-a013-45fb-9237-e13975ee549a",
+		"createResult": "space",
+		"skipHowToUse": false,
+		"wizard": {
+			"pages": [
+				{
+					"id": "commonPage",
+					"templateKey": "Confluence.Templates.Blueprints.CreateSpace.createSpaceForm",
+					"title": "Create a blank space",
+					"descriptionHeader": "About blank spaces",
+					"descriptionContent": "Start with a blank space and customise it for your project, team, department or company. You can add co using pages and keep them organised in a hierarchy.",
+					"last": true
+				}
+			]
+		},
+		"isNew": false,
+		"isPromoted": false,
+		"promoted": false,
+		"new": false
+	},
+	{
+		"name": "Personal space",
+		"description": "Keep your notes, task list.",
+		"styleClass": "icon-personal-space-large",
+		"iconURL": "/s/en_GB/7702/fee96fdad3b600d4843bc89ccaf16ec6d71d5b89/9.0.4/_/download/resources/com.atlassian.confluence.plugins.confluence-create-content-plugin:resources/images/preview-default-template.png",
+		"itemModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-item",
+		"blueprintModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint",
+		"contentBlueprintId": "61945061-1888-42c8-8f5b-e3f125bfe219",
+		"createResult": "space",
+		"skipHowToUse": false,
+		"wizard": {
+			"pages": [
+				{
+					"id": "personal-space",
+					"templateKey": "Confluence.Templates.Blueprints.CreateSpace.createPersonalSpaceForm",
+					"title": "Create a personal space",
+					"descriptionHeader": "",
+					"descriptionContent": "",
+					"last": true
+				}
+			]
+		},
+		"isNew": false,
+		"isPromoted": false,
+		"promoted": false,
+		"new": false
+	},
+	{
+		"name": "Documentation space",
+		"description": "Create and manage technical documentation for your products",
+		"styleClass": "",
+		"iconURL": "/s/en_GB/7702/fee96fdad3b600d4843bc89ccaf16ec6d71d5b89/1.5.14/_/download/resources/com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint-item/icon",
+		"itemModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint-item",
+		"blueprintModuleCompleteKey": "com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint",
+		"contentBlueprintId": "78eabfc6-9a75-4588-ab84-3b107d34f878",
+		"createResult": "space",
+		"skipHowToUse": false,
+		"wizard": {
+			"pages": [
+				{
+					"id": "documentationSpaceId",
+					"templateKey": "Confluence.SpaceBlueprints.Documentation.dialogForm",
+					"title": "Create a documentation space",
+					"descriptionHeader": "About documentation spaces",
+					"descriptionContent": "Create, manage and collaborate on technical documentation. The documentation space features a structured page tree that",
+					"last": true
+				}
+			]
+		},
+		"isNew": false,
+		"isPromoted": false,
+		"promoted": false,
+		"new": false
+	}
+]

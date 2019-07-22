@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,7 +16,6 @@ package org.opendevstack.provision.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -67,7 +66,6 @@ public class CrowdCookieJarTest {
     assertEquals(0, crowdCookieJar.loadForRequest(null).size());
   }
 
-  
   @Test
   public void loadForRequestWithoutCookies() throws Exception {
     assertEquals(0, crowdCookieJar.loadForRequest(getUrl()).size());
@@ -75,19 +73,19 @@ public class CrowdCookieJarTest {
 
   @Test
   public void addCrowdCookie() throws Exception {
-	crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
+    crowdCookieJar.setSSOCookieName(crowdSSOCookieName);
     crowdCookieJar.setDomain("localhost");
     crowdCookieJar.saveFromResponse(getUrl(), getCookies());
     crowdCookieJar.addCrowdCookie("test");
     List<Cookie> cookies = crowdCookieJar.loadForRequest(getUrl());
-    
+
     for (Cookie cookie : cookies) {
       if (cookie.name().equalsIgnoreCase(crowdSSOCookieName)) {
         assertTrue(true);
       }
     }
   }
-  
+
   private HttpUrl getUrl() {
     HttpUrl url = new HttpUrl.Builder().host("localhost").scheme("http").build();
     return url;

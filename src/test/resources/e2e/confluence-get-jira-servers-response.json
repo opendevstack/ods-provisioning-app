@@ -1,0 +1,10 @@
+[
+	{
+		"id": "36cf32da-7a06-3015-87d0-b0c70a139168",
+		"name": "someJiraServer",
+		"selected": true,
+		"authUrl": "https://confluence.ods.bb/plugins/servlet/applinks/oauth/login-dance/authorize?applicationLinkID=1234",
+		"url": "https://jira.ods.bb",
+		"buildNumber": 21
+	}
+]
