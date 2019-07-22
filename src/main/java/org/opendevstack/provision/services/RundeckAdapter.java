@@ -108,12 +108,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
 
-  public RundeckAdapter(
-      @Value("${rundeck.admin_user}") String adminUser,
-      @Value("${rundeck.admin_password}") String adminPassword) {
-    super(adminUser, adminPassword);
-    preAuthContent.put("j_username", userName);
-    preAuthContent.put("j_password", userPassword);
+  public RundeckAdapter() {
+    super("rundeck");
   }
 
   public List<Job> getQuickstarters() {
@@ -391,6 +387,10 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   }
 
   private ClientCall httpPreAuthenticatedCall(HTTP_VERB verb) {
+    if (preAuthContent.size() == 0) {
+      preAuthContent.put("j_username", userName);
+      preAuthContent.put("j_password", userPassword);
+    }
     return notAuthenticatedCall(verb)
         .preAuthenticated()
         .preAuthUrl(preAuthUrl)

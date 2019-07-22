@@ -46,10 +46,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter {
 
-  public BitbucketAdapter(
-      @Value("${bitbucket.admin_user}") String adminUser,
-      @Value("${bitbucket.admin_password}") String adminPassword) {
-    super(adminUser, adminPassword);
+  public BitbucketAdapter() {
+    super("bitbucket");
   }
 
   private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapter.class);

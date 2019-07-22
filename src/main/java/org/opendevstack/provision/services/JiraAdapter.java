@@ -87,10 +87,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  public JiraAdapter(
-      @Value("${jira.admin_user}") String adminUser,
-      @Value("${jira.admin_password}") String adminPassword) {
-    super(adminUser, adminPassword);
+  public JiraAdapter() {
+    super("jira");
   }
 
   private LeanJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
@@ -274,7 +272,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   @Override
-
   public int addShortcutsToProject(OpenProjectData data) {
     if (!data.bugtrackerSpace) {
       return -1;

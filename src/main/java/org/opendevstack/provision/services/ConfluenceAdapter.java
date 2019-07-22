@@ -87,10 +87,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  public ConfluenceAdapter(
-      @Value("${confluence.admin_user}") String adminUser,
-      @Value("${confluence.admin_password}") String adminPassword) {
-    super(adminUser, adminPassword);
+  public ConfluenceAdapter() {
+    super("confluence");
   }
 
   public String createCollaborationSpaceForODSProject(OpenProjectData project) throws IOException {
