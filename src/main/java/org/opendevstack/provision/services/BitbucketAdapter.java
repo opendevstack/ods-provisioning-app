@@ -242,14 +242,12 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     // BitbucketProjectData projectData =
     //        client.callHttp(getAdapterApiUri(), bbProject, false, RestClient.HTTP_VERB.POST,
     // BitbucketProjectData.class);
-
     BitbucketProjectData projectData =
         httpPost()
             .url(getAdapterApiUri())
             .body(bbProject)
             .returnType(BitbucketProjectData.class)
             .execute();
-
     if (project.specialPermissionSet) {
       setProjectPermissions(
           projectData, ID_GROUPS, globalKeyuserRoleName, PROJECT_PERMISSIONS.PROJECT_ADMIN);
@@ -284,7 +282,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-
     setRepositoryPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
     setRepositoryPermissions(data, projectKey, ID_USERS, technicalUser);
 
@@ -306,7 +303,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     httpPut()
         .url(url)
         .body("")
-        .queryParams(buildPermissionQueryParams(rights.toString(),groupOrUser))
+        .queryParams(buildPermissionQueryParams(rights.toString(), groupOrUser))
         .returnType(String.class)
         .execute();
   }
@@ -318,10 +315,12 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
 
     // client.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
-    httpPut().url(url)
+    httpPut()
+        .url(url)
         .body("")
         .queryParams(buildPermissionQueryParams("REPO_ADMIN", groupOrUser))
-        .returnType(String.class).execute();
+        .returnType(String.class)
+        .execute();
   }
 
   private Map<String, String> buildPermissionQueryParams(String permission, String groupOrUser) {
@@ -384,8 +383,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
     for (String repoName : repositoryNames) {
       try {
-        String repoPath = String.format("%s/%s/repos/%s", getAdapterApiUri(),
-            project.projectKey, repoName);
+        String repoPath =
+            String.format("%s/%s/repos/%s", getAdapterApiUri(), project.projectKey, repoName);
         // client.callHttp(repoPath, null, false, RestClient.HTTP_VERB.DELETE, null);
         httpDelete().url(repoPath).returnType(null).execute();
         logger.debug("Removed scm repo {}", repoName);

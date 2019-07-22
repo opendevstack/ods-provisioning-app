@@ -39,6 +39,7 @@ import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.RestClient;
+import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -72,7 +73,7 @@ public class ProjectApiController {
   @Autowired private IJobExecutionAdapter rundeckAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
-  @Autowired private RestClient client;
+
 
   @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
@@ -610,7 +611,8 @@ public class ProjectApiController {
 
     if (!leftovers.isEmpty()) {
       String error =
-          String.format("Could not delete all components of project " + " %s - leftovers %s",
+          String.format(
+              "Could not delete all components of project " + " %s - leftovers %s",
               project.projectKey, leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {

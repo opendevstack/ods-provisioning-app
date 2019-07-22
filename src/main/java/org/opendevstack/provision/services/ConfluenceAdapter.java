@@ -165,10 +165,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     String bluePrintId = null;
     String url = String.format(BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Object> blueprints = getSpaceTemplateList(url, new TypeReference<List<Blueprint>>() {});
-
     OpenProjectData project = new OpenProjectData();
     project.projectType = projectTypeKey;
-
     String template =
         retrieveInternalProjectTypeAndTemplateFromProjectType(project)
             .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY);
@@ -282,8 +280,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         || (!project.bugtrackerSpace && project.collaborationSpaceUrl == null)) {
       logger.debug("Project {} not affected from cleanup", project.projectKey);
       return leftovers;
-    } 
-    
+    }
+
     if (project.collaborationSpaceUrl == null) {
       logger.debug("Project {} not affected from cleanup", project.projectKey);
       return new HashMap<>();

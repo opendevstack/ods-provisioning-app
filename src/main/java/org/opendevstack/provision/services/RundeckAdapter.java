@@ -112,7 +112,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       @Value("${rundeck.admin_user}") String adminUser,
       @Value("${rundeck.admin_password}") String adminPassword) {
     super(adminUser, adminPassword);
-
     preAuthContent.put("j_username", userName);
     preAuthContent.put("j_password", userPassword);
   }
@@ -129,8 +128,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     }
 
     initializeJobsForGroup(projectOpenshiftGroup);
-    List<ExecutionsData> executionList = new ArrayList<>();
 
+    List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstarters != null) {
       for (Map<String, String> options : project.quickstarters) {
         String jobId = options.get(OpenProjectData.COMPONENT_TYPE_KEY);
@@ -200,7 +199,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
         logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
         options.put("project_admin", getUserName());
       }
-
       ExecutionsData data = prepareAndExecuteJob(projectCreateOpenshiftJob, options);
 
       // add openshift based links - for jenkins we know the link - hence create the
@@ -242,6 +240,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   /**
    * Get the jobs with a given group from the rundeck server and returns these jobs.
+   *
    * @param group the group
    * @return the jobs that are loaded from the there
    */
@@ -267,8 +266,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     }
     return new ArrayList<>();
   }
-
-
 
   @Override
   public Map<String, String> getProjects(String filter) {

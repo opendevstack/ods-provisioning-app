@@ -60,6 +60,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
@@ -77,8 +78,7 @@ public class RundeckAdapterTest {
   @Autowired @InjectMocks RundeckAdapter rundeckAdapter;
 
   @Mock Client client;
-  @Mock
-  RestClient restClient;
+  @Mock RestClient restClient;
 
   @Captor private ArgumentCaptor<Object> captor;
 
@@ -98,12 +98,12 @@ public class RundeckAdapterTest {
     rundeckAdapter.initializeJobsForGroup(group);
 
     List<Job> jobList = asList(Mockito.mock(Job.class));
-    //when(spyAdaptergetJobsFromServer(any())
+    // when(spyAdaptergetJobsFromServer(any())
     when(jobStore.getJobsByGroup(eq("quickstarts"))).thenReturn(jobList);
 
     int expectedQuickstarterSize = 1;
 
-    int actualQuickstarterSize = rundeckAdapter.getQuickstarters().size();
+    int actualQuickstarterSize = spyAdapter.getQuickstarters().size();
 
     assertEquals(expectedQuickstarterSize, actualQuickstarterSize);
   }
@@ -160,10 +160,9 @@ public class RundeckAdapterTest {
   private void mockRestClientToReturnExecutionData(Class input, Class output)
       throws java.io.IOException {
     Object data = mock(output);
-        when(restClient.callHttp(
-                anyString(), any(input), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any()))
-            .thenReturn(data);
-
+    when(restClient.callHttp(
+            anyString(), any(input), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any()))
+        .thenReturn(data);
     ClientCall clientCall = mock(ClientCall.class);
     HTTP_VERB verb = HTTP_VERB.POST;
     when(client.call(eq(verb))).thenReturn(clientCall);
@@ -208,15 +207,13 @@ public class RundeckAdapterTest {
     options.put("project_admin", userNameFromCrowd);
     execution.setOptions(options);
 
-        // called once -positive
-        Mockito.verify(restClient)
-            .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-     any());
+    // called once -positive
+    Mockito.verify(restClient)
+        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
-        options.put("project_admin", "crowdUsername-WRONG");
-        Mockito.verify(restClient, Mockito.never())
-            .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-     any());
+    options.put("project_admin", "crowdUsername-WRONG");
+    Mockito.verify(restClient, Mockito.never())
+        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
@@ -265,20 +262,19 @@ public class RundeckAdapterTest {
 
     spyAdapter = Mockito.spy(rundeckAdapter);
 
-    //        Mockito.doNothing().when(spyAdapter).authenticate();
+    // Mockito.doNothing().when(spyAdapter).authenticate();
     doReturn(jobs).when(spyAdapter).getJobsFromServer(any());
 
     doReturn(job1).when(jobStore).getJobById(anyString());
 
-        doReturn(execData)
-            .when(restClient)
-            .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+    doReturn(execData)
+        .when(restClient)
+        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
-        spyAdapter.createPlatformProjects(projectData);
+    spyAdapter.createPlatformProjects(projectData);
 
-        Mockito.verify(restClient)
-            .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-     any());
+    Mockito.verify(restClient)
+        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
     Execution execVerify = (Execution) captor.getValue();
     assertNotNull(execVerify);

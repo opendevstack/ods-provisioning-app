@@ -111,10 +111,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         toBeCreated.projectTypeKey = jiraTemplateType;
         toBeCreated.projectTemplateKey = jiraTemplateKey;
         created = this.callJiraCreateProjectApi(toBeCreated);
-        project.projectType =
-            defaultProjectKey; // TODO stefanlack why introduce this side effect to method
-        // parameter?
-
+        project.projectType = defaultProjectKey;
       } else {
         throw jiracreateException;
       }
@@ -126,11 +123,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       throws IOException {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
-    // LeanJiraProject created =
-    //    client.callHttp(path, jiraProject, false, RestClient.HTTP_VERB.POST,
-    // LeanJiraProject.class);
     LeanJiraProject created =
         httpPost().url(path).body(jiraProject).returnType(LeanJiraProject.class).execute();
+
     return created;
   }
 
@@ -184,8 +179,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             permissionFile.getFilename());
 
         String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-        // singleScheme = restClient.callHttp(path, singleScheme, true, RestClient.HTTP_VERB.POST,
-        // PermissionScheme.class);
         singleScheme =
             httpPost()
                 .url(path)
@@ -199,6 +192,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
+        // client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
         httpPut().body(small).url(path).returnType(null).execute();
 
         updatedPermissions++;
@@ -260,7 +254,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   // refactor - to only look for the project by key that is to be created!
   public Map<String, String> getProjects(String filter) {
-
     logger.debug("Getting jira projects with filter {}", filter);
     String url =
         filter == null || filter.trim().length() == 0
@@ -268,7 +261,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
 
     try {
-
       List<LeanJiraProject> projects =
           httpGet()
               .url(url)
@@ -282,6 +274,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   @Override
+
   public int addShortcutsToProject(OpenProjectData data) {
     if (!data.bugtrackerSpace) {
       return -1;
@@ -519,9 +512,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       if (project.specialPermissionSet) {
         String permissionSchemeUrl = String.format("%s/permissionscheme", jiraProjectPath);
 
-        //        PermissionSchemeResponse permissionScheme =
-        //            client.callHttp(permissionSchemeUrl, null, false, HTTP_VERB.GET,
-        // PermissionSchemeResponse.class);
         PermissionSchemeResponse permissionScheme =
             httpGet().url(permissionSchemeUrl).returnType(PermissionSchemeResponse.class).execute();
         if (permissionScheme.getName().contains(project.projectKey)) {
@@ -541,12 +531,13 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             String.format(
                 "%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
-        // restClient.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
+        // client.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
         httpDelete().url(jiraPermissionSchemePath).returnType(null).execute();
       }
 
-      // restClient.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
+      // client.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
       httpDelete().url(jiraProjectPath).returnType(null).execute();
+
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
       logger.error("Could not cleanup jira: ", cex);

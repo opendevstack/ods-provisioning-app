@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -186,11 +185,16 @@ public class E2EProjectAPIControllerTest {
 
     // jira server create project response
     LeanJiraProject jiraProject =
-        readTestData("jira-create-project-response",   LeanJiraProject.class);
+        readTestData("jira-create-project-response", LeanJiraProject.class);
 
-    Mockito.when(mockRestClient.callHttp(contains(realJiraAdapter.getAdapterApiUri() + "/project"),
-        any(FullJiraProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(LeanJiraProject.class))).thenReturn(jiraProject);
+    Mockito.when(
+            mockRestClient.callHttp(
+                contains(realJiraAdapter.getAdapterApiUri() + "/project"),
+                any(FullJiraProject.class),
+                anyBoolean(),
+                eq(RestClient.HTTP_VERB.POST),
+                eq(LeanJiraProject.class)))
+        .thenReturn(jiraProject);
 
     // session id
     Mockito.doNothing().when(mockRestClient).getSessionId(null);

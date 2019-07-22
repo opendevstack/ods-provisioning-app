@@ -18,141 +18,127 @@ import java.util.Map;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.atlassian.crowd.exception.GroupNotFoundException;
-import com.atlassian.crowd.integration.soap.SOAPGroup;
 
 /**
  * Identity mgmt adapter to create / validate groups
- * 
- * @author utschig,stefanlack
  *
+ * @author utschig
+ * @author utschig,stefanlack
  */
 @Service
 public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter {
   private static final Logger logger =
       LoggerFactory.getLogger(CrowdProjectIdentityMgmtAdapter.class);
 
-    @Autowired
-    IODSAuthnzAdapter manager;
+  @Autowired IODSAuthnzAdapter manager;
 
   public void validateIdSettingsOfProject(OpenProjectData project) throws IdMgmtException {
-        Map<String, String> projectCheckStatus = new HashMap<>();
+    Map<String, String> projectCheckStatus = new HashMap<>();
 
-        long startTime = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();
 
     if (!groupExists(project.projectAdminGroup)) {
-            projectCheckStatus.put("adminGroup", project.projectAdminGroup);
-        }
+      projectCheckStatus.put("adminGroup", project.projectAdminGroup);
+    }
     if (!groupExists(project.projectUserGroup)) {
-            projectCheckStatus.put("userGroup", project.projectUserGroup);
-        }
+      projectCheckStatus.put("userGroup", project.projectUserGroup);
+    }
     if (!groupExists(project.projectReadonlyGroup)) {
       projectCheckStatus.put("readonlyGroup", project.projectReadonlyGroup);
-        }
+    }
     if (!userExists(project.projectAdminUser)) {
-            projectCheckStatus.put("admin", project.projectAdminUser);
-        }
+      projectCheckStatus.put("admin", project.projectAdminUser);
+    }
 
     logger.debug("identityCheck Name took (ms): {}", System.currentTimeMillis() - startTime);
 
     if (!projectCheckStatus.isEmpty()) {
-            throw new IdMgmtException(
+      throw new IdMgmtException(
           "Identity check failed - these groups don't exist! " + projectCheckStatus);
-        }
     }
+  }
 
-    @Override
-    @SuppressWarnings("squid:S1193")
+  @Override
+  @SuppressWarnings("squid:S1193")
   public boolean groupExists(String groupName) {
     if (groupName == null || groupName.trim().length() == 0) {
-            return true;
-        }
-        long startTime = System.currentTimeMillis();
-        try {
-            boolean exists = manager.existsGroupWithName(groupName);
-            if (!exists) {
-                logger.error("group {0} does not exist!", groupName);
-            }
-            return exists;
-        } finally {
-            logger.debug(
-                    "existsGroupWithName by Name took (ms): {}", System.currentTimeMillis() - startTime);
-        }
+      return true;
     }
+    long startTime = System.currentTimeMillis();
+    try {
+      boolean exists = manager.existsGroupWithName(groupName);
+      if (!exists) {
+        logger.error("group {0} does not exist!", groupName);
+      }
+      return exists;
+    } finally {
+      logger.debug(
+          "existsGroupWithName by Name took (ms): {}", System.currentTimeMillis() - startTime);
+    }
+  }
 
-
-
-    @Override
-    @SuppressWarnings("squid:S1193")
+  @Override
+  @SuppressWarnings("squid:S1193")
   public boolean userExists(String userName) {
-        if (userName == null || userName.trim().length() == 0)
-            return true;
+    if (userName == null || userName.trim().length() == 0) return true;
 
-        long startTime = System.currentTimeMillis();
-        try {
-            boolean exists = manager.existPrincipalWithName(userName);
-            if (!exists) {
-                logger.error("principal {0} does not exist!", userName);
-            }
-            return exists;
+    long startTime = System.currentTimeMillis();
+    try {
+      boolean exists = manager.existPrincipalWithName(userName);
+      if (!exists) {
+        logger.error("principal {0} does not exist!", userName);
+      }
+      return exists;
     } finally {
       logger.debug("findPrincipal by Name took (ms): {}", System.currentTimeMillis() - startTime);
-        }
     }
+  }
 
-    @Override
+  @Override
   public String createUserGroup(String projectName) throws IdMgmtException {
-        return createGroupInternal(projectName);
-    }
+    return createGroupInternal(projectName);
+  }
 
-    @Override
+  @Override
   public String createAdminGroup(String projectName) throws IdMgmtException {
-        return createGroupInternal(projectName);
-    }
+    return createGroupInternal(projectName);
+  }
 
-    @Override
+  @Override
   public String createReadonlyGroup(String projectName) throws IdMgmtException {
-        return createGroupInternal(projectName);
-    }
+    return createGroupInternal(projectName);
+  }
 
   String createGroupInternal(String groupName) throws IdMgmtException {
-        if (groupName == null || groupName.trim().length() == 0)
-            throw new IdMgmtException("Cannot create a null group!");
+    if (groupName == null || groupName.trim().length() == 0)
+      throw new IdMgmtException("Cannot create a null group!");
 
-        try
-        {
-            return manager
-                    .addGroup(groupName);
+    try {
+      return manager.addGroup(groupName);
     } catch (Exception eAddGroup) {
       logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
-            throw new IdMgmtException(eAddGroup);
-        }
+      throw new IdMgmtException(eAddGroup);
     }
+  }
 
-    @Override
-    public String getAdapterApiUri()
-    {
-        return manager.getAdapterApiUri();
+  @Override
+  public String getAdapterApiUri() {
+    return manager.getAdapterApiUri();
+  }
 
-    }
-
-    @Override
+  @Override
   public Map<String, String> getProjects(String filter) {
-        return new HashMap<>();
-    }
+    return new HashMap<>();
+  }
 
-    @Override
-  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
-      OpenProjectData project) {
-        return new HashMap<>();
-    }
-
+  @Override
+  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
+      LIFECYCLE_STAGE stage, OpenProjectData project) {
+    return new HashMap<>();
+  }
 }

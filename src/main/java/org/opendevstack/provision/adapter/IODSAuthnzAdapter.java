@@ -20,57 +20,55 @@ import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Interface to wrap all (current) user based identity calls
- * 
+ *
  * @author utschig
  */
 public interface IODSAuthnzAdapter {
-    /**
-     * Get the password from the logged in user
-     *
-     * @return password for the logged in user
-     */
-    public String getUserPassword();
+  /**
+   * Get the password from the logged in user
+   *
+   * @return password for the logged in user
+   */
+  public String getUserPassword();
 
-    /**
-     * Get the username of the currently logged in used
-   * 
-     * @return the username
-     */
+  /**
+   * Get the username of the currently logged in used
+   *
+   * @return the username
+   */
   public String getUserName();
 
-    /**
+  /**
    * Get the user token, e.g. cookie of the currently logged in user
-   * 
-     * @return the user's session token
-     */
+   *
+   * @return the user's session token
+   */
   public String getToken();
 
-    /**
-     * Get all granted authorities of the current user
-   * 
-     * @return granted authorities, never null
-     */
-    public Collection<? extends GrantedAuthority> getAuthorities ();
+  /**
+   * Get all granted authorities of the current user
+   *
+   * @return granted authorities, never null
+   */
+  public Collection<? extends GrantedAuthority> getAuthorities();
 
-    /**
-   * Get the currently logged' in user's email
-     */
+  /** Get the currently logged' in user's email */
   public String getUserEmail();
 
-    /**
-     * Invalidate the currently logged' in identity
-   * 
-     * @throws Exception in case the identity cannot be invalidated
-     */
-    public void invalidateIdentity() throws Exception;
+  /**
+   * Invalidate the currently logged' in identity
+   *
+   * @throws Exception in case the identity cannot be invalidated
+   */
+  public void invalidateIdentity() throws Exception;
 
-    void setUserPassword(String userPassword);
+  void setUserPassword(String userPassword);
 
-    boolean existsGroupWithName(String groupName);
+  boolean existsGroupWithName(String groupName);
 
-    boolean existPrincipalWithName(String userName);
+  boolean existPrincipalWithName(String userName);
 
-    String addGroup(String groupName) throws IdMgmtException;
+  String addGroup(String groupName) throws IdMgmtException;
 
-    String getAdapterApiUri();
+  String getAdapterApiUri();
 }
