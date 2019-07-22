@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,12 +20,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,8 +37,13 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.bitbucket.Link;
+import org.opendevstack.provision.model.bitbucket.RepositoryData;
+import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
+import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.RestClient;
@@ -52,10 +57,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
-import com.atlassian.jira.rest.client.domain.BasicUser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -69,8 +73,8 @@ public class JiraAdapterTests {
 
   @Mock
   CrowdUserDetailsService service;
-  
-  List<FullJiraProject> projects = new ArrayList<>();
+
+  List<LeanJiraProject> projects = new ArrayList<>();
 
   @Mock
   RestClient client;
@@ -81,16 +85,16 @@ public class JiraAdapterTests {
   @Autowired
   @InjectMocks
   JiraAdapter jiraAdapter;
-  
+
   @Autowired
   Environment env;
 
   @Value("${project.template.default.key}")
-  private String defaultProjectKey;  
-  
+  private String defaultProjectKey;
+
   @Autowired
   List<String> projectTemplateKeyNames;
-  
+
   @Before
   public void initTests() {
     MockitoAnnotations.initMocks(this);
@@ -101,7 +105,7 @@ public class JiraAdapterTests {
   public void createJiraProjectForProject() throws Exception {
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    
+
     assertEquals("10000", spyAdapter.jiraNotificationSchemeId);
 
     // delete in case it already exists
@@ -117,50 +121,50 @@ public class JiraAdapterTests {
     when(authentication.getPrincipal()).thenReturn(details);
 
     when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
-    
+
     Mockito.doNothing().when(client).getSessionId(null);
-    
+
     when(details.getUsername()).thenReturn("achmed");
     when(details.getFullName()).thenReturn("achmed meyer");
 
-    when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-            eq(FullJiraProject.class))).thenReturn(getReturnProject());
+    when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), eq(LeanJiraProject.class))).thenReturn(getReturnProject());
 
-    ProjectData createdProject =
-        spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);   
-    
-    assertEquals(getTestProject(name).key, createdProject.key);
-    assertEquals(getTestProject(name).name, createdProject.name);
+    OpenProjectData createdProject =
+        spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
+
+    assertEquals(getTestProject(name).projectKey, createdProject.projectKey);
+    assertEquals(getTestProject(name).projectName, createdProject.projectName);
     // default template
     assertEquals(defaultProjectKey, createdProject.projectType);
-    
+
     // new template
-    ProjectData templateProject = getTestProject(name);
-    templateProject.projectType="newTemplate";
-    
+    OpenProjectData templateProject = getTestProject(name);
+    templateProject.projectType = "newTemplate";
+
     projectTemplateKeyNames.add("newTemplate");
-    spyAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "templateKey");
-    spyAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate", "templateType");
-    
-    ProjectData createdProjectWithNewTemplate =
-        spyAdapter.createJiraProjectForProject(templateProject, crowdCookieValue);   
-    
-    assertEquals(templateProject.key, createdProjectWithNewTemplate.key);
-    assertEquals(templateProject.name, createdProjectWithNewTemplate.name);
+    spyAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate",
+        "templateKey");
+    spyAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate",
+        "templateType");
+
+    OpenProjectData createdProjectWithNewTemplate =
+        spyAdapter.createBugtrackerProjectForODSProject(templateProject);
+
+    assertEquals(templateProject.projectKey, createdProjectWithNewTemplate.projectKey);
+    assertEquals(templateProject.projectName, createdProjectWithNewTemplate.projectName);
     assertEquals("newTemplate", createdProjectWithNewTemplate.projectType);
 
     HttpException thrownEx = null;
-    try 
-    {
-        HttpException ioEx = new HttpException(300, "testerror");
-        
-        when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), any(RestClient.HTTP_VERB.class),
-              eq(FullJiraProject.class))).thenThrow(ioEx);
+    try {
+      HttpException ioEx = new HttpException(300, "testerror");
 
-      spyAdapter.createJiraProjectForProject(getTestProject(name), crowdCookieValue);
-    } catch (HttpException e) 
-    {
-    	thrownEx = e;
+      when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+          any(RestClient.HTTP_VERB.class), eq(LeanJiraProject.class))).thenThrow(ioEx);
+
+      spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
+    } catch (HttpException e) {
+      thrownEx = e;
     }
     assertNotNull(thrownEx);
     assertEquals(300, thrownEx.getResponseCode());
@@ -169,163 +173,196 @@ public class JiraAdapterTests {
   @Test
   public void callJiraCreateProjectApi() throws IOException {
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    String crowdCookieValue = "value";
-    FullJiraProject expectedProject = new FullJiraProject();
+    LeanJiraProject expectedProject = new LeanJiraProject();
+    expectedProject.key = "1";
 
-    when(client.callHttp(anyString(), any(FullJiraProject.class), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-            eq(FullJiraProject.class))).thenReturn(expectedProject);
+    when(client.callHttp(anyString(), any(FullJiraProject.class), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), eq(LeanJiraProject.class))).thenReturn(expectedProject);
 
-    FullJiraProject createdProject = spyAdapter.callJiraCreateProjectApi(expectedProject, crowdCookieValue);
-
-    assertEquals(expectedProject, createdProject);
+    assertNotNull(spyAdapter.callJiraCreateProjectApi(new FullJiraProject()));
+    
   }
 
   @Test
-  public void buildJiraProjectPojoFromApiProject() throws Exception
-  {
-    ProjectData apiInput = getTestProject("TestProject");
-    apiInput.key = "TestP";
+  public void buildJiraProjectPojoFromApiProject() throws Exception {
+    OpenProjectData apiInput = getTestProject("TestProject");
+    apiInput.projectKey = "TestP";
 
     FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
-    
-    assertEquals(apiInput.name, fullJiraProject.getName());
-    assertEquals(apiInput.key, fullJiraProject.getKey());
+
+    assertEquals(apiInput.projectName, fullJiraProject.getName());
+    assertEquals(apiInput.projectKey, fullJiraProject.getKey());
     assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
     assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
-    
+
     apiInput.projectType = "notFound";
     fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
     assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
     assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
-    
+
     apiInput.projectType = "newTemplate";
 
     // set them adhoc
     projectTemplateKeyNames.add("newTemplate");
-    
-    jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate", "template");
-    jiraAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate", "templateType");
+
+    jiraAdapter.environment.getSystemProperties().put("jira.project.template.key.newTemplate",
+        "template");
+    jiraAdapter.environment.getSystemProperties().put("jira.project.template.type.newTemplate",
+        "templateType");
     fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
     assertEquals("template", fullJiraProject.projectTemplateKey);
     assertEquals("templateType", fullJiraProject.projectTypeKey);
-    
+
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    
+
   }
 
   @Test
   public void buildProjectKey() {
     String shortName = "shrt";
-    
+
     assertEquals("SHRT", jiraAdapter.buildProjectKey(shortName));
   }
 
   @Test
-  public void projectExists() throws Exception
-  {
+  public void projectExists() throws Exception {
     String projectNameTrue = "TESTP";
     String projectNameFalse = "TESTP_FALSE";
 
-    ProjectData apiInput = getTestProject(projectNameTrue);
-    apiInput.key = projectNameTrue;
+    OpenProjectData apiInput = getTestProject(projectNameTrue);
+    apiInput.projectKey = projectNameTrue;
 
-    FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    LeanJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
     projects.add(fullJiraProject);
+    Map<String, String> keys = jiraAdapter.convertJiraProjectToKeyMap(projects);
 
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
     Mockito.doNothing().when(client).getSessionId(null);
-    Mockito.doReturn(projects).when(mocked).getProjects("CookieValue", projectNameTrue);
+    Mockito.doReturn(keys).when(mocked).getProjects(projectNameTrue);
 
-    assertTrue(mocked.keyExists(projectNameTrue, "CookieValue"));
+    assertTrue(mocked.projectKeyExists(projectNameTrue));
 
     projects.clear();
-    Mockito.doReturn(projects).when(mocked).getProjects("CookieValue", projectNameFalse);
-    assertFalse(mocked.keyExists(projectNameFalse, "CookieValue"));
+    Mockito.doReturn(keys).when(mocked).getProjects(projectNameFalse);
+    assertFalse(mocked.projectKeyExists(projectNameFalse));
   }
 
   @Test
-  public void testCreatePermissions () throws Exception 
-  {
+  public void testCreatePermissions() throws Exception {
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
-	Mockito.doNothing().when(client).getSessionId(null);
+    Mockito.doNothing().when(client).getSessionId(null);
 
     String projectNameTrue = "TESTP";
-    ProjectData apiInput = getTestProject(projectNameTrue);
-    apiInput.key = projectNameTrue;
+    OpenProjectData apiInput = getTestProject(projectNameTrue);
+    apiInput.projectKey = projectNameTrue;
 
-    apiInput.admin = "Clemens";
-    apiInput.adminGroup = "AdminGroup";
-    apiInput.userGroup = "UserGroup";
-    apiInput.readonlyGroup = "ReadonlyGroup";
-    
+    apiInput.projectAdminUser = "Clemens";
+    apiInput.projectAdminGroup = "AdminGroup";
+    apiInput.projectUserGroup = "UserGroup";
+    apiInput.projectReadonlyGroup = "ReadonlyGroup";
+
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
-    
-    when(client.callHttp(anyString(),
-            any(),
-            anyString(), anyBoolean(),
-            eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class))).
-    	thenReturn(scheme);
-    
-	int updates = mocked.createPermissions(apiInput, "crowdCookieValue");
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-            any(),
-            anyString(), anyBoolean(),
-            eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class));
+    when(client.callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+        eq(PermissionScheme.class))).thenReturn(scheme);
 
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-            any(),
-            anyString(), anyBoolean(),
-            eq(RestClient.HTTP_VERB.PUT), eq(FullJiraProject.class));
-    
+    int updates = mocked.createPermissions(apiInput);
+
+    // create the permission scheme
+    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), eq(PermissionScheme.class));
+
+    // update the project
+    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(), any(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.PUT), eq(null));
+
     assertEquals(1, updates);
   }
 
   @Test
-  public void testCreateShortcuts () throws Exception 
-  {
+  public void testCreateShortcuts() throws Exception {
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
     RestClient restClientMocket = Mockito.spy(RestClient.class);
-    ProjectData apiInput = getTestProject("testproject");
-    
-    int shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
-    
+    OpenProjectData apiInput = getTestProject("testproject");
+
+    int shortcutsAdded = mocked.addShortcutsToProject(apiInput);
+
     assertEquals(5, shortcutsAdded);
-    
-    Mockito.verify(client, Mockito.times(5)).callHttp(anyString(),
-        any(),
-        anyString(), anyBoolean(),
+
+    Mockito.verify(client, Mockito.times(5)).callHttp(anyString(), any(), anyBoolean(),
         eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
-    
-    apiInput.jiraconfluencespace = false;
+
+    apiInput.bugtrackerSpace = false;
     mocked = Mockito.spy(jiraAdapter);
     mocked.client = Mockito.spy(RestClient.class);
-    shortcutsAdded = mocked.addShortcutsToProject(apiInput, "test");
+    shortcutsAdded = mocked.addShortcutsToProject(apiInput);
     assertEquals(-1, shortcutsAdded);
-        
-    Mockito.verify(mocked.client, Mockito.never()).callHttp(anyString(),
-        any(),
-        anyString(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
-    
-  }
-  
-  public static ProjectData getTestProject(String name) {
-    ProjectData apiInput = new ProjectData();
-    BasicUser admin = new BasicUser(null, "testuser", "test user");
 
-    apiInput.admins = new ArrayList<>();
-    apiInput.admins.add(admin);
-    apiInput.name = name;
+    Mockito.verify(mocked.client, Mockito.never()).callHttp(any(), anyString(), anyBoolean(),
+        eq(RestClient.HTTP_VERB.POST), eq(Shortcut.class));
+
+  }
+
+  public static OpenProjectData getTestProject(String name) {
+    OpenProjectData apiInput = new OpenProjectData();
+    apiInput.projectName = name;
     apiInput.description = "Test Description";
-    apiInput.key = "TESTP";
-    apiInput.admin = "Clemens";
+    apiInput.projectKey = "TESTP";
+    apiInput.projectAdminUser = "Clemens";
     return apiInput;
   }
 
-  private FullJiraProject getReturnProject() {
-    return new FullJiraProject(URI.create("http://localhost"), "TESTP", null, null, null, null,
-        null, null, null, null, null, null, null);
+  @Test
+  public void testComponentCreation() throws Exception {
+    TypeReference reference = new TypeReference<Map<String, Map<String, List<Link>>>>() {};
+
+    Map<String, Map<String, List<Link>>> repos = new ObjectMapper().readValue(Thread.currentThread()
+        .getContextClassLoader().getResourceAsStream("data/repositoryTestData.txt"), reference);
+
+    String repoName = "ai00000001-fe-angular";
+
+    RepositoryData legacyRepoData = new RepositoryData();
+    legacyRepoData.setName(repoName);
+    legacyRepoData.setLinks(repos.get(repoName));
+
+    JiraAdapter mocked = Mockito.spy(jiraAdapter);
+    OpenProjectData apiInput = getTestProject("ai00000001");
+    apiInput.projectKey = "ai00000001";
+
+    Map<String, Map<URL_TYPE, String>> openDataRepo = new HashMap<>();
+
+    openDataRepo.put(legacyRepoData.getName(), legacyRepoData.convertRepoToOpenDataProjectRepo());
+    apiInput.repositories = openDataRepo;
+
+    Map<String, String> created = mocked.createComponentsForProjectRepositories(apiInput);
+
+    Mockito.verify(client, Mockito.times(1)).callHttp(endsWith("/rest/api/latest/component"),
+        any(Component.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST), isNull());
+
+    assertEquals(1, created.size());
+    Map.Entry<String, String> entry = created.entrySet().iterator().next();
+
+    assertEquals("Technology-fe-angular", entry.getKey());
+    assertTrue(entry.getValue().contains("https://bb/projects/test/repos/test-fe-angular/browse"));
+
+    // test with uppercase projects
+    apiInput = getTestProject("Ai00000001");
+    apiInput.projectKey = "Ai00000001";
+    apiInput.repositories = openDataRepo;
+
+    created = mocked.createComponentsForProjectRepositories(apiInput);
+    assertEquals(1, created.size());
+    entry = created.entrySet().iterator().next();
+    assertEquals("Technology-fe-angular", entry.getKey());
+
+    // test with component creation == false
+    mocked.createJiraComponents = false;
+    created = mocked.createComponentsForProjectRepositories(apiInput);
+    assertEquals(0, created.size());
+  }
+
+  private LeanJiraProject getReturnProject() {
+    return new LeanJiraProject(URI.create("http://localhost"), "TESTP", null, null, null, null, null);
   }
 }

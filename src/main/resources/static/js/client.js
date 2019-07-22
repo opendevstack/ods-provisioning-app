@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
  * @author Torsten Jaeschke
  */
 
-var projectAPiUrl = "/api/v1/project";
+var projectAPiUrl = "/api/v2/project";
 var quickstarterAPIUrl = "api/v1/quickstarter";
 var quickstarterCount = 1;
 var quickStarters;
@@ -108,8 +108,8 @@ $(document).ready(function(){
 	  }
   });
 		  
-  $("#createpermissionset").change(function() {
-    if ( $( "#createpermissionset" )[0] .checked)
+  $("#specialPermissionSet").change(function() {
+    if ( $( "#specialPermissionSet" )[0] .checked)
     {
         $( "#urgroupdiv" ).removeClass("hidden");
         $( "#ugroupdiv" ).removeClass("hidden");
@@ -179,27 +179,29 @@ $(document).ready(function(){
       $("#modifySubmit").prop("disabled", false);
       var url= projectAPiUrl+'/'+$(this).val();
       $.get(url, function (data) {
+          console.log(data)
         if(data != null) {
-          if(data.quickstart != null) {
+          if(data.quickstarters != null) {
             html = "";
-            for(var obj in data.quickstart) {
+            for(var obj in data.quickstarters) {
               html+="<tr>";
-              html+="<td>"+data.quickstart[obj].component_description+"</td>";
-              html+="<td>"+data.quickstart[obj].component_id+"</td>";
+              html+="<td>"+data.quickstarters[obj].component_description+"</td>";
+              html+="<td>"+data.quickstarters[obj].component_id+"</td>";
               html+="<tr>";
-              nameCompare[data.quickstart[obj].component_type] = data.quickstart[obj].component_id;
+              nameCompare[data.quickstarters[obj].component_type] = data.quickstarters[obj].component_id;
             }
+            console.log(html)
             $("#quickstartRow").html(html);
             $( "#quickstartTable" ).removeClass("hidden");
           }
           
           // tick checkbox based on project created true false
-          $('#jiraconfluencespaceInfo').prop('checked',data.jiraconfluencespace);
+          $('#jiraconfluencespaceInfo').prop('checked',data.bugtrackerSpace);
 
           // tick checkbox based on project created true false
-          $('#openshiftProjectInfo').prop('checked',data.openshiftproject);
+          $('#openshiftProjectInfo').prop('checked',data.platformRuntime);
           // only allow upgrade if modifyable == true
-          if (data.openshiftproject == false && $('#openshiftProjectInfo').prop('modifyable') == true) {
+          if (data.platformRuntime == false && $('#openshiftProjectInfo').prop('modifyable') == true) {
         	  // allow people to change it - update will take care about this
         	  $("#openshiftProjectInfo").removeClass("disable");
         	  $("#openshiftProjectInfo").prop("disabled", false);
@@ -328,8 +330,8 @@ $(document).ready(function(){
   });
 
   //automatic key generation
-  $(document).on('keyup', "#name", function () {
-    if($("#key").val().trim() == "") {
+  $(document).on('keyup', "#projectName", function () {
+    if($("#projectKey").val().trim() == "") {
       clearTimeout($(this).data('timeout'));
       var _self = this;
       $(this).data('timeout', setTimeout(function () {
@@ -337,7 +339,7 @@ $(document).ready(function(){
         $.get(projectAPiUrl+'/key/generate', {
           name: _self.value
         }, function (data) {
-            $("#key").val(data.key);
+            $("#projectKey").val(data.projectKey);
         }, "json");
 
       }, 1000));
@@ -345,10 +347,10 @@ $(document).ready(function(){
   });
 
   //transform input to uppercase
-  $(document).on('keyup', "#key", function () {
-    if($("#key").val().trim() != "") {
-      var val = $("#key").val().trim();
-      $("#key").val(val.toUpperCase());
+  $(document).on('keyup', "#projectKey", function () {
+    if($("#projectKey").val().trim() != "") {
+      var val = $("#projectKey").val().trim();
+      $("#projectKey").val(val.toUpperCase());
     }
   });
 
@@ -371,31 +373,31 @@ function isUniqueComponentId(newCompId,elName) {
 
 //add summarization to modal html
 function summarize(data) {
-  $("#dataProjectName").html(data.name);
-  $("#dataProjectKey").html(data.key);
+  $("#dataProjectName").html(data.projectName);
+  $("#dataProjectKey").html(data.projectKey);
   
-  $("#dataJiraConfluenceCreated").text(data.jiraconfluencespace);
+  $("#dataJiraConfluenceCreated").text(data.bugtrackerSpace);
   
   // this is for the default case where spaces should be created.
-  if (data.jiraconfluencespace) 
+  if (data.bugtrackerSpace) 
   {
-	  $("#dataJiraUrl").html("<a href='" + data.jiraUrl+"' target='_blank'>" + data.jiraUrl +"</a>");
-	  $("#dataConfluenceUrl").html("<a href='" + data.confluenceUrl+"' target='_blank'>" + data.confluenceUrl +"</a>");
+	  $("#dataJiraUrl").html("<a href='" + data.jiraUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
+	  $("#dataConfluenceUrl").html("<a href='" + data.confluenceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
   } else 
   {
   	  $("#dataJiraUrlDiv").hide();
   	  $("#dataConfluenceUrlDiv").hide();
   }
 
-  if (data.lastJobs != null) {
-	 console.log("jobs found: " + data.lastJobs + " length: " + data.lastJobs.length);
+  if (data.lastExecutionJobs != null) {
+	 console.log("jobs found: " + data.lastExecutionJobs + " length: " + data.lastExecutionJobs.length);
      html = "";
-     if (data.lastJobs.length == 0) {
-		 html += "<a href='" + data.lastJobs +"' target='_blank'>" + data.lastJobs +"</a></br>";
+     if (data.lastExecutionJobs.length == 0) {
+		 html += "<a href='" + data.lastExecutionJobs +"' target='_blank'>" + data.lastExecutionJobs +"</a></br>";
      } 
      else {
-    	 for (var jobId = 0; jobId < data.lastJobs.length; jobId++) {
-    		 var jobUrl = data.lastJobs[jobId];
+    	 for (var jobId = 0; jobId < data.lastExecutionJobs.length; jobId++) {
+    		 var jobUrl = data.lastExecutionJobs[jobId];
     		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br>";
     		 console.log(html)
     	 } 
@@ -404,11 +406,11 @@ function summarize(data) {
 	 $("#dataJobUrls").html(html);
   }
 
-  if (data.openshiftproject) 
+  if (data.platformRuntime) 
   {
 	  // this was moved, in case of jira / confluence only - no more bitbucket
-	  $("#dataBitbucketUrl").html("<a href='" + data.bitbucketUrl+"' target='_blank'>" + data.bitbucketUrl +"</a>");
-	  $("#dataJenkinsUrl").html("<a href='" + data.openshiftJenkinsUrl + "' target='_blank'>" + data.openshiftJenkinsUrl +"</a>");
+	  $("#dataBitbucketUrl").html("<a href='" + data.scmvcsUrl+"' target='_blank'>" + data.scmvcsUrl +"</a>");
+	  $("#dataJenkinsUrl").html("<a href='" + data.platformBuildEngineUrl + "' target='_blank'>" + data.platformBuildEngineUrl +"</a>");
   } else 
   {
   	  $("#dataJenkinsUrlDiv").hide();
@@ -447,13 +449,13 @@ function objectifyForm(formArray) {//serialize data function
           quickstartArray[id]["checked"] = formArray[i]['value'];
         }
         //quickstartArray[i].push(formArray[i]);
-      } else if ((formArray[i]['name']).startsWith("jiraconfluencespace")) {
+      } else if ((formArray[i]['name']).startsWith("bugtrackerSpace")) {
         // this is only the case if checkbox checked
         createJiraConfluenceSpace = true;
-      } else if ((formArray[i]['name']).startsWith("openshiftproject")) {
+      } else if ((formArray[i]['name']).startsWith("platformRuntime")) {
         // this is only the case if checkbox checked
     	createOpenshiftproject = true;
-      } else if ((formArray[i]['name']).startsWith("createpermissionset")) {
+      } else if ((formArray[i]['name']).startsWith("specialPermissionSet")) {
           // this is only the case if checkbox checked
     	createPermissionset = true;
       } else {
@@ -462,20 +464,20 @@ function objectifyForm(formArray) {//serialize data function
   }
   
   // add jira confluence space and openshift project creation trigger
-  returnArray["jiraconfluencespace"] = createJiraConfluenceSpace;
-  returnArray["openshiftproject"] = createOpenshiftproject;
-  returnArray["createpermissionset"] = createPermissionset;
+  returnArray["bugtrackerSpace"] = createJiraConfluenceSpace;
+  returnArray["platformRuntime"] = createOpenshiftproject;
+  returnArray["specialPermissionSet"] = createPermissionset;
   
   if(inputName != "") {
     returnArray[inputName] = array;
   }
   
-  returnArray["quickstart"] = [];
+  returnArray["quickstarters"] = [];
   for (var prop in quickstartArray) {
     if(quickstartArray[prop].checked != null) {
       delete quickstartArray[prop].checked;
       if(quickstartArray[prop].component_id != "" && quickstartArray[prop].component_type != "") {
-        returnArray["quickstart"].push(quickstartArray[prop]);
+        returnArray["quickstarters"].push(quickstartArray[prop]);
       }
     }
   }

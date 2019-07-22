@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,24 +17,16 @@ package org.opendevstack.provision.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
+import org.opendevstack.provision.adapter.ICollaborationAdapter;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -45,39 +37,35 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DefaultController {
-
   StorageAdapter storageAdapter;
 
-  CustomAuthenticationManager manager;
+  IODSAuthnzAdapter manager;
 
-  private RundeckAdapter rundeckAdapter;
+  private IJobExecutionAdapter rundeckAdapter;
 
-  private JiraAdapter jiraAdapter;
+  private IBugtrackerAdapter jiraAdapter;
 
-  private BitbucketAdapter bitbucketAdapter;
+  private ISCMAdapter bitbucketAdapter;
 
   @Autowired
-  private ConfluenceAdapter confluenceAdapter;
+  private ICollaborationAdapter confluenceAdapter;
 
   private static final String LOGIN_REDIRECT = "redirect:/login";
-  
+
   private static final String ACTIVE = "active";
-  
+
   @Value("${crowd.user.group}")
   private String crowdUserGroup;
-  
+
   @Value("${crowd.admin.group}")
   private String crowdAdminGroup;
 
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
-  
+
   @Autowired
   List<String> projectTemplateKeyNames;
-  
-  @Value("${crowd.sso.cookie.name}")
-  private String crowdCookieKey;
-  
+
   @RequestMapping("/")
   String rootRedirect() {
     return "redirect:/home";
@@ -92,22 +80,21 @@ public class DefaultController {
     return "home";
   }
 
-    @RequestMapping("/provision")
-    String provisionProject(Model model, Authentication authentication, @CookieValue(value = "crowd.token_key", required = false) String crowdCookie, HttpServletRequest request)
-    {
-        if(!isAuthenticated()) {
-            return LOGIN_REDIRECT;
-        } else {
-            model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
-            model.addAttribute("quickStarter", rundeckAdapter.getQuickstarter());
-            model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
-            model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
-            model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
-            model.addAttribute("projectTypes", projectTemplateKeyNames);
-        }
-        model.addAttribute("classActiveNew", ACTIVE);
-        return "provision";
+  @RequestMapping("/provision")
+  String provisionProject(Model model) {
+    if (!isAuthenticated()) {
+      return LOGIN_REDIRECT;
+    } else {
+      model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
+      model.addAttribute("quickStarter", rundeckAdapter.getQuickstarters());
+      model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
+      model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
+      model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
+      model.addAttribute("projectTypes", projectTemplateKeyNames);
     }
+    model.addAttribute("classActiveNew", ACTIVE);
+    return "provision";
+  }
 
   @RequestMapping("/login")
   String login(Model model) {
@@ -134,10 +121,10 @@ public class DefaultController {
 
     // add endpoint map
     Map<String, String> endpoints = new HashMap<>();
-    endpoints.put("JIRA", jiraAdapter.getEndpointUri());
-    endpoints.put("GIT", bitbucketAdapter.getEndpointUri());
-    endpoints.put("RUNDECK", rundeckAdapter.getRundeckAPIPath());
-    endpoints.put("CONFLUENCE", confluenceAdapter.getConfluenceAPIPath());
+    endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
+    endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
+    endpoints.put("RUNDECK", rundeckAdapter.getAdapterApiUri());
+    endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
 
     model.addAttribute("endpointMap", endpoints);
 
@@ -147,11 +134,10 @@ public class DefaultController {
   }
 
   @RequestMapping(value = "/logout", method = RequestMethod.GET)
-  public String logoutPage(HttpServletRequest request, HttpServletResponse response) {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth != null) {
-      manager.setUserPassword(null);
-      new SecurityContextLogoutHandler().logout(request, response, auth);
+  public String logoutPage() {
+    try {
+      manager.invalidateIdentity();
+    } catch (Exception eAllLogout) {
     }
     return "redirect:/login?logout";
   }
@@ -161,14 +147,13 @@ public class DefaultController {
   }
 
   @Autowired
-  public void setCustomAuthenticationManager(CustomAuthenticationManager manager) {
+  public void setCustomAuthenticationManager(IODSAuthnzAdapter manager) {
     this.manager = manager;
   }
 
   @Autowired
-  public void setRundeckAdapter(RundeckAdapter rundeckAdapter) {
+  public void setRundeckAdapter(IJobExecutionAdapter rundeckAdapter) {
     this.rundeckAdapter = rundeckAdapter;
-
   }
 
   @Autowired
@@ -177,12 +162,12 @@ public class DefaultController {
   }
 
   @Autowired
-  public void setJiraAdapter(JiraAdapter jiraAdapter) {
+  public void setBugTrackerAdapter(IBugtrackerAdapter jiraAdapter) {
     this.jiraAdapter = jiraAdapter;
   }
 
   @Autowired
-  public void setBitbucketAdapter(BitbucketAdapter bitbucketAdapter) {
+  public void setSCMAdapter(ISCMAdapter bitbucketAdapter) {
     this.bitbucketAdapter = bitbucketAdapter;
   }
 }

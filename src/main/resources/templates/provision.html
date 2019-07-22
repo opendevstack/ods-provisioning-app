@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PROJECT PROVISION</title>
+    <title>ODS PROJECT PROVISION</title>
 
     <div th:replace="fragments/header :: header-css"/>
 
@@ -35,9 +35,9 @@
                 <legend class="col-form-legend">Project</legend>
                 <div class="form-group">
                     <label for="projects">Select existing project:</label>
-                    <select class="form-control" id="projects" name="key">
+                    <select class="form-control" id="projects" name="projectKey">
                         <option value=""></option>
-                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.key}" th:text="${jiraProject.value.key + ' - ' + jiraProject.value.name}">Project name</option>
+                        <option th:each="jiraProject : ${jiraProjects}" th:value="${jiraProject.value.projectKey}" th:text="${jiraProject.value.projectKey + ' - ' + jiraProject.value.projectName}">Project name</option>
                     </select>
                 </div>
                 <div class="table-responsive hidden" id="infoProjectTable">
@@ -47,7 +47,7 @@
                     			<label for="description">Description</label>
                     		</td>
                     		<td>
-			                    <textarea class="form-control" id="projectDescription" name="projectDescription" disabled="true"
+			                    <textarea class="form-control" id="description" name="description" disabled="true"
                               		rows="2" size="40" maxlength="100"></textarea>
                             </td>
                         </tr>
@@ -93,7 +93,6 @@
                     <div class="checkbox">
                         <!-- label -->
                         <input type="checkbox" name="quickstart-checked-1"  />
-                        <!-- span th:text="${project.description}"></span></label> -->
                         <select class="form-control quickstart-chooser" name="quickstart-type-1">
                             <option value=""></option>
                             <option th:each="project : ${quickStarter}" th:value="${project.id}" th:text="${project.description}">Project name</option>
@@ -119,14 +118,14 @@
             <fieldset class="form-group">
                 <legend class="col-form-legend">Project</legend>
                 <div class="form-group">
-                    <label for="name"  class="control-label">Name</label>
-                    <input type="text" class="form-control" data-remote="/api/v1/project/validate" data-remote-error="A project with this name already exists" id="name" name="name" placeholder="Project name" maxlength="80" required="required"/>
+                    <label for="projectName"  class="control-label">Name</label>
+                    <input type="text" class="form-control" data-remote="/api/v2/project/validate" data-remote-error="A project with this name already exists" id="projectName" name="projectName" placeholder="Project name" maxlength="80" required="required"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>
                 <div class="form-group">
-                    <label for="key" class="control-label">Key</label>
-                    <input type="text" pattern="([a-zA-Z][a-zA-Z_0-9]+)" class="form-control text-uppercase" data-remote="/api/v1/project/key/validate" data-remote-error="A key with this name already exists" id="key" name="key" placeholder="Project key" maxlength="10" required="required"/>
+                    <label for="projectKey" class="control-label">Key</label>
+                    <input type="text" pattern="([a-zA-Z][a-zA-Z_0-9]+)" class="form-control text-uppercase" data-remote="/api/v2/project/key/validate" data-remote-error="A key with this name already exists" id="projectKey" name="projectKey" placeholder="Project key" maxlength="10" required="required"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>
@@ -144,42 +143,42 @@
                 </div>                
                 <!-- cutschig user and admin group --> 
                 <div class="form-group hidden" id="auserdiv">
-                    <label for="admin"  class="control-label">Admin user</label>
-                    <input type="text" class="form-control" name="admin" placeholder="Admin user" maxlength="80" id="admin"/>
+                    <label for="projectAdminUser"  class="control-label">Admin user</label>
+                    <input type="text" class="form-control" name="projectAdminUser" placeholder="Admin user" maxlength="80" id="projectAdminUser"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>                
                 <div class="form-group hidden" id="agroupdiv">
-                    <label for="admingroup"  class="control-label">Admin group</label>
-                    <input type="text" class="form-control" name="adminGroup" placeholder="Admin Group" maxlength="80" id="adminGroup"/>
+                    <label for="projectAdminGroup"  class="control-label">Admin group</label>
+                    <input type="text" class="form-control" name="projectAdminGroup" placeholder="Admin Group" maxlength="80" id="projectAdminGroup"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>                
                 <div class="form-group hidden" id="ugroupdiv">
-                    <label for="usergroup"  class="control-label">User group</label>
-                    <input type="text" class="form-control" name="userGroup" placeholder="User Group" maxlength="80" id="userGroup"/>
+                    <label for="projectUserGroup"  class="control-label">User group</label>
+                    <input type="text" class="form-control" name="projectUserGroup" placeholder="User Group" maxlength="80" id="projectUserGroup"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>                
                 <div class="form-group hidden" id="urgroupdiv">
-                    <label for="readonlygroup"  class="control-label">Readonly user group</label>
-                    <input type="text" class="form-control" name="readonlyGroup" placeholder="Readonly user Group" maxlength="80" id="readonlyGroup"/>
+                    <label for="projectReadonlyGroup"  class="control-label">Readonly user group</label>
+                    <input type="text" class="form-control" name="projectReadonlyGroup" placeholder="Readonly user Group" maxlength="80" id="projectReadonlyGroup"/>
                     <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                     <div class="help-block with-errors"></div>
                 </div>                
                 <div class="form-group">
-                    <label for="createpermissionset">Create special permissionset</label>
-                    <input type="checkbox" name="createpermissionset" id="createpermissionset"/>
+                    <label for="specialPermissionSet">Create special permissionset</label>
+                    <input type="checkbox" name="specialPermissionSet" id="specialPermissionSet"/>
 				</div>                
                 <!-- cutschig allow projects without jira and confluence spaces--> 
                 <div class="form-group">
-                    <label for="jiraconfluencespace">Create JIRA / Confluence spaces</label>
-                    <input type="checkbox" name="jiraconfluencespace" id="jiraconfluencespace" checked="true"/>
+                    <label for="bugtrackerSpace">Create JIRA / Confluence spaces</label>
+                    <input type="checkbox" name="bugtrackerSpace" id="bugtrackerSpace" checked="true"/>
 				</div>                
                 <!-- cutschig allow projects without jira and confluence spaces--> 
                 <div class="form-group">
-                    <label for="openshiftproject">Create Openshift Project</label>
-                    <input type="checkbox" name="openshiftproject" id="openshiftproject" checked="true"/>
+                    <label for="platformRuntime">Create Openshift Project</label>
+                    <input type="checkbox" name="platformRuntime" id="platformRuntime" checked="true"/>
 				</div>                
             </fieldset>
             <fieldset class="form-group quickstartergroup">

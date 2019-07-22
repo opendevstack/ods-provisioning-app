@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,12 +14,13 @@
 
 package org.opendevstack.provision.services;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
-import okhttp3.HttpUrl;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang.NotImplementedException;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.RestClient;
@@ -28,9 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,21 +42,17 @@ import java.util.stream.Collectors;
  *
  * @author Torsten Jaeschke
  */
-
 @Service
-public class RundeckAdapter {
+public class RundeckAdapter implements IJobExecutionAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
 
-  public static final String COMPONENT_ID_KEY = "component_id";
-  public static final String COMPONENT_TYPE_KEY = "component_type";
-
+  public static final String DELETE_COMPONENT_JOB = "delete-component";
+  
+  public static final String DELETE_PROJECTS_JOB = "delete-projects";
+  
   @Autowired
   private RundeckJobStore jobStore;
-
-  @Autowired
-  private CrowdUserDetailsService crowdUserDetailsService;
-
 
   @Value("${rundeck.api.path}")
   private String rundeckApiPath;
@@ -104,15 +99,15 @@ public class RundeckAdapter {
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectPattern;
 
-  private static final String GENERIC_RUNDECK_ERRMSG =  "Error in rundeck call: ";
-  
+  private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
+
   @Autowired
   private RestClient client;
 
   @Autowired
-  CustomAuthenticationManager manager;
+  IODSAuthnzAdapter manager;
 
-  public List<Job> getQuickstarter() {
+  public List<Job> getQuickstarters() {
     try {
       return getJobs(projectQuickstarterGroup);
     } catch (IOException ex) {
@@ -121,120 +116,98 @@ public class RundeckAdapter {
     return new ArrayList<>();
   }
 
-  public List<ExecutionsData> executeJobs(ProjectData project) throws IOException
-  {
-    authenticate();
-   
-    List<ExecutionsData> executionList = new ArrayList<>();
-    if (project.quickstart != null) {
-      for (Map<String, String> options : project.quickstart) {
-        Job job = jobStore.getJob(options.get(COMPONENT_TYPE_KEY));
+  public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
+      throws IOException {
+    if (project == null || project.quickstarters == null) {
+      return new ArrayList<>();
+    }
 
-        String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
-        String groupId = String.format(groupPattern, project.key.toLowerCase()).replace('_', '-');
+    authenticate();
+
+    List<ExecutionsData> executionList = new ArrayList<>();
+
+    if (jobStore.size() == 0) {
+      jobStore.addJobs(getJobs(projectOpenshiftGroup));
+    }
+
+    if (project.quickstarters != null) {
+      for (Map<String, String> options : project.quickstarters) {
+        String jobId = options.get(OpenProjectData.COMPONENT_TYPE_KEY);
+        String quickstarterName = options.get(OpenProjectData.COMPONENT_ID_KEY);
+        String groupId =
+            String.format(groupPattern, project.projectKey.toLowerCase()).replace('_', '-');
         String packageName =
-            String.format("%s.%s", String.format(groupPattern, project.key.toLowerCase()),
-                options.get(COMPONENT_ID_KEY).replace('-', '_'));
-        Execution execution = new Execution();
+            String.format("%s.%s", String.format(groupPattern, project.projectKey.toLowerCase()),
+                options.get(OpenProjectData.COMPONENT_ID_KEY).replace('-', '_'));
 
         options.put("group_id", groupId);
-        options.put("project_id", project.key.toLowerCase());
+        options.put("project_id", project.projectKey.toLowerCase());
         options.put("package_name", packageName);
-        execution.setOptions(options);
-        try {
-            ExecutionsData data = 
-        		client.callHttp(url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
 
-            if (data.getError()) {
-        	  throw new IOException ("Could not provision component: " + data.getMessage());
-            }
-          
-          executionList.add(data);
-          if (data.getPermalink() != null) {
-            options.put("joblink", data.getPermalink());
-          }
-        } catch (IOException ex) {
-          logger.error("Error in running jobs", ex);
-        }
+        executionList.add(prepareAndExecuteJob(jobId, options));
       }
     }
     return executionList;
   }
 
-  public ProjectData createOpenshiftProjects(ProjectData project, String crowdCookie)
-      throws IOException {
+  @Override
+  public OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException {
 
-	if (project == null) {
-		throw new IOException("Cannot create null project");
-	}
-	  
+    Preconditions.checkNotNull(project, "Cannot create null project");
+
     try {
       List<Job> jobs = getJobs(projectOpenshiftGroup);
-      for (Job job : jobs) {
-        if (job.getName().equalsIgnoreCase(projectCreateOpenshiftJob)) {
-          String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
-          Execution execution = new Execution();
-          Map<String, String> options = new HashMap<>();
-          options.put("project_id", project.key.toLowerCase());
-          if (project.createpermissionset) 
-          {
-          	  String entitlementGroups =
-          		"ADMINGROUP=" + project.adminGroup + "," + 
-          		"USERGROUP=" + project.userGroup + "," +
-          		"READONLYGROUP=" + project.readonlyGroup;
-          	  
-              logger.info("project id: {} passed project owner: {} passed groups: {}",
-                      project.key, project.admin, entitlementGroups);
-              
-              options.put("project_admin", project.admin);
-              options.put("project_groups", entitlementGroups);
-          }
-          else 
-          {
-        	// someone is always logged in :)
-        	UserDetails details = crowdUserDetailsService.loadUserByToken(crowdCookie);  
-            logger.info("project id: {} details: {}", project.key, details);
-            options.put("project_admin", details.getUsername());
-          } 
-          execution.setOptions(options);
-          
-          ExecutionsData data = 
-        	client.callHttp(url, execution, null, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
+      Map<String, String> options = new HashMap<>();
+      options.put("project_id", project.projectKey.toLowerCase());
+      if (project.specialPermissionSet) {
+        String entitlementGroups = "ADMINGROUP=" + project.projectAdminGroup + "," + "USERGROUP="
+            + project.projectUserGroup + "," + "READONLYGROUP=" + project.projectReadonlyGroup;
 
-          // add openshift based links - for jenkins we know the link - hence create the direct
-          // access link to openshift app domain
-          project.openshiftJenkinsUrl =
-              "https://" + String.format(projectOpenshiftJenkinsProjectPattern,
-                  project.key.toLowerCase(), projectOpenshiftBaseDomain);
+        logger.debug("project id: {} passed project owner: {} passed groups: {}",
+            project.projectKey, project.projectAdminUser, entitlementGroups);
 
-          // we can only add the console based links - as no routes are created per default
-          project.openshiftConsoleDevEnvUrl = String.format(projectOpenshiftDevProjectPattern,
-              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
-
-          project.openshiftConsoleTestEnvUrl = String.format(projectOpenshiftTestProjectPattern,
-              projectOpenshiftConsoleUri.trim(), project.key.toLowerCase());
-
-          project.lastJobs = new ArrayList<>();
-          project.lastJobs.add(data.getPermalink());
-          
-          return project;
-        }
+        options.put("project_admin", project.projectAdminUser);
+        options.put("project_groups", entitlementGroups);
+      } else {
+        // someone is always logged in :)
+        logger.debug("project id: {} admin: {}", project.projectKey, manager.getUserName());
+        options.put("project_admin", manager.getUserName());
       }
+      ExecutionsData data = prepareAndExecuteJob(projectCreateOpenshiftJob, options);
+
+      // add openshift based links - for jenkins we know the link - hence create the
+      // direct
+      // access link to openshift app domain
+      project.platformBuildEngineUrl =
+          "https://" + String.format(projectOpenshiftJenkinsProjectPattern,
+              project.projectKey.toLowerCase(), projectOpenshiftBaseDomain);
+
+      // we can only add the console based links - as no routes are created per
+      // default
+      project.platformDevEnvironmentUrl = String.format(projectOpenshiftDevProjectPattern,
+          projectOpenshiftConsoleUri.trim(), project.projectKey.toLowerCase());
+
+      project.platformTestEnvironmentUrl = String.format(projectOpenshiftTestProjectPattern,
+          projectOpenshiftConsoleUri.trim(), project.projectKey.toLowerCase());
+
+      project.lastExecutionJobs = new ArrayList<>();
+      project.lastExecutionJobs.add(data.getPermalink());
+
+      return project;
     } catch (IOException ex) {
-      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
+      String error = String.format("Cannot execute job for project %s, error: %s",
+          project.projectKey, ex.getMessage());
+      logger.error(error, ex);
       throw ex;
     }
-    return project;
   }
-
 
   /**
    * method to authenticate against rundeck to store the JSESSIONID in the associated cookiejar
    */
-  protected void authenticate() throws IOException 
-  {
-	  client.callHttpBasicFormAuthenticate(
-		  String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath));
+  protected void authenticate() throws IOException {
+    client.callHttpBasicFormAuthenticate(
+        String.format("%s%s/j_security_check", rundeckUri, rundeckSystemPath));
   }
 
   protected List<Job> getJobs(String group) throws IOException {
@@ -244,20 +217,136 @@ public class RundeckAdapter {
     String jobsUrl =
         String.format("%s%s/project/%s/jobs", rundeckUri, rundeckApiPath, rundeckProject);
 
-    HttpUrl.Builder urlBuilder = HttpUrl.parse(jobsUrl).newBuilder();
-    urlBuilder.addQueryParameter("groupPath", group);
+    Map<String, String> jobPath = new HashMap<>();
+    jobPath.put("groupPath", group);
 
-    List<Job> jobs =
-    	client.callHttpTypeRef(urlBuilder.toString(), null, null, false, RestClient.HTTP_VERB.GET,
-    		new TypeReference<List<Job>>() {});
-    
+    List<Job> jobs = client.callHttpTypeRef(jobsUrl, jobPath, false, RestClient.HTTP_VERB.GET,
+        new TypeReference<List<Job>>() {});
+
     enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
     jobStore.addJobs(enabledJobs);
     return enabledJobs;
   }
 
-  public String getRundeckAPIPath () {
-	  return rundeckUri + rundeckApiPath;
+  @Override
+  public Map<String, String> getProjects(String filter) {
+    throw new NotImplementedException();
   }
-  
+
+  @Override
+  public String getAdapterApiUri() {
+    return rundeckUri + rundeckApiPath;
+  }
+
+  private ExecutionsData prepareAndExecuteJob(String jobNameOrId, Map<String, String> options)
+      throws IOException {
+    Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
+
+    Job job = jobStore.getJob(jobNameOrId);
+
+    if (job == null) {
+      String jobByName = jobStore.getJobIdForJobName(jobNameOrId);
+      job = jobStore.getJob(jobByName);
+    }
+
+    if (job == null) {
+      throw new IOException(
+          String.format("Cannot find job with id: %s, jobs: %s", jobNameOrId, jobStore.toString()));
+    }
+
+    String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
+
+    Execution execution = new Execution();
+    if (options != null) {
+      execution.setOptions(options);
+    }
+    try {
+      ExecutionsData data =
+          client.callHttp(url, execution, false, RestClient.HTTP_VERB.POST, ExecutionsData.class);
+
+      if (data != null && data.getError()) {
+        throw new IOException(data.getMessage());
+      }
+      return data;
+    } catch (IOException rundeckException) {
+      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
+      throw rundeckException;
+    }
+  }
+
+  @Override
+  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
+      OpenProjectData project) {
+    Preconditions.checkNotNull(stage);
+    Preconditions.checkNotNull(project);
+
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
+
+    if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
+      if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
+        String deleteProjectJob = jobStore.getJobIdForJobName(DELETE_PROJECTS_JOB);
+        if (deleteProjectJob == null) {
+          logger.error("Cannot find delete-projects job, hence" + " cannot delete project!");
+          leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+        } else {
+          logger.debug("Calling delete-projects job for project {}" + " with id {}",
+              project.projectKey, deleteProjectJob);
+
+          Map<String, String> options = new HashMap<>();
+          options.put("project_id", project.projectKey.toLowerCase());
+
+          try {
+            prepareAndExecuteJob(deleteProjectJob, options);
+          } catch (Exception allExecExceptions) {
+            logger.debug("Could not start delete job for project {}, {}", project.projectKey,
+                allExecExceptions.getMessage());
+            leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+            return leftovers;
+          }
+          return leftovers;
+        }
+        return leftovers;
+      } else {
+        logger.debug("Project {} not affected from cleanup", project.projectKey);
+        return leftovers;
+
+      }
+    }
+
+    if (project.quickstarters != null || project.quickstarters.size() > 0) {
+      String deleteComponentJob = jobStore.getJobIdForJobName(DELETE_COMPONENT_JOB);
+
+      int nonDeletedQuickstarters = 0;
+      List<String> quickstartersToDelete = new ArrayList<>();
+      for (Map<String, String> quickstarterOptions : project.quickstarters) {
+        quickstartersToDelete.add(quickstarterOptions.get(OpenProjectData.COMPONENT_ID_KEY));
+      }
+
+      logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
+      for (String quickstarterName : quickstartersToDelete) {
+        logger.debug("Cleanup of quickstarter {} thru job {}", quickstarterName,
+            deleteComponentJob);
+
+        Map<String, String> options = new HashMap<>();
+        options.put("project_id", project.projectKey.toLowerCase());
+        options.put("component_id", quickstarterName);
+        try {
+          prepareAndExecuteJob(deleteComponentJob, options);
+        } catch (Exception allExecExceptions) {
+          logger.debug("Could not start delete job for component {}, {}", quickstarterName,
+              allExecExceptions.getMessage());
+          nonDeletedQuickstarters++;
+        }
+      }
+
+      if (nonDeletedQuickstarters > 0) {
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER, nonDeletedQuickstarters);
+      }
+    }
+
+    logger.debug("Cleanup done - status: {} components are left ..",
+        leftovers.size() == 0 ? 0 : leftovers.size());
+
+    return leftovers;
+  }
 }

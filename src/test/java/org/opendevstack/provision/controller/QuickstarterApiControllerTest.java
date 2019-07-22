@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,7 +16,6 @@ package org.opendevstack.provision.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -25,7 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,19 +57,19 @@ public class QuickstarterApiControllerTest {
   RundeckAdapter rundeckAdapter;
 
   private List<Job> jobs;
-  private ProjectData project;
+  private OpenProjectData project;
   private List<ExecutionsData> executions = new ArrayList<>();
 
   @Before
   public void init() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();    
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
     initJobs();
   }
 
   private void initJobs() {
-    project = new ProjectData();
-    project.key = "TST";
-    project.name = "name";
+    project = new OpenProjectData();
+    project.projectKey = "TST";
+    project.projectName = "name";
 
     jobs = new ArrayList<>();
     Job job = new Job();
@@ -81,21 +80,22 @@ public class QuickstarterApiControllerTest {
 
   @Test
   public void getQuickstarters() throws Exception {
-    Mockito.when(rundeckAdapter.getQuickstarter()).thenReturn(jobs);
-    
+    Mockito.when(rundeckAdapter.getQuickstarters()).thenReturn(jobs);
+
     mockMvc.perform(get("/api/v1/quickstarter"))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
   }
 
   @Test
   public void executeJobs() throws Exception {
-    Mockito.when(rundeckAdapter.executeJobs(project)).thenReturn(executions);
-    
-    mockMvc.perform(post("/api/v1/quickstarter/provision")
-        .content(getBody())
-        .contentType(MediaType.APPLICATION_JSON))
-    .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
-    .andReturn().getResponse().toString();
+    Mockito.when(rundeckAdapter.provisionComponentsBasedOnQuickstarters(project))
+        .thenReturn(executions);
+
+    mockMvc
+        .perform(post("/api/v1/quickstarter/provision").content(getBody())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful()).andReturn().getResponse()
+        .toString();
   }
 
   private String getBody() throws Exception {

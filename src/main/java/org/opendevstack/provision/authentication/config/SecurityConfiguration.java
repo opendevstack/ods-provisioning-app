@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,15 +12,14 @@
  * the License.
  */
 
-package org.opendevstack.provision.config;
+package org.opendevstack.provision.authentication.config;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
-import org.opendevstack.provision.filter.SSOAuthProcessingFilter;
+import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
@@ -34,7 +33,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -53,7 +51,6 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
-
 import net.sf.ehcache.CacheManager;
 
 /**
@@ -82,8 +79,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .antMatchers("/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico",
             "/login")
         .permitAll().anyRequest().authenticated().and().formLogin().loginPage("/login").permitAll()
-        .defaultSuccessUrl("/home")
-        .and().logout().addLogoutHandler(crowdLogoutHandler()).permitAll();
+        .defaultSuccessUrl("/home").and().logout().addLogoutHandler(crowdLogoutHandler())
+        .permitAll();
   }
 
   @Value("${crowd.application.name}")
@@ -97,7 +94,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
-
 
   /**
    * Get the properties used for crowd authentication
@@ -201,7 +197,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   public BasicCache getCache() {
     return new CacheImpl(getCacheManager());
   }
-
 
   /**
    * Define a cache manager for eh-cache
