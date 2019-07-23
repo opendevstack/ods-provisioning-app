@@ -53,7 +53,7 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
   @Override
   public String getUserEmail() {
     return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-        .filter(a -> a instanceof DefaultOidcUser)
+        .filter(auth -> auth.getPrincipal() instanceof DefaultOidcUser)
         .map(auth -> (DefaultOidcUser) auth.getPrincipal())
         .map(StandardClaimAccessor::getEmail)
         .orElse(null);
