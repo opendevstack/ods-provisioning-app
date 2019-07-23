@@ -14,29 +14,36 @@
 
 package org.opendevstack.provision.services;
 
+import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +68,7 @@ import org.opendevstack.provision.util.RestClient;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.opendevstack.provision.util.rest.Client;
+import org.opendevstack.provision.util.rest.ClientCall;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -83,6 +91,8 @@ public class JiraAdapterTests {
 
   @Mock RestClient restClient;
 
+  @Mock Client client;
+
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Autowired @InjectMocks JiraAdapter jiraAdapter;
@@ -93,11 +103,13 @@ public class JiraAdapterTests {
   private String defaultProjectKey;
 
   @Autowired List<String> projectTemplateKeyNames;
+  private ObjectMapper objectMapper;
 
   @Before
   public void initTests() {
     MockitoAnnotations.initMocks(this);
     projects = new ArrayList<>();
+    objectMapper = new ObjectMapper();
   }
 
   @Test
@@ -111,8 +123,8 @@ public class JiraAdapterTests {
     String name = "TestProject";
     String crowdCookieValue = "xyz";
 
-    CrowdUserDetails details = Mockito.mock(CrowdUserDetails.class);
-    Authentication authentication = Mockito.mock(Authentication.class);
+    CrowdUserDetails details = mock(CrowdUserDetails.class);
+    Authentication authentication = mock(Authentication.class);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -133,6 +145,10 @@ public class JiraAdapterTests {
             eq(RestClient.HTTP_VERB.POST),
             eq(LeanJiraProject.class)))
         .thenReturn(getReturnProject());
+
+    ClientCall clientCall = mock(ClientCall.class);
+    when((client.post())).thenReturn(clientCall);
+    when(clientCall.execute()).thenReturn(getReturnProject());
 
     OpenProjectData createdProject =
         spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
@@ -181,6 +197,35 @@ public class JiraAdapterTests {
     }
     assertNotNull(thrownEx);
     assertEquals(300, thrownEx.getResponseCode());
+  }
+
+  @Test
+  public void projectKeyExists() throws IOException {
+
+    // List<JsonNode> projects =
+    //        httpGet().url(url).returnTypeReference(new TypeReference<List<JsonNode>>()
+    // {}).execute();
+    String existingKey = "TE1";
+
+    ClientCall clientCall = mock(ClientCall.class,Mockito.RETURNS_DEEP_STUBS);
+    when(clientCall
+        .basicAuthenticated(any())
+        .url(anyString())
+        .returnTypeReference(any())
+        .execute())
+        .thenReturn(createResult(existingKey));
+
+    when(client.call(eq(HTTP_VERB.GET))).thenReturn(clientCall);
+
+    boolean exists = jiraAdapter.projectKeyExists(existingKey);
+    assertThat(        "expecting key " + existingKey + " exists", exists, CoreMatchers.<Boolean>equalTo(true));
+  }
+
+  public List<JsonNode> createResult(String existingKey) {
+    ObjectNode objectNode = objectMapper.createObjectNode();
+    objectNode.set("key", new TextNode(existingKey));
+
+    return asList(objectNode);
   }
 
   @Test
