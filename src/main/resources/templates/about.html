@@ -15,8 +15,9 @@
   <p>
    Logged user: <span sec:authentication="name"/><br />
 	 Roles: <span sec:authentication="principal.authorities"/><br/>
-	 <span th:text="${idmanagerUserGroup}"></span><br/>
-	 <span th:text="${idmanagerAdminGroup}"></span><br/>
+	 Email: <span th:text="${email}"></span><br/>
+	 UserGroup: <span th:text="${idmanagerUserGroup}"></span><br/>
+	 AdminGroup: <span th:text="${idmanagerAdminGroup}"></span><br/>
   </p>
   <div class="table-responsive" id="aboutChangesTable">
     <table>

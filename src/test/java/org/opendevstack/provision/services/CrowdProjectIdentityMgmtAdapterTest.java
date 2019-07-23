@@ -14,7 +14,17 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import com.atlassian.crowd.exception.GroupNotFoundException;
+import com.atlassian.crowd.exception.InvalidGroupException;
+import com.atlassian.crowd.exception.UserNotFoundException;
+import com.atlassian.crowd.integration.soap.SOAPGroup;
+import com.atlassian.crowd.integration.soap.SOAPPrincipal;
+import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,34 +34,23 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.exception.GroupNotFoundException;
-import com.atlassian.crowd.exception.InvalidGroupException;
-import com.atlassian.crowd.exception.UserNotFoundException;
-import com.atlassian.crowd.integration.soap.SOAPGroup;
-import com.atlassian.crowd.integration.soap.SOAPPrincipal;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 
-/**
- * @author utschig
- */
+/** @author utschig */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class CrowdProjectIdentityMgmtAdapterTest {
 
-  @Mock
-  CustomAuthenticationManager manager;
+  @Mock CrowdAuthenticationManager manager;
 
-  @Autowired
-  @InjectMocks
-  CrowdProjectIdentityMgmtAdapter idMgr;
+  @Autowired @InjectMocks CrowdProjectIdentityMgmtAdapter idMgr;
 
   @Before
   public void initTests() {
@@ -178,6 +177,5 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     assertNotNull(testE);
     assertTrue(testE.getMessage().contains(data.projectUserGroup));
     assertTrue(testE.getMessage().contains(data.projectAdminUser));
-
   }
 }

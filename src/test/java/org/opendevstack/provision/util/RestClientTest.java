@@ -14,6 +14,12 @@
 
 package org.opendevstack.provision.util;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,19 +38,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
 @DirtiesContext
-@WithMockUser(username = "testUser", roles = {"ADMIN"}, password = "testUser")
+@WithMockUser(
+    username = "testUser",
+    roles = {"ADMIN"},
+    password = "testUser")
 public class RestClientTest {
 
   private static final Logger logger = LoggerFactory.getLogger(RestClientTest.class);
@@ -57,11 +59,9 @@ public class RestClientTest {
   @Value("${crowd.sso.cookie.name}")
   private String crowdSSOCookieName;
 
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired CrowdAuthenticationManager manager;
 
-  @Autowired
-  RestClient realClient;
+  @Autowired RestClient realClient;
 
   @Before
   public void setUp() {
@@ -96,21 +96,35 @@ public class RestClientTest {
 
   @Test
   public void callHttpGreen() throws Exception {
-    String response = client.callHttp(String.format("http://localhost:%d", randomServerPort),
-        "ClemensTest", false, HTTP_VERB.GET, String.class);
+    String response =
+        client.callHttp(
+            String.format("http://localhost:%d", randomServerPort),
+            "ClemensTest",
+            false,
+            HTTP_VERB.GET,
+            String.class);
 
     assertNotNull(response);
 
-    response = client.callHttp(String.format("http://localhost:%d", randomServerPort),
-        "ClemensTest", false, HTTP_VERB.POST, String.class);
+    response =
+        client.callHttp(
+            String.format("http://localhost:%d", randomServerPort),
+            "ClemensTest",
+            false,
+            HTTP_VERB.POST,
+            String.class);
 
     assertNotNull(response);
   }
 
   @Test(expected = NullPointerException.class)
   public void callHttpMissingVerb() throws Exception {
-    client.callHttp(String.format("http://localhost:%d", randomServerPort), "ClemensTest", false,
-        null, String.class);
+    client.callHttp(
+        String.format("http://localhost:%d", randomServerPort),
+        "ClemensTest",
+        false,
+        null,
+        String.class);
   }
 
   @Test(expected = NullPointerException.class)
@@ -133,8 +147,12 @@ public class RestClientTest {
     RestClient spyAdapter = Mockito.spy(client);
 
     try {
-      spyAdapter.callHttp(String.format("http://localhost:%d", 1000), "ClemensTest", false,
-          HTTP_VERB.GET, String.class);
+      spyAdapter.callHttp(
+          String.format("http://localhost:%d", 1000),
+          "ClemensTest",
+          false,
+          HTTP_VERB.GET,
+          String.class);
     } catch (SocketTimeoutException se) {
       // expected in local env
     } catch (ConnectException ce) {
@@ -143,5 +161,4 @@ public class RestClientTest {
       Assert.fail(e.getMessage());
     }
   }
-
 }

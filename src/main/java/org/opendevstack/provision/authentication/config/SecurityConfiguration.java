@@ -36,8 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -245,7 +245,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
    */
   @Bean(name = "provisioningAppAuthenticationManager")
   public AuthenticationManager crowdAuthenticationManager() throws IOException {
-    return new CustomAuthenticationManager(securityServerClient());
+    return new CrowdAuthenticationManager(securityServerClient());
   }
 
   /**

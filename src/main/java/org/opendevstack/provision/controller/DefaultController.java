@@ -141,6 +141,7 @@ public class DefaultController {
 
     model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
     model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
+    model.addAttribute("email", manager.getUserEmail());
     return "about";
   }
 

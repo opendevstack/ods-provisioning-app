@@ -2,6 +2,7 @@ package org.opendevstack.provision.authentication.oauth2;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
@@ -10,6 +11,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.StandardClaimAccessor;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -49,19 +52,11 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
   @Override
   public String getUserEmail() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-    if (auth == null) {
-      return null;
-    }
-
-    if (!(auth.getPrincipal() instanceof KeycloakUserDetails)) {
-      return null;
-    }
-
-    KeycloakUserDetails userDetails = (KeycloakUserDetails) auth.getPrincipal();
-
-    return userDetails.getEmail();
+    return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+        .filter(a -> a instanceof DefaultOidcUser)
+        .map(auth -> (DefaultOidcUser) auth.getPrincipal())
+        .map(StandardClaimAccessor::getEmail)
+        .orElse(null);
   }
 
   @Override
@@ -75,14 +70,13 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
   }
 
   @Override
-  public void invalidateIdentity() throws Exception {
+  public void invalidateIdentity() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth != null) {
       setUserPassword(null);
-      // new SecurityContextLogoutHandler().logout(request, response, auth);
     }
-    ;
   }
+
   /**
    * returns whether the a role with specified name exists in keycloak. (keycloak role = provision
    * app group)

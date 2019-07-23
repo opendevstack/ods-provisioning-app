@@ -36,7 +36,6 @@ public class ClientCall {
   private HttpMethod method = null;
 
   // Authentication
-  private boolean isAuthenticated = false;
   private boolean isBasicAuth = false;
   private CredentialsInfo credentialsInfo;
 
@@ -112,17 +111,6 @@ public class ClientCall {
     return this;
   }
 
-  public ClientCall authenticated() {
-    this.isAuthenticated = true;
-    return this;
-  }
-
-  public ClientCall basic() {
-    Preconditions.checkArgument(this.isAuthenticated, "authenticated has to be set to use basic");
-    isBasicAuth = true;
-    return this;
-  }
-
   public ClientCall credentials(CredentialsInfo credentialsInfo) {
     this.credentialsInfo = credentialsInfo;
     return this;
@@ -134,18 +122,19 @@ public class ClientCall {
   }
 
   public ClientCall queryParams(Map<String, String> params) {
-    if (this.queryParams==null) {
+    if (this.queryParams == null) {
       this.queryParams = params;
       return this;
     }
     this.queryParams.putAll(params);
     return this;
   }
-  public ClientCall queryParam(String paramName,String paramValue) {
-    if (this.queryParams==null) {
+
+  public ClientCall queryParam(String paramName, String paramValue) {
+    if (this.queryParams == null) {
       this.queryParams = new HashMap<>();
     }
-    queryParams.put(paramName,paramValue);
+    queryParams.put(paramName, paramValue);
     return this;
   }
 
@@ -301,8 +290,8 @@ public class ClientCall {
     }
   }
 
-  // TODO stefanlack/torsten What is the purpose of method authenticated().basic()
   public ClientCall basicAuthenticated(CredentialsInfo basicCredentials) {
-    return this.authenticated().basic().credentials(basicCredentials);
+    this.isBasicAuth = true;
+    return credentials(basicCredentials);
   }
 }

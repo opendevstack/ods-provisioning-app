@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication;
+package org.opendevstack.provision.authentication.crowd;
 
 import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
 import com.atlassian.crowd.exception.ExpiredCredentialException;
@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
+import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +53,9 @@ import org.springframework.stereotype.Component;
     name = "provision.auth.provider",
     havingValue = "crowd",
     matchIfMissing = false)
-// TODO rename class CustomAuthenticationManager to CrowdAuthenticationManager ?
-public class CustomAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
+public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
-  private static final Logger logger = LoggerFactory.getLogger(CustomAuthenticationManager.class);
+  private static final Logger logger = LoggerFactory.getLogger(CrowdAuthenticationManager.class);
   private SecurityServerClient securityServerClient;
 
   @Autowired private SessionAwarePasswordHolder userPassword;
@@ -88,7 +88,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
     return userDetails.getAuthorities();
   }
 
-  /** @see IODSAuthnzAdapter#getAuthorities() */
+  /** @see IODSAuthnzAdapter#getUserEmail() () */
   public String getUserEmail() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -120,7 +120,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
    *
    * @param securityServerClient
    */
-  public CustomAuthenticationManager(SecurityServerClient securityServerClient) {
+  public CrowdAuthenticationManager(SecurityServerClient securityServerClient) {
     this.securityServerClient = securityServerClient;
   }
 

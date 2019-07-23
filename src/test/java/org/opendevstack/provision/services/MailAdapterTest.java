@@ -16,7 +16,8 @@ package org.opendevstack.provision.services;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+
 import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,22 +36,16 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class MailAdapterTest {
-  @Mock
-  JavaMailSender mailSender;
+  @Mock JavaMailSender mailSender;
 
-  @InjectMocks
-  @Autowired
-  MailAdapter mailAdapter;
+  @InjectMocks @Autowired MailAdapter mailAdapter;
 
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired CrowdAuthenticationManager manager;
 
   @Before
   public void setUp() {

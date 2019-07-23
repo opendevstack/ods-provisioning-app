@@ -44,7 +44,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.CustomAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -60,7 +60,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
@@ -73,7 +72,7 @@ public class RundeckAdapterTest {
 
   @Mock RundeckJobStore jobStore;
 
-  @Autowired CustomAuthenticationManager manager;
+  @Autowired CrowdAuthenticationManager manager;
 
   @Autowired @InjectMocks RundeckAdapter rundeckAdapter;
 
