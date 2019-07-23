@@ -292,7 +292,7 @@ public class JiraAdapterTests {
             eq(PermissionScheme.class)))
         .thenReturn(scheme);
 
-    int updates = mocked.createPermissions(apiInput);
+    int updates = mocked.createSpecialPermissions(apiInput);
 
     // create the permission scheme
     Mockito.verify(restClient, Mockito.times(1))

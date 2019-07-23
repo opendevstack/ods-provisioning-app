@@ -57,6 +57,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
 
+  @Value("${jira.specialpermissionschema.enabled:true}")
+  private boolean specialPermissionSchemeEnabled;
+
   public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
 
@@ -133,7 +136,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
    * @param project the project
    * @return the number of created permission sets
    */
-  protected int createPermissions(OpenProjectData project) {
+  protected int createSpecialPermissions(OpenProjectData project) {
+    if (!isSpecialPermissionSchemeEnabled()) {
+      logger.info("Do not create special permission set for project {}, "
+          + "since property jira.specialpermissionschema.enabled=false", project.projectKey);
+      return 0;
+    }
     PathMatchingResourcePatternResolver pmrl =
         new PathMatchingResourcePatternResolver(Thread.currentThread().getContextClassLoader());
     int updatedPermissions = 0;
@@ -392,7 +400,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       Preconditions.checkNotNull(project.projectKey);
       Preconditions.checkNotNull(project.projectName);
 
-      if (!project.specialPermissionSet
+      if (!(project.specialPermissionSet && isSpecialPermissionSchemeEnabled())
           || project.projectAdminUser == null
           || project.projectAdminUser.trim().length() == 0) {
         project.projectAdminUser = manager.getUserName();
@@ -405,8 +413,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
 
-      if (project.specialPermissionSet) {
-        createPermissions(project);
+      if (project.specialPermissionSet ) {
+        createSpecialPermissions(project);
       }
 
       return project;
@@ -563,5 +571,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       logger.error("Error in getProjectKeys: {}", e.getMessage());
       return Collections.emptyList();
     }
+  }
+
+  @Override
+  public boolean isSpecialPermissionSchemeEnabled() {
+    return specialPermissionSchemeEnabled;
   }
 }

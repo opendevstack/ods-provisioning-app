@@ -97,6 +97,7 @@ public class DefaultController {
       model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
       model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
       model.addAttribute("projectTypes", projectTemplateKeyNames);
+      model.addAttribute("specialPermissionSchemeEnabled", jiraAdapter.isSpecialPermissionSchemeEnabled());
     }
     model.addAttribute("classActiveNew", ACTIVE);
     return "provision";

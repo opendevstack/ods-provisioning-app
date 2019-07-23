@@ -134,42 +134,44 @@
                     <textarea class="form-control" id="description" name="description" placeholder="Provide a project description"
                               rows="3" maxlength="100"></textarea>
                 </div>
-                <!-- cutschig user and admin group --> 
+                <!-- cutschig project type -->
                 <div class="form-group" id="projectTypeDiv">
                     <label for="projectType"  class="control-label">Project Type</label>
                     <select class="form-control projectType-chooser" name="projectType" id="projectType">
                     	<option th:each="pType : ${projectTypes}" th:value="${pType}" th:text="${pType}" />
                     </select>
                 </div>                
-                <!-- cutschig user and admin group --> 
-                <div class="form-group hidden" id="auserdiv">
-                    <label for="projectAdminUser"  class="control-label">Admin user</label>
-                    <input type="text" class="form-control" name="projectAdminUser" placeholder="Admin user" maxlength="80" id="projectAdminUser"/>
-                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
-                    <div class="help-block with-errors"></div>
-                </div>                
-                <div class="form-group hidden" id="agroupdiv">
-                    <label for="projectAdminGroup"  class="control-label">Admin group</label>
-                    <input type="text" class="form-control" name="projectAdminGroup" placeholder="Admin Group" maxlength="80" id="projectAdminGroup"/>
-                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
-                    <div class="help-block with-errors"></div>
-                </div>                
-                <div class="form-group hidden" id="ugroupdiv">
-                    <label for="projectUserGroup"  class="control-label">User group</label>
-                    <input type="text" class="form-control" name="projectUserGroup" placeholder="User Group" maxlength="80" id="projectUserGroup"/>
-                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
-                    <div class="help-block with-errors"></div>
-                </div>                
-                <div class="form-group hidden" id="urgroupdiv">
-                    <label for="projectReadonlyGroup"  class="control-label">Readonly user group</label>
-                    <input type="text" class="form-control" name="projectReadonlyGroup" placeholder="Readonly user Group" maxlength="80" id="projectReadonlyGroup"/>
-                    <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
-                    <div class="help-block with-errors"></div>
-                </div>                
-                <div class="form-group">
-                    <label for="specialPermissionSet">Create special permissionset</label>
-                    <input type="checkbox" name="specialPermissionSet" id="specialPermissionSet"/>
-				</div>                
+                <!-- cutschig user and admin group -->
+                <div class="form-group" th:if="${specialPermissionSchemeEnabled}" th:classappend="text-info">
+                    <div class="form-group">
+                        <label for="specialPermissionSet">Create special permissionset</label>
+                        <input type="checkbox" name="specialPermissionSet" id="specialPermissionSet"/>
+                    </div>
+                    <div class="form-group hidden" id="auserdiv">
+                        <label for="projectAdminUser"  class="control-label">Admin user</label>
+                        <input type="text" class="form-control" name="projectAdminUser" placeholder="Admin user" maxlength="80" id="projectAdminUser"/>
+                        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                        <div class="help-block with-errors"></div>
+                    </div>
+                    <div class="form-group hidden" id="agroupdiv">
+                        <label for="projectAdminGroup"  class="control-label">Admin group</label>
+                        <input type="text" class="form-control" name="projectAdminGroup" placeholder="Admin Group" maxlength="80" id="projectAdminGroup"/>
+                        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                        <div class="help-block with-errors"></div>
+                    </div>
+                    <div class="form-group hidden" id="ugroupdiv">
+                        <label for="projectUserGroup"  class="control-label">User group</label>
+                        <input type="text" class="form-control" name="projectUserGroup" placeholder="User Group" maxlength="80" id="projectUserGroup"/>
+                        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                        <div class="help-block with-errors"></div>
+                    </div>
+                    <div class="form-group hidden" id="urgroupdiv">
+                        <label for="projectReadonlyGroup"  class="control-label">Readonly user group</label>
+                        <input type="text" class="form-control" name="projectReadonlyGroup" placeholder="Readonly user Group" maxlength="80" id="projectReadonlyGroup"/>
+                        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                        <div class="help-block with-errors"></div>
+                    </div>
+                </div>
                 <!-- cutschig allow projects without jira and confluence spaces--> 
                 <div class="form-group">
                     <label for="bugtrackerSpace">Create JIRA / Confluence spaces</label>

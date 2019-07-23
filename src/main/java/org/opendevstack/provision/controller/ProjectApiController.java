@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.controller;
 
+import static java.lang.String.format;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
@@ -38,8 +40,6 @@ import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -73,7 +73,6 @@ public class ProjectApiController {
   @Autowired private IJobExecutionAdapter rundeckAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
-
 
   @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
@@ -111,6 +110,15 @@ public class ProjectApiController {
           .body("Project key and name are mandatory fields to create a project!");
     }
 
+    if (newProject.specialPermissionSet && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+      return ResponseEntity.badRequest()
+          .body(
+              format(
+                  "Project with key %s can not be created with special permission set, "
+                      + "since property jira.specialpermissionschema.enabled=false",
+                  newProject.projectKey));
+    }
+
     // fix for opendevstack/ods-provisioning-app/issues/64
     shortenDescription(newProject);
 
@@ -123,7 +131,13 @@ public class ProjectApiController {
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
 
       if (newProject.specialPermissionSet) {
-        projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+          logger.info(
+              "Do not validate special bugtracker permission set, "
+                  + "because special permission sets are disabled in configuration");
+        } else {
+          projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+        }
       }
 
       // verify the project does NOT exist
@@ -131,7 +145,7 @@ public class ProjectApiController {
       if (projectLoad != null) {
         {
           throw new IOException(
-              String.format(
+              format(
                   "Project with key (%s) already exists: (%s)",
                   newProject.projectKey, projectLoad.projectKey));
         }
@@ -179,11 +193,11 @@ public class ProjectApiController {
 
       String error =
           (cleanupResults.size() == 0)
-              ? String.format(
+              ? format(
                   "An error occured while creating project %s, reason %s"
                       + " - but all cleaned up!",
                   newProject.projectKey, exProvisionNew.getMessage())
-              : String.format(
+              : format(
                   "An error occured while creating project %s, reason %s"
                       + " - cleanup attempted, but [%s] components are still there!",
                   newProject.projectKey, exProvisionNew.getMessage(), cleanupResults);
@@ -292,11 +306,11 @@ public class ProjectApiController {
 
       String error =
           (cleanupResults.size() == 0)
-              ? String.format(
+              ? format(
                   "An error occured while updating project %s, reason %s"
                       + " - but all cleaned up!",
                   updatedProject.projectKey, exProvision.getMessage())
-              : String.format(
+              : format(
                   "An error occured while updating project %s, reason %s"
                       + " - cleanup attempted, but [%s] components are still there!",
                   updatedProject.projectKey, exProvision.getMessage(), cleanupResults);
@@ -368,7 +382,7 @@ public class ProjectApiController {
 
     Preconditions.checkState(
         project.repositories.size() == existingComponentRepos + newQuickstarters,
-        String.format(
+        format(
             "Class: %s did not create %s new repositories "
                 + "for new quickstarters, existing repos: %s",
             bitbucketAdapter.getClass(), newQuickstarters, existingComponentRepos));
@@ -547,8 +561,7 @@ public class ProjectApiController {
       String repoName =
           bitbucketAdapter.createRepoNameFromComponentName(project.projectKey, projectComponentKey);
 
-      logger.debug(
-          String.format("Trying to find repo %s in %s", repoName, project.repositories.keySet()));
+      logger.debug(format("Trying to find repo %s in %s", repoName, project.repositories.keySet()));
 
       Map<URL_TYPE, String> repoUrls = project.repositories.get(repoName);
 
@@ -578,7 +591,7 @@ public class ProjectApiController {
 
     if (!leftovers.isEmpty()) {
       String error =
-          String.format(
+          format(
               "Could not delete all components of project " + " {} - leftovers {}",
               project.projectKey,
               leftovers);
@@ -611,7 +624,7 @@ public class ProjectApiController {
 
     if (!leftovers.isEmpty()) {
       String error =
-          String.format(
+          format(
               "Could not delete all components of project " + " %s - leftovers %s",
               project.projectKey, leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
