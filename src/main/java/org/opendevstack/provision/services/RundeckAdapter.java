@@ -28,9 +28,9 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.opendevstack.provision.util.HttpVerb;
 import org.opendevstack.provision.util.RundeckJobStore;
-import org.opendevstack.provision.util.rest.ClientCall;
+import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,11 +250,11 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
     try {
       List<Job> jobs =
-          httpPreAuthenticatedCall(HTTP_VERB.GET)
-              .url(jobsUrl)
-              .queryParam("groupPath", group)
-              .returnTypeReference(new TypeReference<List<Job>>() {})
-              .execute();
+          client.execute(
+              httpPreAuthenticatedCall(HttpVerb.GET)
+                  .url(jobsUrl)
+                  .queryParam("groupPath", group)
+                  .returnTypeReference(new TypeReference<List<Job>>() {}));
       List<Job> enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
       return enabledJobs;
     } catch (IOException ex) {
@@ -289,11 +289,11 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       // ExecutionsData data = restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST,
       // ExecutionsData.class);
       ExecutionsData data =
-          httpPreAuthenticatedCall(HTTP_VERB.POST)
-              .url(url)
-              .body(execution)
-              .returnType(ExecutionsData.class)
-              .execute();
+          client.execute(
+              httpPreAuthenticatedCall(HttpVerb.POST)
+                  .url(url)
+                  .body(execution)
+                  .returnType(ExecutionsData.class));
       if (data != null && data.getError()) {
         throw new IOException(data.getMessage());
       }
@@ -386,7 +386,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     return leftovers;
   }
 
-  private ClientCall httpPreAuthenticatedCall(HTTP_VERB verb) {
+  private RestClientCall httpPreAuthenticatedCall(HttpVerb verb) {
     if (preAuthContent.size() == 0) {
       preAuthContent.put("j_username", userName);
       preAuthContent.put("j_password", userPassword);

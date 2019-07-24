@@ -54,7 +54,7 @@ public class MailAdapterTest {
   }
 
   @Test
-  public void notifyUsersAboutProject() throws Exception {
+  public void notifyUsersAboutProject() {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
     spyAdapter = new MailAdapter(mailSender);
@@ -63,14 +63,14 @@ public class MailAdapterTest {
   }
 
   @Test
-  public void notifyUsersMailDisabled() throws Exception {
+  public void notifyUsersMailDisabled() {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     spyAdapter.isMailEnabled = false;
     Mockito.verify(mailSender, Mockito.never()).send(any(MimeMessage.class));
   }
 
   @Test
-  public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull() throws Exception {
+  public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull() {
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
     Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
 
@@ -78,7 +78,7 @@ public class MailAdapterTest {
   }
 
   @Test
-  public void testMailBuild() throws Exception {
+  public void testMailBuild() {
     Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
     MailAdapter spyAdapter = Mockito.spy(mailAdapter);
 

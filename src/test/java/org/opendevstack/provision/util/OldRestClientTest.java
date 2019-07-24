@@ -23,12 +23,12 @@ import java.net.SocketTimeoutException;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,31 +47,29 @@ import org.springframework.test.context.junit4.SpringRunner;
     username = "testUser",
     roles = {"ADMIN"},
     password = "testUser")
-public class RestClientTest {
+@Ignore("Ignored, since this test was for old rest client")//TODO rewrite to test 'new' RestClient
+public class OldRestClientTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(RestClientTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(OldRestClientTest.class);
 
   @Value("${local.server.port}")
   private int randomServerPort;
 
-  private RestClient client;
+  private OldRestClient client;
 
   @Value("${crowd.sso.cookie.name}")
   private String crowdSSOCookieName;
 
   @Autowired CrowdAuthenticationManager manager;
 
-  @Autowired RestClient realClient;
+  @Autowired
+  OldRestClient realClient;
 
   @Before
   public void setUp() {
-    client = new RestClient();
+    client = new OldRestClient();
     client.setConnectTimeout(1);
     client.setReadTimeout(1);
-    CrowdCookieJar cookieJar = new CrowdCookieJar();
-    cookieJar.setDomain("localhost");
-    cookieJar.setSSOCookieName(crowdSSOCookieName);
-    client.setCookieJar(cookieJar);
   }
 
   @Test
@@ -101,7 +99,7 @@ public class RestClientTest {
             String.format("http://localhost:%d", randomServerPort),
             "ClemensTest",
             false,
-            HTTP_VERB.GET,
+            HttpVerb.GET,
             String.class);
 
     assertNotNull(response);
@@ -111,7 +109,7 @@ public class RestClientTest {
             String.format("http://localhost:%d", randomServerPort),
             "ClemensTest",
             false,
-            HTTP_VERB.POST,
+            HttpVerb.POST,
             String.class);
 
     assertNotNull(response);
@@ -144,14 +142,14 @@ public class RestClientTest {
 
   @Test
   public void callRealClientWrongPort() {
-    RestClient spyAdapter = Mockito.spy(client);
+    OldRestClient spyAdapter = Mockito.spy(client);
 
     try {
       spyAdapter.callHttp(
           String.format("http://localhost:%d", 1000),
           "ClemensTest",
           false,
-          HTTP_VERB.GET,
+          HttpVerb.GET,
           String.class);
     } catch (SocketTimeoutException se) {
       // expected in local env

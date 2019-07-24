@@ -31,7 +31,6 @@ import org.opendevstack.provision.model.confluence.Context;
 import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
-import org.opendevstack.provision.util.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,8 +60,6 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   @Value("${jira.uri}")
   private String jiraUri;
-
-  @Autowired RestClient restClient;
 
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
@@ -114,11 +111,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   protected SpaceData callCreateSpaceApi(Space space) throws IOException {
     String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return httpPost()
-        .url(path)
-        .body(space)
-        .returnTypeReference(new TypeReference<SpaceData>() {})
-        .execute();
+    return client.execute(
+        httpPost().url(path).body(space).returnTypeReference(new TypeReference<SpaceData>() {}));
   }
 
   Space createSpaceData(OpenProjectData project) throws IOException {
@@ -189,7 +183,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
     //    return (List<Object>) client.callHttpTypeRef(url, null, false, RestClient.HTTP_VERB.GET,
     //        reference);
-    return (List<Object>) httpGet().url(url).returnTypeReference(reference).execute();
+    return (List<Object>) client.execute(httpGet().url(url).returnTypeReference(reference));
   }
 
   int updateSpacePermissions(OpenProjectData data) throws IOException {
@@ -227,7 +221,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
             String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
 
         // client.callHttp(path, permissionset, false, RestClient.HTTP_VERB.POST, String.class);
-        httpPost().url(path).body(permissionset).execute();
+        client.execute(httpPost().url(path).body(permissionset).returnType(String.class));
 
         updatedPermissions++;
       }
@@ -295,7 +289,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
     try {
       // client.callHttp(confluenceProjectPath, null, true, HTTP_VERB.DELETE, null);
-      httpDelete().body("").url(confluenceProjectPath).execute();
+      client.execute(httpDelete().body("").url(confluenceProjectPath));
 
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {

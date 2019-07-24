@@ -16,24 +16,30 @@ package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
+import static org.opendevstack.provision.util.ClientCallArgumentMatcher.matchesClientCall;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hamcrest.Matchers;
+import org.hamcrest.core.CombinableMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,14 +55,11 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.RundeckJobStore;
-import org.opendevstack.provision.util.rest.Client;
-import org.opendevstack.provision.util.rest.ClientCall;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -64,7 +67,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class RundeckAdapterTest {
+public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private static final String COMPONENT_ID = "2";
   private static final String PROJECT_ID = "1";
@@ -75,9 +78,6 @@ public class RundeckAdapterTest {
   @Autowired CrowdAuthenticationManager manager;
 
   @Autowired @InjectMocks RundeckAdapter rundeckAdapter;
-
-  @Mock Client client;
-  @Mock RestClient restClient;
 
   @Captor private ArgumentCaptor<Object> captor;
 
@@ -97,7 +97,6 @@ public class RundeckAdapterTest {
     rundeckAdapter.initializeJobsForGroup(group);
 
     List<Job> jobList = asList(Mockito.mock(Job.class));
-    // when(spyAdaptergetJobsFromServer(any())
     when(jobStore.getJobsByGroup(eq("quickstarts"))).thenReturn(jobList);
 
     int expectedQuickstarterSize = 1;
@@ -112,8 +111,10 @@ public class RundeckAdapterTest {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
     OpenProjectData project = new OpenProjectData();
     List<ExecutionsData> expectedExecutions = new ArrayList<>();
-    // Mockito.doNothing().when(spyAdapter).authenticate();
-    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
+
+    ArrayList<Job> jobs = new ArrayList<>();
+    // Mockito.doReturn(jobs).when(spyAdapter).getJobsFromServer(anyString());
+    mockJobsInServer(jobs);
 
     List<ExecutionsData> actualExecutions =
         spyAdapter.provisionComponentsBasedOnQuickstarters(project);
@@ -123,7 +124,6 @@ public class RundeckAdapterTest {
 
   @Test
   public void executeJobs() throws Exception {
-    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
     OpenProjectData project = new OpenProjectData();
     project.projectKey = PROJECT_KEY;
@@ -142,16 +142,16 @@ public class RundeckAdapterTest {
 
     Execution exec = generateDefaultExecution();
 
-    //        Mockito.doNothing().when(spyAdapter).authenticate();
-
-    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
-    when(jobStore.getJobById(anyString())).thenReturn(job);
+    // Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
+    mockJobsInServer(asList(job));
+    when(jobStore.getJobByNameOrId(anyString())).thenReturn(job);
 
     mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
     int expectedExecutionsSize = 1;
 
-    int actualExecutionsSize = spyAdapter.provisionComponentsBasedOnQuickstarters(project).size();
+    int actualExecutionsSize =
+        rundeckAdapter.provisionComponentsBasedOnQuickstarters(project).size();
 
     assertEquals(expectedExecutionsSize, actualExecutionsSize);
   }
@@ -159,23 +159,15 @@ public class RundeckAdapterTest {
   private void mockRestClientToReturnExecutionData(Class input, Class output)
       throws java.io.IOException {
     Object data = mock(output);
-    when(restClient.callHttp(
-            anyString(), any(input), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any()))
-        .thenReturn(data);
-    ClientCall clientCall = mock(ClientCall.class);
-    HTTP_VERB verb = HTTP_VERB.POST;
-    when(client.call(eq(verb))).thenReturn(clientCall);
 
-    when(clientCall.execute()).thenReturn(data);
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(data);
   }
 
   @Test
   public void createOpenshiftProjects() throws Exception {
-    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = "key";
-    String crowdCookie = "cookie2";
 
     ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
@@ -190,15 +182,16 @@ public class RundeckAdapterTest {
 
     String userNameFromCrowd = "crowdUsername";
 
-    doReturn(jobs).when(spyAdapter).getJobsFromServer(any());
-    doReturn(job1).when(jobStore).getJobById(anyString());
+    // doReturn(jobs).when(rundeckAdapter).getJobsFromServer(any());
+    mockJobsInServer(jobs);
+    doReturn(job1).when(jobStore).getJobByNameOrId(anyString());
 
     mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
     OpenProjectData expectedOpenProjectData = generateDefaultOpenProjectData();
     manager.setUserName(userNameFromCrowd);
 
-    OpenProjectData createdOpenProjectData = spyAdapter.createPlatformProjects(projectData);
+    OpenProjectData createdOpenProjectData = rundeckAdapter.createPlatformProjects(projectData);
 
     Execution execution = new Execution();
     Map<String, String> options = new HashMap<>();
@@ -207,13 +200,18 @@ public class RundeckAdapterTest {
     execution.setOptions(options);
 
     // called once -positive
-    Mockito.verify(restClient)
-        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+    //        Mockito.verify(restClient)
+    //            .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
+    //     any());
+
+    verifyExecute(
+        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)));
 
     options.put("project_admin", "crowdUsername-WRONG");
-    Mockito.verify(restClient, Mockito.never())
-        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
-
+    //    Mockito.verify(restClient, Mockito.never())
+    //        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),any());
+    verifyExecute(
+        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)), never());
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
     assertEquals(
@@ -227,6 +225,10 @@ public class RundeckAdapterTest {
         createdOpenProjectData.platformBuildEngineUrl);
   }
 
+  public void mockJobsInServer(List<Job> jobs) throws IOException {
+    mockExecute(matchesClientCall().method(HttpMethod.GET)).thenReturn(jobs);
+  }
+
   @Test(expected = NullPointerException.class)
   public void createNullOCProject() throws Exception {
     RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
@@ -235,13 +237,11 @@ public class RundeckAdapterTest {
 
   @Test
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
-    RundeckAdapter spyAdapter = Mockito.spy(rundeckAdapter);
 
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = "key";
-    String crowdCookie = "cookie2";
 
-    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
+    ExecutionsData execData = new ExecutionsData();
 
     Job job1 = new Job();
     job1.setName("create-projects");
@@ -259,22 +259,44 @@ public class RundeckAdapterTest {
     projectData.projectUserGroup = "ugroup";
     projectData.projectReadonlyGroup = "rgroup";
 
-    spyAdapter = Mockito.spy(rundeckAdapter);
+    // doReturn(jobs).when(rundeckAdapter).getJobsFromServer(any());
+    mockJobsInServer(jobs);
 
-    // Mockito.doNothing().when(spyAdapter).authenticate();
-    doReturn(jobs).when(spyAdapter).getJobsFromServer(any());
+    doReturn(job1).when(jobStore).getJobByNameOrId(anyString());
 
-    doReturn(job1).when(jobStore).getJobById(anyString());
+    //    doReturn(execData)
+    //        .when(restClient)
+    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(execData);
 
-    doReturn(execData)
-        .when(restClient)
-        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+    rundeckAdapter.createPlatformProjects(projectData);
 
-    spyAdapter.createPlatformProjects(projectData);
+    // TODO implement captor, if possible - enable following code again
+    // verifyExecution(projectData);
+    // , so we do not need the last monster hamcrest matcher configuration
+    verifyExecute(
+        matchesClientCall()
+            .method(HttpMethod.POST)
+            .bodyMatches(notNullValue())
+            .bodyMatches(
+                Matchers.hasProperty(
+                    "options",
+                    CombinableMatcher.both(hasEntry("project_id", projectData.projectKey))
+                        .and(hasEntry("project_admin", projectData.projectAdminUser))
+                        .and(hasKey("project_groups")))));
+  }
 
-    Mockito.verify(restClient)
-        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
+  @SuppressWarnings("unused") // Unused since this is not
+  private void verifyExecution(OpenProjectData projectData) throws IOException {
+    // Mockito.verify(restClient)
+    //        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
 
+    // This replacement of the code above is not working. We need something like
+    // https://github.com/mockito/mockito/issues/358, wich seams not so easy to implement, because
+    // there are at least 2 closed and halted PRs on
+    // github https://github.com/mockito/mockito/pull/375 and
+    // https://github.com/mockito/mockito/pull/957
+    verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCapture(captor));
     Execution execVerify = (Execution) captor.getValue();
     assertNotNull(execVerify);
     assertEquals(execVerify.getOptions().get("project_id"), projectData.projectKey);

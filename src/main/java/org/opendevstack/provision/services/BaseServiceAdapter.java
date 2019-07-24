@@ -5,9 +5,9 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.util.CredentialsInfo;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
-import org.opendevstack.provision.util.rest.Client;
-import org.opendevstack.provision.util.rest.ClientCall;
+import org.opendevstack.provision.util.HttpVerb;
+import org.opendevstack.provision.util.rest.RestClient;
+import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ public class BaseServiceAdapter {
 
   @Autowired private Environment environment;
 
-  protected @Autowired Client client;
+  @Autowired protected RestClient client;
 
   public BaseServiceAdapter(String configurationPrefix) {
     this.configurationPrefix = configurationPrefix;
@@ -64,24 +64,24 @@ public class BaseServiceAdapter {
     return useTechnicalUser ? userName : manager.getUserName();
   }
 
-  public ClientCall httpGet() {
-    return authenticatedCall(HTTP_VERB.GET);
+  public RestClientCall httpGet() {
+    return authenticatedCall(HttpVerb.GET);
   }
 
-  public ClientCall httpPost() {
-    return authenticatedCall(HTTP_VERB.POST);
+  public RestClientCall httpPost() {
+    return authenticatedCall(HttpVerb.POST);
   }
 
-  public ClientCall httpPut() {
-    return authenticatedCall(HTTP_VERB.PUT);
+  public RestClientCall httpPut() {
+    return authenticatedCall(HttpVerb.PUT);
   }
 
-  public ClientCall httpDelete() {
-    return authenticatedCall(HTTP_VERB.DELETE);
+  public RestClientCall httpDelete() {
+    return authenticatedCall(HttpVerb.DELETE);
   }
 
-  private ClientCall authenticatedCall(HTTP_VERB verb) {
-    ClientCall call = notAuthenticatedCall(verb);
+  private RestClientCall authenticatedCall(HttpVerb verb) {
+    RestClientCall call = notAuthenticatedCall(verb);
 
     if (useTechnicalUser) {
       return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
@@ -91,7 +91,7 @@ public class BaseServiceAdapter {
     return call.basicAuthenticated(credentialsInfo);
   }
 
-  public ClientCall notAuthenticatedCall(HTTP_VERB verb) {
-    return client.call(verb);
+  public RestClientCall notAuthenticatedCall(HttpVerb verb) {
+    return RestClientCall.call(verb);
   }
 }

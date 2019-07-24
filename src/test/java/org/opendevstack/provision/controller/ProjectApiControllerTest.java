@@ -49,7 +49,6 @@ import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
-import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -77,8 +76,6 @@ public class ProjectApiControllerTest {
   @Mock private MailAdapter mailAdapter;
   @Mock private IStorage storage;
   @Mock private StorageAdapter filteredStorage;
-
-  @Mock private RestClient client;
 
   @Mock private CrowdProjectIdentityMgmtAdapter idm;
 

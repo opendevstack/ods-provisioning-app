@@ -12,21 +12,23 @@ import java.util.Map;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
-import okhttp3.Response;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.opendevstack.provision.util.CredentialsInfo;
-import org.opendevstack.provision.util.exception.HttpException;
+import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
-public class ClientCall {
+public class RestClientCall {
 
-  private static final Logger logger = LoggerFactory.getLogger(ClientCall.class);
+  private static final Logger logger = LoggerFactory.getLogger(RestClientCall.class);
 
-  private OkHttpClient client;
+  private static final MediaType JSON_MEDIA_TYPE =
+      MediaType.parse("application/json; charset=utf-8");
+
   private Request request = null;
   private String responseBody = null;
 
@@ -53,10 +55,63 @@ public class ClientCall {
 
   // Response information
   private Class returnType = null;
-  private TypeReference typeReference = null;
+  private TypeReference returnTypeReference = null;
 
-  public ClientCall(OkHttpClient client) {
-    this.client = client;
+  protected RestClientCall() { // prevent direct instantiation
+  }
+
+  public static RestClientCall get() {
+    RestClientCall newCall = new RestClientCall();
+    return newCall.buildRequest().method(HttpMethod.GET).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public static RestClientCall get(Map<String, String> queryParams) {
+    return get().queryParams(queryParams);
+  }
+
+  public static RestClientCall post(Object body) {
+    return post().body(body);
+  }
+
+  public static RestClientCall post() {
+    RestClientCall newCall = new RestClientCall();
+    return newCall.buildRequest().method(HttpMethod.POST).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public static RestClientCall delete() {
+    RestClientCall newCall = new RestClientCall();
+    return newCall.buildRequest().method(HttpMethod.DELETE).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public static RestClientCall put() {
+    RestClientCall newCall = new RestClientCall();
+    return newCall.buildRequest().method(HttpMethod.PUT).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public static RestClientCall put(Object body) {
+    return put().body(body);
+  }
+
+  public static RestClientCall head() {
+    RestClientCall newCall = new RestClientCall();
+    return newCall.buildRequest().method(HttpMethod.HEAD).json().mediaType(JSON_MEDIA_TYPE);
+  }
+
+  public static RestClientCall call(HttpVerb verb) {
+    switch (verb) {
+      case PUT:
+        return put();
+      case GET:
+        return get();
+      case POST:
+        return post();
+      case HEAD:
+        return head();
+      case DELETE:
+        return delete();
+      default:
+        return head();
+    }
   }
 
   /**
@@ -64,64 +119,68 @@ public class ClientCall {
    *
    * @return ClientCall
    */
-  public ClientCall method(HttpMethod method) {
+  private RestClientCall method(HttpMethod method) {
     Preconditions.checkNotNull(method, "Method cannot be null");
     this.method = method;
     return this;
   }
 
-  public ClientCall mediaType(MediaType mediaType) {
+  public Request getRequest() {
+    return request;
+  }
+
+  public RestClientCall mediaType(MediaType mediaType) {
     this.mediaType = mediaType;
     return this;
   }
 
-  public ClientCall json() {
+  public RestClientCall json() {
     header.put("Accept", "application/json");
     return this;
   }
 
-  public ClientCall request(Request request) {
+  public RestClientCall request(Request request) {
     this.request = request;
     return this;
   }
 
-  public ClientCall buildRequest() {
+  public RestClientCall buildRequest() {
     this.requestBuilder = new Request.Builder();
     return this;
   }
 
-  public ClientCall body(Object body) {
+  public RestClientCall body(Object body) {
     Preconditions.checkNotNull(body, "Body cannot be null");
     this.body = body;
     return this;
   }
 
-  public ClientCall returnType(Class returnType) {
+  public RestClientCall returnType(Class returnType) {
     this.returnType = returnType;
     return this;
   }
 
-  public ClientCall returnTypeReference(TypeReference typeReference) {
-    this.typeReference = typeReference;
+  public RestClientCall returnTypeReference(TypeReference returnTypeReference) {
+    this.returnTypeReference = returnTypeReference;
     return this;
   }
 
-  public ClientCall url(String url) {
+  public RestClientCall url(String url) {
     this.url = url;
     return this;
   }
 
-  public ClientCall credentials(CredentialsInfo credentialsInfo) {
+  public RestClientCall credentials(CredentialsInfo credentialsInfo) {
     this.credentialsInfo = credentialsInfo;
     return this;
   }
 
-  public ClientCall preAuthenticated() {
+  public RestClientCall preAuthenticated() {
     this.isPreAuthenticated = true;
     return this;
   }
 
-  public ClientCall queryParams(Map<String, String> params) {
+  public RestClientCall queryParams(Map<String, String> params) {
     if (this.queryParams == null) {
       this.queryParams = params;
       return this;
@@ -130,7 +189,7 @@ public class ClientCall {
     return this;
   }
 
-  public ClientCall queryParam(String paramName, String paramValue) {
+  public RestClientCall queryParam(String paramName, String paramValue) {
     if (this.queryParams == null) {
       this.queryParams = new HashMap<>();
     }
@@ -138,20 +197,20 @@ public class ClientCall {
     return this;
   }
 
-  public ClientCall preAuthUrl(String preAuthUrl) {
+  public RestClientCall preAuthUrl(String preAuthUrl) {
     Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated has to be set");
     this.preAuthUrl = preAuthUrl;
     return this;
   }
 
-  public ClientCall preAuthContent(Object preAuthContent) {
+  public RestClientCall preAuthContent(Object preAuthContent) {
     Preconditions.checkArgument(this.isPreAuthenticated, "preAuthenticated() has to be set");
     Preconditions.checkArgument(this.preAuthUrl != null, "preAuthUrl() has to be set");
     this.preAuthContent = preAuthContent;
     return this;
   }
 
-  public ClientCall header(Map<String, String> header) {
+  public RestClientCall header(Map<String, String> header) {
     this.header.putAll(header);
     return this;
   }
@@ -185,6 +244,12 @@ public class ClientCall {
     return requestBody;
   }
 
+  public Request getPreauthRequest() throws JsonProcessingException {
+    Request preAuthRequest =
+        (new Request.Builder()).url(preAuthUrl).post(prepareBody(preAuthContent)).build();
+    return preAuthRequest;
+  }
+
   private HttpUrl prepareUrl(String url, Map<String, String> params) {
     HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
     if (params != null) {
@@ -197,7 +262,7 @@ public class ClientCall {
     return preparedUrl;
   }
 
-  private void prepareRequest() throws IOException {
+  void prepareRequest() throws IOException {
     Preconditions.checkNotNull(this.method, "method cannot be null");
     if (requestBuilder == null) {
       this.buildRequest();
@@ -221,64 +286,78 @@ public class ClientCall {
     logger.debug("Prepared request: [{}]", request.toString());
   }
 
-  /** execute prepared call and deliver response */
-  public <T> T execute() throws IOException {
-
-    Preconditions.checkNotNull(this.client, "client cannot be null");
-    Preconditions.checkNotNull(this.method, "HTTP method has to be set");
-
-    if (request == null) {
-      prepareRequest();
-    }
-    try {
-      if (isPreAuthenticated) {
-        logger.info("prepare preauthenticated call");
-        Request preAuthRequest =
-            (new Request.Builder()).url(preAuthUrl).post(prepareBody(preAuthContent)).build();
-        try (Response preAuthResponse = this.client.newCall(preAuthRequest).execute()) {
-          if (!preAuthResponse.isSuccessful()
-              || preAuthResponse.body().string().contains("Invalid username and password")) {
-            throw new IOException("Could not authenticate: " + preAuthResponse.body().string());
-          }
-          logger.info("Authenticated");
-        }
-      }
-      try (Response callResponse = this.client.newCall(request).execute()) {
-        String responseBody = callResponse.body().string();
-        if (callResponse.code() < 200 || callResponse.code() >= 300) {
-          throw new HttpException(
-              callResponse.code(),
-              "Could not " + request.method() + " > " + url + " : " + responseBody);
-        }
-
-        if (logger.isTraceEnabled()) {
-          logger.trace(
-              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
-              url,
-              request.method(),
-              callResponse.code(),
-              "\n" + responseBody);
-        } else {
-          logger.debug(
-              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
-              url,
-              request.method(),
-              callResponse.code(),
-              "<body was omitted. Please enable tracing on class in order to see response body>");
-        }
-        this.responseBody = responseBody;
-        return evaluateResponse();
-      }
-    } catch (IOException ex) {
-      logger.error("Call failed: ", ex);
-      throw ex;
-    }
+  public static Logger getLogger() {
+    return logger;
   }
 
-  private <T> T evaluateResponse() throws IOException {
+  public String getResponseBody() {
+    return responseBody;
+  }
+
+  public Builder getRequestBuilder() {
+    return requestBuilder;
+  }
+
+  public HttpMethod getMethod() {
+    return method;
+  }
+
+  public boolean isBasicAuth() {
+    return isBasicAuth;
+  }
+
+  public CredentialsInfo getCredentialsInfo() {
+    return credentialsInfo;
+  }
+
+  public boolean isPreAuthenticated() {
+    return isPreAuthenticated;
+  }
+
+  public String getPreAuthUrl() {
+    return preAuthUrl;
+  }
+
+  public Object getPreAuthContent() {
+    return preAuthContent;
+  }
+
+  public MediaType getMediaType() {
+    return mediaType;
+  }
+
+  public Object getBody() {
+    return body;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public Map<String, String> getQueryParams() {
+    return queryParams;
+  }
+
+  public Map<String, String> getHeader() {
+    return header;
+  }
+
+  public Class getReturnType() {
+    return returnType;
+  }
+
+  public TypeReference getReturnTypeReference() {
+    return returnTypeReference;
+  }
+
+  void setResponseBody(String responseBody) {
+    this.responseBody = responseBody;
+  }
+
+  <T> T evaluateResponse() throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-    if (returnType == null && typeReference == null) {
+    if (returnType == null && returnTypeReference == null) {
       return null;
     } else if (returnType != null) {
       if (returnType.isAssignableFrom(String.class)) {
@@ -286,12 +365,27 @@ public class ClientCall {
       }
       return (T) objectMapper.readValue(responseBody, returnType);
     } else {
-      return (T) objectMapper.readValue(responseBody, typeReference);
+      return (T) objectMapper.readValue(responseBody, returnTypeReference);
     }
   }
 
-  public ClientCall basicAuthenticated(CredentialsInfo basicCredentials) {
+  public RestClientCall basicAuthenticated(CredentialsInfo basicCredentials) {
     this.isBasicAuth = true;
     return credentials(basicCredentials);
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+        .append("method", method)
+        .append("isBasicAuth", isBasicAuth)
+        .append("preAuthUrl", preAuthUrl)
+        .append("body", body)
+        .append("url", url)
+        .append("queryParams", queryParams)
+        .append("header", header)
+        .append("returnType", returnType)
+        .append("returnTypeReference", returnTypeReference)
+        .toString();
   }
 }
