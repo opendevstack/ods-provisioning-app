@@ -1,4 +1,4 @@
-package org.opendevstack.provision.authentication.config;
+package org.opendevstack.provision.authentication.oauth2;
 
 import org.opendevstack.provision.authentication.oauth2.RoleAwareOAuth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 @EnableWebSecurity
 @EnableOAuth2Client
-public class Oauth2SecurityConfig extends WebSecurityConfigurerAdapter {
+public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   private static final String LOGIN_URI = "/login";
 

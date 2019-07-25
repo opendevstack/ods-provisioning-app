@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication.config;
+package org.opendevstack.provision.authentication.crowd;
 
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
@@ -64,7 +64,7 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 @EnableCaching
 @EnableEncryptableProperties
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   /**
    * Configure the security for the spring application

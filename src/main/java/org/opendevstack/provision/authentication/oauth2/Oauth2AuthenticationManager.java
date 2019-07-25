@@ -7,6 +7,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,6 +27,9 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
   public String getUserPassword() {
     return userPassword.getPassword();
   }
+
+  @Value("{spring.security.oauth2.client.provider.keycloak.user-info-uri}")
+  private String userInfoUri;
 
   /** @see IODSAuthnzAdapter#getUserName() */
   public String getUserName() {
@@ -109,6 +113,6 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
   @Override
   public String getAdapterApiUri() {
-    return "";
+    return userInfoUri;
   }
 }
