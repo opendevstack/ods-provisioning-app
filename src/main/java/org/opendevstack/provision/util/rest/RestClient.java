@@ -16,10 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class RestClient {
 
-  @Value("${client.connect.timeout:30}")
+  @Value("${restClient.connect.timeout:30}")
   int connectTimeout;
 
-  @Value("${client.read.timeout:60}")
+  @Value("${restClient.read.timeout:60}")
   int readTimeout;
 
   private OkHttpClient client;
@@ -86,7 +86,7 @@ public class RestClient {
     }
   }
 
-  /** build a standard client */
+  /** build a standard restClient */
   private OkHttpClient standardClient() {
     return configure().build();
   }

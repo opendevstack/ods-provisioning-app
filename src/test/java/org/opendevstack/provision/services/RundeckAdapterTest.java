@@ -27,9 +27,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -160,7 +157,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = "key";
 
-
     Job job1 = new Job();
     job1.setName("create-projects");
     Job job2 = new Job();
@@ -187,7 +183,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     options.put("project_id", projectData.projectKey);
     options.put("project_admin", userNameFromCrowd);
     execution.setOptions(options);
-
 
     verifyExecute(
         matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)));
@@ -251,7 +246,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
     rundeckAdapter.createPlatformProjects(projectData);
 
-
     ValueCaptor<Object> valueHolder = new ValueCaptor<>();
     verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder));
 
@@ -282,7 +276,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     expected.projectKey = "key";
     return expected;
   }
-
 
   private Execution generateDefaultExecution() {
     Execution exec = new Execution();

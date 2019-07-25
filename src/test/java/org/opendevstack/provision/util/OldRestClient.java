@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 /**
- * Abstraction to handle the OkHTTP client and use it in the same way from different classes to
+ * Abstraction to handle the OkHTTP restClient and use it in the same way from different classes to
  * prevent redundant code.
  *
  * @author Torsten Jaeschke

@@ -111,7 +111,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   protected SpaceData callCreateSpaceApi(Space space) throws IOException {
     String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return client.execute(
+    return restClient.execute(
         httpPost().url(path).body(space).returnTypeReference(new TypeReference<SpaceData>() {}));
   }
 
@@ -181,9 +181,9 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   List<Object> getSpaceTemplateList(String url, TypeReference reference) throws IOException {
 
-    //    return (List<Object>) client.callHttpTypeRef(url, null, false, RestClient.HTTP_VERB.GET,
+    //    return (List<Object>) restClient.callHttpTypeRef(url, null, false, RestClient.HTTP_VERB.GET,
     //        reference);
-    return (List<Object>) client.execute(httpGet().url(url).returnTypeReference(reference));
+    return (List<Object>) restClient.execute(httpGet().url(url).returnTypeReference(reference));
   }
 
   int updateSpacePermissions(OpenProjectData data) throws IOException {
@@ -220,8 +220,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         String path =
             String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
 
-        // client.callHttp(path, permissionset, false, RestClient.HTTP_VERB.POST, String.class);
-        client.execute(httpPost().url(path).body(permissionset).returnType(String.class));
+        // restClient.callHttp(path, permissionset, false, RestClient.HTTP_VERB.POST, String.class);
+        restClient.execute(httpPost().url(path).body(permissionset).returnType(String.class));
 
         updatedPermissions++;
       }
@@ -288,8 +288,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         String.format("%s/api/space/%s", getAdapterApiUri(), project.projectKey);
 
     try {
-      // client.callHttp(confluenceProjectPath, null, true, HTTP_VERB.DELETE, null);
-      client.execute(httpDelete().body("").url(confluenceProjectPath));
+      // restClient.callHttp(confluenceProjectPath, null, true, HTTP_VERB.DELETE, null);
+      restClient.execute(httpDelete().body("").url(confluenceProjectPath));
 
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {

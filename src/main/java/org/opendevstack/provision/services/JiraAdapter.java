@@ -127,7 +127,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     RestClientCall clientCall =
         httpPost().url(path).body(jiraProject).returnType(LeanJiraProject.class);
-    LeanJiraProject created = client.execute(clientCall);
+    LeanJiraProject created = restClient.execute(clientCall);
 
     return created;
   }
@@ -194,7 +194,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 .url(path)
                 .body(singleScheme)
                 .returnTypeReference(new TypeReference<PermissionScheme>() {});
-        singleScheme = client.execute(call);
+        singleScheme = restClient.execute(call);
 
         // update jira project
         path =
@@ -202,8 +202,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
-        // client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
-        client.execute(httpPut().body(small).url(path).returnType(null));
+        // restClient.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
+        restClient.execute(httpPut().body(small).url(path).returnType(null));
 
         updatedPermissions++;
       }
@@ -273,7 +273,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     try {
       RestClientCall call =
           httpGet().url(url).returnTypeReference(new TypeReference<List<LeanJiraProject>>() {});
-      List<LeanJiraProject> projects = client.execute(call);
+      List<LeanJiraProject> projects = restClient.execute(call);
       return convertJiraProjectToKeyMap(projects);
     } catch (IOException e) {
       logger.error("Could not retrieve jira projects", e);
@@ -338,7 +338,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       try {
         // restClient.callHttp(path, shortcut, false, RestClient.HTTP_VERB.POST, Shortcut.class);
         RestClientCall call = httpPost().url(path).body(shortcut).returnType(Shortcut.class);
-        client.execute(call);
+        restClient.execute(call);
         createdShortcuts++;
       } catch (HttpException httpEx) {
         if (httpEx.getResponseCode() == 401) {
@@ -474,7 +474,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         try {
           // restClient.callHttp(path, component, false, RestClient.HTTP_VERB.POST, null);
           RestClientCall call = httpPost().url(path).body(component).returnType(null);
-          client.execute(call);
+          restClient.execute(call);
           createdComponents.put(component.getName(), component.getDescription());
         } catch (HttpException httpEx) {
           String error =
@@ -523,7 +523,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
         RestClientCall call =
             httpGet().url(permissionSchemeUrl).returnType(PermissionSchemeResponse.class);
-        PermissionSchemeResponse permissionScheme = client.execute(call);
+        PermissionSchemeResponse permissionScheme = restClient.execute(call);
         if (permissionScheme.getName().contains(project.projectKey)) {
           logger.debug(
               "Cleaning up permissionset {} {}",
@@ -541,14 +541,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
             String.format(
                 "%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
-        // client.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
+        // restClient.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
         RestClientCall call2 = httpDelete().url(jiraPermissionSchemePath).returnType(null);
-        client.execute(call2);
+        restClient.execute(call2);
       }
 
-      // client.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
+      // restClient.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
       RestClientCall call2 = httpDelete().url(jiraProjectPath).returnType(null);
-      client.execute(call2);
+      restClient.execute(call2);
 
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
@@ -573,7 +573,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       RestClientCall call =
           httpGet().url(url).returnTypeReference(new TypeReference<List<JsonNode>>() {});
-      List<JsonNode> execute = client.execute(call);
+      List<JsonNode> execute = restClient.execute(call);
       return execute.stream().map(n -> n.path("key").textValue()).collect(Collectors.toList());
     } catch (IOException e) {
       logger.error("Error in getProjectKeys: {}", e.getMessage());

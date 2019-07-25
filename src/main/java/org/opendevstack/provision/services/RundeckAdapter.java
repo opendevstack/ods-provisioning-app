@@ -251,7 +251,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
     try {
       List<Job> jobs =
-          client.execute(
+          restClient.execute(
               httpPreAuthenticatedCall(HttpVerb.GET)
                   .url(jobsUrl)
                   .queryParam("groupPath", group)
@@ -293,7 +293,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       // ExecutionsData data = restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST,
       // ExecutionsData.class);
       ExecutionsData data =
-          client.execute(
+          restClient.execute(
               httpPreAuthenticatedCall(HttpVerb.POST)
                   .url(url)
                   .body(execution)

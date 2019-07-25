@@ -44,8 +44,8 @@ However there is a special knob to tighten security (which can be passed with th
 
 The configuration for the permission sets are configured:
 
-. JIRA Project is provisioned with its own permissionset link:src/main/resources/permission-templates/jira.permission.all.txt[defined in src/main/resources/permission-templates/jira.permission.all.txt]
-. Confluence Project is provisioned with special permission set link:src/main/resources/permission-templates[defined in src/main/resources/permission-templates/confluence.permission.*]
+. JIRA Project is provisioned with its own permissionset defined in link:src/main/resources/permission-templates/jira.permission.all.txt[src/main/resources/permission-templates/jira.permission.all.txt]
+. Confluence Project is provisioned with special permission set defined in link:src/main/resources/permission-templates[src/main/resources/permission-templates/confluence.permission.*]
 . Bitbucket Project is provisioned with tight read & write roles
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
@@ -197,7 +197,7 @@ The process for new operations to be called is:
 . Look up the API call that you intend to make
 . see if there is a JSON Schema available
 . Generate (a) Pojo('s) for the Endpoint
-. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's link:src/main/java/org/opendevstack/provision/util/RestClient.java[RestClient]
+. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's link:src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
 
 === Link collection
 

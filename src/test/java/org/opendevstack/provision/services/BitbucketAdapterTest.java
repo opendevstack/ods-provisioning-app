@@ -203,7 +203,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     data.specialPermissionSet = true;
     data.projectAdminUser = "someadmin";
 
-    spyAdapter.client = restClient;
+    spyAdapter.restClient = restClient;
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -243,7 +243,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateProjectApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.client = restClient;
+    spyAdapter.restClient = restClient;
 
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
@@ -293,7 +293,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateRepoApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.client = restClient;
+    spyAdapter.restClient = restClient;
 
     Repository repo = new Repository();
     repo.setName("testrepo");

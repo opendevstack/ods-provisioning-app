@@ -177,13 +177,6 @@ dependencies {
 
 }
 
-//dependencyManagement {
-//    imports {
-//        mavenBom "org.keycloak.bom:keycloak-adapter-bom:${keycloakVersion}"
-//    }
-//}
-
-
 bootJar {
     archiveName     "app.jar"
 	destinationDir  file("$buildDir/../docker")

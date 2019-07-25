@@ -14,12 +14,11 @@ public class RestClientMockHelper {
   private final RestClient restClient;
 
   public RestClientMockHelper(RestClient restClient) {
-
     this.restClient = restClient;
   }
 
   /**
-   * Mock call of client.execute. The caller may specify further mocking behaviour by calling
+   * Mock call of restClient.execute. The caller may specify further mocking behaviour by calling
    * additional methods on the returned OngoingStubbing object.
    *
    * @param call arguments that are passed to method <em>execute</em> as argThat - matcher.

@@ -116,7 +116,7 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   }
 
   /**
-   * Constructor with secure SOAP client for crowd authentication
+   * Constructor with secure SOAP restClient for crowd authentication
    *
    * @param securityServerClient
    */
@@ -245,9 +245,9 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   }
 
   /**
-   * get the internal secure client
+   * get the internal secure restClient
    *
-   * @return the secure client for crowd connect
+   * @return the secure restClient for crowd connect
    */
   @Override
   public SecurityServerClient getSecurityServerClient() {
@@ -298,7 +298,7 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   }
 
   /**
-   * Set the secure client for injection in tests
+   * Set the secure restClient for injection in tests
    *
    * @param securityServerClient
    */

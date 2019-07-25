@@ -47,7 +47,7 @@ import org.springframework.test.context.junit4.SpringRunner;
     username = "testUser",
     roles = {"ADMIN"},
     password = "testUser")
-@Ignore("Ignored, since this test was for old rest client")//TODO rewrite to test 'new' RestClient
+@Ignore("Ignored, since this test was for old rest restClient")//TODO rewrite to test 'new' RestClient
 public class OldRestClientTest {
 
   private static final Logger logger = LoggerFactory.getLogger(OldRestClientTest.class);

@@ -26,7 +26,7 @@ public class BaseServiceAdapter {
 
   @Autowired private Environment environment;
 
-  @Autowired protected RestClient client;
+  @Autowired protected RestClient restClient;
 
   public BaseServiceAdapter(String configurationPrefix) {
     this.configurationPrefix = configurationPrefix;
@@ -93,5 +93,9 @@ public class BaseServiceAdapter {
 
   public RestClientCall notAuthenticatedCall(HttpVerb verb) {
     return RestClientCall.call(verb);
+  }
+
+  public void setRestClient(RestClient restClient) {
+    this.restClient = restClient;
   }
 }

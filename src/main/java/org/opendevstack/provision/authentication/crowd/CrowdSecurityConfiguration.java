@@ -195,7 +195,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   /**
-   * Define a bean for the soap client used to authenticate against crowd
+   * Define a bean for the soap restClient used to authenticate against crowd
    *
    * @return
    * @throws IOException
@@ -249,7 +249,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   /**
-   * Define the authenticator for the secure client
+   * Define the authenticator for the secure restClient
    *
    * @return
    * @throws IOException
