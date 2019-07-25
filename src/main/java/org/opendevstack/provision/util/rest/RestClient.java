@@ -22,7 +22,7 @@ public class RestClient {
   @Value("${restClient.read.timeout:60}")
   int readTimeout;
 
-  private OkHttpClient client;
+  OkHttpClient client;
 
   @PostConstruct
   public void afterPropertiesSet() {
@@ -96,5 +96,13 @@ public class RestClient {
         .cookieJar(new SimpleCookieJar())
         .connectTimeout(connectTimeout, TimeUnit.SECONDS)
         .readTimeout(readTimeout, TimeUnit.SECONDS);
+  }
+
+  public void setConnectTimeout(int connectTimeout) {
+    this.connectTimeout = connectTimeout;
+  }
+
+  public void setReadTimeout(int readTimeout) {
+    this.readTimeout = readTimeout;
   }
 }

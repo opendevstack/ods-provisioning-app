@@ -21,10 +21,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
@@ -63,8 +59,6 @@ import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
-import org.opendevstack.provision.util.HttpVerb;
-import org.opendevstack.provision.util.OldRestClient;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +81,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   @Mock CrowdUserDetailsService service;
 
   List<LeanJiraProject> projects = new ArrayList<>();
-
-  @Mock OldRestClient oldRestClient;
 
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -171,13 +163,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     try {
       HttpException ioEx = new HttpException(300, "testerror");
 
-      when(oldRestClient.callHttp(
-              anyString(),
-              any(FullJiraProject.class),
-              anyBoolean(),
-              any(HttpVerb.class),
-              eq(LeanJiraProject.class)))
-          .thenThrow(ioEx);
       mockExecute(
               matchesClientCall()
                   .method(HttpMethod.POST)
@@ -280,7 +265,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   @Test
   public void testCreatePermissions() throws Exception {
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
-    Mockito.doNothing().when(oldRestClient).getSessionId(null);
 
     String projectNameTrue = "TESTP";
     OpenProjectData apiInput = getTestProject(projectNameTrue);
