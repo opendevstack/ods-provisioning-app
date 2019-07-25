@@ -136,8 +136,6 @@ dependencies {
     compile 'org.webjars.bower:lodash:4.17.4'
 
     //jira api dependencies
-    //TODO removed because it doesn't support post for projects
-    //compile group: 'com.atlassian.jira', name: 'jira-rest-java-client', version: '2.0.0-m2'
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
 
     //encryption library for properties 

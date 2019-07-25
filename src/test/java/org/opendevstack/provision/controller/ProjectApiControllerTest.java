@@ -69,7 +69,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
-//@TestPropertySource( properties="jira.specialpermissionschema.enabled=true")
 public class ProjectApiControllerTest {
 
   @Mock private IBugtrackerAdapter jiraAdapter;

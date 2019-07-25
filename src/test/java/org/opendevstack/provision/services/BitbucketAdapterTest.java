@@ -211,9 +211,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     expected.setKey("testkey");
     expected.setId("13231");
 
-    //    Mockito.doReturn(expected)
-    //        .when(restClient)
-    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
     Mockito.doNothing()
         .when(spyAdapter)
@@ -224,13 +221,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
-    //    Mockito.verify(restClient)
-    //        .callHttp(
-    //            eq(uri),
-    //            isA(BitbucketProject.class),
-    //            anyBoolean(),
-    //            eq(RestClient.HTTP_VERB.POST),
-    //            eq(BitbucketProjectData.class));
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // once for each group
     Mockito.verify(spyAdapter, Mockito.times(4))
@@ -273,9 +263,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     expected.setKey("testkey");
     expected.setId("13231");
 
-    //    Mockito.doReturn(expected)
-    //        .when(restClient)
-    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
     Mockito.doNothing()
         .when(spyAdapter)
@@ -286,8 +273,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
-    //    Mockito.verify(restClient)
-    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // only for the keyuser Group
     Mockito.verify(spyAdapter, Mockito.times(1))
@@ -322,9 +307,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.doReturn(basePath).when(spyAdapter).getAdapterApiUri();
 
-    //    Mockito.doReturn(expected)
-    //        .when(restClient)
-    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
 
@@ -338,8 +320,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     Mockito.verify(spyAdapter)
         .setRepositoryPermissions(eq(expected), eq(projectKey), eq("users"), any());
 
-    //    Mockito.verify(restClient)
-    //        .callHttp(eq(uri), eq(repo), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     assertEquals(expected, actual);
@@ -387,12 +367,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
 
-    // spyAdapter.client = client;
-
-    //    Mockito.doReturn(repoData1)
-    //        .when(restClient)
-    //        .callHttp(anyString(), anyString(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-    // any());
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(repoData1);
     spyAdapter.createWebHooksForRepository(repoData1, projectData);
   }

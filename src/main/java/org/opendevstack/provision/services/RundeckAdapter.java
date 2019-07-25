@@ -163,7 +163,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       // Note: the following 4 lines of code have been removed, since 'prepareAndExecuteJob'
       //  will get the job from the RundeckJobStore-Bean, no need to search job by iterating over
       //  result of 'getJobs'
-      //  TODO remove comment after changes from branch 'oauth2' and 'feature/svc_frwk' are merged
+      //  TODO remove comment after PR https://github.com/opendevstack/ods-provisioning-app/pull/176
+      //  is merged to master
       // to master branch
       // List<Job> jobs = getJobs(projectOpenshiftGroup);
       // for (Job job : jobs) {

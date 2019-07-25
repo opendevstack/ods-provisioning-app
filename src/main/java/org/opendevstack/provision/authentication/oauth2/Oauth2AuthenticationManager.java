@@ -86,7 +86,7 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
    */
   @Override
   public boolean existsGroupWithName(String groupName) {
-    // TODO stefanlack implement existsGroupWithName
+    //"Feature 'existsGroupWithName in OAuth 2 identity server' is not implemented"
     return false;
   }
 
@@ -98,18 +98,17 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
    */
   @Override
   public boolean existPrincipalWithName(String userName) {
-    // TODO stefanlack implement existPrincipalWithName
+    //"Feature 'existPrincipalWithName in OAuth 2 identity server' is not implemented"
     return false;
   }
 
   @Override
   public String addGroup(String groupName) throws IdMgmtException {
-    throw new IdMgmtException("Feature 'adding group/role to OAuth 2' is not implemented");
+    throw new IdMgmtException("Feature 'adding group in OAuth 2 identity server' is not implemented");
   }
 
   @Override
   public String getAdapterApiUri() {
-    // TODO stefanlack implement getAdapterApiUri for keycloak authentifaction.
     return "";
   }
 }

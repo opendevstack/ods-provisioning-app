@@ -129,8 +129,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
 
-    // Mockito.doNothing().when(restClient2).getSessionId(null);
-
     when(details.getUsername()).thenReturn("achmed");
     when(details.getFullName()).thenReturn("achmed meyer");
 

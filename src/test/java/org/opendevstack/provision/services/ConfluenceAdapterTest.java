@@ -81,8 +81,6 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
-    //   doReturn(expectedSpaceData).when(restClient).callHttp(anyString(), any(), anyBoolean(),
-    //        eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expectedSpaceData);
     SpaceData createdSpaceData = confluenceAdapter.callCreateSpaceApi(space);
 
@@ -96,14 +94,6 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     project.projectUserGroup = "userGroup";
     project.projectReadonlyGroup = "readGroup";
 
-    //    doReturn(String.class)
-    //        .when(restClient)
-    //        .callHttp(
-    //            anyString(),
-    //            any(),
-    //            anyBoolean(),
-    //            eq(RestClient.HTTP_VERB.POST),
-    //            any(String.class.getClass()));
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(String.class);
     int permissionSets = confluenceAdapter.updateSpacePermissions(project);
 

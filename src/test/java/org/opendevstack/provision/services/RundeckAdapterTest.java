@@ -106,7 +106,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     List<ExecutionsData> expectedExecutions = new ArrayList<>();
 
     ArrayList<Job> jobs = new ArrayList<>();
-    // Mockito.doReturn(jobs).when(spyAdapter).getJobsFromServer(anyString());
     mockJobsInServer(jobs);
 
     List<ExecutionsData> actualExecutions =
@@ -135,7 +134,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Execution exec = generateDefaultExecution();
 
-    // Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getJobsFromServer(anyString());
     mockJobsInServer(asList(job));
     when(jobStore.getJobByNameOrId(anyString())).thenReturn(job);
 
@@ -162,7 +160,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = "key";
 
-    ExecutionsData execData = Mockito.mock(ExecutionsData.class);
 
     Job job1 = new Job();
     job1.setName("create-projects");
@@ -175,7 +172,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
     String userNameFromCrowd = "crowdUsername";
 
-    // doReturn(jobs).when(rundeckAdapter).getJobsFromServer(any());
     mockJobsInServer(jobs);
     doReturn(job1).when(jobStore).getJobByNameOrId(anyString());
 
@@ -192,17 +188,11 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     options.put("project_admin", userNameFromCrowd);
     execution.setOptions(options);
 
-    // called once -positive
-    //        Mockito.verify(restClient)
-    //            .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-    //     any());
 
     verifyExecute(
         matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)));
 
     options.put("project_admin", "crowdUsername-WRONG");
-    //    Mockito.verify(restClient, Mockito.never())
-    //        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),any());
     verifyExecute(
         matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)),
         never());
@@ -253,20 +243,14 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.projectUserGroup = "ugroup";
     projectData.projectReadonlyGroup = "rgroup";
 
-    // doReturn(jobs).when(rundeckAdapter).getJobsFromServer(any());
     mockJobsInServer(jobs);
 
     doReturn(job1).when(jobStore).getJobByNameOrId(anyString());
 
-    //    doReturn(execData)
-    //        .when(restClient)
-    //        .callHttp(anyString(), any(), anyBoolean(), eq(RestClient.HTTP_VERB.POST), any());
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(execData);
 
     rundeckAdapter.createPlatformProjects(projectData);
 
-    // Mockito.verify(restClient)
-    //        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
 
     ValueCaptor<Object> valueHolder = new ValueCaptor<>();
     verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder));
@@ -299,11 +283,6 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     return expected;
   }
 
-  private String objectToJson(Object obj) throws JsonProcessingException {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(obj);
-    return json;
-  }
 
   private Execution generateDefaultExecution() {
     Execution exec = new Execution();
