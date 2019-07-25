@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.StringDescription;
 import org.mockito.ArgumentMatcher;
 import org.opendevstack.provision.util.rest.RestClientCall;
@@ -32,9 +36,10 @@ import org.springframework.http.HttpMethod;
  */
 public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClientCall> {
 
-  private final List<FeatureMatcher> featureMatcherList;
-  private final List<FeatureMatcher> invalidMatcherList;
+  private final List<Pair<FeatureMatcher, Function<RestClientCall, ?>>> featureMatcherList;
+  private final List<Pair<FeatureMatcher, Object>> invalidMatcherList;
   private final Map<Function<RestClientCall, Object>, ValueCaptor<?>> captorMap;
+  private Description mismatchDescription;
 
   protected RestClientCallArgumentMatcher() {
     featureMatcherList = new ArrayList<>();
@@ -49,9 +54,15 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
   @Override
   public boolean matches(RestClientCall argument) {
     invalidMatcherList.clear();
-    for (FeatureMatcher featureMatcher : featureMatcherList) {
+    mismatchDescription = new StringDescription();
+    for (Pair<FeatureMatcher, Function<RestClientCall, ?>> pair : featureMatcherList) {
+      FeatureMatcher featureMatcher = pair.getLeft();
+      featureMatcher.describeMismatch(argument, mismatchDescription);
+
       if (!featureMatcher.matches(argument)) {
-        invalidMatcherList.add(featureMatcher);
+        Function<RestClientCall, ?> valueExtractor = pair.getRight();
+        Object apply = argument==null ? null : valueExtractor.apply(argument);
+        invalidMatcherList.add(Pair.of(featureMatcher, apply));
       }
     }
     boolean isValid = invalidMatcherList.size() == 0;
@@ -78,15 +89,25 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
   }
 
   public String toString() {
-    StringBuilder result = new StringBuilder();
-    result.append("A ClientCall with the following properties:");
+    if (invalidMatcherList.isEmpty()) {
+      String validMatchers =
+          featureMatcherList.stream().map(Pair::getLeft).map(BaseMatcher::toString).collect(
+              Collectors.joining(","));
 
-    for (FeatureMatcher invalidMatcher : invalidMatcherList) {
-      Description description = new StringDescription();
-      invalidMatcher.describeTo(description);
-      result.append(description.toString());
+      return "All matchers suceeded: "+validMatchers;
     }
-    return result.toString();
+
+    Description description = new StringDescription();
+    // result.append("A ClientCall with the following properties:");
+    for (Pair<FeatureMatcher, Object> pair : invalidMatcherList) {
+      FeatureMatcher invalidMatcher = pair.getLeft();
+
+      description.appendText("Expecting '");
+      invalidMatcher.describeTo(description);
+      description.appendText("', but got values:").appendValue(pair.getRight());
+    }
+
+    return description.toString();
   }
 
   public RestClientCallArgumentMatcher url(Matcher<String> matcher) {
@@ -112,13 +133,18 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
     return bodyMatches(equalTo(value));
   }
 
+  public RestClientCallArgumentMatcher bodyCaptor(ValueCaptor<Object> captor) {
+    captorMap.put(RestClientCall::getBody, captor);
+    return this;
+  }
+
   public RestClientCallArgumentMatcher method(HttpMethod method) {
     addMatcher(equalTo(method), "method", RestClientCall::getMethod);
     return this;
   }
 
-  public RestClientCallArgumentMatcher bodyCaptor(ValueCaptor<Object> captor) {
-    captorMap.put(RestClientCall::getBody, captor);
+  public RestClientCallArgumentMatcher queryParam(String param, String value) {
+    addMatcher(Matchers.hasEntry(param, value), "queryParams", RestClientCall::getQueryParams);
     return this;
   }
 
@@ -139,10 +165,11 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
             return valueExtractor.apply(actual);
           }
         };
-    addMatcher(featureMatcher);
+    addMatcher(featureMatcher, valueExtractor);
   }
 
-  protected void addMatcher(FeatureMatcher featureMatcher) {
-    featureMatcherList.add(featureMatcher);
+  protected <T> void addMatcher(
+      FeatureMatcher featureMatcher, Function<RestClientCall, T> valueExtractor) {
+    featureMatcherList.add(Pair.of(featureMatcher, valueExtractor));
   }
 }

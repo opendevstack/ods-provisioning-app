@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -54,6 +55,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -67,6 +69,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
+//@TestPropertySource( properties="jira.specialpermissionschema.enabled=true")
 public class ProjectApiControllerTest {
 
   @Mock private IBugtrackerAdapter jiraAdapter;
@@ -95,8 +98,10 @@ public class ProjectApiControllerTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(apiController)
+        .build();
     initOpenProjectData();
+    when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
   }
 
   private void initOpenProjectData() {
@@ -128,12 +133,12 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
-    Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
         .thenReturn(bugTrackProject);
-    Mockito.when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
+    when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
-    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    when(storage.storeProject(data)).thenReturn("created");
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
 
@@ -151,7 +156,7 @@ public class ProjectApiControllerTest {
     Mockito.verify(bitbucketAdapter, Mockito.never()).createSCMProjectForODSProject(isNotNull());
 
     // try with failing storage
-    Mockito.when(storage.storeProject(data)).thenThrow(IOException.class);
+    when(storage.storeProject(data)).thenThrow(IOException.class);
     mockMvc
         .perform(
             post("/api/v2/project")
@@ -172,9 +177,9 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
-    Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
         .thenReturn(bugTrackProject);
-    Mockito.when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
+    when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
 
     OpenProjectData projectSCM = copyFromProject(bugTrackProject);
@@ -183,16 +188,16 @@ public class ProjectApiControllerTest {
 
     Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
 
-    Mockito.when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
+    when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
         .thenReturn(projectSCM.scmvcsUrl);
-    Mockito.when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
+    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
         .thenReturn(repos);
-    Mockito.when(
+    when(
             bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
-    Mockito.when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
+    when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
-    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    when(storage.storeProject(data)).thenReturn("created");
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
 
@@ -218,7 +223,7 @@ public class ProjectApiControllerTest {
   @Test
   public void addProjectAgainstExistingOne() throws Exception {
 
-    Mockito.when(storage.getProject(data.projectKey)).thenReturn(data);
+    when(storage.getProject(data.projectKey)).thenReturn(data);
 
     mockMvc
         .perform(
@@ -276,7 +281,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateProjectWithProjectExists() throws Exception {
-    Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
+    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
 
     mockMvc
         .perform(
@@ -289,7 +294,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateProjectWithProjectNotExists() throws Exception {
-    Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
+    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
 
     mockMvc
         .perform(
@@ -302,7 +307,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateKeyWithKeyExists() throws Exception {
-    Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
+    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
     mockMvc
         .perform(
             get("/api/v2/project/key/validate")
@@ -314,7 +319,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateKeyWithKeyNotExists() throws Exception {
-    Mockito.when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
+    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
 
     mockMvc
         .perform(
@@ -327,7 +332,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void generateKey() throws Exception {
-    Mockito.when(jiraAdapter.buildProjectKey(isNotNull(String.class))).thenReturn("PROJ");
+    when(jiraAdapter.buildProjectKey(isNotNull(String.class))).thenReturn("PROJ");
 
     mockMvc
         .perform(
@@ -348,7 +353,7 @@ public class ProjectApiControllerTest {
 
     data.projectKey = "1";
 
-    Mockito.when(filteredStorage.getFilteredSingleProject("1")).thenReturn(data);
+    when(filteredStorage.getFilteredSingleProject("1")).thenReturn(data);
 
     mockMvc
         .perform(get("/api/v2/project/1").accept(MediaType.APPLICATION_JSON))
@@ -421,24 +426,24 @@ public class ProjectApiControllerTest {
 
     Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
 
-    Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(data);
-    Mockito.when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(data);
+    when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
 
     OpenProjectData projectSCM = copyFromProject(data);
 
     projectSCM.scmvcsUrl = "scmspace";
 
-    Mockito.when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
+    when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
         .thenReturn(projectSCM.scmvcsUrl);
-    Mockito.when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
+    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
         .thenReturn(repos);
-    Mockito.when(
+    when(
             bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
-    Mockito.when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
+    when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
-    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    when(storage.storeProject(data)).thenReturn("created");
 
     // not existing
     mockMvc
@@ -450,7 +455,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isNotFound());
 
     // existing - store prior
-    Mockito.when(storage.getProject(anyString())).thenReturn(data);
+    when(storage.getProject(anyString())).thenReturn(data);
 
     // upgrade to OC - with minimal set
     OpenProjectData upgrade = new OpenProjectData();
@@ -473,7 +478,7 @@ public class ProjectApiControllerTest {
 
     // upgrade to OC with upgrade forbidden
     data.platformRuntime = false;
-    Mockito.when(storage.getProject(anyString())).thenReturn(data);
+    when(storage.getProject(anyString())).thenReturn(data);
     upgrade.platformRuntime = true;
 
     apiController.ocUpgradeAllowed = false;
@@ -533,12 +538,12 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     dataReturn.collaborationSpaceUrl = collaborationSpaceURL;
 
-    Mockito.when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
         .thenReturn(dataReturn);
-    Mockito.when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
+    when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);
-    Mockito.when(storage.storeProject(data)).thenReturn("created");
+    when(storage.storeProject(data)).thenReturn("created");
 
     Mockito.doNothing().when(idm).validateIdSettingsOfProject(dataReturn);
 
