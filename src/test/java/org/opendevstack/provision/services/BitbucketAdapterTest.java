@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.opendevstack.provision.util.ClientCallArgumentMatcher.matchesClientCall;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -203,7 +203,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     data.specialPermissionSet = true;
     data.projectAdminUser = "someadmin";
 
-    spyAdapter.client = client2;
+    spyAdapter.client = restClient;
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -253,7 +253,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateProjectApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.client = client2;
+    spyAdapter.client = restClient;
 
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
@@ -308,7 +308,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateRepoApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.client = client2;
+    spyAdapter.client = restClient;
 
     Repository repo = new Repository();
     repo.setName("testrepo");

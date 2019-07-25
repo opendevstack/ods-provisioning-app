@@ -22,17 +22,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.opendevstack.provision.util.ClientCallArgumentMatcher.matchesClientCall;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -61,11 +59,6 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
   // RestClient restClient;
   @Autowired ConfigurableEnvironment environment;
-
-  @Before
-  public void initTests() {
-    MockitoAnnotations.initMocks(this);
-  }
 
   @Test
   public void createConfluenceSpaceForProject() throws Exception {

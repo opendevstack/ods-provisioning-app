@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
-import static org.opendevstack.provision.util.ClientCallArgumentMatcher.matchesClientCall;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
@@ -53,7 +53,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
@@ -64,9 +63,9 @@ import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
-import org.opendevstack.provision.util.ClientCallArgumentMatcher;
 import org.opendevstack.provision.util.HttpVerb;
 import org.opendevstack.provision.util.OldRestClient;
+import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,8 +88,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   List<LeanJiraProject> projects = new ArrayList<>();
 
-  @Mock
-  OldRestClient oldRestClient;
+  @Mock OldRestClient oldRestClient;
 
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -106,7 +104,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   @Before
   public void initTests() {
-    MockitoAnnotations.initMocks(this);
     projects = new ArrayList<>();
     objectMapper = new ObjectMapper();
   }
@@ -308,7 +305,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
             .method(HttpMethod.POST));
     // update the project
 
-    ClientCallArgumentMatcher wantedArgument =
+    RestClientCallArgumentMatcher wantedArgument =
         matchesClientCall()
             .url(containsString("/rest/api/latest/project/TESTP/permissionscheme"))
             .method(HttpMethod.PUT);

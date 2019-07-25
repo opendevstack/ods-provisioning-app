@@ -16,10 +16,7 @@ package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyString;
@@ -28,7 +25,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
-import static org.opendevstack.provision.util.ClientCallArgumentMatcher.matchesClientCall;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,13 +35,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.hamcrest.Matchers;
-import org.hamcrest.core.CombinableMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -56,6 +49,7 @@ import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.RundeckJobStore;
+import org.opendevstack.provision.util.ValueCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -79,11 +73,10 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Autowired @InjectMocks RundeckAdapter rundeckAdapter;
 
-  @Captor private ArgumentCaptor<Object> captor;
-
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
+    super.beforeTest();
   }
 
   @Test
@@ -211,7 +204,8 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
     //    Mockito.verify(restClient, Mockito.never())
     //        .callHttp(any(), refEq(execution), anyBoolean(), eq(RestClient.HTTP_VERB.POST),any());
     verifyExecute(
-        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)), never());
+        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)),
+        never());
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
     assertEquals(
@@ -271,33 +265,13 @@ public class RundeckAdapterTest extends AbstractBaseServiceAdapterTest {
 
     rundeckAdapter.createPlatformProjects(projectData);
 
-    // TODO implement captor, if possible - enable following code again
-    // verifyExecution(projectData);
-    // , so we do not need the last monster hamcrest matcher configuration
-    verifyExecute(
-        matchesClientCall()
-            .method(HttpMethod.POST)
-            .bodyMatches(notNullValue())
-            .bodyMatches(
-                Matchers.hasProperty(
-                    "options",
-                    CombinableMatcher.both(hasEntry("project_id", projectData.projectKey))
-                        .and(hasEntry("project_admin", projectData.projectAdminUser))
-                        .and(hasKey("project_groups")))));
-  }
-
-  @SuppressWarnings("unused") // Unused since this is not
-  private void verifyExecution(OpenProjectData projectData) throws IOException {
     // Mockito.verify(restClient)
     //        .callHttp(any(), captor.capture(), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
 
-    // This replacement of the code above is not working. We need something like
-    // https://github.com/mockito/mockito/issues/358, wich seams not so easy to implement, because
-    // there are at least 2 closed and halted PRs on
-    // github https://github.com/mockito/mockito/pull/375 and
-    // https://github.com/mockito/mockito/pull/957
-    verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCapture(captor));
-    Execution execVerify = (Execution) captor.getValue();
+    ValueCaptor<Object> valueHolder = new ValueCaptor<>();
+    verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder));
+
+    Execution execVerify = (Execution) valueHolder.getValues().get(0);
     assertNotNull(execVerify);
     assertEquals(execVerify.getOptions().get("project_id"), projectData.projectKey);
     assertEquals(execVerify.getOptions().get("project_admin"), projectData.projectAdminUser);
