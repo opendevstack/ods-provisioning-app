@@ -15,11 +15,12 @@
 package org.opendevstack.provision.adapter;
 
 import java.util.Collection;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Interface to wrap all (current) user based identity calls
- * 
+ *
  * @author utschig
  */
 public interface IODSAuthnzAdapter {
@@ -32,34 +33,42 @@ public interface IODSAuthnzAdapter {
 
   /**
    * Get the username of the currently logged in used
-   * 
+   *
    * @return the username
    */
   public String getUserName();
 
   /**
    * Get the user token, e.g. cookie of the currently logged in user
-   * 
+   *
    * @return the user's session token
    */
   public String getToken();
 
   /**
    * Get all granted authorities of the current user
-   * 
+   *
    * @return granted authorities, never null
    */
-  public Collection<GrantedAuthority> getAuthorities();
+  public Collection<? extends GrantedAuthority> getAuthorities();
 
-  /**
-   * Get the currently logged' in user's email
-   */
+  /** Get the currently logged' in user's email */
   public String getUserEmail();
 
   /**
    * Invalidate the currently logged' in identity
-   * 
+   *
    * @throws Exception in case the identity cannot be invalidated
    */
   public void invalidateIdentity() throws Exception;
+
+  void setUserPassword(String userPassword);
+
+  boolean existsGroupWithName(String groupName);
+
+  boolean existPrincipalWithName(String userName);
+
+  String addGroup(String groupName) throws IdMgmtException;
+
+  String getAdapterApiUri();
 }

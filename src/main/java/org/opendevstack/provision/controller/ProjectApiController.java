@@ -14,6 +14,10 @@
 
 package org.opendevstack.provision.controller;
 
+import static java.lang.String.format;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,8 +29,8 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
@@ -36,8 +40,6 @@ import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -51,8 +53,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -67,59 +67,56 @@ public class ProjectApiController {
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
 
-  @Autowired
-  IBugtrackerAdapter jiraAdapter;
-  @Autowired
-  ICollaborationAdapter confluenceAdapter;
-  @Autowired
-  private ISCMAdapter bitbucketAdapter;
-  @Autowired
-  private IJobExecutionAdapter rundeckAdapter;
-  @Autowired
-  private MailAdapter mailAdapter;
-  @Autowired
-  private IStorage directStorage;
-  @Autowired
-  private RundeckJobStore jobStore;
-  @Autowired
-  private RestClient client;
+  @Autowired IBugtrackerAdapter jiraAdapter;
+  @Autowired ICollaborationAdapter confluenceAdapter;
+  @Autowired private ISCMAdapter bitbucketAdapter;
+  @Autowired private IJobExecutionAdapter rundeckAdapter;
+  @Autowired private MailAdapter mailAdapter;
+  @Autowired private IStorage directStorage;
 
-  @Autowired
-  private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
+  @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
-  @Autowired
-  private List<String> projectTemplateKeyNames;
+  @Autowired private List<String> projectTemplateKeyNames;
 
-  @Autowired
-  private StorageAdapter filteredStorage;
+  @Autowired private StorageAdapter filteredStorage;
 
   // open for testing
-  @Autowired
-  IODSAuthnzAdapter manager;
+  @Autowired IODSAuthnzAdapter manager;
 
   // open for testing
   @Value("${openshift.project.upgrade}")
   boolean ocUpgradeAllowed;
-  
+
   @Value("${provision.cleanup.incomplete.projects:true}")
   boolean cleanupAllowed;
-  
+
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
    * project stack.
    *
    * @param newProject the {@link OpenProjectData} containing the request information
    * @return the created project with additional information, e.g. links or in case an error
-   *         happens, the error
+   *     happens, the error
    */
   @RequestMapping(method = RequestMethod.POST)
   public ResponseEntity<Object> addProject(@RequestBody OpenProjectData newProject) {
 
-    if (newProject == null || newProject.projectKey == null
-        || newProject.projectKey.trim().length() == 0 || newProject.projectName == null
+    if (newProject == null
+        || newProject.projectKey == null
+        || newProject.projectKey.trim().length() == 0
+        || newProject.projectName == null
         || newProject.projectName.trim().length() == 0) {
       return ResponseEntity.badRequest()
           .body("Project key and name are mandatory fields to create a project!");
+    }
+
+    if (newProject.specialPermissionSet && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+      return ResponseEntity.badRequest()
+          .body(
+              format(
+                  "Project with key %s can not be created with special permission set, "
+                      + "since property jira.specialpermissionschema.enabled=false",
+                  newProject.projectKey));
     }
 
     // fix for opendevstack/ods-provisioning-app/issues/64
@@ -129,19 +126,28 @@ public class ProjectApiController {
     MDC.put(STR_LOGFILE_KEY, newProject.projectKey);
 
     try {
-      logger.debug("Project to be created: {}",
+      logger.debug(
+          "Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
 
       if (newProject.specialPermissionSet) {
-        projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+          logger.info(
+              "Do not validate special bugtracker permission set, "
+                  + "because special permission sets are disabled in configuration");
+        } else {
+          projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+        }
       }
 
       // verify the project does NOT exist
       OpenProjectData projectLoad = directStorage.getProject(newProject.projectKey);
       if (projectLoad != null) {
         {
-          throw new IOException(String.format("Project with key (%s) already exists: (%s)",
-              newProject.projectKey, projectLoad.projectKey));
+          throw new IOException(
+              format(
+                  "Project with key (%s) already exists: (%s)",
+                  newProject.projectKey, projectLoad.projectKey));
         }
       }
 
@@ -149,17 +155,19 @@ public class ProjectApiController {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
 
-        Preconditions.checkNotNull(newProject.bugtrackerUrl,
-            jiraAdapter.getClass() + " did not return bugTracker url");
+        Preconditions.checkNotNull(
+            newProject.bugtrackerUrl, jiraAdapter.getClass() + " did not return bugTracker url");
 
         // create confluence space
         newProject.collaborationSpaceUrl =
             confluenceAdapter.createCollaborationSpaceForODSProject(newProject);
 
-        Preconditions.checkNotNull(newProject.collaborationSpaceUrl,
+        Preconditions.checkNotNull(
+            newProject.collaborationSpaceUrl,
             confluenceAdapter.getClass() + " did not return collabSpace url");
 
-        logger.debug("Updated project with collaboration information:\n {}",
+        logger.debug(
+            "Updated project with collaboration information:\n {}",
             new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
       }
 
@@ -185,11 +193,11 @@ public class ProjectApiController {
 
       String error =
           (cleanupResults.size() == 0)
-              ? String.format(
+              ? format(
                   "An error occured while creating project %s, reason %s"
                       + " - but all cleaned up!",
                   newProject.projectKey, exProvisionNew.getMessage())
-              : String.format(
+              : format(
                   "An error occured while creating project %s, reason %s"
                       + " - cleanup attempted, but [%s] components are still there!",
                   newProject.projectKey, exProvisionNew.getMessage(), cleanupResults);
@@ -197,14 +205,13 @@ public class ProjectApiController {
       logger.error(error, exProvisionNew);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
-      client.removeClient(manager.getToken());
       MDC.remove(STR_LOGFILE_KEY);
     }
   }
 
   /**
    * Update a project, e.g. add new quickstarters, upgrade a bugtracker only project
-   * 
+   *
    * @param updatedProject the project containing the update data
    * @return the updated project
    */
@@ -218,8 +225,12 @@ public class ProjectApiController {
 
     logger.debug("Update project {}", updatedProject.projectKey);
     try {
-      logger.debug("Project: {}", new ObjectMapper().writer().withDefaultPrettyPrinter()
-          .writeValueAsString(updatedProject));
+      logger.debug(
+          "Project: {}",
+          new ObjectMapper()
+              .writer()
+              .withDefaultPrettyPrinter()
+              .writeValueAsString(updatedProject));
 
       OpenProjectData storedExistingProject = directStorage.getProject(updatedProject.projectKey);
 
@@ -236,10 +247,12 @@ public class ProjectApiController {
       updatedProject.bugtrackerSpace = storedExistingProject.bugtrackerSpace;
       // we purposely allow overwriting platformRuntime settings, to create a project later
       // on
-      if (!storedExistingProject.platformRuntime && updatedProject.platformRuntime
+      if (!storedExistingProject.platformRuntime
+          && updatedProject.platformRuntime
           && !ocUpgradeAllowed) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-            "Project: " + updatedProject.projectKey + " cannot be upgraded to openshift usage");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(
+                "Project: " + updatedProject.projectKey + " cannot be upgraded to openshift usage");
       } else if (storedExistingProject.platformRuntime) {
         // we need to set this, otherwise the provisioning later will not work
         updatedProject.platformRuntime = storedExistingProject.platformRuntime;
@@ -293,11 +306,11 @@ public class ProjectApiController {
 
       String error =
           (cleanupResults.size() == 0)
-              ? String.format(
+              ? format(
                   "An error occured while updating project %s, reason %s"
                       + " - but all cleaned up!",
                   updatedProject.projectKey, exProvision.getMessage())
-              : String.format(
+              : format(
                   "An error occured while updating project %s, reason %s"
                       + " - cleanup attempted, but [%s] components are still there!",
                   updatedProject.projectKey, exProvision.getMessage(), cleanupResults);
@@ -305,7 +318,6 @@ public class ProjectApiController {
       logger.error(error);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
-      client.removeClient(manager.getToken());
       MDC.remove(STR_LOGFILE_KEY);
     }
   }
@@ -320,8 +332,11 @@ public class ProjectApiController {
    * @throws Exception in case something goes wrong
    */
   private OpenProjectData createDeliveryChain(OpenProjectData project) throws IOException {
-    logger.debug("Create delivery chain for: {}, platform? {}, create scm: {}", project.projectKey,
-        project.platformRuntime, (project.scmvcsUrl == null ? true : false));
+    logger.debug(
+        "Create delivery chain for: {}, platform? {}, create scm: {}",
+        project.projectKey,
+        project.platformRuntime,
+        (project.scmvcsUrl == null ? true : false));
 
     if (!project.platformRuntime) {
       return project;
@@ -331,8 +346,8 @@ public class ProjectApiController {
       // create the bugtracker project
       project.scmvcsUrl = bitbucketAdapter.createSCMProjectForODSProject(project);
 
-      Preconditions.checkNotNull(project.scmvcsUrl,
-          bitbucketAdapter.getClass() + " did not return scmvcs url");
+      Preconditions.checkNotNull(
+          project.scmvcsUrl, bitbucketAdapter.getClass() + " did not return scmvcs url");
 
       // create auxilaries - for design and for the ocp artifacts
       String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
@@ -359,12 +374,15 @@ public class ProjectApiController {
       }
     }
 
-    logger.debug("New quickstarters {}, existing repos: {}, new repos; {}", newQuickstarters,
-        existingComponentRepos, project.repositories.size());
+    logger.debug(
+        "New quickstarters {}, existing repos: {}, new repos; {}",
+        newQuickstarters,
+        existingComponentRepos,
+        project.repositories.size());
 
     Preconditions.checkState(
         project.repositories.size() == existingComponentRepos + newQuickstarters,
-        String.format(
+        format(
             "Class: %s did not create %s new repositories "
                 + "for new quickstarters, existing repos: %s",
             bitbucketAdapter.getClass(), newQuickstarters, existingComponentRepos));
@@ -395,7 +413,7 @@ public class ProjectApiController {
    * Get a list with all projects in the ODS prov system defined by their key. In this case the
    * quickstarters {@link OpenProjectData#quickstarters} contain also the description of the
    * quickstarter that was used
-   * 
+   *
    * @param id the project's key
    * @return Response with a complete project list of {@link OpenProjectData}
    */
@@ -409,11 +427,16 @@ public class ProjectApiController {
 
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
+
+      List<Job> allQuickstarterJobs = rundeckAdapter.getQuickstarters();
+
       for (Map<String, String> quickstarters : project.quickstarters) {
-        Job job = jobStore.getJob(quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY));
-        if (job != null) {
-          quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription());
-        }
+        String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
+        allQuickstarterJobs.stream()
+            .filter(j -> quickstarter.equals(j.getId()))
+            .findFirst()
+            .ifPresent(
+                job -> quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription()));
         enhancedStarters.add(quickstarters);
       }
       project.quickstarters = enhancedStarters;
@@ -423,7 +446,7 @@ public class ProjectApiController {
 
   /**
    * Validate the project name. Duplicates are not allowed in most bugtrackers.
-   * 
+   *
    * @param name the project's name
    * @return Response with HTTP status. If 406 a project with this name exists in JIRA
    */
@@ -439,9 +462,9 @@ public class ProjectApiController {
   }
 
   /**
-   * Get all available (project) template keys, which can be used later in
-   * {@link OpenProjectData#projectType}
-   * 
+   * Get all available (project) template keys, which can be used later in {@link
+   * OpenProjectData#projectType}
+   *
    * @return a list of available template keys
    */
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
@@ -450,9 +473,9 @@ public class ProjectApiController {
   }
 
   /**
-   * Retrieve the underlying templates from {@link IBugtrackerAdapter} and
-   * {@link ICollaborationAdapter}
-   * 
+   * Retrieve the underlying templates from {@link IBugtrackerAdapter} and {@link
+   * ICollaborationAdapter}
+   *
    * @param key the project type as in {@link OpenProjectData#projectKey}
    * @return a map with the templates (which are implementation specific)
    */
@@ -470,12 +493,16 @@ public class ProjectApiController {
     Map<PROJECT_TEMPLATE, String> templates =
         jiraAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(project);
 
-    templatesForKey.put("bugTrackerTemplate",
-        templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY) + "#"
+    templatesForKey.put(
+        "bugTrackerTemplate",
+        templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY)
+            + "#"
             + templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
-    templatesForKey.put("collabSpaceTemplate",
-        confluenceAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(project)
+    templatesForKey.put(
+        "collabSpaceTemplate",
+        confluenceAdapter
+            .retrieveInternalProjectTypeAndTemplateFromProjectType(project)
             .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     return ResponseEntity.ok(templatesForKey);
@@ -483,8 +510,8 @@ public class ProjectApiController {
 
   /**
    * Validate the project's key name. Duplicates are not allowed in most bugtrackers.
-   * 
-   * @param name the project's name to validate against
+   *
+   * @param key the project's name to validate against
    * @return Response with HTTP status. If 406 a project with this key exists in JIRA
    */
   @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
@@ -534,8 +561,7 @@ public class ProjectApiController {
       String repoName =
           bitbucketAdapter.createRepoNameFromComponentName(project.projectKey, projectComponentKey);
 
-      logger.debug(
-          String.format("Trying to find repo %s in %s", repoName, project.repositories.keySet()));
+      logger.debug(format("Trying to find repo %s in %s", repoName, project.repositories.keySet()));
 
       Map<URL_TYPE, String> repoUrls = project.repositories.get(repoName);
 
@@ -559,14 +585,16 @@ public class ProjectApiController {
     if (project == null) {
       return ResponseEntity.notFound().build();
     }
-    
+
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
 
     if (!leftovers.isEmpty()) {
       String error =
-          String.format("Could not delete all components of project " + " {} - leftovers {}",
-              project.projectKey, leftovers);
+          format(
+              "Could not delete all components of project " + " {} - leftovers {}",
+              project.projectKey,
+              leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       return ResponseEntity.ok().build();
@@ -579,10 +607,10 @@ public class ProjectApiController {
     if (!cleanupAllowed) {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
-    
+
     Preconditions.checkNotNull(deletableComponents, "Cannot delete null project");
-    Preconditions.checkNotNull(deletableComponents.quickstarters,
-        "No quickstarters to delete are passed");
+    Preconditions.checkNotNull(
+        deletableComponents.quickstarters, "No quickstarters to delete are passed");
 
     OpenProjectData project =
         filteredStorage.getFilteredSingleProject(deletableComponents.projectKey);
@@ -596,7 +624,8 @@ public class ProjectApiController {
 
     if (!leftovers.isEmpty()) {
       String error =
-          String.format("Could not delete all components of project " + " %s - leftovers %s",
+          format(
+              "Could not delete all components of project " + " %s - leftovers %s",
               project.projectKey, leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
@@ -606,17 +635,17 @@ public class ProjectApiController {
 
   /**
    * In case something breaks during provisioniong, this method is called
-   * 
+   *
    * @param stage the lifecycle stage
    * @param project the project including any created information
    */
-  Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
-      OpenProjectData project) {
-    
+  Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
+      LIFECYCLE_STAGE stage, OpenProjectData project) {
+
     if (!cleanupAllowed) {
       return new HashMap<>();
     }
-    
+
     logger.error("Starting cleanup of project {} " + "in phase {}", project.projectKey, stage);
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();
@@ -631,7 +660,8 @@ public class ProjectApiController {
 
     notCleanedUpComponents.putAll(filteredStorage.cleanup(stage, project));
 
-    logger.debug("Overall cleanup status of project: {} components left",
+    logger.debug(
+        "Overall cleanup status of project: {} components left",
         notCleanedUpComponents.size() == 0 ? 0 : notCleanedUpComponents);
 
     return notCleanedUpComponents;

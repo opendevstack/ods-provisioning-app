@@ -14,26 +14,22 @@
 
 package org.opendevstack.provision.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import static org.junit.Assert.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-@DirtiesContext
 public class RundeckJobStoreTest {
 
   RundeckJobStore jobStore;
@@ -44,15 +40,15 @@ public class RundeckJobStoreTest {
   }
 
   @Test
-  public void addJob() throws Exception {
+  public void addJob() {
     Job job = generateTestJobs().get(0);
     jobStore.addJob(generateTestJobs().get(0));
 
-    assertEquals(jobStore.getJob("1").getId(), job.getId());
+    assertEquals(jobStore.getJobById("1").getId(), job.getId());
   }
 
   @Test
-  public void addJobs() throws Exception {
+  public void addJobs() {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);
@@ -61,24 +57,24 @@ public class RundeckJobStoreTest {
   }
 
   @Test
-  public void removeJob() throws Exception {
+  public void removeJob() {
     List<Job> jobs = generateTestJobs();
     jobStore.addJobs(jobs);
     jobStore.removeJob("1");
 
-    assertNull(jobStore.getJob("1"));
+    assertNull(jobStore.getJobById("1"));
   }
 
   @Test
-  public void getJob() throws Exception {
+  public void getJob() {
     List<Job> jobs = generateTestJobs();
     jobStore.addJob(jobs.get(0));
 
-    assertNotNull(jobStore.getJob("1"));
+    assertNotNull(jobStore.getJobById("1"));
   }
 
   @Test
-  public void getJobs() throws Exception {
+  public void getJobs()  {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);

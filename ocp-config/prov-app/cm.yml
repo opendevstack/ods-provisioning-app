@@ -100,8 +100,8 @@ objects:
       crowd.application.password=${CROWD_PASSWORD}
       crowd.server.url=${CROWD_URL}/crowd/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
-      crowd.user.group=${CROWD_USER_GROUP}
-      crowd.admin.group=${CROWD_ADMIN_GROUP}
+      idmanager.group.opendevstack-users=${CROWD_USER_GROUP}
+      idmanager.group.opendevstack-administrators=${CROWD_ADMIN_GROUP}
       
       # crowd sso cookie keyname
       crowd.sso.cookie.name=crowd.token_key

@@ -19,13 +19,11 @@ import java.util.Map;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * @author Torsten Jaeschke Interface for the underlying storage
- */
+/** @author Torsten Jaeschke Interface for the underlying storage */
 public interface IStorage {
   /**
    * Store a project
-   * 
+   *
    * @param project the project to store
    * @return the filepath the file is stored at
    */
@@ -33,14 +31,14 @@ public interface IStorage {
 
   /**
    * Get the project history, ordered by date
-   * 
+   *
    * @return the project history as map
    */
   Map<String, OpenProjectData> listProjectHistory();
 
   /**
    * get a project by its key
-   * 
+   *
    * @param key the project's key
    * @return the project by its key, or null in case not found
    */
@@ -48,7 +46,7 @@ public interface IStorage {
 
   /**
    * Update an already existing project
-   * 
+   *
    * @param project the project to update (based on the {@link OpenProjectData#projectKey})
    * @return the filepath of the stored project
    * @throws IOException in case the project cannot be stored
@@ -57,7 +55,7 @@ public interface IStorage {
 
   /**
    * Store the about changes data
-   * 
+   *
    * @param aboutData the data
    * @return the filepath
    * @throws IOException in case the data cannot be stored
@@ -66,14 +64,14 @@ public interface IStorage {
 
   /**
    * Get the about history
-   * 
+   *
    * @return the changes
    */
   AboutChangesData listAboutChangesData();
 
   /**
    * Return the storage path
-   * 
+   *
    * @return
    */
   String getStoragePath();
