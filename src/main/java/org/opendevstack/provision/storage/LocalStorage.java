@@ -14,6 +14,10 @@
 
 package org.opendevstack.provision.storage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.exc.PropertyBindingException;
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,17 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.exc.PropertyBindingException;
-import com.google.common.base.Preconditions;
 
 /**
  * Class handling local storage of JSON files for a simple historization
  *
  * @author Torsten Jaeschke
  */
-
 @Component
 public class LocalStorage implements IStorage {
   private static final Logger logger = LoggerFactory.getLogger(LocalStorage.class);
@@ -75,7 +74,7 @@ public class LocalStorage implements IStorage {
   /**
    * Load all files from the defined storage path and map them to the corresponding object
    *
-   * TODO Fix comparator, because it does not sort in the correct order
+   * <p>TODO Fix comparator, because it does not sort in the correct order
    *
    * @return a desc date sorted list of projects
    */
@@ -112,8 +111,7 @@ public class LocalStorage implements IStorage {
               try {
                 data = MAPPER.readValue(project, OpenProjectData.class);
                 logger.debug("Project {} is in std format", data.projectKey);
-              }
-              catch (PropertyBindingException crackedFileEx) {
+              } catch (PropertyBindingException crackedFileEx) {
                 logger.error("Project {} is CRACKED - skipping", file.getName());
                 continue;
               }
@@ -150,7 +148,8 @@ public class LocalStorage implements IStorage {
 
   @Override
   public boolean updateStoredProject(OpenProjectData projectNew) throws IOException {
-    if (projectNew == null || projectNew.projectKey == null
+    if (projectNew == null
+        || projectNew.projectKey == null
         || projectNew.projectKey.trim().length() == 0) {
       throw new IOException("Can't update invalid, null or no key project");
     }
@@ -183,8 +182,12 @@ public class LocalStorage implements IStorage {
   String writeFile(OpenProjectData project, String fileName) throws IOException {
     if (fileName == null) {
       LocalDateTime dateTime = LocalDateTime.now();
-      fileName = String.format(FILE_PATH_PATTERN, localStoragePath,
-          dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), project.projectKey);
+      fileName =
+          String.format(
+              FILE_PATH_PATTERN,
+              localStoragePath,
+              dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
+              project.projectKey);
     }
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
     String json = ow.writeValueAsString(project);
@@ -200,9 +203,7 @@ public class LocalStorage implements IStorage {
     }
   }
 
-  /**
-   * Test Impl only
-   */
+  /** Test Impl only */
   @Override
   public String storeAboutChangesData(AboutChangesData aboutData) throws IOException {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -213,12 +214,14 @@ public class LocalStorage implements IStorage {
 
   @Override
   public AboutChangesData listAboutChangesData() {
-    InputStream aboutChangesStream = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
+    InputStream aboutChangesStream =
+        Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream(ABOUT_CHANGES_LOGFILENAME);
 
     try {
-      return (AboutChangesData) new ObjectMapper().readValue(aboutChangesStream,
-          AboutChangesData.class);
+      return (AboutChangesData)
+          new ObjectMapper().readValue(aboutChangesStream, AboutChangesData.class);
     } catch (Exception e) {
       logger.error("Could not deserialize content: " + e.getMessage());
       return null;

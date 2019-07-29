@@ -35,3 +35,4 @@ gradle.properties
 /.gradle/
 /docker/app*.jar*
 /src/main/resources/__application.properties
+/src/main/resources/application-oauth2private.properties

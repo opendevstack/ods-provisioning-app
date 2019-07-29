@@ -14,35 +14,38 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.AdditionalMatchers.not;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -54,7 +57,6 @@ import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
-import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
@@ -64,15 +66,19 @@ import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
 import org.opendevstack.provision.storage.LocalStorage;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
+import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.RundeckJobStore;
+import org.opendevstack.provision.util.rest.RestClient;
+import org.opendevstack.provision.util.rest.RestClientMockHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -80,13 +86,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 
 /**
  * End to end testcase with real result data - only mock is the RestClient - to feed the json
- * 
+ *
  * @author utschig
  */
 @RunWith(SpringRunner.class)
@@ -95,38 +98,31 @@ import com.google.common.base.Preconditions;
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
-  @InjectMocks
-  @Autowired
-  private JiraAdapter realJiraAdapter;
+  @InjectMocks @Autowired private JiraAdapter realJiraAdapter;
 
-  @InjectMocks
-  @Autowired
-  private ConfluenceAdapter realConfluenceAdapter;
+  @InjectMocks @Autowired private ConfluenceAdapter realConfluenceAdapter;
 
-  @InjectMocks
-  @Autowired
-  private BitbucketAdapter realBitbucketAdapter;
+  @InjectMocks @Autowired private BitbucketAdapter realBitbucketAdapter;
 
-  @InjectMocks
-  @Autowired
-  private RundeckAdapter realRundeckAdapter;
+  @InjectMocks @Autowired private RundeckAdapter realRundeckAdapter;
 
-  @Mock
-  private RestClient mockRestClient;
+  @Mock RestClient restClient;
+  RestClientMockHelper mockHelper;
 
-  @InjectMocks
-  @Autowired
-  private ProjectApiController apiController;
+  @InjectMocks @Autowired private ProjectApiController apiController;
 
-  @Autowired
-  private LocalStorage realStorageAdapter;
+  @Autowired private LocalStorage realStorageAdapter;
 
-  @Autowired
-  private MailAdapter realMailAdapter;
+  @Autowired private MailAdapter realMailAdapter;
 
-  @Autowired
-  private RundeckJobStore realJobStore;
-  
+  @Autowired private RundeckJobStore realJobStore;
+
+  @Value("${idmanager.group.opendevstack-users}")
+  private String userGroup;
+
+  @Value("${idmanager.group.opendevstack-administrators}")
+  private String adminGroup;
+
   private MockMvc mockMvc;
 
   // directory containing all the e2e test data
@@ -136,20 +132,23 @@ public class E2EProjectAPIControllerTest {
   private static File resultsDir = new File(testDataDir, "results");
 
   // do NOT delete on cleanup
-  private static List<String> excludeFromCleanup = 
+  private static List<String> excludeFromCleanup =
       Arrays.asList("20190101171023-LEGPROJ.txt", "20190101171024-CRACKED.txt");
+  private MockHttpSession mocksession;
 
   @Before
   public void setUp() throws Exception {
+    cleanUp();
+    mocksession = new MockHttpSession();
     MockitoAnnotations.initMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
-
+    mockHelper = new RestClientMockHelper(restClient);
     // setup storage against test directory
     realStorageAdapter.setLocalStoragePath(resultsDir.getPath());
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
-    
+
     // populate the rundeck jobs
     List<Job> jobList =
         readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
@@ -167,9 +166,7 @@ public class E2EProjectAPIControllerTest {
     }
   }
 
-  /**
-   * Test positive - e2e new project - no quickstarters
-   */
+  /** Test positive - e2e new project - no quickstarters */
   @Test
   public void testProvisionNewSimpleProjectE2E() throws Exception {
     testProvisionNewSimpleProjectInternal(false);
@@ -185,9 +182,7 @@ public class E2EProjectAPIControllerTest {
     testProvisionNewSimpleProjectInternal(true);
   }
 
-  /**
-   * Test negative - e2e new project - no quickstarters, but NO cleanup allowed :)
-   */
+  /** Test negative - e2e new project - no quickstarters, but NO cleanup allowed :) */
   @Test
   public void testProvisionNewSimpleProjectE2EFailCleanupNotAllowed() throws Exception {
     cleanUp();
@@ -201,184 +196,244 @@ public class E2EProjectAPIControllerTest {
 
     // jira server create project response
     LeanJiraProject jiraProject =
-        readTestData("jira-create-project-response",   LeanJiraProject.class);
+        readTestData("jira-create-project-response", LeanJiraProject.class);
 
-    Mockito.when(mockRestClient.callHttp(contains(realJiraAdapter.getAdapterApiUri() + "/project"),
-        any(FullJiraProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(LeanJiraProject.class))).thenReturn(jiraProject);
-
-    // session id
-    Mockito.doNothing().when(mockRestClient).getSessionId(null);
-
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
+                .method(HttpMethod.POST))
+        .thenReturn(jiraProject);
     // get confluence blueprints
-    List<Blueprint> blList = readTestDataTypeRef("confluence-get-blueprints-response",
-        new TypeReference<List<Blueprint>>() {});
+    List<Blueprint> blList =
+        readTestDataTypeRef(
+            "confluence-get-blueprints-response", new TypeReference<List<Blueprint>>() {});
 
-    Mockito.when(mockRestClient.callHttpTypeRef(contains("dialog/web-items"), eq(null),
-        anyBoolean(), eq(RestClient.HTTP_VERB.GET), any())).thenReturn(blList);
+    mockHelper
+        .mockExecute(
+            matchesClientCall().url(containsString("dialog/web-items")).method(HttpMethod.GET))
+        .thenReturn(blList);
 
     // get jira servers for confluence space
-    List<JiraServer> jiraservers = readTestDataTypeRef("confluence-get-jira-servers-response",
-        new TypeReference<List<JiraServer>>() {});
+    List<JiraServer> jiraservers =
+        readTestDataTypeRef(
+            "confluence-get-jira-servers-response", new TypeReference<List<JiraServer>>() {});
 
-    Mockito.when(mockRestClient.callHttpTypeRef(contains("jiraanywhere/1.0/servers"), eq(null),
-        anyBoolean(), eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jiraservers);
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString("jiraanywhere/1.0/servers"))
+                .method(HttpMethod.GET))
+        .thenReturn(jiraservers);
 
-    // create confluence space
     SpaceData confluenceSpace = readTestData("confluence-create-space-response", SpaceData.class);
 
-    Mockito
-        .when(mockRestClient.callHttp(contains("space-blueprint/create-space"), any(Space.class),
-            anyBoolean(), eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class)))
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString("space-blueprint/create-space"))
+                .bodyMatches(instanceOf(Space.class))
+                .method(HttpMethod.POST))
         .thenReturn(confluenceSpace);
 
     // bitbucket main project creation
     BitbucketProjectData bitbucketProjectData =
         readTestData("bitbucket-create-project-response", BitbucketProjectData.class);
 
-    Mockito.when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
-        any(BitbucketProject.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(BitbucketProjectData.class))).thenReturn(bitbucketProjectData);
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realBitbucketAdapter.getAdapterApiUri()))
+                .bodyMatches(instanceOf(BitbucketProject.class))
+                .method(HttpMethod.POST)
+                .returnType(BitbucketProjectData.class))
+        .thenReturn(bitbucketProjectData);
 
-    // bitbucket aux repo creation - oc-config
+    // bitbucket aus repo creation - oc-config
     RepositoryData bitbucketRepositoryDataOCConfig =
         readTestData("bitbucket-create-repo-occonfig-response", RepositoryData.class);
-
     Repository occonfigRepo = new Repository();
     occonfigRepo.setName(bitbucketRepositoryDataOCConfig.getName());
-
-    Mockito
-        .when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
-            refEq(occonfigRepo, "adminGroup", "userGroup"), anyBoolean(),
-            eq(RestClient.HTTP_VERB.POST), eq(RepositoryData.class)))
-        .thenReturn(bitbucketRepositoryDataOCConfig);
+    occonfigRepo.setUserGroup(userGroup);
+    occonfigRepo.setAdminGroup(adminGroup);
 
     // bitbucket aux repo creation - design repo
     RepositoryData bitbucketRepositoryDataDesign =
         readTestData("bitbucket-create-repo-design-response", RepositoryData.class);
-
     Repository designRepo = new Repository();
     designRepo.setName(bitbucketRepositoryDataDesign.getName());
+    designRepo.setUserGroup(userGroup);
+    designRepo.setAdminGroup(adminGroup);
 
-    Mockito
-        .when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
-            refEq(designRepo, "adminGroup", "userGroup"), anyBoolean(),
-            eq(RestClient.HTTP_VERB.POST), eq(RepositoryData.class)))
-        .thenReturn(bitbucketRepositoryDataDesign);
-
-    // basic auth rundeck
-    Mockito.doNothing().when(mockRestClient).callHttpBasicFormAuthenticate(anyString());
-
-    // populate the rundeck jobs
-    List<Job> jobList =
-        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realBitbucketAdapter.getAdapterApiUri() + "/TESTP/repos"))
+                .method(HttpMethod.POST)
+                .returnType(RepositoryData.class))
+        .thenReturn(bitbucketRepositoryDataOCConfig, bitbucketRepositoryDataDesign);
 
     // will cause cleanup
     String rundeckUrl = realRundeckAdapter.getAdapterApiUri() + "/project/";
     if (fail) {
-      Mockito.when(mockRestClient.callHttpTypeRef(contains(rundeckUrl), anyMap(), anyBoolean(),
-          eq(RestClient.HTTP_VERB.GET), any())).thenThrow(new IOException("Rundeck TestFail"));
+      mockHelper
+          .mockExecute(
+              matchesClientCall()
+                  .url(containsString(rundeckUrl))
+                  .bodyMatches(instanceOf(Map.class))
+                  .method(HttpMethod.GET))
+          .thenThrow(new IOException("Rundeck TestFail"));
     } else {
-      Mockito.when(mockRestClient.callHttpTypeRef(contains(rundeckUrl), anyMap(), anyBoolean(),
-          eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jobList);
+      mockRundeckDefaultJobs();
     }
 
     // rundeck create-projects job execution
     ExecutionsData execution =
         readTestData("rundeck-create-project-response", ExecutionsData.class);
 
-    String createJobId = 
-        realJobStore.getJobIdForJobName("create-projects");
+    String createJobId = realJobStore.getJobIdForJobName("create-projects");
     assertNotNull(createJobId);
 
-    Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createJobId)),
-        any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(ExecutionsData.class))).thenReturn(execution);
-
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(createRundeckJobPath(createJobId)))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST))
+        .thenReturn(execution);
     // create the ODS project
-    MvcResult resultProjectCreationResponse = mockMvc
-        .perform(post("/api/v2/project").content(ProjectApiControllerTest.asJsonString(data))
-            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print()).andReturn();
+    MvcResult resultProjectCreationResponse =
+        mockMvc
+            .perform(
+                post("/api/v2/project")
+                    .content(ProjectApiControllerTest.asJsonString(data))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .session(mocksession)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andReturn();
 
     if (!fail) {
-      assertEquals(MockHttpServletResponse.SC_OK,
-          resultProjectCreationResponse.getResponse().getStatus());
+      assertEquals(
+          MockHttpServletResponse.SC_OK, resultProjectCreationResponse.getResponse().getStatus());
     } else {
-      assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+      assertEquals(
+          MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           resultProjectCreationResponse.getResponse().getStatus());
 
       // no cleanup happening - so no delete calls
       if (!apiController.cleanupAllowed) {
         // 5 delete calls, jira / confluence / bitbucket project and two repos
-        Mockito.verify(mockRestClient, times(0)).callHttp(anyString(), eq(null), anyBoolean(),
-            eq(HTTP_VERB.DELETE), eq(null));
+        //        Mockito.verify(mockOldRestClient, times(0))
+        //            .callHttp(anyString(), eq(null), anyBoolean(), eq(HttpVerb.DELETE), eq(null));
+        mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), never());
         return;
       }
-      
+
       // 5 delete calls, jira / confluence / bitbucket project and two repos
-      Mockito.verify(mockRestClient, times(5)).callHttp(anyString(), eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
+      mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), times(5));
 
       // delete jira project
-      Mockito.verify(mockRestClient, times(1)).callHttp(
-          contains(realJiraAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realJiraAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(1));
 
       // delete confluence space
-      Mockito.verify(mockRestClient, times(1)).callHttp(
-          contains(realConfluenceAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realConfluenceAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(1));
 
       // delete repos and bitbucket project
-      Mockito.verify(mockRestClient, times(3)).callHttp(
-          contains(realBitbucketAdapter.getAdapterApiUri()), eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
-
-      Mockito.verify(mockRestClient, times(2)).callHttp(
-          and(contains(realBitbucketAdapter.getAdapterApiUri()), 
-              contains("repos")), 
-              eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
-
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realBitbucketAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(3));
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(
+                  allOf(
+                      containsString(realBitbucketAdapter.getAdapterApiUri()),
+                      containsString("repos")))
+              .method(HttpMethod.DELETE),
+          times(2));
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realConfluenceAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(1));
       return;
     }
 
     // get the project thru its key
-    MvcResult resultProjectGetResponse = mockMvc
-        .perform(get("/api/v2/project/" + data.projectKey).accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk()).andDo(MockMvcResultHandlers.print())
-        .andReturn();
+    MvcResult resultProjectGetResponse =
+        mockMvc
+            .perform(
+                get("/api/v2/project/" + data.projectKey)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .session(mocksession))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print())
+            .andReturn();
 
     // verify responses
-    assertEquals(resultProjectCreationResponse.getResponse().getContentAsString(),
+    assertEquals(
+        resultProjectCreationResponse.getResponse().getContentAsString(),
         resultProjectGetResponse.getResponse().getContentAsString());
 
-    OpenProjectData resultProject = new ObjectMapper().readValue(
-        resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+    OpenProjectData resultProject =
+        new ObjectMapper()
+            .readValue(
+                resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
     // verify the execution
     assertEquals(1, resultProject.lastExecutionJobs.size());
     assertEquals(execution.getPermalink(), resultProject.lastExecutionJobs.iterator().next());
 
     // verify 2 repos are created
-    assertEquals(2, resultProject.repositories.size());
+    assertEquals("Repository created", 2, resultProject.repositories.size());
   }
 
+  public void mockRundeckDefaultJobs() throws Exception {
+    List<Job> jobList =
+        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+    mockRundeckJobs(jobList);
+  }
 
-  /**
-   * Test positive new quickstarter
-   */
+  public void mockRundeckJobs(List<Job> jobList) throws IOException {
+    Map<String, List<Job>> groups =
+        jobList.stream().collect(Collectors.groupingBy(j -> j.getGroup()));
+    for (Entry<String, List<Job>> jobGrouped : groups.entrySet()) {
+      List<Job> value = jobGrouped.getValue();
+      String key = jobGrouped.getKey();
+      mockHelper
+          .mockExecute(
+              matchesClientCall()
+                  .url(
+                      containsString(
+                          (realRundeckAdapter.getAdapterApiUri() + "/project/")
+                              + "Quickstarters/jobs"))
+                  .queryParam("groupPath", key)
+                  .method(HttpMethod.GET))
+          .thenReturn(value);
+    }
+    realJobStore.addJobs(jobList);
+  }
+
+  /** Test positive new quickstarter */
   @Test
   public void testQuickstarterProvisionOnNewOpenProject() throws Exception {
     testQuickstarterProvisionOnNewOpenProject(false);
   }
 
-  /**
-   * Test positive new quickstarter and delete project afterwards
-   */
+  /** Test positive new quickstarter and delete project afterwards */
   @Test
   public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
+    mockRundeckDefaultJobs();
     OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
 
@@ -393,38 +448,56 @@ public class E2EProjectAPIControllerTest {
 
     // delete the quickstarter IN the project
     mockMvc
-        .perform(delete("/api/v2/project/").content(ProjectApiControllerTest.asJsonString(toClean))
-            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
+        .perform(
+            delete("/api/v2/project/")
+                .content(ProjectApiControllerTest.asJsonString(toClean))
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(mocksession)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isOk());
 
-    String deleteComponentJobId = 
+    String deleteComponentJobId =
         realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_COMPONENT_JOB);
     assertNotNull(deleteComponentJobId);
 
     // delete component thru rundeck
-    Mockito.verify(mockRestClient, times(1)).callHttp(
-        contains(createRundeckJobPath(deleteComponentJobId)), isA(Execution.class),
-        anyBoolean(), eq(HTTP_VERB.POST), eq(ExecutionsData.class));
+
+    mockHelper.verifyExecute(
+        matchesClientCall()
+            .url(containsString(createRundeckJobPath(deleteComponentJobId)))
+            .bodyMatches(instanceOf(Execution.class))
+            .method(HttpMethod.POST),
+        times(1));
 
     // delete the ODS project
     mockMvc
-        .perform(delete("/api/v2/project/" + toClean.projectKey)
-            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print()).andExpect(MockMvcResultMatchers.status().isOk());
+        .perform(
+            delete("/api/v2/project/" + toClean.projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(mocksession)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isOk());
 
-    String deleteProjectJobId = 
-        realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_PROJECTS_JOB);
+    String deleteProjectJobId = realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_PROJECTS_JOB);
     assertNotNull(deleteProjectJobId);
 
     // delete projects rundeck job
-    Mockito.verify(mockRestClient, times(1)).callHttp(
-        contains(createRundeckJobPath(deleteProjectJobId)), isA(Execution.class), anyBoolean(),
-        eq(HTTP_VERB.POST), eq(ExecutionsData.class));
+    RestClientCallArgumentMatcher wantedArgument =
+        matchesClientCall()
+            .url(containsString(createRundeckJobPath(deleteComponentJobId)))
+            .bodyMatches(instanceOf(Execution.class))
+            .method(HttpMethod.POST);
+    mockHelper.verifyExecute(
+        matchesClientCall()
+            .url(containsString(createRundeckJobPath(deleteProjectJobId)))
+            .bodyMatches(instanceOf(Execution.class))
+            .method(HttpMethod.POST),
+        times(1));
   }
 
-  /**
-   * Test NEGATIVE new quickstarter - rollback ONE created repo
-   */
+  /** Test NEGATIVE new quickstarter - rollback ONE created repo */
   @Test
   public void testQuickstarterProvisionOnNewOpenProjectFail() throws Exception {
     testQuickstarterProvisionOnNewOpenProject(true);
@@ -450,66 +523,90 @@ public class E2EProjectAPIControllerTest {
 
     Repository qsrepo = new Repository();
     qsrepo.setName(bitbucketRepositoryDataQSRepo.getName());
+    qsrepo.setUserGroup(userGroup);
+    qsrepo.setAdminGroup(adminGroup);
 
-    Mockito.when(mockRestClient.callHttp(contains(realBitbucketAdapter.getAdapterApiUri()),
-        refEq(qsrepo, "adminGroup", "userGroup"), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        eq(RepositoryData.class))).thenReturn(bitbucketRepositoryDataQSRepo);
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realBitbucketAdapter.getAdapterApiUri()))
+                .method(HttpMethod.POST))
+        .thenReturn(bitbucketRepositoryDataQSRepo);
 
     // get the rundeck jobs
     List<Job> jobList =
         readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
 
-    Mockito.when(mockRestClient.callHttpTypeRef(
-        contains(realRundeckAdapter.getAdapterApiUri() + "/project/"), anyMap(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.GET), any())).thenReturn(jobList);
-
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realRundeckAdapter.getAdapterApiUri() + "/project/"))
+                .method(HttpMethod.GET))
+        .thenReturn(jobList);
     // rundeck create component job execution
     ExecutionsData execution =
         readTestData("rundeck-create-python-qs-response", ExecutionsData.class);
 
-    String createPythonComponentQSJob = 
-        realJobStore.getJobIdForJobName("create-rshiny");
+    String createPythonComponentQSJob = realJobStore.getJobIdForJobName("create-rshiny");
     assertNotNull(createPythonComponentQSJob);
-    
+
     // if !fail - return a clean response from rundeck, else let the execution post fail
     if (!fail) {
-      Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createPythonComponentQSJob)),
-          any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-          eq(ExecutionsData.class))).thenReturn(execution);
+      mockHelper
+          .mockExecute(
+              matchesClientCall()
+                  .url(containsString(createRundeckJobPath(createPythonComponentQSJob)))
+                  .bodyMatches(instanceOf(Execution.class))
+                  .method(HttpMethod.POST))
+          .thenReturn(execution);
     } else {
-      Mockito.when(mockRestClient.callHttp(contains(createRundeckJobPath(createPythonComponentQSJob)),
-          any(Execution.class), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-          eq(ExecutionsData.class))).thenThrow(new IOException("Rundeck provision job failed"));
+      mockHelper
+          .mockExecute(
+              matchesClientCall()
+                  .url(containsString(createRundeckJobPath(createPythonComponentQSJob)))
+                  .bodyMatches(instanceOf(Execution.class))
+                  .method(HttpMethod.POST))
+          .thenThrow(new IOException("Rundeck provision job failed"));
     }
 
     // update the project with the new quickstarter
-    MvcResult resultUpdateResponse = mockMvc
-        .perform(put("/api/v2/project").content(ProjectApiControllerTest.asJsonString(dataUpdate))
-            .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print()).andReturn();
+    MvcResult resultUpdateResponse =
+        mockMvc
+            .perform(
+                put("/api/v2/project")
+                    .content(ProjectApiControllerTest.asJsonString(dataUpdate))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .session(mocksession)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andReturn();
 
     if (fail) {
-      assertEquals(MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+      assertEquals(
+          MockHttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           resultUpdateResponse.getResponse().getStatus());
 
       // delete repository
-      Mockito.verify(mockRestClient, times(1)).callHttp(
-          and(contains(realBitbucketAdapter.getAdapterApiUri()),
-              contains("repos/" + bitbucketRepositoryDataQSRepo.getName())),
-          eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
+      VerificationMode times = times(1);
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realBitbucketAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times);
 
       // verify project(s) are untouched
-      Mockito.verify(mockRestClient, times(0)).callHttp(
-          contains(realJiraAdapter.getAdapterApiUri()),
-          eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
 
-      Mockito.verify(mockRestClient, times(0)).callHttp(
-          contains(realConfluenceAdapter.getAdapterApiUri()),
-          eq(null), anyBoolean(),
-          eq(HTTP_VERB.DELETE), eq(null));
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realJiraAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(0));
 
+      mockHelper.verifyExecute(
+          matchesClientCall()
+              .url(containsString(realConfluenceAdapter.getAdapterApiUri()))
+              .method(HttpMethod.DELETE),
+          times(0));
       return dataUpdate;
     } else {
       assertEquals(MockHttpServletResponse.SC_OK, resultUpdateResponse.getResponse().getStatus());
@@ -535,19 +632,32 @@ public class E2EProjectAPIControllerTest {
     return resultProject;
   }
 
-  /**
-   * Test legacy upgrade e2e
-   */
+  public void oldVerify(VerificationMode times, RestClientCallArgumentMatcher wantedArgument)
+      throws IOException {
+    mockHelper.verifyExecute(wantedArgument, times);
+  }
+
+  /** Test legacy upgrade e2e */
   @Test
   public void testLegacyProjectUpgradeOnGet() throws Exception {
+    // populate the rundeck jobs
+    mockRundeckDefaultJobs();
     // get the project thru its key
     MvcResult resultLegacyProjectGetResponse =
-        mockMvc.perform(get("/api/v2/project/LEGPROJ").accept(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.status().isOk()).andDo(MockMvcResultHandlers.print())
+        mockMvc
+            .perform(
+                get("/api/v2/project/LEGPROJ")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .session(mocksession))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print())
             .andReturn();
 
-    OpenProjectData resultLegacyProject = new ObjectMapper().readValue(
-        resultLegacyProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+    OpenProjectData resultLegacyProject =
+        new ObjectMapper()
+            .readValue(
+                resultLegacyProjectGetResponse.getResponse().getContentAsString(),
+                OpenProjectData.class);
 
     // verify 4 repos are there - 2 base 2 qs
     assertEquals(4, resultLegacyProject.repositories.size());
@@ -579,8 +689,8 @@ public class E2EProjectAPIControllerTest {
     }
     return dataFile;
   }
-  
-  private String createRundeckJobPath (String jobId) {
+
+  private String createRundeckJobPath(String jobId) {
     Preconditions.checkNotNull(jobId, "job id cannot be null");
     return String.format("job/%s/run", jobId);
   }

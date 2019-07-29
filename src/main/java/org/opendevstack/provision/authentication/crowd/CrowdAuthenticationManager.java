@@ -12,66 +12,69 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication;
+package org.opendevstack.provision.authentication.crowd;
 
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
 import com.atlassian.crowd.exception.ExpiredCredentialException;
+import com.atlassian.crowd.exception.GroupNotFoundException;
 import com.atlassian.crowd.exception.InactiveAccountException;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.integration.soap.SOAPGroup;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
 import com.atlassian.crowd.service.AuthenticationManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.google.common.base.Preconditions;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
+import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 /**
  * Custom Authentication manager to integrate the password storing for rundeck authentication
  *
  * @author Torsten Jaeschke
  */
-@Component
-public class CustomAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
+@Component("provisioningAppAuthenticationManager")
+@ConditionalOnProperty(
+    name = "provision.auth.provider",
+    havingValue = "crowd")
+public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
+  private static final Logger logger = LoggerFactory.getLogger(CrowdAuthenticationManager.class);
   private SecurityServerClient securityServerClient;
 
-  @Autowired
-  private SessionAwarePasswordHolder userPassword;
+  @Autowired private SessionAwarePasswordHolder userPassword;
 
-  /**
-   * @see IODSAuthnzAdapter#getUserPassword()
-   */
+  /** @see IODSAuthnzAdapter#getUserPassword() */
   public String getUserPassword() {
     return userPassword.getPassword();
   }
 
-  /**
-   * @see IODSAuthnzAdapter#getUserName()
-   */
+  /** @see IODSAuthnzAdapter#getUserName() */
   public String getUserName() {
     return userPassword.getUsername();
   }
 
-  /**
-   * @see IODSAuthnzAdapter#getToken()
-   */
+  /** @see IODSAuthnzAdapter#getToken() */
   public String getToken() {
     return userPassword.getToken();
   }
 
-  /**
-   * @see IODSAuthnzAdapter#getAuthorities()
-   */
+  /** @see IODSAuthnzAdapter#getAuthorities() */
   public Collection<GrantedAuthority> getAuthorities() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -84,9 +87,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
     return userDetails.getAuthorities();
   }
 
-  /**
-   * @see IODSAuthnzAdapter#getAuthorities()
-   */
+  /** @see IODSAuthnzAdapter#getUserEmail() () */
   public String getUserEmail() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -103,26 +104,22 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
     return userDetails.getEmail();
   }
 
-  /**
-   * open for testing
-   */
-  void setUserPassword(String userPassword) {
+  /** open for testing */
+  public void setUserPassword(String userPassword) {
     this.userPassword.setPassword(userPassword);
   }
 
-  /**
-   * open for testing
-   */
+  /** open for testing */
   public void setUserName(String userName) {
     this.userPassword.setUsername(userName);
   }
 
   /**
-   * Constructor with secure SOAP client for crowd authentication
-   * 
+   * Constructor with secure SOAP restClient for crowd authentication
+   *
    * @param securityServerClient
    */
-  public CustomAuthenticationManager(SecurityServerClient securityServerClient) {
+  public CrowdAuthenticationManager(SecurityServerClient securityServerClient) {
     this.securityServerClient = securityServerClient;
   }
 
@@ -141,7 +138,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
   @Override
   public String authenticate(UserAuthenticationContext authenticationContext)
       throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
     Preconditions.checkNotNull(authenticationContext);
 
     if (authenticationContext.getApplication() == null) {
@@ -171,10 +168,11 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
   public String authenticateWithoutValidatingPassword(
       UserAuthenticationContext authenticationContext)
       throws ApplicationAccessDeniedException, InvalidAuthenticationException,
-      InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
+          InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
     Preconditions.checkNotNull(authenticationContext);
-    return this.getSecurityServerClient().createPrincipalToken(authenticationContext.getName(),
-        authenticationContext.getValidationFactors());
+    return this.getSecurityServerClient()
+        .createPrincipalToken(
+            authenticationContext.getName(), authenticationContext.getValidationFactors());
   }
 
   /**
@@ -193,7 +191,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
   @Override
   public String authenticate(String username, String password)
       throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-      InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
 
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
@@ -218,7 +216,7 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
   @Override
   public boolean isAuthenticated(String token, ValidationFactor[] validationFactors)
       throws RemoteException, InvalidAuthorizationTokenException, ApplicationAccessDeniedException,
-      InvalidAuthenticationException {
+          InvalidAuthenticationException {
     Preconditions.checkNotNull(token);
     userPassword.setToken(token);
     return this.getSecurityServerClient().isValidToken(token, validationFactors);
@@ -246,17 +244,60 @@ public class CustomAuthenticationManager implements AuthenticationManager, IODSA
   }
 
   /**
-   * get the internal secure client
+   * get the internal secure restClient
    *
-   * @return the secure client for crowd connect
+   * @return the secure restClient for crowd connect
    */
   @Override
   public SecurityServerClient getSecurityServerClient() {
     return this.securityServerClient;
   }
 
+  @Override
+  public boolean existsGroupWithName(String groupName) {
+    try {
+      securityServerClient.findGroupByName(groupName);
+      return true;
+    } catch (Exception exception) {
+      if (!(exception instanceof GroupNotFoundException)) {
+        logger.error("GroupFind call failed with:", exception);
+      }
+      return false;
+    }
+  }
+
+  @Override
+  public boolean existPrincipalWithName(String userName) {
+    try {
+      getSecurityServerClient().findPrincipalByName(userName);
+      return true;
+    } catch (Exception exception) {
+      if (!(exception instanceof UsernameNotFoundException)) {
+        logger.error("UserFind call failed with:", exception);
+      }
+      return false;
+    }
+  }
+
+  @Override
+  public String addGroup(String groupName) throws IdMgmtException {
+    try {
+      String name =
+          securityServerClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
+      return name;
+    } catch (Exception eAddGroup) {
+      logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
+      throw new IdMgmtException(eAddGroup);
+    }
+  }
+
+  @Override
+  public String getAdapterApiUri() {
+    return securityServerClient.getSoapClientProperties().getBaseURL();
+  }
+
   /**
-   * Set the secure client for injection in tests
+   * Set the secure restClient for injection in tests
    *
    * @param securityServerClient
    */

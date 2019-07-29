@@ -63,7 +63,7 @@ public class MailAdapter {
 
   public void notifyUsersAboutProject(OpenProjectData data) {
     if (!isMailEnabled) {
-      logger.debug("Email disabled, returning");
+      logger.debug("Do not send email, because property mail.enabled is set to false.");
       return;
     }
     String recipient = manager.getUserEmail();

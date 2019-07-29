@@ -15,21 +15,21 @@
 package org.opendevstack.provision.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasToString;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IServiceAdapter;
@@ -37,36 +37,28 @@ import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
-import org.opendevstack.provision.util.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-public class ConfluenceAdapterTest {
+public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  @Mock
-  RestClient client;
-
-  @Autowired
-  @InjectMocks
-  ConfluenceAdapter confluenceAdapter;
+  @Autowired @InjectMocks ConfluenceAdapter confluenceAdapter;
 
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
 
-  @Autowired
-  ConfigurableEnvironment environment;
+  // RestClient restClient;
+  @Autowired ConfigurableEnvironment environment;
 
   @Test
   public void createConfluenceSpaceForProject() throws Exception {
@@ -86,47 +78,38 @@ public class ConfluenceAdapterTest {
 
   @Test
   public void callCreateSpaceApi() throws Exception {
-    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
-    spyAdapter.client = client;
     Space space = new Space();
     SpaceData expectedSpaceData = Mockito.mock(SpaceData.class);
 
-    doReturn(expectedSpaceData).when(client).callHttp(anyString(), any(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), eq(SpaceData.class));
-
-    SpaceData createdSpaceData = spyAdapter.callCreateSpaceApi(space);
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expectedSpaceData);
+    SpaceData createdSpaceData = confluenceAdapter.callCreateSpaceApi(space);
 
     assertEquals(expectedSpaceData, createdSpaceData);
   }
 
   @Test
   public void updateSpacePermissions() throws Exception {
-    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
     OpenProjectData project = JiraAdapterTests.getTestProject("name");
     project.projectAdminGroup = "adminGroup";
     project.projectUserGroup = "userGroup";
     project.projectReadonlyGroup = "readGroup";
 
-    spyAdapter.client = client;
-
-    doReturn(String.class).when(client).callHttp(anyString(), any(), anyBoolean(),
-        eq(RestClient.HTTP_VERB.POST), any(String.class.getClass()));
-
-    int permissionSets = spyAdapter.updateSpacePermissions(project);
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(String.class);
+    int permissionSets = confluenceAdapter.updateSpacePermissions(project);
 
     // 3 permission sets
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-        contains(project.projectAdminGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        any(String.class.getClass()));
-
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-        contains(project.projectUserGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        any(String.class.getClass()));
-
-    Mockito.verify(client, Mockito.times(1)).callHttp(anyString(),
-        contains(project.projectReadonlyGroup), anyBoolean(), eq(RestClient.HTTP_VERB.POST),
-        any(String.class.getClass()));
-
+    verifyExecute(
+        matchesClientCall()
+            .method(HttpMethod.POST)
+            .bodyMatches(hasToString(containsString(project.projectAdminGroup))));
+    verifyExecute(
+        matchesClientCall()
+            .method(HttpMethod.POST)
+            .bodyMatches(hasToString(containsString(project.projectUserGroup))));
+    verifyExecute(
+        matchesClientCall()
+            .method(HttpMethod.POST)
+            .bodyMatches(hasToString(containsString(project.projectReadonlyGroup))));
     assertEquals(3, permissionSets);
   }
 
@@ -144,11 +127,13 @@ public class ConfluenceAdapterTest {
     bPrint.setContentBlueprintId("1234");
     blList.add(bPrint);
 
-    Mockito.doReturn(blList).when(spyAdapter).getSpaceTemplateList(contains("space-blueprint"),
-        any());
+    Mockito.doReturn(blList)
+        .when(spyAdapter)
+        .getSpaceTemplateList(contains("space-blueprint"), any());
 
-    Mockito.doReturn(new ArrayList<>()).when(spyAdapter).getSpaceTemplateList(contains("jira"),
-        any());
+    Mockito.doReturn(new ArrayList<>())
+        .when(spyAdapter)
+        .getSpaceTemplateList(contains("jira"), any());
 
     Space space = spyAdapter.createSpaceData(project);
 
@@ -160,7 +145,6 @@ public class ConfluenceAdapterTest {
 
     assertEquals(project.projectName, space.getContext().getProjectName());
     assertEquals(project.projectKey, space.getContext().getProjectKey());
-
   }
 
   @Test
@@ -182,8 +166,10 @@ public class ConfluenceAdapterTest {
     assertEquals(defaultTemplateName, templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     // add new template
-    confluenceAdapter.environment.getSystemProperties().put("confluence.blueprint.key.testTemplate",
-        "template");
+    confluenceAdapter
+        .environment
+        .getSystemProperties()
+        .put("confluence.blueprint.key.testTemplate", "template");
 
     confluenceAdapter.projectTemplateKeyNames.add("testTemplate");
 
