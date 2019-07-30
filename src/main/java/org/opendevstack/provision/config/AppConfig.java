@@ -17,7 +17,6 @@ package org.opendevstack.provision.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,11 +41,6 @@ public class AppConfig {
     templateEngine.setTemplateResolver(templateResolver);
     templateEngine.addDialect(new SpringSecurityDialect());
     return templateEngine;
-  }
-
-  @Bean
-  public RundeckJobStore jobStore() {
-    return new RundeckJobStore();
   }
 
   @Bean(name = "projectKeys")

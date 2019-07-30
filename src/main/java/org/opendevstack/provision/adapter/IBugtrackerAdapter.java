@@ -89,4 +89,6 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
    * @return the name and descriptions of the components created
    */
   public Map<String, String> createComponentsForProjectRepositories(OpenProjectData data);
+
+  boolean isSpecialPermissionSchemeEnabled();
 }

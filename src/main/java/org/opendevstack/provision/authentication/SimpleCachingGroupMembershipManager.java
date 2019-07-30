@@ -36,7 +36,7 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
  */
 public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipManager {
   /**
-   * security server client
+   * security server restClient
    */
   final SecurityServerClient securityServerClient;
   /**

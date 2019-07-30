@@ -1,11 +1,18 @@
 package org.opendevstack.provision.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
@@ -17,9 +24,8 @@ import org.opendevstack.provision.model.jira.Permission;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.jira.Shortcut;
-import org.opendevstack.provision.util.RestClient;
-import org.opendevstack.provision.util.RestClient.HTTP_VERB;
 import org.opendevstack.provision.util.exception.HttpException;
+import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,22 +34,18 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 
 /**
  * created by: OPITZ CONSULTING Deutschland GmbH
  *
  * @author Brokmeier, Pascal
- *         <p>
- *         To communicate with Jira, we use the Jira REST API
- *         https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To ease the burden of
- *         working with a REST API, there is a jira client
- *         https://ecosystem.atlassian.net/wiki/display/JRJC/
+ *     <p>To communicate with Jira, we use the Jira REST API
+ *     https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To ease the burden of
+ *     working with a REST API, there is a jira restClient
+ *     https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
-public class JiraAdapter implements IBugtrackerAdapter {
+public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(JiraAdapter.class);
 
@@ -55,6 +57,9 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
   @Value("${jira.permission.filepattern}")
   private String jiraPermissionFilePattern;
+
+  @Value("${jira.specialpermissionschema.enabled:true}")
+  private boolean specialPermissionSchemeEnabled;
 
   public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
@@ -74,23 +79,21 @@ public class JiraAdapter implements IBugtrackerAdapter {
   // Pattern to use for project with id
   private static final String URL_PATTERN = "%s%s/project/%s";
 
-  @Autowired
-  IODSAuthnzAdapter manager;
+  @Autowired IODSAuthnzAdapter manager;
 
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
 
-  @Autowired
-  RestClient client;
+  @Autowired ConfigurableEnvironment environment;
 
-  @Autowired
-  ConfigurableEnvironment environment;
-
-  @Autowired
-  List<String> projectTemplateKeyNames;
+  @Autowired List<String> projectTemplateKeyNames;
 
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
+
+  public JiraAdapter() {
+    super("jira");
+  }
 
   private LeanJiraProject createProjectInJira(OpenProjectData project, FullJiraProject toBeCreated)
       throws IOException {
@@ -98,11 +101,15 @@ public class JiraAdapter implements IBugtrackerAdapter {
     try {
       created = this.callJiraCreateProjectApi(toBeCreated);
     } catch (HttpException jiracreateException) {
-      logger.debug("error creating project with template {}: {}", toBeCreated.projectTemplateKey,
+      logger.debug(
+          "error creating project with template {}: {}",
+          toBeCreated.projectTemplateKey,
           jiracreateException.getMessage());
       if (jiracreateException.getResponseCode() == 400) {
-        logger.info("Template {} did not work, falling back to default {}",
-            toBeCreated.projectTemplateKey, jiraTemplateKey);
+        logger.info(
+            "Template {} did not work, falling back to default {}",
+            toBeCreated.projectTemplateKey,
+            jiraTemplateKey);
         toBeCreated.projectTypeKey = jiraTemplateType;
         toBeCreated.projectTemplateKey = jiraTemplateKey;
         created = this.callJiraCreateProjectApi(toBeCreated);
@@ -118,19 +125,27 @@ public class JiraAdapter implements IBugtrackerAdapter {
       throws IOException {
     String path = String.format("%s%s/project", jiraUri, jiraApiPath);
 
-    LeanJiraProject created =
-        client.callHttp(path, jiraProject, false, RestClient.HTTP_VERB.POST, LeanJiraProject.class);
+    RestClientCall clientCall =
+        httpPost().url(path).body(jiraProject).returnType(LeanJiraProject.class);
+    LeanJiraProject created = restClient.execute(clientCall);
+
     return created;
   }
 
   /**
    * Create permission set for jira project
-   * 
+   *
    * @param project the project
-   * @param crowdCookieValue the crowd cookie
    * @return the number of created permission sets
    */
-  protected int createPermissions(OpenProjectData project) {
+  protected int createSpecialPermissions(OpenProjectData project) {
+    if (!isSpecialPermissionSchemeEnabled()) {
+      logger.info(
+          "Do not create special permission set for project {}, "
+              + "since property jira.specialpermissionschema.enabled=false",
+          project.projectKey);
+      return 0;
+    }
     PathMatchingResourcePatternResolver pmrl =
         new PathMatchingResourcePatternResolver(Thread.currentThread().getContextClassLoader());
     int updatedPermissions = 0;
@@ -168,37 +183,50 @@ public class JiraAdapter implements IBugtrackerAdapter {
             permission.getHolder().setParameter(globalKeyuserRoleName);
           }
         }
-        logger.debug("Update permissionScheme {} location: {}", permissionSchemeName,
+        logger.debug(
+            "Update permissionScheme {} location: {}",
+            permissionSchemeName,
             permissionFile.getFilename());
 
         String path = String.format("%s%s/permissionscheme", jiraUri, jiraApiPath);
-        singleScheme = client.callHttp(path, singleScheme, true, RestClient.HTTP_VERB.POST,
-            PermissionScheme.class);
+        RestClientCall call =
+            httpPost()
+                .url(path)
+                .body(singleScheme)
+                .returnTypeReference(new TypeReference<PermissionScheme>() {});
+        singleScheme = restClient.execute(call);
 
         // update jira project
-        path = String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath,
-            project.projectKey);
+        path =
+            String.format(
+                "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
         PermissionScheme small = new PermissionScheme();
         small.setId(singleScheme.getId());
-        client.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
+        // restClient.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
+        restClient.execute(httpPut().body(small).url(path).returnType(null));
 
         updatedPermissions++;
       }
     } catch (Exception createPermissions) {
       // continue - we are ok if permissions fail, because the admin has access, and
       // create the set
-      logger.error("Could not update permissionset: " + project.projectKey + "\n Exception: "
-          + createPermissions.getMessage());
+      logger.error(
+          "Could not update permissionset: "
+              + project.projectKey
+              + "\n Exception: "
+              + createPermissions.getMessage());
     }
     return updatedPermissions;
   }
 
   protected FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData s) {
-    String templateKey = calculateJiraProjectTypeAndTemplateFromProjectType(s,
-        JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
+    String templateKey =
+        calculateJiraProjectTypeAndTemplateFromProjectType(
+            s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
 
-    String templateType = calculateJiraProjectTypeAndTemplateFromProjectType(s,
-        JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+    String templateType =
+        calculateJiraProjectTypeAndTemplateFromProjectType(
+            s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
 
     if (jiraTemplateKey.equals(templateKey)) {
       s.projectType = defaultProjectKey;
@@ -206,8 +234,15 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
     logger.debug("Creating project of type: {} for project: {}", templateKey, s.projectKey);
 
-    return new FullJiraProject(null, s.projectKey, s.projectName, s.description, s.projectAdminUser, 
-        templateKey, templateType, jiraNotificationSchemeId);
+    return new FullJiraProject(
+        null,
+        s.projectKey,
+        s.projectName,
+        s.description,
+        s.projectAdminUser,
+        templateKey,
+        templateType,
+        jiraNotificationSchemeId);
   }
 
   public String buildProjectKey(String name) {
@@ -222,35 +257,27 @@ public class JiraAdapter implements IBugtrackerAdapter {
 
   public boolean projectKeyExists(String key) {
     Preconditions.checkNotNull(key, "Key for keyExists cannot be null");
-    getSessionId();
-    Map<String, String> projectKeyMap = getProjects(key);
 
-    return (projectKeyMap.containsKey(key) || (projectKeyMap.containsValue(key)));
+    Collection<String> projectKeys = getProjectKeys();
+    return projectKeys.contains(key);
   }
 
   // refactor - to only look for the project by key that is to be created!
   public Map<String, String> getProjects(String filter) {
-    getSessionId();
     logger.debug("Getting jira projects with filter {}", filter);
-    String url = filter == null || filter.trim().length() == 0
-        ? String.format("%s%s/project", jiraUri, jiraApiPath)
-        : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
+    String url =
+        filter == null || filter.trim().length() == 0
+            ? String.format("%s%s/project", jiraUri, jiraApiPath)
+            : String.format(URL_PATTERN, jiraUri, jiraApiPath, filter);
 
     try {
-      List<LeanJiraProject> projects = client.callHttpTypeRef(url, null, false,
-          RestClient.HTTP_VERB.GET, new TypeReference<List<LeanJiraProject>>() {});
+      RestClientCall call =
+          httpGet().url(url).returnTypeReference(new TypeReference<List<LeanJiraProject>>() {});
+      List<LeanJiraProject> projects = restClient.execute(call);
       return convertJiraProjectToKeyMap(projects);
     } catch (IOException e) {
       logger.error("Could not retrieve jira projects", e);
       return convertJiraProjectToKeyMap(null);
-    }
-  }
-
-  private void getSessionId() {
-    try {
-      client.getSessionId(jiraUri);
-    } catch (IOException ex) {
-      logger.error("Can not get session id", ex);
     }
   }
 
@@ -306,28 +333,36 @@ public class JiraAdapter implements IBugtrackerAdapter {
     }
 
     for (Shortcut shortcut : shortcuts) {
-      logger.debug("Attempting to create shortcut ({}) for: {}", shortcut.getId(),
-          shortcut.getName());
+      logger.debug(
+          "Attempting to create shortcut ({}) for: {}", shortcut.getId(), shortcut.getName());
       try {
-        client.callHttp(path, shortcut, false, RestClient.HTTP_VERB.POST, Shortcut.class);
+        // restClient.callHttp(path, shortcut, false, RestClient.HTTP_VERB.POST, Shortcut.class);
+        RestClientCall call = httpPost().url(path).body(shortcut).returnType(Shortcut.class);
+        restClient.execute(call);
         createdShortcuts++;
       } catch (HttpException httpEx) {
         if (httpEx.getResponseCode() == 401) {
-          logger.error("Could not create shortcut for: " + shortcut.getName() + " Error: "
-              + httpEx.getMessage());
+          logger.error(
+              "Could not create shortcut for: "
+                  + shortcut.getName()
+                  + " Error: "
+                  + httpEx.getMessage());
           // if you get a 401 here - we can't reach the project, so stop
           break;
         }
       } catch (IOException shortcutEx) {
-        logger.error("Could not create shortcut for: " + shortcut.getName() + " Error: "
-            + shortcutEx.getMessage());
+        logger.error(
+            "Could not create shortcut for: "
+                + shortcut.getName()
+                + " Error: "
+                + shortcutEx.getMessage());
       }
     }
     return createdShortcuts;
   }
 
-  public String calculateJiraProjectTypeAndTemplateFromProjectType(OpenProjectData project,
-      String templatePrefix, String defaultValue) {
+  public String calculateJiraProjectTypeAndTemplateFromProjectType(
+      OpenProjectData project, String templatePrefix, String defaultValue) {
     Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
     Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
     /*
@@ -336,11 +371,10 @@ public class JiraAdapter implements IBugtrackerAdapter {
      * default
      */
     return (project.projectType != null
-        && environment.containsProperty(templatePrefix + project.projectType)
-        && projectTemplateKeyNames.contains(project.projectType))
-            ? environment.getProperty(templatePrefix + project.projectType)
-            : defaultValue;
-
+            && environment.containsProperty(templatePrefix + project.projectType)
+            && projectTemplateKeyNames.contains(project.projectType))
+        ? environment.getProperty(templatePrefix + project.projectType)
+        : defaultValue;
   }
 
   Map<String, String> convertJiraProjectToKeyMap(List<LeanJiraProject> projects) {
@@ -364,28 +398,26 @@ public class JiraAdapter implements IBugtrackerAdapter {
   public OpenProjectData createBugtrackerProjectForODSProject(OpenProjectData project)
       throws IOException {
     try {
-      client.getSessionId(jiraUri);
-
       logger.debug("Creating new jira project");
 
       Preconditions.checkNotNull(project.projectKey);
       Preconditions.checkNotNull(project.projectName);
 
-      if (!project.specialPermissionSet || project.projectAdminUser == null
+      if (!(project.specialPermissionSet && isSpecialPermissionSchemeEnabled())
+          || project.projectAdminUser == null
           || project.projectAdminUser.trim().length() == 0) {
         project.projectAdminUser = manager.getUserName();
       }
 
       FullJiraProject toBeCreated = this.buildJiraProjectPojoFromApiProject(project);
 
-      LeanJiraProject created = 
-          createProjectInJira(project, toBeCreated);
+      LeanJiraProject created = createProjectInJira(project, toBeCreated);
 
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
 
       if (project.specialPermissionSet) {
-        createPermissions(project);
+        createSpecialPermissions(project);
       }
 
       return project;
@@ -400,12 +432,15 @@ public class JiraAdapter implements IBugtrackerAdapter {
       OpenProjectData project) {
     Map<PROJECT_TEMPLATE, String> template = new HashMap<>();
 
-    template.put(PROJECT_TEMPLATE.TEMPLATE_KEY, calculateJiraProjectTypeAndTemplateFromProjectType(
-        project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
+    template.put(
+        PROJECT_TEMPLATE.TEMPLATE_KEY,
+        calculateJiraProjectTypeAndTemplateFromProjectType(
+            project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
 
-    template.put(PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
-        calculateJiraProjectTypeAndTemplateFromProjectType(project,
-            JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
+    template.put(
+        PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
+        calculateJiraProjectTypeAndTemplateFromProjectType(
+            project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
 
     return template;
   }
@@ -430,17 +465,22 @@ public class JiraAdapter implements IBugtrackerAdapter {
         logger.debug("Repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
 
         Component component = new Component();
-        component.setName(String.format("Technology%s",
-            repo.getKey().replace(data.projectKey.toLowerCase(), "")));
+        component.setName(
+            String.format(
+                "Technology%s", repo.getKey().replace(data.projectKey.toLowerCase(), "")));
         component.setProject(data.projectKey);
         component.setDescription(
             String.format("Technology component %s stored at %s", repo.getKey(), href));
         try {
-          client.callHttp(path, component, false, RestClient.HTTP_VERB.POST, null);
+          // restClient.callHttp(path, component, false, RestClient.HTTP_VERB.POST, null);
+          RestClientCall call = httpPost().url(path).body(component).returnType(null);
+          restClient.execute(call);
           createdComponents.put(component.getName(), component.getDescription());
         } catch (HttpException httpEx) {
-          String error = String.format("Could not create jira component for %s - error %s",
-              component.getName(), httpEx.getMessage());
+          String error =
+              String.format(
+                  "Could not create jira component for %s - error %s",
+                  component.getName(), httpEx.getMessage());
           logger.error(error);
 
           if (httpEx.getResponseCode() == 401) {
@@ -448,8 +488,10 @@ public class JiraAdapter implements IBugtrackerAdapter {
             break;
           }
         } catch (IOException componentEx) {
-          String error = String.format("Could not create jira component for %s - error %s",
-              component.getName(), componentEx.getMessage());
+          String error =
+              String.format(
+                  "Could not create jira component for %s - error %s",
+                  component.getName(), componentEx.getMessage());
           logger.error(error);
         }
       }
@@ -458,8 +500,8 @@ public class JiraAdapter implements IBugtrackerAdapter {
   }
 
   @Override
-  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
-      OpenProjectData project) {
+  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
+      LIFECYCLE_STAGE stage, OpenProjectData project) {
     Preconditions.checkNotNull(stage);
     Preconditions.checkNotNull(project);
 
@@ -472,46 +514,75 @@ public class JiraAdapter implements IBugtrackerAdapter {
     String jiraProjectPath =
         String.format("%s%s/project/%s", jiraUri, jiraApiPath, project.projectKey);
 
-    logger.debug("Cleaning up bugtracker space: {} with url {}", project.projectKey,
-        project.bugtrackerUrl);
+    logger.debug(
+        "Cleaning up bugtracker space: {} with url {}", project.projectKey, project.bugtrackerUrl);
 
     try {
-      if (project.specialPermissionSet) 
-      {
-        String permissionSchemeUrl = 
-            String.format("%s/permissionscheme", jiraProjectPath);
-        
-        PermissionSchemeResponse permissionScheme =
-            client.callHttp(permissionSchemeUrl, null, false, HTTP_VERB.GET, PermissionSchemeResponse.class);
-        
+      if (project.specialPermissionSet) {
+        String permissionSchemeUrl = String.format("%s/permissionscheme", jiraProjectPath);
+
+        RestClientCall call =
+            httpGet().url(permissionSchemeUrl).returnType(PermissionSchemeResponse.class);
+        PermissionSchemeResponse permissionScheme = restClient.execute(call);
         if (permissionScheme.getName().contains(project.projectKey)) {
-          logger.debug("Cleaning up permissionset {} {}", 
-              permissionScheme.getId(), permissionScheme.getName());
+          logger.debug(
+              "Cleaning up permissionset {} {}",
+              permissionScheme.getId(),
+              permissionScheme.getName());
         } else {
-          logger.debug("NOT Cleaning up permissionset {} {}, because it's a standard one", 
-              permissionScheme.getId(), permissionScheme.getName());
+          logger.debug(
+              "NOT Cleaning up permissionset {} {}, because it's a standard one",
+              permissionScheme.getId(),
+              permissionScheme.getName());
           return leftovers;
         }
-        
-        String jiraPermissionSchemePath =
-            String.format("%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
-        client.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
+        String jiraPermissionSchemePath =
+            String.format(
+                "%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
+
+        // restClient.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
+        RestClientCall call2 = httpDelete().url(jiraPermissionSchemePath).returnType(null);
+        restClient.execute(call2);
       }
 
-      client.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
+      // restClient.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
+      RestClientCall call2 = httpDelete().url(jiraProjectPath).returnType(null);
+      restClient.execute(call2);
 
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
       logger.error("Could not cleanup jira: ", cex);
       logger.error(
-          String.format("Could not clean up project" + " {} error: {}", 
-              project.projectKey, cex.getMessage()));
+          String.format(
+              "Could not clean up project" + " {} error: {}",
+              project.projectKey,
+              cex.getMessage()));
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
-    logger.debug("Cleanup done - status: {} components are left ..",
-        leftovers.size() == 0 ? 0 : leftovers);
+    logger.debug(
+        "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
 
     return leftovers;
+  }
+
+  private Collection<String> getProjectKeys() {
+    logger.debug("Getting all visible jira project keys");
+    String url = String.format("%s%s/project", jiraUri, jiraApiPath);
+    try {
+
+      RestClientCall call =
+          httpGet().url(url).returnTypeReference(new TypeReference<List<JsonNode>>() {});
+      List<JsonNode> execute = restClient.execute(call);
+      return execute.stream().map(n -> n.path("key").textValue()).collect(Collectors.toList());
+    } catch (IOException e) {
+      logger.error("Error in getProjectKeys: {}", e.getMessage());
+      return Collections.emptyList();
+    }
+  }
+
+  @Override
+  public boolean isSpecialPermissionSchemeEnabled() {
+    return specialPermissionSchemeEnabled;
   }
 }

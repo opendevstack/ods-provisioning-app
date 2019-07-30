@@ -14,12 +14,12 @@
 
 package org.opendevstack.provision.services;
 
+import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.IStorage;
@@ -28,22 +28,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-import com.google.common.base.Preconditions;
 
 /**
  * Service to interact with the underlying storage system to liast the project history
  *
  * @author Torsten Jaeschke
  */
-
 @Service
 public class StorageAdapter implements IServiceAdapter {
 
-  @Autowired
-  IStorage storage;
+  @Autowired IStorage storage;
 
-  @Autowired
-  IODSAuthnzAdapter authManager;
+  @Autowired IODSAuthnzAdapter authManager;
 
   private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
 
@@ -51,13 +47,16 @@ public class StorageAdapter implements IServiceAdapter {
     Map<String, OpenProjectData> allProjects = storage.listProjectHistory();
     Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
-    Collection<GrantedAuthority> authorities = authManager.getAuthorities();
+    Collection<? extends GrantedAuthority> authorities = authManager.getAuthorities();
     logger.debug("User: {} Authorities: {}", authManager.getUserName(), authorities);
 
     for (Map.Entry<String, OpenProjectData> project : allProjects.entrySet()) {
       OpenProjectData projectData = project.getValue();
-      logger.debug("Project: {} groups: {},{} - permissioned? {}", projectData.projectKey,
-          projectData.projectAdminGroup, projectData.projectUserGroup,
+      logger.debug(
+          "Project: {} groups: {},{} - permissioned? {}",
+          projectData.projectKey,
+          projectData.projectAdminGroup,
+          projectData.projectUserGroup,
           projectData.specialPermissionSet);
 
       if (!projectData.specialPermissionSet) {
@@ -104,8 +103,8 @@ public class StorageAdapter implements IServiceAdapter {
   }
 
   @Override
-  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage,
-      OpenProjectData project) {
+  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
+      LIFECYCLE_STAGE stage, OpenProjectData project) {
     Preconditions.checkNotNull(stage);
     Preconditions.checkNotNull(project);
 
@@ -118,7 +117,8 @@ public class StorageAdapter implements IServiceAdapter {
       OpenProjectData toBeDeleted = storage.getProject(project.projectKey);
 
       if (toBeDeleted == null) {
-        logger.debug("Project {} not affected from cleanup, " + "as it was never stored",
+        logger.debug(
+            "Project {} not affected from cleanup, " + "as it was never stored",
             project.projectKey);
         return leftovers;
       }
@@ -130,8 +130,8 @@ public class StorageAdapter implements IServiceAdapter {
       }
     }
 
-    logger.debug("Cleanup done - status: {} components are left ..",
-        leftovers.size() == 0 ? 0 : leftovers);
+    logger.debug(
+        "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
 
     return leftovers;
   }

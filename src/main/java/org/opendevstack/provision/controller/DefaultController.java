@@ -15,8 +15,10 @@
 package org.opendevstack.provision.controller;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -25,6 +27,9 @@ import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,28 +52,29 @@ public class DefaultController {
 
   private ISCMAdapter bitbucketAdapter;
 
-  @Autowired
-  private ICollaborationAdapter confluenceAdapter;
+  @Autowired private ICollaborationAdapter confluenceAdapter;
 
   private static final String LOGIN_REDIRECT = "redirect:/login";
 
   private static final String ACTIVE = "active";
 
-  @Value("${crowd.user.group}")
-  private String crowdUserGroup;
+  @Value("${idmanager.group.opendevstack-users}")
+  private String idmanagerUserGroup;
 
-  @Value("${crowd.admin.group}")
-  private String crowdAdminGroup;
+  @Value("${idmanager.group.opendevstack-administrators}")
+  private String idmanagerAdminGroup;
 
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
 
-  @Autowired
-  List<String> projectTemplateKeyNames;
+  @Autowired List<String> projectTemplateKeyNames;
+
+  @Value("${provision.auth.provider}")
+  private String authProvider;
 
   @RequestMapping("/")
-  String rootRedirect() {
-    return "redirect:/home";
+  public String rootRedirect() {
+    return LOGIN_REDIRECT;
   }
 
   @RequestMapping("/home")
@@ -87,18 +93,22 @@ public class DefaultController {
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
       model.addAttribute("quickStarter", rundeckAdapter.getQuickstarters());
-      model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
-      model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
+      model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
+      model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
       model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
       model.addAttribute("projectTypes", projectTemplateKeyNames);
+      model.addAttribute("specialPermissionSchemeEnabled", jiraAdapter.isSpecialPermissionSchemeEnabled());
     }
     model.addAttribute("classActiveNew", ACTIVE);
     return "provision";
   }
 
   @RequestMapping("/login")
-  String login(Model model) {
-    return "login";
+  public String login(Model model) {
+    if (isAuthProviderOauth2()) {
+      return "oauth2Login";
+    }
+    return "crowdLogin";
   }
 
   @RequestMapping("/history")
@@ -116,6 +126,8 @@ public class DefaultController {
     if (!isAuthenticated()) {
       return LOGIN_REDIRECT;
     }
+    final Set<String> userRoles = getUserRoles();
+
     model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
 
@@ -128,9 +140,21 @@ public class DefaultController {
 
     model.addAttribute("endpointMap", endpoints);
 
-    model.addAttribute("crowdUserGroup", crowdUserGroup.toLowerCase());
-    model.addAttribute("crowdAdminGroup", crowdAdminGroup.toLowerCase());
+    model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
+    model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
+    model.addAttribute("email", manager.getUserEmail());
     return "about";
+  }
+
+  public static Set<String> getUserRoles() {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    Authentication authentication = securityContext.getAuthentication();
+    Set<String> roles = new HashSet<>();
+
+    if (null != authentication) {
+      authentication.getAuthorities().forEach(e -> roles.add(e.getAuthority()));
+    }
+    return roles;
   }
 
   @RequestMapping(value = "/logout", method = RequestMethod.GET)
@@ -143,6 +167,11 @@ public class DefaultController {
   }
 
   private boolean isAuthenticated() {
+    if (isAuthProviderOauth2()) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+      return authentication.isAuthenticated();
+    }
     return (manager.getUserPassword() != null);
   }
 
@@ -169,5 +198,9 @@ public class DefaultController {
   @Autowired
   public void setSCMAdapter(ISCMAdapter bitbucketAdapter) {
     this.bitbucketAdapter = bitbucketAdapter;
+  }
+
+  private boolean isAuthProviderOauth2() {
+    return authProvider.equals("oauth2");
   }
 }

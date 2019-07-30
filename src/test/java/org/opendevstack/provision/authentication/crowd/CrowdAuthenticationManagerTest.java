@@ -12,8 +12,22 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication;
+package org.opendevstack.provision.authentication.crowd;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.atlassian.crowd.embedded.api.PasswordCredential;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
+import com.atlassian.crowd.model.authentication.ValidationFactor;
+import com.atlassian.crowd.service.soap.client.SecurityServerClient;
+import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
+import com.atlassian.crowd.service.soap.client.SoapClientProperties;
+import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import java.rmi.RemoteException;
 import java.util.Properties;
 import org.junit.Before;
@@ -28,40 +42,27 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.embedded.api.PasswordCredential;
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
-import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
-import com.atlassian.crowd.model.authentication.ValidationFactor;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
-import com.atlassian.crowd.service.soap.client.SoapClientProperties;
-import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
-import static org.junit.Assert.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-@WithMockUser(username = CustomAuthenticationManagerTest.USER, roles = {"ADMIN"})
-public class CustomAuthenticationManagerTest {
+@WithMockUser(
+    username = CrowdAuthenticationManagerTest.USER,
+    roles = {"ADMIN"})
+public class CrowdAuthenticationManagerTest {
 
   private static final String TOKEN = "token";
 
-  /**
-   * This is for tests only
-   */
+  /** This is for tests only */
   static final String USER = "test";
+
   @SuppressWarnings("squid:S2068")
   static final String TEST_CRED = "test";
 
-  @Autowired
-  CustomAuthenticationManager manager;
+  @Autowired CrowdAuthenticationManager manager;
 
-  @Mock
-  private SecurityServerClient securityServerClient;
+  @Mock private SecurityServerClient securityServerClient;
 
   @Before
   public void setUp() throws Exception {
@@ -70,9 +71,11 @@ public class CustomAuthenticationManagerTest {
     Mockito.when(securityServerClient.isValidToken("", factors)).thenReturn(true);
 
     Mockito.doThrow(new RemoteException()).when(securityServerClient).invalidateToken("remote");
-    Mockito.doThrow(new InvalidAuthorizationTokenException()).when(securityServerClient)
+    Mockito.doThrow(new InvalidAuthorizationTokenException())
+        .when(securityServerClient)
         .invalidateToken("invalid_token");
-    Mockito.doThrow(new InvalidAuthenticationException(token)).when(securityServerClient)
+    Mockito.doThrow(new InvalidAuthenticationException(token))
+        .when(securityServerClient)
         .invalidateToken("invalid_auth");
     manager.setSecurityServerClient(securityServerClient);
   }
@@ -159,5 +162,4 @@ public class CustomAuthenticationManagerTest {
     SoapClientProperties props = SoapClientPropertiesImpl.newInstanceFromProperties(plainProps);
     return props;
   }
-
 }
