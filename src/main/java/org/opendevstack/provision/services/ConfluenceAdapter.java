@@ -294,7 +294,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {
       logger.error(
-          String.format("Could not clean up project" + " {} error: {}", project.projectKey, cex));
+          "Could not clean up project {} -  error: {}", project.projectKey, cex);
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.COLLABORATION_SPACE, 1);
     }
 
