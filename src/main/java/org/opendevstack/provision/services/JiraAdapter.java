@@ -211,10 +211,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       // continue - we are ok if permissions fail, because the admin has access, and
       // create the set
       logger.error(
-          "Could not update permissionset: "
-              + project.projectKey
-              + "\n Exception: "
-              + createPermissions.getMessage());
+          "Could not update permissionset: {} \n Exception: {} ", project.projectKey,createPermissions.getMessage());
     }
     return updatedPermissions;
   }
@@ -334,7 +331,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     for (Shortcut shortcut : shortcuts) {
       logger.debug(
-          "Attempting to create shortcut ({}) for: {}", shortcut.getId(), shortcut.getName());
+          "Attempting to create shortcut {} for: {}", shortcut.getId(), shortcut.getName());
       try {
         // restClient.callHttp(path, shortcut, false, RestClient.HTTP_VERB.POST, Shortcut.class);
         RestClientCall call = httpPost().url(path).body(shortcut).returnType(Shortcut.class);
@@ -554,10 +551,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     } catch (Exception cex) {
       logger.error("Could not cleanup jira: ", cex);
       logger.error(
-          String.format(
-              "Could not clean up project" + " {} error: {}",
+              "Could not clean up project {} error: {}",
               project.projectKey,
-              cex.getMessage()));
+              cex.getMessage());
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
     logger.debug(

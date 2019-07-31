@@ -592,7 +592,7 @@ public class ProjectApiController {
     if (!leftovers.isEmpty()) {
       String error =
           format(
-              "Could not delete all components of project " + " {} - leftovers {}",
+              "Could not delete all components of project %s - leftovers %s",
               project.projectKey,
               leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -646,7 +646,7 @@ public class ProjectApiController {
       return new HashMap<>();
     }
 
-    logger.error("Starting cleanup of project {} " + "in phase {}", project.projectKey, stage);
+    logger.error("Starting cleanup of project {} in phase {}", project.projectKey, stage);
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();
 
