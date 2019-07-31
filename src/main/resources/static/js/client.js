@@ -381,8 +381,8 @@ function summarize(data) {
   // this is for the default case where spaces should be created.
   if (data.bugtrackerSpace) 
   {
-	  $("#dataJiraUrl").html("<a href='" + data.jiraUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
-	  $("#dataConfluenceUrl").html("<a href='" + data.confluenceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
+	  $("#dataJiraUrl").html("<a href='" + data.bugtrackerUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
+	  $("#dataConfluenceUrl").html("<a href='" + data.collaborationSpaceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
   } else 
   {
   	  $("#dataJiraUrlDiv").hide();
