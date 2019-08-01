@@ -245,6 +245,8 @@ public class ProjectApiController {
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
       updatedProject.bugtrackerSpace = storedExistingProject.bugtrackerSpace;
+      updatedProject.repositories = storedExistingProject.repositories;
+
       // we purposely allow overwriting platformRuntime settings, to create a project later
       // on
       if (!storedExistingProject.platformRuntime
