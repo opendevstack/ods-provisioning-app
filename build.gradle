@@ -189,6 +189,7 @@ jacoco {
 
 spotless {
   java {
-    googleJavaFormat('1.7').aosp()
+    googleJavaFormat('1.7')
+    indentWithSpaces(2)
   }
 }
