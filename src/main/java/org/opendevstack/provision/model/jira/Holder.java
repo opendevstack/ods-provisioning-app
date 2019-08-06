@@ -14,10 +14,10 @@
 
 package org.opendevstack.provision.model.jira;
 
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.annotation.Generated;
 
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,6 +26,7 @@ public class Holder {
 
   @JsonProperty("type")
   private String type;
+
   @JsonProperty("parameter")
   private String parameter;
 
@@ -48,5 +49,4 @@ public class Holder {
   public void setParameter(String parameter) {
     this.parameter = parameter;
   }
-
 }

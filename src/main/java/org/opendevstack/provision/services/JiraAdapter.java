@@ -211,7 +211,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       // continue - we are ok if permissions fail, because the admin has access, and
       // create the set
       logger.error(
-          "Could not update permissionset: {} \n Exception: {} ", project.projectKey,createPermissions.getMessage());
+          "Could not update permissionset: {} \n Exception: {} ",
+          project.projectKey,
+          createPermissions.getMessage());
     }
     return updatedPermissions;
   }
@@ -550,10 +552,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
       logger.error("Could not cleanup jira: ", cex);
-      logger.error(
-              "Could not clean up project {} error: {}",
-              project.projectKey,
-              cex.getMessage());
+      logger.error("Could not clean up project {} error: {}", project.projectKey, cex.getMessage());
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
     logger.debug(

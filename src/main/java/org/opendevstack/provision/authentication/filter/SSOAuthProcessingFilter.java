@@ -14,6 +14,9 @@
 
 package org.opendevstack.provision.authentication.filter;
 
+import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationProcessingFilter;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -22,9 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
-import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationProcessingFilter;
-import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 
 /**
  * Custom processing filter to enable SSO via Crowd for the provision app
@@ -39,7 +39,7 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
 
   /**
    * Method to handle a successful authentication
-   * 
+   *
    * @param request
    * @param response
    * @param chain
@@ -48,8 +48,12 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    * @throws ServletException
    */
   @Override
-  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-      FilterChain chain, Authentication authResult) throws IOException, ServletException {
+  protected void successfulAuthentication(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain,
+      Authentication authResult)
+      throws IOException, ServletException {
     storeTokenIfCrowd(request, response, authResult);
     logger.debug("AuthResult {}", authResult.getCredentials().toString());
     super.successfulAuthentication(request, response, chain, authResult);
@@ -73,12 +77,12 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    * @param response
    * @param authResult
    */
-  boolean storeTokenIfCrowd(HttpServletRequest request, HttpServletResponse response,
-      Authentication authResult) {
+  boolean storeTokenIfCrowd(
+      HttpServletRequest request, HttpServletResponse response, Authentication authResult) {
     if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
       try {
-        httpAuthenticator.setPrincipalToken(request, response,
-            authResult.getCredentials().toString());
+        httpAuthenticator.setPrincipalToken(
+            request, response, authResult.getCredentials().toString());
         return true;
       } catch (Exception e) {
         logger.error("Unable to set Crowd SSO token", e);

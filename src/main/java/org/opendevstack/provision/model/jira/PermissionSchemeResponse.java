@@ -1,13 +1,13 @@
 package org.opendevstack.provision.model.jira;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"id", "self", "name", "description"})
@@ -15,14 +15,17 @@ public class PermissionSchemeResponse {
 
   @JsonProperty("id")
   private Integer id;
+
   @JsonProperty("self")
   private String self;
+
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("description")
   private String description;
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
   @JsonProperty("id")
   public Integer getId() {
@@ -73,5 +76,4 @@ public class PermissionSchemeResponse {
   public void setAdditionalProperty(String name, Object value) {
     this.additionalProperties.put(name, value);
   }
-
 }

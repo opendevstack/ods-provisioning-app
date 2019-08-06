@@ -20,22 +20,20 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Interface for collaboration adapter implementations, e.g for confluence
- * 
- * @author utschig
  *
+ * @author utschig
  */
 public interface ICollaborationAdapter extends IServiceAdapter {
 
   /**
    * Called to create a collaboration space
-   * 
-   * @param project the project with {@link OpenProjectData#projectName} and
-   *        {@link OpenProjectData#projectKey} filled. <b>Attention: </b>
-   *        {@link OpenProjectData#specialPermissionSet} may be true, hence the implementor needs to
-   *        take care about setting accurate permissions based on
-   *        {@link OpenProjectData#projectAdminGroup}, {@link OpenProjectData#projectAdminUser},
-   *        {@link OpenProjectData#projectReadonlyGroup} and
-   *        {@link OpenProjectData#projectUserGroup}
+   *
+   * @param project the project with {@link OpenProjectData#projectName} and {@link
+   *     OpenProjectData#projectKey} filled. <b>Attention: </b> {@link
+   *     OpenProjectData#specialPermissionSet} may be true, hence the implementor needs to take care
+   *     about setting accurate permissions based on {@link OpenProjectData#projectAdminGroup},
+   *     {@link OpenProjectData#projectAdminUser}, {@link OpenProjectData#projectReadonlyGroup} and
+   *     {@link OpenProjectData#projectUserGroup}
    * @return the URL to the newly created collaboration space
    * @throws IOException in case the space cannot be created
    */
@@ -43,11 +41,10 @@ public interface ICollaborationAdapter extends IServiceAdapter {
 
   /**
    * In case templates are used return template(s) based on {@link ProjectData#projectType}
-   * 
+   *
    * @param project the project with filled projectType
    * @return the template(s) keys
    */
   public Map<PROJECT_TEMPLATE, String> retrieveInternalProjectTypeAndTemplateFromProjectType(
       OpenProjectData project);
-
 }

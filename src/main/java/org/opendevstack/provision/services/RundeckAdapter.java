@@ -256,7 +256,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
                   .url(jobsUrl)
                   .queryParam("groupPath", group)
                   .returnTypeReference(new TypeReference<List<Job>>() {}));
-      if (jobs==null) {
+      if (jobs == null) {
         jobs = new ArrayList<>();
       }
       List<Job> enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
