@@ -16,6 +16,9 @@ package org.opendevstack.provision.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -38,23 +41,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class QuickstarterApiControllerTest {
   private MockMvc mockMvc;
 
-  @Autowired
-  private WebApplicationContext context;
+  @Autowired private WebApplicationContext context;
 
-  @MockBean
-  RundeckAdapter rundeckAdapter;
+  @MockBean RundeckAdapter rundeckAdapter;
 
   private List<Job> jobs;
   private OpenProjectData project;
@@ -82,7 +79,8 @@ public class QuickstarterApiControllerTest {
   public void getQuickstarters() throws Exception {
     Mockito.when(rundeckAdapter.getQuickstarters()).thenReturn(jobs);
 
-    mockMvc.perform(get("/api/v1/quickstarter"))
+    mockMvc
+        .perform(get("/api/v1/quickstarter"))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
   }
 
@@ -92,9 +90,13 @@ public class QuickstarterApiControllerTest {
         .thenReturn(executions);
 
     mockMvc
-        .perform(post("/api/v1/quickstarter/provision").content(getBody())
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful()).andReturn().getResponse()
+        .perform(
+            post("/api/v1/quickstarter/provision")
+                .content(getBody())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+        .andReturn()
+        .getResponse()
         .toString();
   }
 

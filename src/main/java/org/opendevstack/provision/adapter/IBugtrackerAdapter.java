@@ -21,26 +21,25 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Service interface for a bugtracker
- * 
+ *
  * @author utschig
  */
 public interface IBugtrackerAdapter extends IServiceAdapter {
   /**
    * Create a bugtracker project based on name, key and project type
-   * 
-   * @param project the project with {@link OpenProjectData#projectName} and
-   *        {@link OpenProjectData#projectKey} filled. Also the {@link OpenProjectData#projectType}
-   *        may be filled - and should be taken into account. In case the project type could NOT be
-   *        used, it should be set to the type created. <b>Special Attention: </b>
-   *        {@link OpenProjectData#specialPermissionSet} may be true, hence the implementor needs to
-   *        take care about setting accurate permissions based on
-   *        {@link OpenProjectData#projectAdminGroup}, {@link OpenProjectData#projectAdminUser},
-   *        {@link OpenProjectData#projectReadonlyGroup} and
-   *        {@link OpenProjectData#projectUserGroup}
-   * @return the the project filled with {@link OpenProjectData#bugtrackerUrl} and
-   *         {@link OpenProjectData#projectType}
+   *
+   * @param project the project with {@link OpenProjectData#projectName} and {@link
+   *     OpenProjectData#projectKey} filled. Also the {@link OpenProjectData#projectType} may be
+   *     filled - and should be taken into account. In case the project type could NOT be used, it
+   *     should be set to the type created. <b>Special Attention: </b> {@link
+   *     OpenProjectData#specialPermissionSet} may be true, hence the implementor needs to take care
+   *     about setting accurate permissions based on {@link OpenProjectData#projectAdminGroup},
+   *     {@link OpenProjectData#projectAdminUser}, {@link OpenProjectData#projectReadonlyGroup} and
+   *     {@link OpenProjectData#projectUserGroup}
+   * @return the the project filled with {@link OpenProjectData#bugtrackerUrl} and {@link
+   *     OpenProjectData#projectType}
    * @throws IOException in case something occurs during the outbound call to the bugtracker service
-   *         implementation
+   *     implementation
    */
   public OpenProjectData createBugtrackerProjectForODSProject(OpenProjectData project)
       throws IOException;
@@ -49,7 +48,7 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
    * Add shortcuts / links to other tools used based on the {@link OpenProjectData} fields, e.g.
    * platform engine urls This method is called AFTER all provisioning of a new project has taken
    * place in {@link ProjectApiController#addProject(OpenProjectData)}
-   * 
+   *
    * @param project the project filled with all available information
    * @return the number of shortcuts created
    */
@@ -57,7 +56,7 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
 
   /**
    * Verify if a project key & name exists
-   * 
+   *
    * @param projectKeyName the name or key of a given project
    * @return true in case it exists, otherwise false
    */
@@ -66,7 +65,7 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
   /**
    * Build the project key - e.g. uppercase it, strip special chars. This is used from the web
    * interface to propose a project key based on the provided name
-   * 
+   *
    * @param proposedProjectKey the key to derive the final key from
    * @return the clean key to be used
    */
@@ -74,7 +73,7 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
 
   /**
    * In case templates are used return template(s) based on {@link OpenProjectData#projectType}
-   * 
+   *
    * @param project the project with filled projectType
    * @return the template(s) keys
    */
@@ -83,9 +82,9 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
 
   /**
    * Create components in the bugtracker based on provisioned boilerplates
-   * 
-   * @param data the project containing only the new repositories and quickstarters
-   *        {@link OpenProjectData#quickstarters} and {@link OpenProjectData#repositories}
+   *
+   * @param data the project containing only the new repositories and quickstarters {@link
+   *     OpenProjectData#quickstarters} and {@link OpenProjectData#repositories}
    * @return the name and descriptions of the components created
    */
   public Map<String, String> createComponentsForProjectRepositories(OpenProjectData data);

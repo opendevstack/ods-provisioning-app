@@ -49,9 +49,7 @@ import org.springframework.stereotype.Component;
  * @author Torsten Jaeschke
  */
 @Component("provisioningAppAuthenticationManager")
-@ConditionalOnProperty(
-    name = "provision.auth.provider",
-    havingValue = "crowd")
+@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(CrowdAuthenticationManager.class);

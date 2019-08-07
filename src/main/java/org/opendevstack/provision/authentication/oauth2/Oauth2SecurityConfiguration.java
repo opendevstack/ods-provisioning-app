@@ -1,6 +1,5 @@
 package org.opendevstack.provision.authentication.oauth2;
 
-import org.opendevstack.provision.authentication.oauth2.RoleAwareOAuth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;

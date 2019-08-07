@@ -13,12 +13,6 @@
  */
 package org.opendevstack.provision.authentication;
 
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
 import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
 import com.atlassian.crowd.exception.UserNotFoundException;
@@ -27,36 +21,42 @@ import com.atlassian.crowd.service.UserManager;
 import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.cache.CachingGroupMembershipManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple extension of <code>CachingGroupMembershipManager</code> to fix
  * https://github.com/opendevstack/ods-provisioning-app/issues/106
- * 
+ *
  * @author utschig
  */
 public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipManager {
-  /**
-   * security server restClient
-   */
+  /** security server restClient */
   final SecurityServerClient securityServerClient;
-  /**
-   * cache
-   */
+  /** cache */
   final BasicCache basicCache;
 
   private static final Logger logger =
       LoggerFactory.getLogger(SimpleCachingGroupMembershipManager.class);
 
-  public SimpleCachingGroupMembershipManager(SecurityServerClient securityServerClient,
-      UserManager userManager, GroupManager groupManager, BasicCache basicCache) {
+  public SimpleCachingGroupMembershipManager(
+      SecurityServerClient securityServerClient,
+      UserManager userManager,
+      GroupManager groupManager,
+      BasicCache basicCache) {
     super(securityServerClient, userManager, groupManager, basicCache);
     this.securityServerClient = securityServerClient;
     this.basicCache = basicCache;
   }
 
   @Override
-  public List getMemberships(String user) throws RemoteException,
-      InvalidAuthorizationTokenException, InvalidAuthenticationException, UserNotFoundException {
+  public List getMemberships(String user)
+      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
+          UserNotFoundException {
     List<String> groupsForUser = basicCache.getAllMemberships(user);
     if (groupsForUser == null || groupsForUser.isEmpty()) {
       long startTime = System.currentTimeMillis();
@@ -78,8 +78,8 @@ public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipM
       for (String group : groupsForUser) {
         logger.debug("retrieve from cache ({} / {})", user, group);
       }
-      logger.debug("retrieve from cache ({}) took: {} ms", user,
-          (System.currentTimeMillis() - startTime));
+      logger.debug(
+          "retrieve from cache ({}) took: {} ms", user, (System.currentTimeMillis() - startTime));
       return groupsForUser;
     }
   }

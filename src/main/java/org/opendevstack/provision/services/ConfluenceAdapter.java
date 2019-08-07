@@ -181,7 +181,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   List<Object> getSpaceTemplateList(String url, TypeReference reference) throws IOException {
 
-    //    return (List<Object>) restClient.callHttpTypeRef(url, null, false, RestClient.HTTP_VERB.GET,
+    //    return (List<Object>) restClient.callHttpTypeRef(url, null, false,
+    // RestClient.HTTP_VERB.GET,
     //        reference);
     return (List<Object>) restClient.execute(httpGet().url(url).returnTypeReference(reference));
   }
@@ -293,8 +294,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {
-      logger.error(
-          "Could not clean up project {} -  error: {}", project.projectKey, cex);
+      logger.error("Could not clean up project {} -  error: {}", project.projectKey, cex);
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.COLLABORATION_SPACE, 1);
     }
 

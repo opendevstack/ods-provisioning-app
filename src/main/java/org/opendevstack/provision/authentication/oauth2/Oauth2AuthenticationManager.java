@@ -90,7 +90,7 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
    */
   @Override
   public boolean existsGroupWithName(String groupName) {
-    //"Feature 'existsGroupWithName in OAuth 2 identity server' is not implemented"
+    // "Feature 'existsGroupWithName in OAuth 2 identity server' is not implemented"
     return false;
   }
 
@@ -102,13 +102,14 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
    */
   @Override
   public boolean existPrincipalWithName(String userName) {
-    //"Feature 'existPrincipalWithName in OAuth 2 identity server' is not implemented"
+    // "Feature 'existPrincipalWithName in OAuth 2 identity server' is not implemented"
     return false;
   }
 
   @Override
   public String addGroup(String groupName) throws IdMgmtException {
-    throw new IdMgmtException("Feature 'adding group in OAuth 2 identity server' is not implemented");
+    throw new IdMgmtException(
+        "Feature 'adding group in OAuth 2 identity server' is not implemented");
   }
 
   @Override

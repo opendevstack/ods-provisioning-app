@@ -13,128 +13,86 @@
  */
 package org.opendevstack.provision.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Open Plugin API to create and update projects
- * 
+ *
  * @author utschig
  */
 public class OpenProjectData {
 
-  /**
-   * The key to get the chosen name for the quickstarter
-   */
+  /** The key to get the chosen name for the quickstarter */
   public static final String COMPONENT_ID_KEY = "component_id";
-  /**
-   * The key to get the type of the quickstarter
-   */
+  /** The key to get the type of the quickstarter */
   public static final String COMPONENT_TYPE_KEY = "component_type";
-  /**
-   * The quickstarters type as description
-   */
+  /** The quickstarters type as description */
   public static final String COMPONENT_DESC_KEY = "component_description";
-  /**
-   * The unique name of the project, must not be null
-   */
+  /** The unique name of the project, must not be null */
   public String projectName = null;
-  /**
-   * Description of the project, can be null
-   */
+  /** Description of the project, can be null */
   public String description = null;
-  /**
-   * The unique key of the project, must not be null
-   */
+  /** The unique key of the project, must not be null */
   public String projectKey = null;
   /**
-   * Map of quickstarters used, to get the chosen name of the quickstarter picked, use
-   * {@link #COMPONENT_ID_KEY} against the map contained. To get the quickstarter's type use
-   * {@link #COMPONENT_TYPE_KEY}
+   * Map of quickstarters used, to get the chosen name of the quickstarter picked, use {@link
+   * #COMPONENT_ID_KEY} against the map contained. To get the quickstarter's type use {@link
+   * #COMPONENT_TYPE_KEY}
    */
   public List<Map<String, String>> quickstarters = null;
-  /**
-   * create spaces thru {@link IBugtrackerAdapter} and {@link ICollaborationAdapter}
-   */
+  /** create spaces thru {@link IBugtrackerAdapter} and {@link ICollaborationAdapter} */
   public boolean bugtrackerSpace = true;
-  /**
-   * Create Platform projects thru {@link IJobExecutionAdapter}
-   */
+  /** Create Platform projects thru {@link IJobExecutionAdapter} */
   public boolean platformRuntime = true;
-  /**
-   * The url of the bugtracker project
-   */
+  /** The url of the bugtracker project */
   public String bugtrackerUrl = null;
-  /**
-   * The url of the collaboration space
-   */
+  /** The url of the collaboration space */
   public String collaborationSpaceUrl = null;
-  /**
-   * The url of the SCM project
-   */
+  /** The url of the SCM project */
   public String scmvcsUrl = null;
   /**
    * Created project repositories. The key denotes the repository name, the contained map contains
    * the repository links (urls)
    */
   public Map<String, Map<URL_TYPE, String>> repositories = null;
-  /**
-   * The url of the jenkins / build engine
-   */
+  /** The url of the jenkins / build engine */
   public String platformBuildEngineUrl = null;
-  /**
-   * The url of the dev environment
-   */
+  /** The url of the dev environment */
   public String platformDevEnvironmentUrl = null;
-  /**
-   * The url of the test environment
-   */
+  /** The url of the test environment */
   public String platformTestEnvironmentUrl = null;
 
   // permissions
-  /**
-   * The admin group - with admin rights to the project
-   */
+  /** The admin group - with admin rights to the project */
   public String projectAdminGroup = null;
-  /**
-   * the user group, needs WRITE access to repositories
-   */
+  /** the user group, needs WRITE access to repositories */
   public String projectUserGroup = null;
-  /**
-   * The admin user of the spaces / projects created never NULL
-   */
+  /** The admin user of the spaces / projects created never NULL */
   public String projectAdminUser = null;
-  /**
-   * Name of the readonly group, can be null
-   */
+  /** Name of the readonly group, can be null */
   public String projectReadonlyGroup = null;
 
-  /**
-   * Create a permission set within the spaces / projects / repositories
-   */
+  /** Create a permission set within the spaces / projects / repositories */
   public boolean specialPermissionSet = false;
 
   /**
-   * The last jobs that where triggered by
-   * {@link IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or
-   * {@link IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
+   * The last jobs that where triggered by {@link
+   * IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or {@link
+   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
    */
   @JsonIgnoreProperties({"lastExecutionJobs"})
   public List<String> lastExecutionJobs = null;
 
-  /**
-   * The type of project(s) that should be created, used for templating
-   */
+  /** The type of project(s) that should be created, used for templating */
   public String projectType = null;
 
-  /**
-   * The storage path location
-   */
+  /** The storage path location */
   public String physicalLocation = null;
 
   @Override
@@ -177,5 +135,4 @@ public class OpenProjectData {
 
     return true;
   }
-
 }

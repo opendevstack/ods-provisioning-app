@@ -37,7 +37,6 @@ import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

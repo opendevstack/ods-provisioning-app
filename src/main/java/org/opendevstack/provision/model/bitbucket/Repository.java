@@ -14,8 +14,8 @@
 
 package org.opendevstack.provision.model.bitbucket;
 
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
 
 /**
  * { "name": "My repo", "scmId": "git", "forkable": true }
@@ -32,6 +32,7 @@ public class Repository {
 
   @JsonIgnoreProperties({"adminGroup", "userGroup"})
   String adminGroup;
+
   String userGroup;
 
   public String getName() {
@@ -86,26 +87,17 @@ public class Repository {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Repository other = (Repository) obj;
-    if (forkable != other.forkable)
-      return false;
+    if (forkable != other.forkable) return false;
     if (name == null) {
-      if (other.name != null)
-        return false;
-    } else if (!name.equals(other.name))
-      return false;
+      if (other.name != null) return false;
+    } else if (!name.equals(other.name)) return false;
     if (scmId == null) {
-      if (other.scmId != null)
-        return false;
-    } else if (!scmId.equals(other.scmId))
-      return false;
+      if (other.scmId != null) return false;
+    } else if (!scmId.equals(other.scmId)) return false;
     return true;
   }
-
 }

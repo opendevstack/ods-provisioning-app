@@ -17,7 +17,7 @@ import java.io.IOException;
 
 /**
  * Simple exception to wrap an HTTP non 2xx
- * 
+ *
  * @author utschig
  */
 public class HttpException extends IOException {

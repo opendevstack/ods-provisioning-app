@@ -14,15 +14,15 @@
 
 package org.opendevstack.provision.model.jira;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Generated;
 
 /*
  * { "name": "Component 1", "description": "This is a JIRA component", "leadUserName": "fred",
@@ -30,27 +30,40 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * "projectId": 10000 }
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"name", "description", "leadUserName", "assigneeType", "isAssigneeTypeValid",
-    "project", "projectId"})
+@JsonPropertyOrder({
+  "name",
+  "description",
+  "leadUserName",
+  "assigneeType",
+  "isAssigneeTypeValid",
+  "project",
+  "projectId"
+})
 @Generated(value = {"JSON-to-Pojo-Generator"})
 public class Component {
 
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("description")
   private String description;
+
   @JsonProperty("leadUserName")
   private String leadUserName;
+
   @JsonProperty("assigneeType")
   private String assigneeType;
+
   @JsonProperty("isAssigneeTypeValid")
   private Boolean isAssigneeTypeValid;
+
   @JsonProperty("project")
   private String project;
+
   @JsonProperty("projectId")
   private Integer projectId;
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
   @JsonProperty("name")
   public String getName() {
@@ -131,5 +144,4 @@ public class Component {
   public void setAdditionalProperty(String name, Object value) {
     this.additionalProperties.put(name, value);
   }
-
 }

@@ -65,10 +65,10 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     mappedAuthorities.addAll(oidcUser.getAuthorities());
 
     authenticationManager.setUserName(oidcUser.getName());
-    //authenticationManager.setEmail(oidcUser.getEmail());
+    // authenticationManager.setEmail(oidcUser.getEmail());
     // Create a copy of oidcUser but use the mappedAuthorities instead
-    DefaultOidcUser oidcUserWithAuthorities = new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(),
-        oidcUser.getUserInfo());
+    DefaultOidcUser oidcUserWithAuthorities =
+        new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
     return oidcUserWithAuthorities;
   }
 
