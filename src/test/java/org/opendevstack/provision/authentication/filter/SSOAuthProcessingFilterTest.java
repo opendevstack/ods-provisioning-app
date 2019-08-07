@@ -16,6 +16,9 @@ package org.opendevstack.provision.authentication.filter;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
@@ -26,29 +29,21 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
-import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class SSOAuthProcessingFilterTest {
 
-  @Mock
-  HttpAuthenticator authenticator;
+  @Mock HttpAuthenticator authenticator;
 
-  @Autowired
-  @InjectMocks
-  SSOAuthProcessingFilter filter;
+  @Autowired @InjectMocks SSOAuthProcessingFilter filter;
 
   @Before
   public void setup() {

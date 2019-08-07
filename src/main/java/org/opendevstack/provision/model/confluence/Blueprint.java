@@ -14,12 +14,10 @@
 
 package org.opendevstack.provision.model.confluence;
 
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Blueprint {

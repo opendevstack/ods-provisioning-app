@@ -14,10 +14,10 @@
 
 package org.opendevstack.provision.model.jira;
 
-import java.net.URI;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 
 /**
  * In line with https://docs.atlassian.com/jira/REST/server/#api/2/project-getProject to allow use
@@ -34,16 +34,21 @@ public class FullJiraProject extends LeanJiraProject {
 
   @JsonProperty("lead")
   public String lead;
-  
+
   public FullJiraProject() {
-    super (null, null,null,null, null, null, null);
+    super(null, null, null, null, null, null, null);
   }
 
-  public FullJiraProject(URI self, String key, String name, String description, String lead,
-      String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
-    super (self, key, name, description, 
-        projectTemplateKey, projectTypeKey, notificationSchemeId);
+  public FullJiraProject(
+      URI self,
+      String key,
+      String name,
+      String description,
+      String lead,
+      String projectTemplateKey,
+      String projectTypeKey,
+      String notificationSchemeId) {
+    super(self, key, name, description, projectTemplateKey, projectTypeKey, notificationSchemeId);
     this.lead = lead;
   }
-  
 }

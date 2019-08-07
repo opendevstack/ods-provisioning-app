@@ -106,17 +106,18 @@ public class RundeckJobStore {
   public String getJobIdForJobName(String jobName) {
     Preconditions.checkNotNull(jobName, "Jobname cannot be null");
 
-    String result = jobs.values().stream()
-        .filter(job -> job.getName().equalsIgnoreCase(jobName))
-        .findFirst()
-        .map(j -> j.getId())
-        .orElseGet(() -> null);
+    String result =
+        jobs.values().stream()
+            .filter(job -> job.getName().equalsIgnoreCase(jobName))
+            .findFirst()
+            .map(j -> j.getId())
+            .orElseGet(() -> null);
     return result;
   }
 
   public List<Job> getJobsByGroup(String group) {
-    List<Job> result = jobs.values().stream().filter(groupEqual(group))
-        .collect(Collectors.toList());
+    List<Job> result =
+        jobs.values().stream().filter(groupEqual(group)).collect(Collectors.toList());
     return result;
   }
 

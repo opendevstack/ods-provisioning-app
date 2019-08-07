@@ -53,6 +53,7 @@ plugins {
     id 'maven'
     id 'jacoco'
     id 'org.sonarqube' version "2.7"
+    id "com.diffplug.gradle.spotless" version "3.24.0"
 }
 
 apply plugin: 'org.springframework.boot'
@@ -184,4 +185,11 @@ bootJar {
 
 jacoco {
     toolVersion = "0.8.3"
+}
+
+spotless {
+  java {
+    googleJavaFormat('1.7')
+    indentWithSpaces(2)
+  }
 }

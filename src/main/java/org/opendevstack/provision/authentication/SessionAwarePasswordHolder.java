@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Torsten Jaeschke Instead of hooking into the security context of spring, we build another
- *         threadlocal to hold security information
+ *     threadlocal to hold security information
  */
 @Component
 @Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)

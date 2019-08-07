@@ -593,8 +593,7 @@ public class ProjectApiController {
       String error =
           format(
               "Could not delete all components of project %s - leftovers %s",
-              project.projectKey,
-              leftovers);
+              project.projectKey, leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       return ResponseEntity.ok().build();

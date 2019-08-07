@@ -13,44 +13,36 @@
  */
 package org.opendevstack.provision.util.rest;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Simple cookie jar implementation to store cookies for all for session bound APIs
  *
  * @author Torsten Jaeschke
  */
-
 public class SimpleCookieJar implements CookieJar {
 
   private static final Logger logger = LoggerFactory.getLogger(SimpleCookieJar.class);
 
-  /**
-   * Set to store the cookies
-   */
+  /** Set to store the cookies */
   private Map<String, List<Cookie>> cookies = new HashMap<>();
 
-  /**
-   * Save cookies from response
-   */
+  /** Save cookies from response */
   @Override
   public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
     logger.debug("Save cookies for host[{}]", url.host());
     this.cookies.put(url.host(), cookies);
   }
 
-  /**
-   * Load cookies to include in request
-   */
+  /** Load cookies to include in request */
   @Override
   public List<Cookie> loadForRequest(HttpUrl url) {
     logger.debug("Load cookies for host[{}]", url.host());

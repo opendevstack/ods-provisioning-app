@@ -14,8 +14,8 @@
 
 package org.opendevstack.provision.model;
 
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
 
 /**
  * error: {"error":true,"apiversion":19,"errorCode":"api.error.job.options-invalid","message":"Job
@@ -89,5 +89,4 @@ public class ExecutionsData {
   public String getMessage() {
     return this.message;
   }
-
 }

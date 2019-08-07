@@ -307,7 +307,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.doReturn(basePath).when(spyAdapter).getAdapterApiUri();
 
-
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
 
     Mockito.doNothing().when(spyAdapter).setRepositoryPermissions(any(), any(), any(), any());
@@ -319,7 +318,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.verify(spyAdapter)
         .setRepositoryPermissions(eq(expected), eq(projectKey), eq("users"), any());
-
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     assertEquals(expected, actual);
