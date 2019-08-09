@@ -20,69 +20,48 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.atlassian.crowd.exception.GroupNotFoundException;
-import com.atlassian.crowd.exception.InvalidGroupException;
-import com.atlassian.crowd.exception.UserNotFoundException;
 import com.atlassian.crowd.integration.soap.SOAPGroup;
 import com.atlassian.crowd.integration.soap.SOAPPrincipal;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author utschig
  * @author Stefan Lack
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class CrowdProjectIdentityMgmtAdapterTest {
 
   @Mock CrowdAuthenticationManager manager;
 
-  @InjectMocks
-  CrowdProjectIdentityMgmtAdapter idMgr;
+  @InjectMocks CrowdProjectIdentityMgmtAdapter idMgr;
 
   @Test
   public void testGroupExists() {
     SOAPGroup group = new SOAPGroup("xxx", null);
-    when(manager.existsGroupWithName(eq(group.getName())))
-        .thenReturn(true);
+    when(manager.existsGroupWithName(eq(group.getName()))).thenReturn(true);
 
     assertTrue(idMgr.groupExists(group.getName()));
 
-    when(manager.existsGroupWithName(eq(group.getName())))
-        .thenReturn(false);
+    when(manager.existsGroupWithName(eq(group.getName()))).thenReturn(false);
     assertFalse(idMgr.groupExists(group.getName()));
-
-
   }
 
   @Test
-  public void testUserExists(){
+  public void testUserExists() {
     SOAPPrincipal principal = mockPrincipalExists("user", true);
 
     assertTrue(idMgr.userExists(principal.getName()));
 
-    when(manager.existPrincipalWithName(principal.getName()))
-        .thenReturn(false);
+    when(manager.existPrincipalWithName(principal.getName())).thenReturn(false);
     assertFalse(idMgr.userExists(principal.getName()));
-
   }
 
   @Test
@@ -107,8 +86,7 @@ public class CrowdProjectIdentityMgmtAdapterTest {
   public void testCreateGroupSOAPErr() throws Exception {
     SOAPGroup group = new SOAPGroup("xxx", null);
 
-    when(manager.addGroup(group.getName()))
-        .thenThrow(IdMgmtException.class);
+    when(manager.addGroup(group.getName())).thenThrow(IdMgmtException.class);
     idMgr.createGroupInternal(group.getName());
   }
 
@@ -129,9 +107,9 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     data.projectAdminGroup = "doesNotExistAD";
     data.projectReadonlyGroup = "doesNotExistRO";
 
-    mockGroupExists(data.projectUserGroup,false);
-    mockGroupExists(data.projectAdminGroup,false);
-    mockGroupExists(data.projectReadonlyGroup,false);
+    mockGroupExists(data.projectUserGroup, false);
+    mockGroupExists(data.projectAdminGroup, false);
+    mockGroupExists(data.projectReadonlyGroup, false);
 
     Exception testE = null;
     try {
@@ -143,7 +121,6 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     assertTrue(testE.getMessage().contains(data.projectUserGroup));
     assertTrue(testE.getMessage().contains(data.projectAdminGroup));
     assertTrue(testE.getMessage().contains(data.projectReadonlyGroup));
-
 
     mockPrincipalExists(principal.getName(), false);
     testE = null;
@@ -159,15 +136,13 @@ public class CrowdProjectIdentityMgmtAdapterTest {
 
   public SOAPGroup mockGroupExists(String groupName, boolean existsGroup) {
     SOAPGroup group = new SOAPGroup(groupName, null);
-    when(manager.existsGroupWithName(group.getName()))
-        .thenReturn(existsGroup);
+    when(manager.existsGroupWithName(group.getName())).thenReturn(existsGroup);
     return group;
   }
 
   public SOAPPrincipal mockPrincipalExists(String user, boolean exists) {
     SOAPPrincipal principal = new SOAPPrincipal(user);
-    when(manager.existPrincipalWithName(principal.getName()))
-        .thenReturn(exists);
+    when(manager.existPrincipalWithName(principal.getName())).thenReturn(exists);
     return principal;
   }
 }

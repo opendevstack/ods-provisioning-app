@@ -43,8 +43,7 @@ public class MailAdapter {
 
   private JavaMailSender mailSender;
 
-  @Autowired
-  IODSAuthnzAdapter manager;
+  @Autowired IODSAuthnzAdapter manager;
 
   @Value("${provison.mail.sender}")
   private String mailSenderAddress;
@@ -53,8 +52,7 @@ public class MailAdapter {
   @Value("${mail.enabled:false}")
   public boolean isMailEnabled;
 
-  @Autowired
-  private TemplateEngine templateEngine;
+  @Autowired private TemplateEngine templateEngine;
 
   @Autowired
   public MailAdapter(JavaMailSender mailSender) {
@@ -67,24 +65,27 @@ public class MailAdapter {
       return;
     }
     String recipient = manager.getUserEmail();
-    MimeMessagePreparator messagePreparator = mimeMessage -> {
-      MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-      messageHelper.setFrom(mailSenderAddress);
-      messageHelper.setTo(recipient);
-      messageHelper.setSubject("ODS Project provision update");
-      messageHelper.setText(build(data), true);
-    };
+    MimeMessagePreparator messagePreparator =
+        mimeMessage -> {
+          MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+          messageHelper.setFrom(mailSenderAddress);
+          messageHelper.setTo(recipient);
+          messageHelper.setSubject("ODS Project provision update");
+          messageHelper.setText(build(data), true);
+        };
 
-    Thread sendThread = new Thread(() -> {
-      try {
-        MDC.put(STR_LOGFILE_KEY, data.projectKey);
-        mailSender.send(messagePreparator);
-      } catch (MailException e) {
-        logger.error("Error in sending mail for project: " + data.projectKey, e);
-      } finally {
-        MDC.remove(STR_LOGFILE_KEY);
-      }
-    });
+    Thread sendThread =
+        new Thread(
+            () -> {
+              try {
+                MDC.put(STR_LOGFILE_KEY, data.projectKey);
+                mailSender.send(messagePreparator);
+              } catch (MailException e) {
+                logger.error("Error in sending mail for project: " + data.projectKey, e);
+              } finally {
+                MDC.remove(STR_LOGFILE_KEY);
+              }
+            });
 
     sendThread.start();
     logger.debug("Mail for project: {} sent", data.projectKey);

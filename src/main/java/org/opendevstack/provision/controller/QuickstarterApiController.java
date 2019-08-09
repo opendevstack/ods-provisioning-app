@@ -36,25 +36,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "api/v1/quickstarter")
 public class QuickstarterApiController {
 
-  @Autowired
-  private IJobExecutionAdapter rundeckAdapter;
+  @Autowired private IJobExecutionAdapter rundeckAdapter;
 
   /**
    * Call to get the available quickstarters
    *
    * @return JSON string
    */
-  @RequestMapping(produces = {"application/json"}, method = RequestMethod.GET)
+  @RequestMapping(
+      produces = {"application/json"},
+      method = RequestMethod.GET)
   public ResponseEntity<List<Job>> getTechTemplates() {
     return ResponseEntity.ok().body(rundeckAdapter.getQuickstarters());
   }
 
-  @RequestMapping(value = "/provision", produces = {"application/json"},
+  @RequestMapping(
+      value = "/provision",
+      produces = {"application/json"},
       method = RequestMethod.POST)
   public ResponseEntity<List<ExecutionsData>> runJobs(@RequestBody ProjectData project)
       throws IOException {
-    List<ExecutionsData> executions = rundeckAdapter
-        .provisionComponentsBasedOnQuickstarters(ProjectData.toOpenProjectData(project));
+    List<ExecutionsData> executions =
+        rundeckAdapter.provisionComponentsBasedOnQuickstarters(
+            ProjectData.toOpenProjectData(project));
     return ResponseEntity.ok(executions);
   }
 }

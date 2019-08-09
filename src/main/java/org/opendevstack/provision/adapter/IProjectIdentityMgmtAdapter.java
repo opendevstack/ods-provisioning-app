@@ -17,18 +17,18 @@ import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.model.OpenProjectData;
 
 /**
- * Generic identity mgmt adapter - called to create the necessary identity groups used in
- * {@link IBugtrackerAdapter}, {@link ICollaborationAdapter} and {@link ISCMAdapter}
- * 
- * In case authentication is needed - use {@link IODSAuthnzAdapter} to get the data
- * 
+ * Generic identity mgmt adapter - called to create the necessary identity groups used in {@link
+ * IBugtrackerAdapter}, {@link ICollaborationAdapter} and {@link ISCMAdapter}
+ *
+ * <p>In case authentication is needed - use {@link IODSAuthnzAdapter} to get the data
+ *
  * @author utschig
  */
 public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Verify if a given group exists - in case it's passed down from the initial screen
-   * 
+   *
    * @param groupName the name of the group, must not be null
    * @return true in case the group exists otherwise false
    */
@@ -36,7 +36,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Verify if a given user exists - in case it's passed down from the initial screen
-   * 
+   *
    * @param userName the name of the user, must not be null
    * @return true in case the user exists otherwise false
    */
@@ -44,7 +44,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Create the users group
-   * 
+   *
    * @param projectName the name of the project
    * @return the user groups name to be configured into artifacts
    * @throws Exception in case something goes wrong
@@ -53,7 +53,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Create the admin group
-   * 
+   *
    * @param projectName the name of the project
    * @return the admin groups name to be configured into artifacts
    * @throws Exception in case something goes wrong
@@ -62,7 +62,7 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Create the readonly group
-   * 
+   *
    * @param projectName the name of the project
    * @return the admin groups name to be configured into artifacts
    * @throws Exception in case something goes wrong
@@ -71,10 +71,9 @@ public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 
   /**
    * Validate project group settings
-   * 
+   *
    * @param project the project with the groups set
    * @throws Exception in case one or more groups cannot be found
    */
   public void validateIdSettingsOfProject(OpenProjectData project) throws IdMgmtException;
-
 }

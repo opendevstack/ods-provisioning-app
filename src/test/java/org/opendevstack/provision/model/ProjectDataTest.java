@@ -15,15 +15,15 @@
 package org.opendevstack.provision.model;
 
 import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
 /**
  * Test Project data equals / hashcode
- * 
- * @author utschig
  *
+ * @author utschig
  */
 public class ProjectDataTest {
 
@@ -75,5 +75,4 @@ public class ProjectDataTest {
     assertEquals(4, dataL.size());
     assertTrue(dataL.contains(data));
   }
-
 }

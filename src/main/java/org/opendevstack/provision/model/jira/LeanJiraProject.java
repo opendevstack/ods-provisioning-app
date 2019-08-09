@@ -14,10 +14,10 @@
 
 package org.opendevstack.provision.model.jira;
 
-import java.net.URI;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.net.URI;
 
 /**
  * In line with https://docs.atlassian.com/jira/REST/server/#api/2/project-getProject to allow use
@@ -34,24 +34,35 @@ public class LeanJiraProject {
 
   @JsonProperty("projectTemplateKey")
   public String projectTemplateKey; // e.g. com.pyxis.greenhopper.jira:gh-scrum-template
+
   @JsonProperty("projectTypeKey")
   public String projectTypeKey; // eg business or software
+
   @JsonProperty("key")
   public String key;
+
   @JsonProperty("name")
   public String name;
+
   @JsonProperty("description")
   public String description;
+
   @JsonProperty("notificationScheme")
   public String notificationScheme; // the notificationSchemeId
-  @JsonProperty("self")
-  public URI  self;
-  
-  public LeanJiraProject() {
-  }
 
-  public LeanJiraProject(URI self, String key, String name, String description,
-      String projectTemplateKey, String projectTypeKey, String notificationSchemeId) {
+  @JsonProperty("self")
+  public URI self;
+
+  public LeanJiraProject() {}
+
+  public LeanJiraProject(
+      URI self,
+      String key,
+      String name,
+      String description,
+      String projectTemplateKey,
+      String projectTypeKey,
+      String notificationSchemeId) {
     this.projectTemplateKey = projectTemplateKey;
     this.projectTypeKey = projectTypeKey;
     this.notificationScheme = notificationSchemeId;
@@ -61,14 +72,11 @@ public class LeanJiraProject {
     this.self = self;
   }
 
-  public String getKey () 
-  {
+  public String getKey() {
     return key;
   }
-  
-  public String getName () 
-  {
+
+  public String getName() {
     return name;
   }
-  
 }

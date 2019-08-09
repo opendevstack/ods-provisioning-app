@@ -14,6 +14,10 @@
 
 package org.opendevstack.provision.services;
 
+import static org.junit.Assert.*;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,26 +35,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
-import java.util.HashMap;
-import java.util.Map;
-import static org.junit.Assert.*;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 public class StorageAdapterTest {
 
-  @Mock
-  LocalStorage storage;
+  @Mock LocalStorage storage;
 
-  @Autowired
-  private WebApplicationContext context;
+  @Autowired private WebApplicationContext context;
 
-  @Autowired
-  StorageAdapter adapter;
+  @Autowired StorageAdapter adapter;
 
   @Before
   public void setUp() throws Exception {
@@ -114,5 +109,4 @@ public class StorageAdapterTest {
       SecurityContextHolder.clearContext();
     }
   }
-
 }

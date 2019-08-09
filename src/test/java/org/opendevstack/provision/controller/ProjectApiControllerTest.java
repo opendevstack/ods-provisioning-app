@@ -55,7 +55,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -97,8 +96,7 @@ public class ProjectApiControllerTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(apiController)
-        .build();
+    mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     initOpenProjectData();
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
   }
@@ -132,8 +130,7 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
-    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
-        .thenReturn(bugTrackProject);
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(bugTrackProject);
     when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
@@ -176,8 +173,7 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
-    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
-        .thenReturn(bugTrackProject);
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(bugTrackProject);
     when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
 
@@ -189,10 +185,8 @@ public class ProjectApiControllerTest {
 
     when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
         .thenReturn(projectSCM.scmvcsUrl);
-    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
-        .thenReturn(repos);
-    when(
-            bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
+    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
+    when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
     when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
@@ -435,10 +429,8 @@ public class ProjectApiControllerTest {
 
     when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
         .thenReturn(projectSCM.scmvcsUrl);
-    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
-        .thenReturn(repos);
-    when(
-            bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
+    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
+    when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
     when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
@@ -537,8 +529,7 @@ public class ProjectApiControllerTest {
     String collaborationSpaceURL = "collspace";
     dataReturn.collaborationSpaceUrl = collaborationSpaceURL;
 
-    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
-        .thenReturn(dataReturn);
+    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(dataReturn);
     when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
         .thenReturn(collaborationSpaceURL);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(dataReturn);

@@ -1,12 +1,12 @@
 package org.opendevstack.provision.authentication;
 
+import com.atlassian.crowd.integration.soap.SOAPPrincipal;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import com.atlassian.crowd.integration.soap.SOAPPrincipal;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 public class TestAuthentication implements Authentication {
 
@@ -63,7 +63,5 @@ public class TestAuthentication implements Authentication {
     public String getAuthority() {
       return "testgroup";
     }
-
   }
-
 }

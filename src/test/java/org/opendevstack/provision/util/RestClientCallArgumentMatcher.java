@@ -61,7 +61,7 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
 
       if (!featureMatcher.matches(argument)) {
         Function<RestClientCall, ?> valueExtractor = pair.getRight();
-        Object apply = argument==null ? null : valueExtractor.apply(argument);
+        Object apply = argument == null ? null : valueExtractor.apply(argument);
         invalidMatcherList.add(Pair.of(featureMatcher, apply));
       }
     }
@@ -91,10 +91,12 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
   public String toString() {
     if (invalidMatcherList.isEmpty()) {
       String validMatchers =
-          featureMatcherList.stream().map(Pair::getLeft).map(BaseMatcher::toString).collect(
-              Collectors.joining(","));
+          featureMatcherList.stream()
+              .map(Pair::getLeft)
+              .map(BaseMatcher::toString)
+              .collect(Collectors.joining(","));
 
-      return "All matchers suceeded: "+validMatchers;
+      return "All matchers suceeded: " + validMatchers;
     }
 
     Description description = new StringDescription();

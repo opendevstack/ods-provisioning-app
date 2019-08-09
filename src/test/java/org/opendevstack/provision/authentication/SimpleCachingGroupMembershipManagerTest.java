@@ -3,6 +3,14 @@ package org.opendevstack.provision.authentication;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+
+import com.atlassian.crowd.integration.soap.SOAPPrincipal;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
+import com.atlassian.crowd.service.GroupManager;
+import com.atlassian.crowd.service.UserManager;
+import com.atlassian.crowd.service.cache.BasicCache;
+import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -13,36 +21,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import com.atlassian.crowd.integration.soap.SOAPPrincipal;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
-import com.atlassian.crowd.service.GroupManager;
-import com.atlassian.crowd.service.UserManager;
-import com.atlassian.crowd.service.cache.BasicCache;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
 /**
  * Testclass for the simple caching manager
- * 
- * @author utschig
  *
+ * @author utschig
  */
 public class SimpleCachingGroupMembershipManagerTest {
 
-  @Mock
-  private SecurityServerClient securityServerClient;
+  @Mock private SecurityServerClient securityServerClient;
 
-  @Mock
-  private UserManager usermanager;
+  @Mock private UserManager usermanager;
 
-  @Mock
-  private GroupManager groupmanager;
+  @Mock private GroupManager groupmanager;
 
-  @Autowired
-  private BasicCache basicCache;
+  @Autowired private BasicCache basicCache;
 
   @Test
   public void testSingleUserLookupWithGroupsAndCaching() throws Exception {
@@ -57,8 +53,9 @@ public class SimpleCachingGroupMembershipManagerTest {
 
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(usermanager);
-    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient,
-        usermanager, groupmanager, basicCache));
+    cusd.setGroupMembershipManager(
+        new SimpleCachingGroupMembershipManager(
+            securityServerClient, usermanager, groupmanager, basicCache));
     cusd.setAuthorityPrefix("");
 
     CrowdUserDetails details = cusd.loadUserByToken(user1.getName());
@@ -90,8 +87,9 @@ public class SimpleCachingGroupMembershipManagerTest {
 
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(usermanager);
-    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient,
-        usermanager, groupmanager, basicCache));
+    cusd.setGroupMembershipManager(
+        new SimpleCachingGroupMembershipManager(
+            securityServerClient, usermanager, groupmanager, basicCache));
     cusd.setAuthorityPrefix("");
 
     CrowdUserDetails details = cusd.loadUserByToken(user1.getName());
@@ -122,8 +120,9 @@ public class SimpleCachingGroupMembershipManagerTest {
 
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(usermanager);
-    cusd.setGroupMembershipManager(new SimpleCachingGroupMembershipManager(securityServerClient,
-        usermanager, groupmanager, basicCache));
+    cusd.setGroupMembershipManager(
+        new SimpleCachingGroupMembershipManager(
+            securityServerClient, usermanager, groupmanager, basicCache));
     cusd.setAuthorityPrefix("");
 
     // load user 1 - 2 roles come back ..
@@ -137,5 +136,4 @@ public class SimpleCachingGroupMembershipManagerTest {
     assertNotNull(details);
     assertEquals("[role3, role4]", details.getAuthorities().toString());
   }
-
 }

@@ -74,7 +74,7 @@ public class RundeckJobStoreTest {
   }
 
   @Test
-  public void getJobs()  {
+  public void getJobs() {
     List<Job> jobs = generateTestJobs();
     List<String> ids = Arrays.asList("1", "2");
     jobStore.addJobs(jobs);

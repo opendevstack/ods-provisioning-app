@@ -14,12 +14,10 @@
 
 package org.opendevstack.provision.model.bitbucket;
 
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
 
-/**
- * @author Torten Jaeschke
- */
+/** @author Torten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Link {
@@ -53,24 +51,16 @@ public class Link {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Link other = (Link) obj;
     if (href == null) {
-      if (other.href != null)
-        return false;
-    } else if (!href.equals(other.href))
-      return false;
+      if (other.href != null) return false;
+    } else if (!href.equals(other.href)) return false;
     if (name == null) {
-      if (other.name != null)
-        return false;
-    } else if (!name.equals(other.name))
-      return false;
+      if (other.name != null) return false;
+    } else if (!name.equals(other.name)) return false;
     return true;
   }
-
 }

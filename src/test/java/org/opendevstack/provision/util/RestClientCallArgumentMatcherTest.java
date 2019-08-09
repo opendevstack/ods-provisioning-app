@@ -29,9 +29,8 @@ public class RestClientCallArgumentMatcherTest {
 
   @Test
   public void matchesQueryParams() {
-    RestClientCall given = get().queryParam("p1", "v1")
-        .queryParam("p2","v2");
-    assertThatMatches(given,matchesClientCall().queryParam("p1","v1"));
+    RestClientCall given = get().queryParam("p1", "v1").queryParam("p2", "v2");
+    assertThatMatches(given, matchesClientCall().queryParam("p1", "v1"));
   }
 
   @Test
@@ -87,7 +86,7 @@ public class RestClientCallArgumentMatcherTest {
 
   public void assertThatMatches(RestClientCall given, RestClientCallArgumentMatcher matcher) {
     boolean matches = matcher.matches(given);
-    //assertThat(String.format("Matcher %s should match",matcher), matches, equalTo(true));
-    assertThat("PRÜFEN "+matcher.toString(), matches, equalTo(true));
+    // assertThat(String.format("Matcher %s should match",matcher), matches, equalTo(true));
+    assertThat("PRÜFEN " + matcher.toString(), matches, equalTo(true));
   }
 }
