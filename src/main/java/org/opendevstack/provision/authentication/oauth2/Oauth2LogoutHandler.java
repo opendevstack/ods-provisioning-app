@@ -12,6 +12,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
 
+/**
+ * Logout Handler for OAUTH2. Redirects the caller to the identity managers
+ * <em>openid-connect/logout</em> url, so the active user session is logged out.
+ */
 @Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 public class Oauth2LogoutHandler implements LogoutHandler {
@@ -29,25 +33,37 @@ public class Oauth2LogoutHandler implements LogoutHandler {
       HttpServletResponse httpServletResponse,
       Authentication authentication) {
     try {
-
-      // Reconstruct original requesting URL
-      StringBuilder url = new StringBuilder();
-      url.append(httpServletRequest.getScheme())
-          .append("://")
-          .append(httpServletRequest.getServerName());
-      final int serverPort = httpServletRequest.getServerPort();
-      if (serverPort != 80 && serverPort != 443) {
-        url.append(":").append(serverPort);
-      }
-      url.append(httpServletRequest.getContextPath()).append("/login");
-      String redirectParam =
-          "redirect_uri=" + httpServletResponse.encodeRedirectURL(url.toString());
+      String redirectUri = buildRedirectUri(httpServletRequest, httpServletResponse);
 
       String logoutUrl =
-          idManagerUrl + "/auth/realms/master/protocol/openid-connect/logout?" + redirectParam;
+          idManagerUrl
+              + "/auth/realms/master/protocol/openid-connect/logout?redirect_uri="
+              + redirectUri;
       httpServletResponse.sendRedirect(logoutUrl);
     } catch (IOException e) {
       LOG.warn("Cannot send redirect", e);
     }
+  }
+
+  /**
+   * Builds the uri that is used from the identity manager to redirect the call after the logout url
+   * was called from the provision app
+   *
+   * @param httpServletRequest servlet request
+   * @param httpServletResponse servlet response
+   * @return the redirect uri
+   */
+  private String buildRedirectUri(
+      HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    StringBuilder url = new StringBuilder();
+    url.append(httpServletRequest.getScheme())
+        .append("://")
+        .append(httpServletRequest.getServerName());
+    final int serverPort = httpServletRequest.getServerPort();
+    if (serverPort != 80 && serverPort != 443) {
+      url.append(":").append(serverPort);
+    }
+    url.append(httpServletRequest.getContextPath()).append("/login");
+    return httpServletResponse.encodeRedirectURL(url.toString());
   }
 }
