@@ -26,10 +26,8 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   private static final String LOGIN_URI = "/login";
 
-  @Autowired
-  private RoleAwareOAuth2UserService roleAwareOAuth2UserService;
-  @Autowired
-  private Oauth2LogoutHandler oauth2LogoutHandler;
+  @Autowired private RoleAwareOAuth2UserService roleAwareOAuth2UserService;
+  @Autowired private Oauth2LogoutHandler oauth2LogoutHandler;
 
   @Override
   public void configure(WebSecurity web) throws Exception {

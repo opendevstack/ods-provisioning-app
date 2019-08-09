@@ -16,8 +16,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 public class Oauth2LogoutHandler implements LogoutHandler {
 
-  @Autowired
-  private Oauth2AuthenticationManager oauth2AuthenticationManager;
+  @Autowired private Oauth2AuthenticationManager oauth2AuthenticationManager;
 
   private static final Logger LOG = LoggerFactory.getLogger(Oauth2LogoutHandler.class);
 
@@ -25,14 +24,17 @@ public class Oauth2LogoutHandler implements LogoutHandler {
   private String idManagerUrl;
 
   @Override
-  public void logout(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+  public void logout(
+      HttpServletRequest httpServletRequest,
+      HttpServletResponse httpServletResponse,
       Authentication authentication) {
     try {
 
       // Reconstruct original requesting URL
       StringBuilder url = new StringBuilder();
-      url.append(httpServletRequest.getScheme()).append("://").append(
-          httpServletRequest.getServerName());
+      url.append(httpServletRequest.getScheme())
+          .append("://")
+          .append(httpServletRequest.getServerName());
       final int serverPort = httpServletRequest.getServerPort();
       if (serverPort != 80 && serverPort != 443) {
         url.append(":").append(serverPort);
