@@ -27,6 +27,10 @@ public class Oauth2LogoutHandler implements LogoutHandler {
   @Value("${idmanager.url}")
   private String idManagerUrl;
 
+  @Value("${idmanager.realm}")
+  private String idManagerRealm;
+
+
   @Override
   public void logout(
       HttpServletRequest httpServletRequest,
@@ -37,7 +41,7 @@ public class Oauth2LogoutHandler implements LogoutHandler {
 
       String logoutUrl =
           idManagerUrl
-              + "/auth/realms/master/protocol/openid-connect/logout?redirect_uri="
+              + "/auth/realms/"+idManagerRealm+"/protocol/openid-connect/logout?redirect_uri="
               + redirectUri;
       httpServletResponse.sendRedirect(logoutUrl);
     } catch (IOException e) {
