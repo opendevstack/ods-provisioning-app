@@ -6,14 +6,18 @@ buildscript {
 		nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
 		nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
 		nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
-        no_nexus = project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS')
+        def noNexusString = (String) (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS'))
+        no_nexus = noNexusString==null? false : noNexusString.toBoolean()
+
     }
 	
     repositories {
         if(no_nexus) {
+            println("using repositories 'jcenter' and 'mavenCentral', because property no_nexus=$no_nexus")
             jcenter()
             mavenCentral()
         } else {
+            println("using nexus repositories")
             if (!nexus_url) {
                 throw new GradleException('Nexus URL not specified!')
             }
