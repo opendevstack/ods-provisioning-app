@@ -27,6 +27,7 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
   private static final String LOGIN_URI = "/login";
 
   @Autowired private RoleAwareOAuth2UserService roleAwareOAuth2UserService;
+  @Autowired private Oauth2LogoutHandler oauth2LogoutHandler;
 
   @Override
   public void configure(WebSecurity web) throws Exception {
@@ -68,13 +69,9 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .userInfoEndpoint()
         .oidcUserService(roleAwareOAuth2UserService);
 
-    http
-        // .logout()
-        // .permitAll()
-        //
-        // .and()
-        .logout()
+    http.logout()
         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+        .addLogoutHandler(oauth2LogoutHandler)
         .logoutSuccessUrl(LOGIN_URI)
         .invalidateHttpSession(true)
         .deleteCookies("JSESSIONID")
