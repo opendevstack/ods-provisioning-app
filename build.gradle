@@ -134,7 +134,7 @@ dependencies {
     compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:react:15.5.4'
     compile 'org.webjars.bower:font-awesome:4.7.0'
-    compile 'org.webjars.bower:lodash:4.17.4'
+    compile 'org.webjars.bower:lodash:4.17.10'
 
     //jira api dependencies
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
