@@ -1,37 +1,41 @@
 buildscript {
-	 
+
     ext {
         springBootVersion = '2.1.6.RELEASE'
         // fix for not set system variable
-		nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
-		nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
-		nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
-        no_nexus = project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS')
+        nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
+        nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
+        nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
+        no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
+
+
     }
-	
+
     repositories {
-        if(no_nexus) {
+        if (no_nexus) {
+            println("using repositories 'jcenter' and 'mavenCentral'")
             jcenter()
             mavenCentral()
         } else {
+            println("using nexus repositories")
             if (!nexus_url) {
                 throw new GradleException('Nexus URL not specified!')
             }
-            maven () {
+            maven() {
                 url "${nexus_url}/repository/jcenter/"
-                credentials () {
+                credentials() {
                     username = "${nexus_user}"
                     password = "${nexus_pw}"
                 }
             }
-            maven () {
+            maven() {
                 url "${nexus_url}/repository/maven-public/"
-                credentials () {
+                credentials() {
                     username = "${nexus_user}"
                     password = "${nexus_pw}"
                 }
             }
-            maven () {
+            maven() {
                 url "${nexus_url}/repository/atlassian_public/"
                 credentials {
                     username = "${nexus_user}"
@@ -64,25 +68,25 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-    if(no_nexus) {
+    if (no_nexus) {
         jcenter()
         mavenCentral()
     } else {
-        maven () {
+        maven() {
             url "${nexus_url}/repository/jcenter/"
-            credentials () {
+            credentials() {
                 username = "${nexus_user}"
                 password = "${nexus_pw}"
             }
         }
-        maven () {
+        maven() {
             url "${nexus_url}/repository/maven-public/"
-            credentials () {
+            credentials() {
                 username = "${nexus_user}"
                 password = "${nexus_pw}"
             }
         }
-        maven () {
+        maven() {
             url "${nexus_url}/repository/atlassian_public/"
             credentials {
                 username = "${nexus_user}"
@@ -99,17 +103,22 @@ configurations {
 }
 
 dependencies {
-    implementation('org.springframework.boot:spring-boot-starter-actuator')                //bunch of prod tools
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    //bunch of prod tools
     implementation('org.springframework.boot:spring-boot-starter-aop')
-    implementation('org.springframework.boot:spring-boot-starter-data-rest')               //data rest exposed
+    implementation('org.springframework.boot:spring-boot-starter-data-rest')
+    //data rest exposed
     implementation('org.springframework.boot:spring-boot-starter-hateoas')
     implementation('org.springframework.boot:spring-boot-starter-integration')
     implementation('org.springframework.boot:spring-boot-starter-jersey')
     implementation('org.springframework.boot:spring-boot-starter-mail')
-    implementation('org.springframework.boot:spring-boot-starter-security')                //security frameowork
-    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')               //templating for frontend
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    //security frameowork
+    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
+    //templating for frontend
     implementation('org.springframework.boot:spring-boot-starter-web')
-    runtimeOnly('org.springframework.boot:spring-boot-devtools')                        //hot reloading, disabling cache ...
+    runtimeOnly('org.springframework.boot:spring-boot-devtools')
+    //hot reloading, disabling cache ...
 
     annotationProcessor('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
@@ -126,9 +135,6 @@ dependencies {
     compile 'org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE'
 
 
-
-
-
     //frontend webjars
     compile 'org.webjars.bower:jquery:3.2.1'
     compile 'org.webjars.bower:bootstrap:3.3.7'
@@ -141,7 +147,7 @@ dependencies {
 
     //encryption library for properties 
     compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
-	
+
     //easy http calls to atlassian JSON APIs
     compile "com.squareup.okhttp3:okhttp:3.8.0"
 
@@ -151,10 +157,10 @@ dependencies {
 
 
     compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
-    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version:'2.6.6'
-    compile group: 'joda-time', name: 'joda-time', version:'2.8.2'
-    compile(group: 'javax.validation', name: 'validation-api', version:'2.0.1.Final')
-	compile(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.11')
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.6.6'
+    compile group: 'joda-time', name: 'joda-time', version: '2.8.2'
+    compile(group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final')
+    compile(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.11')
     compile(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
         exclude group: 'commons-httpclient'
         exclude group: 'org.apache.ws.commons', module: 'XmlSchema'
@@ -179,8 +185,8 @@ dependencies {
 }
 
 bootJar {
-    archiveName     "app.jar"
-	destinationDir  file("$buildDir/../docker")
+    archiveName "app.jar"
+    destinationDir file("$buildDir/../docker")
 }
 
 jacoco {
@@ -188,8 +194,8 @@ jacoco {
 }
 
 spotless {
-  java {
-    googleJavaFormat('1.7')
-    indentWithSpaces(2)
-  }
+    java {
+        googleJavaFormat('1.7')
+        indentWithSpaces(2)
+    }
 }
