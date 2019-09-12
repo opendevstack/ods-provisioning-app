@@ -137,7 +137,7 @@ dependencies {
     compile 'org.webjars.bower:lodash:4.17.4'
 
     //jira api dependencies
-    compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
+    compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.4'
 
     //encryption library for properties 
     compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
