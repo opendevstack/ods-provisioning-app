@@ -57,7 +57,7 @@ plugins {
     id 'maven'
     id 'jacoco'
     id 'org.sonarqube' version "2.7"
-    id "com.diffplug.gradle.spotless" version "3.24.0"
+    id "com.diffplug.gradle.spotless" version "3.24.2"
 }
 
 apply plugin: 'org.springframework.boot'
