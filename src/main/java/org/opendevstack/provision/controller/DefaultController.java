@@ -74,7 +74,10 @@ public class DefaultController {
 
   @RequestMapping("/")
   public String rootRedirect() {
-    return LOGIN_REDIRECT;
+    if (!isAuthenticated()) {
+      return LOGIN_REDIRECT;
+    }
+    return "redirect:/home";
   }
 
   @RequestMapping("/home")
