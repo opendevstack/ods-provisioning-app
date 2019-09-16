@@ -185,6 +185,7 @@ dependencies {
 }
 
 bootJar {
+    launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
 }
