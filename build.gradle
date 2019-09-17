@@ -178,7 +178,7 @@ dependencies {
     compile group: 'org.apache.struts.xwork', name: 'xwork-core', version: '2.3.37'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
     compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0.pr3'
     compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.4'
     compile group: 'com.google.guava', name: 'guava', version: '23.0'
 
