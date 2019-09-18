@@ -17,7 +17,7 @@
         
         <div id="res" class="alert"></div>
         <!-- Choose an optin, edit or create -->
-        <form id="chooseOption">
+        <form id="chooseOption" sec:authorize="hasAuthority(#vars.idmanagerUserGroup) or hasAuthority(#vars.idmanagerAdminGroup)">
             <fieldset class="form-group">
                 <legend class="col-form-legend">Choose an option</legend>
                 <div class="radio" sec:authorize="hasAuthority(#vars.idmanagerUserGroup) or hasAuthority(#vars.idmanagerAdminGroup)">
@@ -29,6 +29,9 @@
             </fieldset>
         </form>
 
+        <div class="alert alert-danger" role="alert" sec:authorize="!(hasAuthority(#vars.idmanagerUserGroup) or hasAuthority(#vars.idmanagerAdminGroup))">
+            You are not allowed to create or modify projects!
+        </div>
         <!-- form for project edit -->
         <form id="modifyProject" class="hidden"> 
             <fieldset class="form-group">
