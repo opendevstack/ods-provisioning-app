@@ -1,0 +1,95 @@
+{
+	"self": "https://jira.ods.bb/rest/api/latest/project/10848",
+	"id": 10848,
+	"key": "TestP",
+	"lead": {
+		"self": "https://jira.ods.bb/rest/api/2/user?username=odsuser@ods.com",
+		"key": "odsuser@ods.com",
+		"name": "odsuser@ods.com",
+		"avatarUrls": {
+			"48x48": "https://www.gravatar.com/avatar/3f0767e88591268b98c7e15774abf0f1?d=mm&s=48",
+			"24x24": "https://www.gravatar.com/avatar/3f0767e88591268b98c7e15774abf0f1?d=mm&s=24",
+			"16x16": "https://www.gravatar.com/avatar/3f0767e88591268b98c7e15774abf0f1?d=mm&s=16",
+			"32x32": "https://www.gravatar.com/avatar/3f0767e88591268b98c7e15774abf0f1?d=mm&s=32"
+		},
+		"displayName": "Utschig-Utschig,Clemens (IT) BIG-AT-V",
+		"active": true
+	},
+	"components": [
+	],
+	"issueTypes": [
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10000",
+			"id": "10000",
+			"description": "Created by JIRA Software - do not edit or delete. Issue type for a big user story that needs to be broken down.",
+			"iconUrl": "https://jira.ods.bb/images/icons/issuetypes/epic.svg",
+			"name": "Epic",
+			"subtask": false
+		},
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10002",
+			"id": "10002",
+			"description": "A task that needs to be done.",
+			"iconUrl": "https://jira.ods.bb/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
+			"name": "Task",
+			"subtask": false,
+			"avatarId": 10318
+		},
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10001",
+			"id": "10001",
+			"description": "Created by JIRA Software - do not edit or delete. Issue type for a user story.",
+			"iconUrl": "https://jira.ods.bb/images/icons/issuetypes/story.svg",
+			"name": "Story",
+			"subtask": false
+		},
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10004",
+			"id": "10004",
+			"description": "A problem which impairs or prevents the functions of the product.",
+			"iconUrl": "https://jira.ods.bb/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
+			"name": "Bug",
+			"subtask": false,
+			"avatarId": 10303
+		},
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10003",
+			"id": "10003",
+			"description": "The sub-task of the issue",
+			"iconUrl": "https://jira.ods.bb/secure/viewavatar?size=xsmall&avatarId=10316&avatarType=issuetype",
+			"name": "Sub-task",
+			"subtask": true,
+			"avatarId": 10316
+		},
+		{
+			"self": "https://jira.ods.bb/rest/api/2/issuetype/10104",
+			"id": "10104",
+			"description": "This Issue Type is used to create Zephyr Test within Jira.",
+			"iconUrl": "https://jira.ods.bb/download/resources/com.thed.zephyr.je/images/icons/COLOR_zephyr_feather_20x20.svg",
+			"name": "Test",
+			"subtask": false
+		}
+	],
+	"assigneeType": "PROJECT_LEAD",
+	"versions": [
+	],
+	"name": "TestP",
+	"roles": {
+		"Owner": "https://jira.ods.bb/rest/api/2/project/11515/role/10102",
+		"Developers": "https://jira.ods.bb/rest/api/2/project/11515/role/10301",
+		"Approvers": "https://jira.ods.bb/rest/api/2/project/11515/role/10400",
+		"Administrators": "https://jira.ods.bb/rest/api/2/project/11515/role/10300",
+		"Environment Administrator": "https://jira.ods.bb/rest/api/2/project/11515/role/10002",
+		"Reader": "https://jira.ods.bb/rest/api/2/project/11515/role/10103",
+		"Operation Administrator": "https://jira.ods.bb/rest/api/2/project/11515/role/10101",
+		"Users": "https://jira.ods.bb/rest/api/2/project/11515/role/10100"
+	},
+	"avatarUrls": {
+		"48x48": "https://jira.ods.bb/secure/projectavatar?avatarId=10324",
+		"24x24": "https://jira.ods.bb/secure/projectavatar?size=small&avatarId=10324",
+		"16x16": "https://jira.ods.bb/secure/projectavatar?size=xsmall&avatarId=10324",
+		"32x32": "https://jira.ods.bb/secure/projectavatar?size=medium&avatarId=10324"
+	},
+	"projectTypeKey": "software",
+	"archived": false	
+}

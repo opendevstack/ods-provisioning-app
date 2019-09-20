@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,8 @@
 
 package org.opendevstack.provision.services;
 
-import org.opendevstack.provision.model.ProjectData;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -25,11 +26,9 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 
 /**
  * Service for mail interaction with the user in the provisioning app
@@ -44,55 +43,55 @@ public class MailAdapter {
 
   private JavaMailSender mailSender;
 
+  @Autowired IODSAuthnzAdapter manager;
+
   @Value("${provison.mail.sender}")
   private String mailSenderAddress;
 
   // open because of testing
   @Value("${mail.enabled:false}")
-  boolean isMailEnabled;
-  
-  @Autowired
-  private TemplateEngine templateEngine;
+  public boolean isMailEnabled;
 
-  // testing only!
-  private CrowdUserDetails crowdUserDetails = null;
+  @Autowired private TemplateEngine templateEngine;
 
   @Autowired
   public MailAdapter(JavaMailSender mailSender) {
     this.mailSender = mailSender;
   }
 
-  public void notifyUsersAboutProject(ProjectData data) {
-	if (!isMailEnabled) {
-		logger.debug("Email disabled, returning");
-		return;
-	}
-    CrowdUserDetails userDetails = getCrowdUserDetails();
-    String recipient = userDetails.getEmail();
-    MimeMessagePreparator messagePreparator = mimeMessage -> {
-        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-        messageHelper.setFrom(mailSenderAddress);
-        messageHelper.setTo(recipient);
-        messageHelper.setSubject("ODS Project provision update");
-        messageHelper.setText(build(data), true);
-      };
-      
-      Thread sendThread = new Thread(() -> {
-          try {
-            MDC.put(STR_LOGFILE_KEY, data.key);
-            mailSender.send(messagePreparator);
-          } catch (MailException e) {
-            logger.error("Error in sending mail for project: " + data.key, e);
-          } finally {
-          MDC.remove(STR_LOGFILE_KEY);
-          }
-      });
-      
-      sendThread.start();
-      logger.debug("Mail for project: {} sent", data.key );
+  public void notifyUsersAboutProject(OpenProjectData data) {
+    if (!isMailEnabled) {
+      logger.debug("Do not send email, because property mail.enabled is set to false.");
+      return;
+    }
+    String recipient = manager.getUserEmail();
+    MimeMessagePreparator messagePreparator =
+        mimeMessage -> {
+          MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
+          messageHelper.setFrom(mailSenderAddress);
+          messageHelper.setTo(recipient);
+          messageHelper.setSubject("ODS Project provision update");
+          messageHelper.setText(build(data), true);
+        };
+
+    Thread sendThread =
+        new Thread(
+            () -> {
+              try {
+                MDC.put(STR_LOGFILE_KEY, data.projectKey);
+                mailSender.send(messagePreparator);
+              } catch (MailException e) {
+                logger.error("Error in sending mail for project: " + data.projectKey, e);
+              } finally {
+                MDC.remove(STR_LOGFILE_KEY);
+              }
+            });
+
+    sendThread.start();
+    logger.debug("Mail for project: {} sent", data.projectKey);
   }
 
-  String build(ProjectData data) {
+  String build(OpenProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);
@@ -101,20 +100,5 @@ public class MailAdapter {
       logger.error("Error in creating mail template", ex);
     }
     return "";
-  }
-
-  void setCrowdUserDetails(CrowdUserDetails details) {
-    this.crowdUserDetails = details;
-  }
-
-  private CrowdUserDetails getCrowdUserDetails() {
-    if (crowdUserDetails == null) {
-      crowdUserDetails = getCrowdUserDetailsFromContext();
-    }
-    return crowdUserDetails;
-  }
-
-  CrowdUserDetails getCrowdUserDetailsFromContext() {
-    return (CrowdUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   }
 }

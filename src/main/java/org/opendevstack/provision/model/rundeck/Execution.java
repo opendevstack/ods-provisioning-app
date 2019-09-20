@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,15 +14,11 @@
 
 package org.opendevstack.provision.model.rundeck;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
-
 import javax.annotation.Generated;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Execution {
