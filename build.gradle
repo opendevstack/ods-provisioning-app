@@ -156,7 +156,7 @@ dependencies {
     compile 'commons-lang:commons-lang:2.6'
 
 
-    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
+    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1-jenkins-1'
     compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.10.0.pr3'
     compile group: 'joda-time', name: 'joda-time', version: '2.8.2'
     compile(group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final')
