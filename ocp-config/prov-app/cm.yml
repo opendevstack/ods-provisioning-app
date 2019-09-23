@@ -79,6 +79,8 @@ objects:
 
       #Rundeck properties
       rundeck.uri=${RUNDECK_URI}
+      rundeck.auth.url=${rundeck.uri}/j_security_check
+      rundeck.api.url=${rundeck.uri}/api/19
       rundeck.system.path=/rundeck
       rundeck.api.path=/rundeck/api/19
       rundeck.project.name=Quickstarters
@@ -95,6 +97,7 @@ objects:
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
 
       #crowd properties
+      provision.auth.provider=crowd
       crowd.local.directory=LocalDirectory
       crowd.application.name=provision
       crowd.application.password=${CROWD_PASSWORD}
