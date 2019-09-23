@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,13 +14,11 @@
 
 package org.opendevstack.provision.model.rundeck;
 
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
@@ -29,6 +27,7 @@ public class Job {
   private String name;
   private String href;
   private String description;
+  private String group;
 
   public String getId() {
     return id;
@@ -68,5 +67,26 @@ public class Job {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public String getGroup() {
+    return group;
+  }
+
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+  public String toFormattedString() {
+    return String.format("Job id: %s, name: %s, group: %s", id, name, group);
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+        .append("id", id)
+        .append("name", name)
+        .append("group", group)
+        .toString();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,12 +14,12 @@
 
 package org.opendevstack.provision.model;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
 
 /**
  * Model for about changes
- * 
+ *
  * @author utschig
  */
 public class AboutChangesData {
@@ -32,4 +32,3 @@ public class AboutChangesData {
     public String what;
   }
 }
-
