@@ -41,9 +41,10 @@ public class StorageAdapter implements IServiceAdapter {
 
   @Autowired IODSAuthnzAdapter authManager;
 
-  private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
 
-  public Map<String, OpenProjectData> listProjectHistory() {
+  public Map<String, OpenProjectData> listProjectHistory() 
+  {
     Map<String, OpenProjectData> allProjects = storage.listProjectHistory();
     Map<String, OpenProjectData> filteredProjects = new HashMap<>();
 
