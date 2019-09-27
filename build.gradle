@@ -51,13 +51,13 @@ buildscript {
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'org.springframework.boot' version '2.1.8.RELEASE'
     id 'java'
     id 'eclipse'
     id 'maven'
     id 'jacoco'
     id 'org.sonarqube' version "2.7.1"
-    id "com.diffplug.gradle.spotless" version "3.24.2"
+    id "com.diffplug.gradle.spotless" version "3.24.3"
 }
 
 apply plugin: 'org.springframework.boot'
@@ -185,6 +185,7 @@ dependencies {
 }
 
 bootJar {
+    launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
 }
