@@ -20,6 +20,7 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.util.rules.ComponentNamingRules;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class QuickstarterApiController {
 
   @Autowired private IJobExecutionAdapter rundeckAdapter;
+  @Autowired private List<ComponentNamingRules> quickstartersNamingRules;
 
   /**
    * Call to get the available quickstarters
@@ -60,5 +62,13 @@ public class QuickstarterApiController {
         rundeckAdapter.provisionComponentsBasedOnQuickstarters(
             ProjectData.toOpenProjectData(project));
     return ResponseEntity.ok(executions);
+  }
+
+  @RequestMapping(
+          value = "/rules",
+          produces = {"application/json"},
+          method = RequestMethod.GET)
+  public ResponseEntity<List<ComponentNamingRules>> getQuickstartersNamingRules() {
+    return ResponseEntity.ok().body(quickstartersNamingRules);
   }
 }

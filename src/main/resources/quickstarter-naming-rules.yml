@@ -1,0 +1,14 @@
+---
+name: fe_angular
+rules:
+  - reg: -\d
+    not: true
+    description: No digits should follow '-' sign
+    errorMessage: Angular does not support '-' dirrectly followed by the number
+---
+name: be-node-express
+rules:
+  - reg: \\p{Lu}+
+    not: true
+    description: No upper-case letters
+    errorMessage: Node.js does not support upper-case project namings

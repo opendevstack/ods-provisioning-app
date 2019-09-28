@@ -14,15 +14,20 @@
 
 package org.opendevstack.provision.config;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.opendevstack.provision.util.rules.ComponentNamingRules;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ITemplateResolver;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 /**
  * Represents basic bean configurations not related to security
@@ -46,5 +51,18 @@ public class AppConfig {
   @Bean(name = "projectKeys")
   public List<String> globalProjectKeys() {
     return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));
+  }
+
+  @Bean(name = "quickstartersNamingRules")
+  public List<ComponentNamingRules> componentNamingRules() {
+    Yaml yaml = new Yaml(new Constructor(ComponentNamingRules.class));
+    InputStream inputStream = this.getClass()
+            .getClassLoader()
+            .getResourceAsStream("quickstarter-naming-rules.yml");
+    List<ComponentNamingRules> rules = new ArrayList<>();
+    for (Object o: yaml.loadAll(inputStream)) {
+      rules.add((ComponentNamingRules) o);
+    }
+    return rules;
   }
 }

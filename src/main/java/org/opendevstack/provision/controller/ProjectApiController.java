@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -40,6 +42,7 @@ import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
+import org.opendevstack.provision.util.rules.ComponentNamingRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -73,6 +76,7 @@ public class ProjectApiController {
   @Autowired private IJobExecutionAdapter rundeckAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
+  @Autowired private List<ComponentNamingRules> quickstartersNamingRules;
 
   @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
@@ -109,6 +113,9 @@ public class ProjectApiController {
       return ResponseEntity.badRequest()
           .body("Project key and name are mandatory fields to create a project!");
     }
+
+    // check correctness of a project quickstarters naming, and discard wrongly named
+    newProject.quickstarters = filterQuickstarters(newProject.quickstarters);
 
     if (newProject.specialPermissionSet && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
       return ResponseEntity.badRequest()
@@ -209,6 +216,56 @@ public class ProjectApiController {
     }
   }
 
+  private List<Map<String, String>> filterQuickstarters(List<Map<String, String>> quickstarters) {
+    /**
+     * Pushes every quckstarter object though chain of filters.
+     * @param quickstarters - selected by user quickstarters to create
+     * @return list of correctly named parameters
+     */
+    List<Job> availableQuickstarters = rundeckAdapter.getQuickstarters();
+    List<Map<String, String>> filteredQuickstarters = new ArrayList<>();
+
+    for(Map<String, String> quickstarter_option : quickstarters) {
+      String component_id = quickstarter_option.get(OpenProjectData.COMPONENT_ID_KEY);
+      String component_type = quickstarter_option.get(OpenProjectData.COMPONENT_TYPE_KEY);
+      // Get quickstarter name
+      String component_name = "";
+      // Find right name for a component
+      for(Job job: availableQuickstarters) {
+        if(job.getId().equals(component_type)) {
+          component_name = job.getId();
+          break;
+        }
+      }
+      if (component_name.isEmpty()) continue;
+      // Check correct naming
+      if (isNamingComponentTypeCorrect(component_name, component_id)) {
+        filteredQuickstarters.add(quickstarter_option);
+      }
+    }
+    return filteredQuickstarters;
+  }
+
+
+
+  private boolean isNamingComponentTypeCorrect(String component_name, String component_id) {
+    /**
+     * Checks if component to be created has been named properly.
+     *  @param component_name: component (quickstarter) name in the Provision application DB
+     *  @param component_id: user input name for a quickstarter generated component
+     *  @return boolean value
+     */
+    List<ComponentNamingRules> namingRules = this.quickstartersNamingRules.stream()
+            .filter((r) -> r.getName().equals(component_name))
+            .collect(Collectors.toList());
+    for(ComponentNamingRules rules: namingRules) {
+      if(!rules.filter(component_id)) {
+        return false;
+      };
+    }
+    return true;
+  }
+
   /**
    * Update a project, e.g. add new quickstarters, upgrade a bugtracker only project
    *
@@ -241,6 +298,9 @@ public class ProjectApiController {
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
       updatedProject.projectName = storedExistingProject.projectName;
+
+      // check correctness of a project quickstarters naming, and discard wrongly named
+      updatedProject.quickstarters = filterQuickstarters(updatedProject.quickstarters);
 
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
