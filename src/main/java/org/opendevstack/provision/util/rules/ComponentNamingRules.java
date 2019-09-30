@@ -7,24 +7,24 @@ public class ComponentNamingRules {
   private List<NamingRule> rules;
 
   public String getName() {
-        return name;
-    }
+    return name;
+  }
 
   public void setName(String name) {
-        this.name = name;
-    }
+    this.name = name;
+  }
 
   public List<NamingRule> getRules() {
-        return rules;
-    }
+    return rules;
+  }
 
   public void setRules(List<NamingRule> rules) {
-        this.rules = rules;
-    }
+    this.rules = rules;
+  }
 
   public boolean filter(String componentName) {
-      return !this.rules.stream()
-              .map((namingRule -> namingRule.filter(componentName)))
-              .anyMatch((res) -> res == false);
+    return !this.rules.stream()
+        .map((namingRule -> namingRule.filter(componentName)))
+        .anyMatch((res) -> res == false);
   }
 }

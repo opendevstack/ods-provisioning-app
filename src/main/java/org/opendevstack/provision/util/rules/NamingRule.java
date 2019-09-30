@@ -10,40 +10,39 @@ public class NamingRule {
   String errorMessage;
 
   public String getReg() {
-        return reg;
-    }
+    return reg;
+  }
 
   public void setReg(String reg) {
-        this.reg = reg;
-    }
+    this.reg = reg;
+  }
 
   public Boolean getNot() {
-        return not;
-    }
+    return not;
+  }
 
   public void setNot(Boolean not) {
-        this.not = not;
-    }
+    this.not = not;
+  }
 
   public String getDescription() {
-        return description;
-    }
+    return description;
+  }
 
   public void setDescription(String description) {
-        this.description = description;
-    }
+    this.description = description;
+  }
 
   public String getErrorMessage() {
-        return errorMessage;
-    }
+    return errorMessage;
+  }
 
   public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
+    this.errorMessage = errorMessage;
+  }
 
   public boolean filter(String name) {
-      Matcher m = Pattern.compile(this.reg)
-              .matcher(name);
-      return  this.not ? !m.find() : m.find();
+    Matcher m = Pattern.compile(this.reg).matcher(name);
+    return this.not ? !m.find() : m.find();
   }
 }

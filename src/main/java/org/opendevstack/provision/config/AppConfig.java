@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.opendevstack.provision.util.rules.ComponentNamingRules;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,11 +55,10 @@ public class AppConfig {
   @Bean(name = "quickstartersNamingRules")
   public List<ComponentNamingRules> componentNamingRules() {
     Yaml yaml = new Yaml(new Constructor(ComponentNamingRules.class));
-    InputStream inputStream = this.getClass()
-            .getClassLoader()
-            .getResourceAsStream("quickstarter-naming-rules.yml");
+    InputStream inputStream =
+        this.getClass().getClassLoader().getResourceAsStream("quickstarter-naming-rules.yml");
     List<ComponentNamingRules> rules = new ArrayList<>();
-    for (Object o: yaml.loadAll(inputStream)) {
+    for (Object o : yaml.loadAll(inputStream)) {
       rules.add((ComponentNamingRules) o);
     }
     return rules;

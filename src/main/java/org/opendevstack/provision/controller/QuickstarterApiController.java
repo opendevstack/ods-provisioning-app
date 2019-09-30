@@ -65,9 +65,9 @@ public class QuickstarterApiController {
   }
 
   @RequestMapping(
-          value = "/rules",
-          produces = {"application/json"},
-          method = RequestMethod.GET)
+      value = "/rules",
+      produces = {"application/json"},
+      method = RequestMethod.GET)
   public ResponseEntity<List<ComponentNamingRules>> getQuickstartersNamingRules() {
     return ResponseEntity.ok().body(quickstartersNamingRules);
   }

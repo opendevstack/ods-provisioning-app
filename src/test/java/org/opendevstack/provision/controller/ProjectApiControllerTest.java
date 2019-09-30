@@ -620,10 +620,13 @@ public class ProjectApiControllerTest {
   }
 
   @Test
-  public void testFilterQuickstarters() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    Method filterQuickstarters = ProjectApiController.class.getDeclaredMethod("filterQuickstarters", List.class);
+  public void testFilterQuickstarters()
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method filterQuickstarters =
+        ProjectApiController.class.getDeclaredMethod("filterQuickstarters", List.class);
     filterQuickstarters.setAccessible(true);
-    List<Map<String, String>> quickstartersFiltered = (List<Map<String, String>>) filterQuickstarters.invoke(apiController, data.quickstarters);
+    List<Map<String, String>> quickstartersFiltered =
+        (List<Map<String, String>>) filterQuickstarters.invoke(apiController, data.quickstarters);
     assertEquals(quickstartersFiltered.size(), 1);
   }
 

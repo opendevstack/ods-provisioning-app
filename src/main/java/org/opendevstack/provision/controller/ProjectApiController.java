@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -221,20 +220,21 @@ public class ProjectApiController {
   private List<Map<String, String>> filterQuickstarters(List<Map<String, String>> quickstarters) {
     /**
      * Pushes every quckstarter object though chain of filters.
+     *
      * @param quickstarters - selected by user quickstarters to create
      * @return list of correctly named parameters
      */
     List<Job> availableQuickstarters = rundeckAdapter.getQuickstarters();
     List<Map<String, String>> filteredQuickstarters = new ArrayList<>();
 
-    for(Map<String, String> quickstarter_option : quickstarters) {
+    for (Map<String, String> quickstarter_option : quickstarters) {
       String component_id = quickstarter_option.get(OpenProjectData.COMPONENT_ID_KEY);
       String component_type = quickstarter_option.get(OpenProjectData.COMPONENT_TYPE_KEY);
       // Get quickstarter name
       String component_name = "";
       // Find right name for a component
-      for(Job job: availableQuickstarters) {
-        if(job.getId().equals(component_type)) {
+      for (Job job : availableQuickstarters) {
+        if (job.getId().equals(component_type)) {
           component_name = job.getName();
           break;
         }
@@ -248,22 +248,23 @@ public class ProjectApiController {
     return filteredQuickstarters;
   }
 
-
-
   private boolean isNamingComponentTypeCorrect(String component_name, String component_id) {
     /**
      * Checks if component to be created has been named properly.
-     *  @param component_name: component (quickstarter) name in the Provision application DB
-     *  @param component_id: user input name for a quickstarter generated component
-     *  @return boolean value
+     *
+     * @param component_name: component (quickstarter) name in the Provision application DB
+     * @param component_id: user input name for a quickstarter generated component
+     * @return boolean value
      */
-    List<ComponentNamingRules> namingRules = this.quickstartersNamingRules.stream()
+    List<ComponentNamingRules> namingRules =
+        this.quickstartersNamingRules.stream()
             .filter((r) -> r.getName().equals(component_name))
             .collect(Collectors.toList());
-    for(ComponentNamingRules rules: namingRules) {
-      if(!rules.filter(component_id)) {
+    for (ComponentNamingRules rules : namingRules) {
+      if (!rules.filter(component_id)) {
         return false;
-      };
+      }
+      ;
     }
     return true;
   }
