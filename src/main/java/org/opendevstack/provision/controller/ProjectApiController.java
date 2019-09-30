@@ -115,7 +115,9 @@ public class ProjectApiController {
     }
 
     // check correctness of a project quickstarters naming, and discard wrongly named
-    newProject.quickstarters = filterQuickstarters(newProject.quickstarters);
+    if (newProject.quickstarters != null) {
+      newProject.quickstarters = filterQuickstarters(newProject.quickstarters);
+    }
 
     if (newProject.specialPermissionSet && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
       return ResponseEntity.badRequest()
@@ -233,7 +235,7 @@ public class ProjectApiController {
       // Find right name for a component
       for(Job job: availableQuickstarters) {
         if(job.getId().equals(component_type)) {
-          component_name = job.getId();
+          component_name = job.getName();
           break;
         }
       }
@@ -300,7 +302,9 @@ public class ProjectApiController {
       updatedProject.projectName = storedExistingProject.projectName;
 
       // check correctness of a project quickstarters naming, and discard wrongly named
-      updatedProject.quickstarters = filterQuickstarters(updatedProject.quickstarters);
+      if (updatedProject.quickstarters != null) {
+        updatedProject.quickstarters = filterQuickstarters(updatedProject.quickstarters);
+      }
 
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;

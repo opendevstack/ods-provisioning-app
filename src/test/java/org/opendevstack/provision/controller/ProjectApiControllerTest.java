@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
@@ -99,6 +102,20 @@ public class ProjectApiControllerTest {
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     initOpenProjectData();
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
+    List<Job> quickstarters = new ArrayList<>();
+    Job angularQuickstarter = new Job();
+    angularQuickstarter.setId("12345-135467-3456hfd-1754hf7");
+    angularQuickstarter.setName("fe_angular");
+    angularQuickstarter.setEnabled(true);
+    angularQuickstarter.setHref("https://bix.com");
+    quickstarters.add(angularQuickstarter);
+    Job nodeJsQuickstarter = new Job();
+    nodeJsQuickstarter.setId("12345-135467-3456hfd-55555k7");
+    nodeJsQuickstarter.setName("be_node_express");
+    nodeJsQuickstarter.setEnabled(true);
+    nodeJsQuickstarter.setHref("https://bix.com");
+    quickstarters.add(nodeJsQuickstarter);
+    when(rundeckAdapter.getQuickstarters()).thenReturn(quickstarters);
   }
 
   private void initOpenProjectData() {
@@ -108,9 +125,14 @@ public class ProjectApiControllerTest {
     data.description = "Description";
 
     Map<String, String> someQuickstarter = new HashMap<>();
-    someQuickstarter.put("key", "value");
+    someQuickstarter.put("component_id", "fe-angular-7");
+    someQuickstarter.put("component_type", "12345-135467-3456hfd-1754hf7");
+    Map<String, String> otherQuickstarter = new HashMap<>();
+    otherQuickstarter.put("component_id", "fe-angular-a");
+    otherQuickstarter.put("component_type", "12345-135467-3456hfd-1754hf7");
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(someQuickstarter);
+    quickstarters.add(otherQuickstarter);
     data.quickstarters = quickstarters;
 
     data.platformRuntime = false;
@@ -595,6 +617,14 @@ public class ProjectApiControllerTest {
       assertEquals("Cleanup of projects is NOT allowed", mustbeThrown.getMessage());
     }
     assertNotNull(testExForbidden);
+  }
+
+  @Test
+  public void testFilterQuickstarters() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method filterQuickstarters = ProjectApiController.class.getDeclaredMethod("filterQuickstarters", List.class);
+    filterQuickstarters.setAccessible(true);
+    List<Map<String, String>> quickstartersFiltered = (List<Map<String, String>>) filterQuickstarters.invoke(apiController, data.quickstarters);
+    assertEquals(quickstartersFiltered.size(), 1);
   }
 
   private OpenProjectData copyFromProject(OpenProjectData origin) {

@@ -4,46 +4,46 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NamingRule {
-    String reg;
-    Boolean not;
-    String description;
-    String errorMessage;
+  String reg;
+  Boolean not;
+  String description;
+  String errorMessage;
 
-    public String getReg() {
+  public String getReg() {
         return reg;
     }
 
-    public void setReg(String reg) {
+  public void setReg(String reg) {
         this.reg = reg;
     }
 
-    public Boolean getNot() {
+  public Boolean getNot() {
         return not;
     }
 
-    public void setNot(Boolean not) {
+  public void setNot(Boolean not) {
         this.not = not;
     }
 
-    public String getDescription() {
+  public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+  public void setDescription(String description) {
         this.description = description;
     }
 
-    public String getErrorMessage() {
+  public String getErrorMessage() {
         return errorMessage;
     }
 
-    public void setErrorMessage(String errorMessage) {
+  public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
-    public boolean filter(String name) {
-        Matcher m = Pattern.compile(this.reg)
-                .matcher(name);
-        return  this.not ? !m.find() : m.find();
-    }
+  public boolean filter(String name) {
+      Matcher m = Pattern.compile(this.reg)
+              .matcher(name);
+      return  this.not ? !m.find() : m.find();
+  }
 }
