@@ -83,6 +83,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${idmanager.group.opendevstack-users}")
   private String openDevStackUsersGroupName;
 
+  @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
+  private boolean grantRepositoryWriteToAllOpenDevStackUsers;
+
   @Autowired IODSAuthnzAdapter manager;
 
   private static final String PROJECT_PATTERN = "%s%s/projects";
@@ -291,9 +294,18 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     }
     setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
     setRepositoryAdminPermissions(data, projectKey, ID_USERS, technicalUser);
-    setRepositoryPermissions(
-        data, projectKey, ID_GROUPS, openDevStackUsersGroupName, REPOSITORY_PERMISSIONS.REPO_WRITE);
-
+    if (grantRepositoryWriteToAllOpenDevStackUsers) {
+      logger.info(
+          "Grant write to every member of {} to repository {}",
+          openDevStackUsersGroupName,
+          data.getSlug());
+      setRepositoryPermissions(
+          data,
+          projectKey,
+          ID_GROUPS,
+          openDevStackUsersGroupName,
+          REPOSITORY_PERMISSIONS.REPO_WRITE);
+    }
     return data;
   }
 
