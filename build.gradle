@@ -138,7 +138,7 @@ dependencies {
     //frontend webjars
     compile 'org.webjars:webjars-locator:0.37'
     compile 'org.webjars.bower:jquery:3.4.1'
-    compile 'org.webjars.bower:bootstrap:4.3.1'
+    compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:react:16.1.0'
     compile 'org.webjars.bower:font-awesome:4.7.0'
     compile 'org.webjars.bower:lodash:4.17.10'
