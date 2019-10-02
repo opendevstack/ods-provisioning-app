@@ -115,6 +115,12 @@ provisionfile=create.txt
 curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
 -H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
 ```
+## What happens in error cases
+
+Up to (and including) `v1.1.x` when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up *manually* based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned *off* by specifying the new property 
+`provision.cleanup.incomplete.projects` and setting it to `false`.
+
+
 
 ## Internal architecture
 
@@ -125,11 +131,6 @@ Rundeck (for openshift interaction).
 
 The APIs exposed for direct usage, and also for the UI are in the [controller package](src/main/java/org/opendevstack/provision/controller). 
 The connectors to the various tools to create resources are in the [services package](src/main/java/org/opendevstack/provision/services)
-
-## What happens in error cases
-
-Up to (and including) `v1.1.x` when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up *manually* based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned *off* by specifying the new property 
-`provision.cleanup.incomplete.projects` and setting it to `false`.
 
 ## How to develop locally
 
@@ -188,8 +189,6 @@ The base configuration map as well as the deployment yamls can be found in [ocp-
 ```
 http://localhost:8080
 ```
-
-
 
 ## Frontend Code
 
