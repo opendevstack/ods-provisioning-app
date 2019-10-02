@@ -48,14 +48,14 @@ However there is a special knob to tighten security (which can be passed with th
 
 The configuration for the permission sets are configured:
 
-. JIRA Project is provisioned with its own permissionset defined in link:src/main/resources/permission-templates/jira.permission.all.txt[src/main/resources/permission-templates/jira.permission.all.txt]
-. Confluence Project is provisioned with special permission set defined in link:src/main/resources/permission-templates[src/main/resources/permission-templates/confluence.permission.*]
+. JIRA Project is provisioned with its own permissionset defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates/jira.permission.all.txt[src/main/resources/permission-templates/jira.permission.all.txt]
+. Confluence Project is provisioned with special permission set defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates[src/main/resources/permission-templates/confluence.permission.*]
 . Bitbucket Project is provisioned with tight read & write roles
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
 === Project/Space types based on templates
 
-The default jira / confluence project' types are defined in link:src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
+The default jira / confluence project' types are defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
 
 ----
 project.template.key.names=default
@@ -127,7 +127,7 @@ curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
 == Configuration Guide
 
 The Provisioning Application is configured via spring boot profiles.
-Default configuration properties are definded in link:src/main/resources/application.properties[application.properties]
+Default configuration properties are definded in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties]
 
 === Authentication Configuration
 There are to separate authentication options to authenticated a user for the provisioning app.
@@ -155,7 +155,7 @@ spring.profiles.active=crowd # <2>
 The crowd specific configuration is done in the included profile _crowd_, see property documentation inside the profile file _application-crowd.properties_. The provided example configuration is appropriate for a locally installed OpenDevStack environment.
 
 ==== Authentication OAUTH2 Configuration
-A default oauth2 configuration is given in spring boot profile link:src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
+A default oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
 
 [source%nowrap,bash]
 .application-oauth2.properties
@@ -186,10 +186,10 @@ spring.security.oauth2.client.provider.keycloak.user-name-attribute=preferred_us
 <1> configures oauth2 authentication provider
 <2> URL to idmanager. The value defaults to opendevstack idmanager box with keycloak installation
 <3> Name of realm that is used
-<4> The application reads the user roles from the claim that is inside the oauth2 ID-Token. The property _oauth2.user.roles.jsonpointerexpression_ is a JsonPointer - Expression that defines a path to the roles that are extracted from the id token. Details regarding pointer expression can be found at link:https://fasterxml.github.io/jackson-core/javadoc/2.5/com/fasterxml/jackson/core/JsonPointer.html[Jackson-core JsonPointer Documentation]
+<4> The application reads the user roles from the claim that is inside the oauth2 ID-Token. The property _oauth2.user.roles.jsonpointerexpression_ is a JsonPointer - Expression that defines a path to the roles that are extracted from the id token. Details regarding pointer expression can be found at https://github.com/opendevstack/ods-provisioning-app/blob/master/https://fasterxml.github.io/jackson-core/javadoc/2.5/com/fasterxml/jackson/core/JsonPointer.html[Jackson-core JsonPointer Documentation]
 <5> Defines the OAUTH2 client registration properties, in particular the client name and client secret. See
-link:https://docs.spring.io/spring-security/site/docs/5.1.5.RELEASE/reference/html/jc.html#oauth2login-boot-property-mappings[OAUTH2 Spring Boot 2.x Property Mappings] for details.
-<6> Defines the OAUTH2 _client.provider_ properties. These properties correspond to the _well-known_ OAUTH2-URIs. In case of keycloak, this URIs can be read out using the  link:http://192.168.56.32:8080/auth/realms/provisioning-app/.well-known/openid-configuration[.well-known/openid-configuration-link]
+https://github.com/opendevstack/ods-provisioning-app/blob/master/https://docs.spring.io/spring-security/site/docs/5.1.5.RELEASE/reference/html/jc.html#oauth2login-boot-property-mappings[OAUTH2 Spring Boot 2.x Property Mappings] for details.
+<6> Defines the OAUTH2 _client.provider_ properties. These properties correspond to the _well-known_ OAUTH2-URIs. In case of keycloak, this URIs can be read out using the  https://github.com/opendevstack/ods-provisioning-app/blob/master/http://192.168.56.32:8080/auth/realms/provisioning-app/.well-known/openid-configuration[.well-known/openid-configuration-link]
 
 ==== Authentication to third party apps via technical users
 The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence, Bitbucket and Rundeck. The used credentials are read from a pair of properties. For Example, _rundeck.admin_password_ and _rundeck.admin_user_ properties are used for Rundeck, _confluence.admin_user_ and _confluence.admin_password_ are used for confluence, etc.
@@ -215,17 +215,17 @@ jira.admin_user=jira_admin
 ----
 [TIP]
 Note: if the pair of properties is not defined for a third party tool, the logged in user's credentials are used to authenticate against the application.
- The credentials are read by caling the method _getUserName_ and _getUserPassword_ from link:src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
+ The credentials are read by caling the method _getUserName_ and _getUserPassword_ from https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
 
 == Internal architecture
 
-The Project is based on Spring Boot, using several technologies which can be seen in the link:build.gradle[build.gradle].
+The Project is based on Spring Boot, using several technologies which can be seen in the https://github.com/opendevstack/ods-provisioning-app/blob/master/build.gradle[build.gradle].
 
 The provision app is merely an orchestrator that does HTTP REST calls to Atlassian Crowd, Jira, Confluence, Bitbucket and
 Rundeck (for openshift interaction).
 
-The APIs exposed for direct usage, and also for the UI are in the link:src/main/java/org/opendevstack/provision/controller[controller package].
-The connectors to the various tools to create resources are in the link:src/main/java/org/opendevstack/provision/services[services package]
+The APIs exposed for direct usage, and also for the UI are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/controller[controller package].
+The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
 
 === Gradle Build configuration
 If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
@@ -269,17 +269,17 @@ You can start the application with the following command:
 gradle bootRun
 ----
 
-To overwrite the provided link:src/main/resources/application.properties[application.properties] a configmap is created out of them and injected into /config/application.properties within the container.
-The base configuration map as well as the deployment yamls can be found in link:ocp-config/prov-app/cm.yml[ocp-config], and overwrite parameters from application.
+To overwrite the provided https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties] a configmap is created out of them and injected into /config/application.properties within the container.
+The base configuration map as well as the deployment yamls can be found in https://github.com/opendevstack/ods-provisioning-app/blob/master/ocp-config/prov-app/cm.yml[ocp-config], and overwrite parameters from application.
 
 === Frontend Code
 
-The frontend is based on jquery and thymeleaf. All link:src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
+The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
 
 === Backend Code
 
 The backend is based on Spring Boot, authenticates against Atlassian Crowd (Using property `provision.auth.provider=crowd`) or OAUTH2/OpenID Connect provider (Using property `provision.auth.provider=oauth2`) and exposes consumable APIs (`api/v2/project`).
-Storage of created projects happens on the filesystem thru the link:src/main/java/org/opendevstack/provision/storage/LocalStorage.java[StorageAdapter].
+Storage of created projects happens on the filesystem thru the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/storage/LocalStorage.java[StorageAdapter].
 Both frontend (html) and backend are tested thru Junit & Mockito
 
 === Authentication Implementation
@@ -331,7 +331,7 @@ The process for new operations to be called is:
 . Look up the API call that you intend to make
 . see if there is a JSON Schema available
 . Generate (a) Pojo('s) for the Endpoint
-. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's link:src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
+. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
 
 === Link collection
 
