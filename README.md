@@ -115,12 +115,8 @@ provisionfile=create.txt
 curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
 -H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
 ```
-## What happens in error cases
 
-Up to (and including) `v1.1.x` when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up *manually* based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned *off* by specifying the new property 
-`provision.cleanup.incomplete.projects` and setting it to `false`.
-
-# Internal architecture
+## Internal architecture
 
 The Project is based on Spring Boot, using several technologies which can be seen in the [build.gradle](build.gradle).
 
@@ -130,12 +126,37 @@ Rundeck (for openshift interaction).
 The APIs exposed for direct usage, and also for the UI are in the [controller package](src/main/java/org/opendevstack/provision/controller). 
 The connectors to the various tools to create resources are in the [services package](src/main/java/org/opendevstack/provision/services)
 
-If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
+## What happens in error cases
 
-    - nexus_url=<NEXUS HOST>
-    - nexus_user=<NEXUS USER>
-    - nexus_pw=<NEXUS_PW> 
-    
+Up to (and including) `v1.1.x` when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up *manually* based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned *off* by specifying the new property 
+`provision.cleanup.incomplete.projects` and setting it to `false`.
+
+## How to develop locally
+
+1. Make sure that you have installed GIT and JAVA ( >= 8 ).
+
+
+
+2. Clone the project out of Github 
+
+```
+$ git clone https://github.com/opendevstack/ods-provisioning-app.git
+```
+
+3. Change directory into ods-provisioning-app
+
+```
+$ cd ods-provisioning-app
+```
+
+4. If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
+
+```
+nexus_url=<NEXUS HOST>
+nexus_user=<NEXUS USER>
+nexus_pw=<NEXUS_PW> 
+```
+
 If you want to build / run locally without NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
 
 ```properties
@@ -155,11 +176,20 @@ You can start the application with the following command:
 
 ```bash
 # to run the server execute
-gradle bootRun
+./gradlew bootRun
 ```
 
 To overwrite the provided [application.properties](src/main/resources/application.properties) a configmap is created out of them and injected into /config/application.properties within the container.
 The base configuration map as well as the deployment yamls can be found in [ocp-config](ocp-config/prov-app/cm.yml), and overwrite parameters from application.
+
+
+5. After started the server it can be reached in the browser under
+
+```
+http://localhost:8080
+```
+
+
 
 ## Frontend Code
 
