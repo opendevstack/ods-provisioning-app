@@ -45,17 +45,25 @@
 
 <!-- ensure IE does not fly -->
 <script type="text/javascript" >
-	let isIE = false;
-    if(/MSIE/i['test'](navigator['userAgent'])==true||/rv/i['test'](navigator['userAgent'])==true||/Edge/i['test'](navigator['userAgent'])==true){
-       alert("ODS Provision application does not support Internet Explorer! Please use Google Chrome");
-       isIE = true;
-    }
+
+    var browserNotAllowed = false;
     
+    if(navigator.userAgent.indexOf("Firefox") != -1 )
+    {
+        alert("ODS Provision application does not support Firefox! Please use Google Chrome.");
+        browserNotAllowed = true;
+    }
+    else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true ))
+    {
+        alert("ODS Provision application does not support Internet Explorer! Please use Google Chrome.");
+        browserNotAllowed = true;
+    }
+
     $(document).ready(function() {
-    	if(isIE == false){
-    		   $("#btn_login").removeClass("disable");
-    		   $("#btn_login").prop("disabled", false);
-    	}
+        if(browserNotAllowed == false){
+            $("#btn_login").removeClass("disable");
+            $("#btn_login").prop("disabled", false);
+        }
     })
 </script>
 

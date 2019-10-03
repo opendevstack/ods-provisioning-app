@@ -51,13 +51,13 @@ buildscript {
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'org.springframework.boot' version '2.1.8.RELEASE'
     id 'java'
     id 'eclipse'
     id 'maven'
     id 'jacoco'
-    id 'org.sonarqube' version "2.7"
-    id "com.diffplug.gradle.spotless" version "3.24.2"
+    id 'org.sonarqube' version "2.7.1"
+    id "com.diffplug.gradle.spotless" version "3.24.3"
 }
 
 apply plugin: 'org.springframework.boot'
@@ -136,6 +136,7 @@ dependencies {
 
 
     //frontend webjars
+    compile 'org.webjars:webjars-locator:0.37'
     compile 'org.webjars.bower:jquery:3.4.1'
     compile 'org.webjars.bower:bootstrap:3.3.7'
     compile 'org.webjars.bower:react:16.1.0'
@@ -145,7 +146,7 @@ dependencies {
     //jira api dependencies
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0-beta3-atlassian-1'
 
-    //encryption library for properties 
+    //encryption library for properties
     compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
 
     //easy http calls to atlassian JSON APIs
@@ -185,6 +186,7 @@ dependencies {
 }
 
 bootJar {
+    launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
 }
