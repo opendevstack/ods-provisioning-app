@@ -15,7 +15,7 @@ library identifier: 'ods-library@production', retriever: modernSCM(
 
 // See readme of shared library for usage and customization.
 odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven",
+  image: "${dockerRegistry}/cd/jenkins-slave-maven:1.2.x",
   projectId: projectId,
   componentId: componentId,
   branchToEnvironmentMapping: [
