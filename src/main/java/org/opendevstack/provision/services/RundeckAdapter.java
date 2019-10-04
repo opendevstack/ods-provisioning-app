@@ -392,8 +392,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   private RestClientCall httpPreAuthenticatedCall(HttpVerb verb) {
     if (preAuthContent.size() == 0) {
-      preAuthContent.put("j_username", userName);
-      preAuthContent.put("j_password", userPassword);
+      preAuthContent.put("j_username", getUserName());
+      preAuthContent.put("j_password", getUserPassword());
     }
     return notAuthenticatedCall(verb)
         .preAuthenticated()
