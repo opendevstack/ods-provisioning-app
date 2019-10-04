@@ -536,6 +536,7 @@ public class E2EProjectAPIControllerTest {
     // get the rundeck jobs
     List<Job> jobList =
         readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+    jobList.stream().forEach(job -> job.setGroup("quickstarts"));
 
     mockHelper
         .mockExecute(
