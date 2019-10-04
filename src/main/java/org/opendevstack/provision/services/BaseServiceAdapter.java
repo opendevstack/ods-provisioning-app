@@ -64,6 +64,10 @@ public class BaseServiceAdapter {
     return useTechnicalUser ? userName : manager.getUserName();
   }
 
+  public String getUserPassword() {
+    return useTechnicalUser ? userPassword : manager.getUserPassword();
+  }
+
   public RestClientCall httpGet() {
     return authenticatedCall(HttpVerb.GET);
   }
