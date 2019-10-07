@@ -1,4 +1,4 @@
-== FAQ:
+= FAQ:
 
 . Where is the provision app deployed? +
 A. the provision application is deployed on openshift, in both `prov-dev` and `prov-test`. `prov-dev` is the development environment in case you want to change / enhance the application, while the production version of the application is deployed in `prov-test`. The URL to get to the provision application, is defined thru a route. Ít's `+https://prov-app-test.+`+++<openshift application="" domains="">+++.+++</openshift>+++

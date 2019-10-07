@@ -2,3 +2,4 @@
 * xref:ROOT:configuration.adoc[Configuration Guide]
 * xref:ROOT:architecture.adoc[Internal Architecture]
 * xref:ROOT:faq.adoc[FAQ]
+* xref:ROOT:upgrade_notes.adoc[Upgrade Notes]

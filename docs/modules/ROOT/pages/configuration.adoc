@@ -1,9 +1,13 @@
-== Configuration Guide
+:toc: macro
+
+= Configuration Guide
+
+toc::[]
 
 The Provisioning Application is configured via spring boot profiles.
 Default configuration properties are definded in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties]
 
-=== Authentication Configuration
+== Authentication Configuration
 There are to separate authentication options to authenticated a user for the provisioning app.
 
 * CROWD (default)
@@ -15,7 +19,7 @@ Note that the current OAUTH2 implementation is only used for authentication the 
 To authentication that is used for the REST - API calls of Atlassian Crowd, Jira, Confluence, Bitbucket and Rundeck is done eighter via the logged in uses credentials (user name and password) or via the technical users, that are configured in the used spring boot profile.
 
 
-==== Authentication Crowd Configuration
+=== Authentication Crowd Configuration
 
 [source%nowrap,bash]
 .application.properties
@@ -28,7 +32,7 @@ spring.profiles.active=crowd # <2>
 
 The crowd specific configuration is done in the included profile _crowd_, see property documentation inside the profile file _application-crowd.properties_. The provided example configuration is appropriate for a locally installed OpenDevStack environment.
 
-==== Authentication OAUTH2 Configuration
+=== Authentication OAUTH2 Configuration
 A default oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
 
 [source%nowrap,bash]
@@ -65,7 +69,7 @@ spring.security.oauth2.client.provider.keycloak.user-name-attribute=preferred_us
 https://github.com/opendevstack/ods-provisioning-app/blob/master/https://docs.spring.io/spring-security/site/docs/5.1.5.RELEASE/reference/html/jc.html#oauth2login-boot-property-mappings[OAUTH2 Spring Boot 2.x Property Mappings] for details.
 <6> Defines the OAUTH2 _client.provider_ properties. These properties correspond to the _well-known_ OAUTH2-URIs. In case of keycloak, this URIs can be read out using the  https://github.com/opendevstack/ods-provisioning-app/blob/master/http://192.168.56.32:8080/auth/realms/provisioning-app/.well-known/openid-configuration[.well-known/openid-configuration-link]
 
-==== Authentication to third party apps via technical users
+=== Authentication to third party apps via technical users
 The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence, Bitbucket and Rundeck. The used credentials are read from a pair of properties. For Example, _rundeck.admin_password_ and _rundeck.admin_user_ properties are used for Rundeck, _confluence.admin_user_ and _confluence.admin_password_ are used for confluence, etc.
 
 [source%nowrap,bash]

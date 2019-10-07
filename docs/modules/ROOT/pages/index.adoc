@@ -1,16 +1,14 @@
 :toc: macro
 
-== OpenDevStack Provisioning Application
+= Overview: Provisioning Application
 image::https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master[Build Status,link=https://travis-ci.com/opendevstack/ods-provisioning-app]
 
 toc::[]
 
-
-
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on https://github.com/opendevstack/ods-project-quickstarters[quickstarters].
 It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
 
-=== Basic idea & usage:
+== Basic idea & usage
 
 . An admin (user in a group defined in property `idmanager.group.opendevstack-administrators`) creates new ODS project. This in turn creates
  ** a Jira Project (name based on project `key` & `name`)
@@ -23,7 +21,7 @@ this happens thru the user interface - in going to modify project / picking your
  ** Openshift components based on the chosen boilerplate, coming from https://github.com/opendevstack/ods-project-quickstarters[ods-quickstarters]
 . The involved people receive an email with the setup, URLs to components etc. - in case `mail.enabled == true`
 
-=== Integration with Bitbucket (webhooks)
+== Integration with Bitbucket (webhooks)
 
 Next to the provision app creating the bitbucket repository for a chosen quickstarter - it also creates a webhook on that repo, which triggers on three events
 
@@ -37,7 +35,7 @@ Next to the provision app creating the bitbucket repository for a chosen quickst
 
 This webhook calls the https://github.com/opendevstack/ods-core/tree/master/jenkins/webhook-proxy[webhook proxy] which in turn creates an openshift `build config` of type `pipeline` in the `name`-cd project and executes it.
 
-=== Permissions
+== Permissions
 
 By default no special permissions are set on either confluence / jira / bitbucket or openshift, only system-wide settings are inherited.
 
@@ -54,7 +52,7 @@ The configuration for the permission sets are configured:
 . Bitbucket Project is provisioned with tight read & write roles
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
-=== Project/Space types based on templates
+== Project/Space types based on templates
 
 The default jira / confluence project' types are defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
 
@@ -84,7 +82,7 @@ and add the new +++<name>+++from above to the existing property `project.templat
 project.template.key.names=default,<name>
 ----
 
-=== Using the provision application via API / thru direct REST calls
+== Using the provision application via API / thru direct REST calls
 
 [source,bash]
 ----
@@ -126,4 +124,7 @@ curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
 ----
 
 
+== What happens in error cases
 
+Up to (and including) _v1.1.x_ when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up _manually_ based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned _off_ by specifying the new property
+_provision.cleanup.incomplete.projects_ and setting it to _false_.

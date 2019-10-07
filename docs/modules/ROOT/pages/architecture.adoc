@@ -1,4 +1,8 @@
-== Internal architecture
+:toc: macro
+
+= Internal architecture
+
+toc::[]
 
 The Project is based on Spring Boot, using several technologies which can be seen in the https://github.com/opendevstack/ods-provisioning-app/blob/master/build.gradle[build.gradle].
 
@@ -8,14 +12,30 @@ Rundeck (for openshift interaction).
 The APIs exposed for direct usage, and also for the UI are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/controller[controller package].
 The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
 
-=== Gradle Build configuration
-If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
+== How to develop locally
+. Make sure that you have installed GIT and JAVA ( >= 8 ).
+. Clone the project out of Github
 
-....
-- nexus_url=<NEXUS HOST>
-- nexus_user=<NEXUS USER>
-- nexus_pw=<NEXUS_PW>
-....
+```
+$ git clone https://github.com/opendevstack/ods-provisioning-app.git
+```
+
+[arabic, start=3]
+. Change directory into ods-provisioning-app
+
+```
+$ cd ods-provisioning-app
+```
+
+[arabic, start=4]
+. If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
+
+[source,properties]
+----
+nexus_url=<NEXUS HOST>
+nexus_user=<NEXUS USER>
+nexus_pw=<NEXUS_PW>
+----
 
 If you want to build / run locally without NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
 
@@ -42,28 +62,36 @@ Alternatively, you can also configure the build using environment variables:
 | NO_NEXUS
 |===
 
-You can start the application with the following command:
+[arabic, start=5]
+. You can start the application with the following command:
 
 [source,bash]
 ----
 # to run the server execute
-gradle bootRun
+./gradlew bootRun
 ----
 
 To overwrite the provided https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties] a configmap is created out of them and injected into /config/application.properties within the container.
 The base configuration map as well as the deployment yamls can be found in https://github.com/opendevstack/ods-provisioning-app/blob/master/ocp-config/prov-app/cm.yml[ocp-config], and overwrite parameters from application.
 
-=== Frontend Code
+[arabic, start=6]
+. After started the server it can be reached in the browser under
+
+```
+http://localhost:8080
+```
+
+== Frontend Code
 
 The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
 
-=== Backend Code
+== Backend Code
 
 The backend is based on Spring Boot, authenticates against Atlassian Crowd (Using property `provision.auth.provider=crowd`) or OAUTH2/OpenID Connect provider (Using property `provision.auth.provider=oauth2`) and exposes consumable APIs (`api/v2/project`).
 Storage of created projects happens on the filesystem thru the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/storage/LocalStorage.java[StorageAdapter].
 Both frontend (html) and backend are tested thru Junit & Mockito
 
-=== Authentication Implementation
+== Authentication Implementation
 By using the property `provision.auth.provider=crowd` or `provision.auth.provider=oauth2`, the application uses eigher CROWD or OAUTH2 authentication. Dependent of the property used, different spring beans are used for configuration.
 The switch between the two options is implemented via Spring's _ConditionalOnProperty_ annotation.
 
@@ -99,7 +127,7 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
 }
 ----
 
-=== Consuming REST APIs in Java
+== Consuming REST APIs in Java
 
 Generally this is a pain. To ease development, a few tools are in use:
 
@@ -114,7 +142,7 @@ The process for new operations to be called is:
 . Generate (a) Pojo('s) for the Endpoint
 . Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
 
-=== Link collection
+== Link collection
 
 * http://www.mkyong.com/spring-boot/spring-boot-spring-security-thymeleaf-example/[Mkyong spring boot + security + thymeleaf example]
 * http://www.webjars.org/[Getting more Webjars]
