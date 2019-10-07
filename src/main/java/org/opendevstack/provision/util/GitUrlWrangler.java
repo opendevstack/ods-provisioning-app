@@ -3,9 +3,12 @@ package org.opendevstack.provision.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GitUrlWrangler {
 
+  private static final Logger LOG = LoggerFactory.getLogger(GitUrlWrangler.class);
   /**
    * Checks, if a string already follows url encoding guidelines. This is tested against the
    * contained characters
@@ -40,7 +43,10 @@ public class GitUrlWrangler {
           followsUrlEncodingScheme(technicalUser)
               ? technicalUser
               : URLEncoder.encode(technicalUser, "UTF-8");
-      result = cloneURL.replace(urlEncodedUsername, urlEncodedTechnicalUser);
+      String[] split = cloneURL.split("@");
+      if (split.length > 1) {
+        result = split[0].replace(urlEncodedUsername, urlEncodedTechnicalUser) + "@" + split[1];
+      }
       if (result.equals(cloneURL)) {
         result =
             Pattern.compile("(https?://)(.*)")
@@ -48,6 +54,12 @@ public class GitUrlWrangler {
                 .replaceAll("$1" + urlEncodedTechnicalUser + "@$2");
       }
     }
+    LOG.debug(
+        "buildGitUrl(username={},technicalUser={},cloneURL={}) returns {} ",
+        username,
+        technicalUser,
+        cloneURL,
+        result);
     return result;
   }
 }
