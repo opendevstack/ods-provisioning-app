@@ -1,0 +1,14 @@
+= FAQ:
+
+. Where is the provision app deployed? +
+A. the provision application is deployed on openshift, in both `prov-dev` and `prov-test`. `prov-dev` is the development environment in case you want to change / enhance the application, while the production version of the application is deployed in `prov-test`. The URL to get to the provision application, is defined thru a route. Ít's `+https://prov-app-test.+`+++<openshift application="" domains="">+++.+++</openshift>+++
+. Why are three Openshift projects created when I provision a new project? +
+A: The `project-name`-dev & -test ones are runtime namespaces. Depending on which branch you merge / commit your code into, images will be built & deployed in one of the two (further information on how this is done - can be found in the https://github.com/opendevstack/ods-jenkins-shared-library[jenkins-shared-library] +
+In contrast to this, the `project-name`-cd namespace hosts a project specific instance of the https://github.com/opendevstack/ods-core/tree/master/jenkins[ODS Jenkins] and also of the https://github.com/opendevstack/ods-core/tree/master/jenkins/webhook-proxy[Webhook Proxy]. When a built is triggered, builder pods (=deployments of https://github.com/opendevstack/ods-project-quickstarters/tree/master/jenkins-slaves[Jenkins slaves]) are created in this project. +
+This was a cautious design choice to give a project team as much power as possible - when it comes to configuration of jenkins.
+. What is `RUNDECK` used for? +
+A: Rundeck is used as orchestration engine when the provision application triggers provision jobs (e.g. create new projects, create components). This architecture is _subject to change_ likely in release 2.0, to dramatically reduce complexity in multi cluster scenarios.
+. Where do I find the logs, if something went wrong? +
+A. Within the Openshift `pod` of the provision app (in ``project``dev/test, namely in `/opt/provision/history/logs` a logfile is created per `project`)
+. Where is the real configuration of the provision application? +
+A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
