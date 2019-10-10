@@ -24,8 +24,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations: {}
-    creationTimestamp: null
     labels:
       app: jenkins
     name: jenkins-jnlp
@@ -42,7 +40,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations: {}
     labels:
       app: jenkins
     name: webhook-proxy
