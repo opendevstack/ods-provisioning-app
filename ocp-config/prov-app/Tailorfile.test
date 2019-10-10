@@ -2,5 +2,7 @@ namespace prov-test
 selector  app=prov-app
 param-dir ../../../ods-configuration/ods-provisioning-app/ocp-config/prov-test
 ignore-path bc:/spec/output/to/name
+ignore-path bc:/spec/output/imageLabels
+ignore-unknown-parameters true
 
 bc,cm,dc,is,pvc,route,secret,svc
