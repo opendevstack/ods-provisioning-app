@@ -9,7 +9,7 @@ objects:
   apiVersion: v1
   data:
     properties: |
-      #log level
+      # log level
       logging.level.root=WARN
       logging.level.org.springframework=INFO
       logging.level.org.springframework.security=DEBUG
@@ -17,7 +17,7 @@ objects:
       logging.level.com.atlassian.crowd=${LOG_LEVEL_ATLASSIAN_CROWD}
       logging.level.org.opendevstack=${LOG_LEVEL_OPENDEVSTACK}
 
-      #log file
+      # log file
       logging.file=provision.log
 
       # atlassian API calls take sooo long
@@ -26,23 +26,23 @@ objects:
       spring.session.timeout=240
       spring.mvc.async.request-timeout=90000
       
-      #server port
+      # server port
       server.port=8080
       server.use-forward-headers=true
 
-      global.keyuser.role.name=${KEYUSER_GROUP}
+      global.keyuser.role.name=${idmanager.group.opendevstack-administrators}
 
       project.template.default.key=default
 
       # project types, these two are configured in the src/main/resources/application.properties
       project.template.key.names=${project.template.default.key},kanban
 
-      #JIRA properties
+      # JIRA properties
       jira.uri=${JIRA_URI}
       jira.api.path=/rest/api/latest
       jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
 
-      #JIRA default project templates
+      # JIRA default project templates
       jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
       jira.project.template.type=software
 
@@ -50,35 +50,37 @@ objects:
       jira.project.template.key.kanban=com.pyxis.greenhopper.jira:gh-kanban-template
       jira.project.template.type.kanban=software
 
-      #Confluence properties
+      # Confluence properties
       confluence.uri=${CONFLUENCE_URI}
       confluence.api.path=/rest
       confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
       confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
 
-      #Bitbucket properties
+      # Bitbucket properties
       bitbucket.uri=${BITBUCKET_URI}
       bitbucket.api.path=/rest/api/1.0
       bitbucket.repository.pattern=%s-%s
       bitbucket.default.user.group=${CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
-      #openshift properties
+      # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
 
       # allow /or disallow a jira only project to be upgraded to a full OCP project
       openshift.project.upgrade=false
 
-      #openshift project name patterns
+      # openshift project name patterns
       openshift.test.project.name.pattern=%s%s-test
       openshift.dev.project.name.pattern=%s%s-dev
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
       openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
 
-      #Rundeck properties
+      # Rundeck properties
       rundeck.uri=${RUNDECK_URI}
+      rundeck.auth.url=${rundeck.uri}/rundeck/j_security_check
+      rundeck.api.url=${rundeck.uri}/rundeck/api/19
       rundeck.system.path=/rundeck
       rundeck.api.path=/rundeck/api/19
       rundeck.project.name=Quickstarters
@@ -88,31 +90,34 @@ objects:
       rundeck.project.group.openshift=openshift
       rundeck.project.openshift.create.name=create-projects
 
-      #Cookie Domain
+      # Cookie Domain
       atlassian.domain=${ATLASSIAN_DOMAIN}
 
-      #Data for confluence space creation
+      # Data for confluence space creation
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
 
-      #crowd properties
+      # idmanager
+      provision.auth.provider=crowd
+      spring.profiles.active=crowd
+      idmanager.group.opendevstack-users=${CROWD_USER_GROUP}
+      idmanager.group.opendevstack-administrators=${CROWD_ADMIN_GROUP}
+
+      # crowd properties
       crowd.local.directory=LocalDirectory
       crowd.application.name=provision
       crowd.application.password=${CROWD_PASSWORD}
       crowd.server.url=${CROWD_URL}/crowd/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
-      idmanager.group.opendevstack-users=${CROWD_USER_GROUP}
-      idmanager.group.opendevstack-administrators=${CROWD_ADMIN_GROUP}
-      
+
       # crowd sso cookie keyname
       crowd.sso.cookie.name=crowd.token_key
 
-      #local storage
+      # local storage
       project.storage.local=/opt/provision/history/
 
       jasypt.encryptor.password=${JASYPT_PASSWORD}
 
-      #mail properties
-      
+      # mail properties
       # enable mail sendout with project details
       mail.enabled=true
       
@@ -184,9 +189,6 @@ parameters:
 - name: CROWD_ADMIN_GROUP
   required: true
   description: The crowd admin group name
-- name: KEYUSER_GROUP
-  required: true
-  description: The keyuser group name as in crowd used when creating a new permission scheme
 - name: PIPELINE_TRIGGER_SECRET
   required: true
   description: The trigger secret to pass to the webhook proxy

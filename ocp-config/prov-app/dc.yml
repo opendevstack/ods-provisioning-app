@@ -19,8 +19,6 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           app: prov-app
       spec:

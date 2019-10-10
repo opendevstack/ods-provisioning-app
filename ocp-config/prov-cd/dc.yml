@@ -141,7 +141,6 @@ objects:
       type: Rolling
     template:
       metadata:
-        annotations: {}
         labels:
           app: jenkins-webhook-proxy
       spec:
