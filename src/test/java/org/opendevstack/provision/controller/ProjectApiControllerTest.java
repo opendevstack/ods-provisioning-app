@@ -44,6 +44,7 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
@@ -270,6 +271,33 @@ public class ProjectApiControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void addProjectInLegacyFormatErrorsOut() throws Exception {
+    ProjectData oldLegacyData = new ProjectData();
+    oldLegacyData.name = "abcName";
+    oldLegacyData.key = "abcKey";
+    
+    // new endpoint - old format, fail!
+    mockMvc
+        .perform(
+            post("/api/v2/project")
+                .content(asJsonString(oldLegacyData))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())        
+        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+    // wrong (old) endpoint
+    mockMvc
+        .perform(
+            post("/api/v1/project")
+                .content(asJsonString(oldLegacyData))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())        
+        .andExpect(MockMvcResultMatchers.status().isNotFound());
   }
 
   @Test
