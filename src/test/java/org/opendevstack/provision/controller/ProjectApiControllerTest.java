@@ -278,7 +278,7 @@ public class ProjectApiControllerTest {
     ProjectData oldLegacyData = new ProjectData();
     oldLegacyData.name = "abcName";
     oldLegacyData.key = "abcKey";
-    
+
     // new endpoint - old format, fail!
     mockMvc
         .perform(
@@ -286,7 +286,7 @@ public class ProjectApiControllerTest {
                 .content(asJsonString(oldLegacyData))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print())        
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
     // wrong (old) endpoint
@@ -296,7 +296,7 @@ public class ProjectApiControllerTest {
                 .content(asJsonString(oldLegacyData))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print())        
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isNotFound());
   }
 
