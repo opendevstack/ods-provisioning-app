@@ -89,8 +89,8 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
    * @param exclusions list of components to not create
    * @return the name and descriptions of the components created
    */
-  public Map<String, String> createComponentsForProjectRepositories
-      (OpenProjectData data, List<String> exclusions);
+  public Map<String, String> createComponentsForProjectRepositories(
+      OpenProjectData data, List<String> exclusions);
 
   boolean isSpecialPermissionSchemeEnabled();
 }

@@ -394,14 +394,14 @@ public class ProjectApiController {
 
     List<String> auxiliariesToExclude = new ArrayList<>();
     final String projectKey = project.projectKey;
-    Arrays.asList(auxiliaryRepositories).forEach(repoName ->
-        auxiliariesToExclude.add(bitbucketAdapter.createRepoNameFromComponentName
-            (projectKey, repoName))
-    );
-    
+    Arrays.asList(auxiliaryRepositories)
+        .forEach(
+            repoName ->
+                auxiliariesToExclude.add(
+                    bitbucketAdapter.createRepoNameFromComponentName(projectKey, repoName)));
+
     // create jira components from newly created repos
-    jiraAdapter.createComponentsForProjectRepositories(project,
-        auxiliariesToExclude);
+    jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
 
     // add the long running execution links from the
     // IJobExecutionAdapter, so the consumer can track them

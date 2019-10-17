@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.assertj.core.util.Arrays;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -360,7 +359,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     openDataRepo.put(legacyRepoData.getName(), legacyRepoData.convertRepoToOpenDataProjectRepo());
     apiInput.repositories = openDataRepo;
 
-    Map<String, String> created = 
+    Map<String, String> created =
         mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
 
     verifyExecute(
@@ -386,16 +385,16 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     // test with exclude
     List<String> excludes = new ArrayList<>();
-      excludes.add("ai00000001-fe-angular");
+    excludes.add("ai00000001-fe-angular");
     created = mocked.createComponentsForProjectRepositories(apiInput, excludes);
     assertEquals(0, created.size());
-    
+
     // test with null
     created = mocked.createComponentsForProjectRepositories(apiInput, null);
     assertEquals(1, created.size());
     entry = created.entrySet().iterator().next();
     assertEquals("Technology-fe-angular", entry.getKey());
-   
+
     // test with component creation == false
     mocked.createJiraComponents = false;
     created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());

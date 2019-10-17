@@ -445,8 +445,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   @Override
-  public Map<String, String> createComponentsForProjectRepositories
-      (OpenProjectData data, List<String> exclusions) {
+  public Map<String, String> createComponentsForProjectRepositories(
+      OpenProjectData data, List<String> exclusions) {
     if (!createJiraComponents) {
       logger.debug("Not creating jira components for repo!, functionality disabled!");
       return new HashMap<>();
@@ -456,22 +456,24 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     String path = String.format("%s%s/component", jiraUri, jiraApiPath);
 
     Map<String, String> createdComponents = new HashMap<>();
-    
+
     Map<String, Map<URL_TYPE, String>> repositories = data.repositories;
     if (repositories != null) {
       for (Entry<String, Map<URL_TYPE, String>> repo : repositories.entrySet()) {
         String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
 
         logger.debug("Found repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
-        
+
         if (exclusions != null && exclusions.contains(repo.getKey())) {
-          logger.debug ("Not creating jira component for repo: {} because of exclusionList {}",
-              repo.getKey(), exclusions);
+          logger.debug(
+              "Not creating jira component for repo: {} because of exclusionList {}",
+              repo.getKey(),
+              exclusions);
           continue;
         } else {
-          logger.debug ("Creating jira component for repo: {}", repo.getKey());
+          logger.debug("Creating jira component for repo: {}", repo.getKey());
         }
-        
+
         Component component = new Component();
         component.setName(
             String.format(

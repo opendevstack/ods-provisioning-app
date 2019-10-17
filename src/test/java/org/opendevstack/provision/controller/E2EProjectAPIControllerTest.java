@@ -279,7 +279,7 @@ public class E2EProjectAPIControllerTest {
             .url(containsString(realJiraAdapter.getAdapterApiUri() + "/component"))
             .method(HttpMethod.POST),
         times(0));
-    
+
     // will cause cleanup
     String rundeckUrl = realRundeckAdapter.getAdapterApiUri() + "/project/";
     if (fail) {
@@ -614,14 +614,14 @@ public class E2EProjectAPIControllerTest {
               .url(containsString(realConfluenceAdapter.getAdapterApiUri()))
               .method(HttpMethod.DELETE),
           times(0));
-      
+
       // verify component based on repo in jira created
       mockHelper.verifyExecute(
           matchesClientCall()
               .url(containsString(realJiraAdapter.getAdapterApiUri() + "/component"))
               .method(HttpMethod.POST),
           times(1));
-      
+
       return dataUpdate;
     } else {
       assertEquals(MockHttpServletResponse.SC_OK, resultUpdateResponse.getResponse().getStatus());
