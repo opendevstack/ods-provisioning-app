@@ -224,7 +224,7 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
       project.lastExecutionJobs = new ArrayList<>();
       project.lastExecutionJobs.add(data.getPermalink());
-
+      logger.debug("Project creation job: {} ", data.getPermalink());
       return project;
     } catch (IOException ex) {
       String error =
