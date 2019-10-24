@@ -210,7 +210,7 @@ public class ProjectApiControllerTest {
         .createComponentRepositoriesForODSProject(isNotNull());
     // jira components
     Mockito.verify(jiraAdapter, Mockito.times(1))
-        .createComponentsForProjectRepositories(isNotNull());
+        .createComponentsForProjectRepositories(isNotNull(), isNotNull());
   }
 
   @Test
