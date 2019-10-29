@@ -18,6 +18,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -76,9 +78,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     BitbucketProjectData bitbucketData = getReturnBitbucketData();
     bitbucketData.setLinks(map);
 
-    Mockito.doReturn(bitbucketData)
-        .when(spyAdapter)
-        .callCreateProjectApi(any(OpenProjectData.class));
+    doReturn(bitbucketData).when(spyAdapter).callCreateProjectApi(any(OpenProjectData.class));
 
     String scmUrl = spyAdapter.createSCMProjectForODSProject(getReturnOpenProjectData());
 
@@ -100,14 +100,12 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any());
 
-    Mockito.doReturn(repoData)
-        .when(spyAdapter)
-        .callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> result =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
 
-    Mockito.verify(spyAdapter).createWebHooksForRepository(repoData, projectData);
+    verify(spyAdapter).createWebHooksForRepository(repoData, projectData);
     for (Entry<String, Map<URL_TYPE, String>> entry : result.entrySet()) {
       Map<URL_TYPE, String> resultLinkMap = entry.getValue();
       assertEquals(repoData.convertRepoToOpenDataProjectRepo(), resultLinkMap);
@@ -142,9 +140,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.projectKey = "testkey";
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData);
-    Mockito.doReturn(repoData)
-        .when(spyAdapter)
-        .callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> result =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
@@ -180,9 +176,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData.setLinks(links);
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any());
-    Mockito.doReturn(repoData)
-        .when(spyAdapter)
-        .callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> actual =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
@@ -217,20 +211,20 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
         .setProjectPermissions(
             any(), any(), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
-    Mockito.doReturn(uri).when(spyAdapter).getAdapterApiUri();
+    doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // once for each group
-    Mockito.verify(spyAdapter, Mockito.times(4))
+    verify(spyAdapter, Mockito.times(4))
         .setProjectPermissions(
             eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
-    Mockito.verify(spyAdapter, Mockito.times(4))
+    verify(spyAdapter, Mockito.times(4))
         .setProjectPermissions(
             eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
     // one for the tech user!
-    Mockito.verify(spyAdapter, Mockito.times(1))
+    verify(spyAdapter, Mockito.times(1))
         .setProjectPermissions(
             eq(expected),
             eq("users"),
@@ -269,18 +263,18 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
         .setProjectPermissions(
             any(), any(), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
-    Mockito.doReturn(uri).when(spyAdapter).getAdapterApiUri();
+    doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // only for the keyuser Group
-    Mockito.verify(spyAdapter, Mockito.times(1))
+    verify(spyAdapter, Mockito.times(2))
         .setProjectPermissions(
             eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
 
     // one for the tech user!
-    Mockito.verify(spyAdapter, Mockito.times(1))
+    verify(spyAdapter, Mockito.times(1))
         .setProjectPermissions(
             eq(expected),
             eq("users"),
@@ -305,19 +299,19 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     RepositoryData expected = new RepositoryData();
 
-    Mockito.doReturn(basePath).when(spyAdapter).getAdapterApiUri();
+    doReturn(basePath).when(spyAdapter).getAdapterApiUri();
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
 
-    Mockito.doNothing().when(spyAdapter).setRepositoryPermissions(any(), any(), any(), any());
+    Mockito.doNothing().when(spyAdapter).setRepositoryAdminPermissions(any(), any(), any(), any());
 
     RepositoryData actual = spyAdapter.callCreateRepoApi(projectKey, repo);
 
-    Mockito.verify(spyAdapter)
-        .setRepositoryPermissions(eq(expected), eq(projectKey), eq("groups"), any());
+    verify(spyAdapter)
+        .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("groups"), any());
 
-    Mockito.verify(spyAdapter)
-        .setRepositoryPermissions(eq(expected), eq(projectKey), eq("users"), any());
+    verify(spyAdapter)
+        .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("users"), any());
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     assertEquals(expected, actual);
@@ -343,7 +337,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData1.setName("repoData1");
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
-    Mockito.doReturn(repoData1).when(spyAdapter).callCreateRepoApi(any(), any());
+    doReturn(repoData1).when(spyAdapter).callCreateRepoApi(any(), any());
 
     spyAdapter.createAuxiliaryRepositoriesForODSProject(projectData, auxRepos);
     Map<String, Map<URL_TYPE, String>> actual;

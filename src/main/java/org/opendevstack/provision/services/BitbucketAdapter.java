@@ -80,6 +80,12 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
 
+  @Value("${idmanager.group.opendevstack-users}")
+  private String openDevStackUsersGroupName;
+
+  @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
+  private boolean grantRepositoryWriteToAllOpenDevStackUsers;
+
   @Autowired IODSAuthnzAdapter manager;
 
   private static final String PROJECT_PATTERN = "%s%s/projects";
@@ -91,6 +97,11 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     PROJECT_ADMIN,
     PROJECT_WRITE,
     PROJECT_READ
+  }
+
+  public enum REPOSITORY_PERMISSIONS {
+    REPO_ADMIN,
+    REPO_WRITE
   }
 
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
@@ -257,6 +268,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     } else {
       setProjectPermissions(
           projectData, ID_GROUPS, defaultUserGroup, PROJECT_PERMISSIONS.PROJECT_WRITE);
+      setProjectPermissions(
+          projectData, ID_GROUPS, openDevStackUsersGroupName, PROJECT_PERMISSIONS.PROJECT_READ);
     }
     // set the technical user in any case
     setProjectPermissions(projectData, ID_USERS, technicalUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
@@ -279,9 +292,20 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-    setRepositoryPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
-    setRepositoryPermissions(data, projectKey, ID_USERS, technicalUser);
-
+    setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
+    setRepositoryAdminPermissions(data, projectKey, ID_USERS, technicalUser);
+    if (grantRepositoryWriteToAllOpenDevStackUsers) {
+      logger.info(
+          "Grant write to every member of {} to repository {}",
+          openDevStackUsersGroupName,
+          data.getSlug());
+      setRepositoryPermissions(
+          data,
+          projectKey,
+          ID_GROUPS,
+          openDevStackUsersGroupName,
+          REPOSITORY_PERMISSIONS.REPO_WRITE);
+    }
     return data;
   }
 
@@ -305,8 +329,20 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             .returnType(String.class));
   }
 
-  protected void setRepositoryPermissions(
-      RepositoryData data, String key, String userOrGroup, String groupOrUser) throws IOException {
+  protected void setRepositoryAdminPermissions(
+      RepositoryData data, String key, String userOrGroup, String userOrGroupName)
+      throws IOException {
+    setRepositoryPermissions(
+        data, key, userOrGroup, userOrGroupName, REPOSITORY_PERMISSIONS.REPO_ADMIN);
+  }
+
+  private void setRepositoryPermissions(
+      RepositoryData data,
+      String key,
+      String userOrGroup,
+      String userOrGroupName,
+      REPOSITORY_PERMISSIONS permission)
+      throws IOException {
     String basePath = getAdapterApiUri();
     String url =
         String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
@@ -316,7 +352,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         httpPut()
             .url(url)
             .body("")
-            .queryParams(buildPermissionQueryParams("REPO_ADMIN", groupOrUser))
+            .queryParams(buildPermissionQueryParams(permission.toString(), userOrGroupName))
             .returnType(String.class));
   }
 
