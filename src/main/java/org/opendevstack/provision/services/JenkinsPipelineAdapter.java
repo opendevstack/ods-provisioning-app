@@ -106,7 +106,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       branch = matcher.group(1);
       jenkinsPath = matcher.group(2);
     } else {
-        jenkinsPath = jenkinsPath.substring(1);
+      jenkinsPath = jenkinsPath.substring(1);
     }
     Job job = new Job(jobname, true, jobname, jobname, gitURL, jenkinsPath, branch);
     return job;
