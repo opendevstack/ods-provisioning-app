@@ -242,6 +242,7 @@ public class ProjectApiController {
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
       updatedProject.projectName = storedExistingProject.projectName;
+      updatedProject.webhook_proxy_secret = storedExistingProject.webhook_proxy_secret;
 
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
