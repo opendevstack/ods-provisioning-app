@@ -84,7 +84,7 @@ public class RestClient {
         preAuthResponseBody = "could not read response body";
       }
       if (!preAuthResponse.isSuccessful()
-              || preAuthResponseBody.contains("Invalid username and password")) {
+          || preAuthResponseBody.contains("Invalid username and password")) {
         throw new IOException("Could not authenticate: " + preAuthResponseBody);
       }
       LOG.info("Authenticated");
