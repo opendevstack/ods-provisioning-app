@@ -139,7 +139,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("project_id", project.projectKey.toLowerCase());
         options.put("package_name", packageName);
 
-        executionList.add(prepareAndExecuteJob(jobId, options, project.webhook_proxy_secret));
+        executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
       }
     }
     return executionList;
@@ -152,22 +152,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     Preconditions.checkNotNull(project, "Cannot create null project");
 
     //    init webhook secret
-    project.webhook_proxy_secret = UUID.randomUUID().toString();
+    project.webhookProxySecret = UUID.randomUUID().toString();
     options.put(
         "PIPELINE_TRIGGER_SECRET",
-        Base64.getEncoder().encodeToString(project.webhook_proxy_secret.getBytes()));
+        Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
     try {
 
-      // Note: the following 4 lines of code have been removed, since 'prepareAndExecuteJob'
-      //  will get the job from the RundeckJobStore-Bean, no need to search job by iterating over
-      //  result of 'getJobs'
-      //  TODO remove comment after PR https://github.com/opendevstack/ods-provisioning-app/pull/176
-      //  is merged to master
-      // to master branch
-      // List<Job> jobs = getJobs(projectOpenshiftGroup);
-      // for (Job job : jobs) {
-      //  if (job.getName()
-      //          .equalsIgnoreCase(projectCreateOpenshiftJob)) {
       options.put("project_id", project.projectKey.toLowerCase());
       if (project.specialPermissionSet) {
         String entitlementGroups =
