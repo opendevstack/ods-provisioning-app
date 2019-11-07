@@ -80,6 +80,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${jenkinspipeline.create-ods-projects-job}")
   private String jenkinsPipelineCreateOdsProjectsJob;
 
+  @Value("${bitbucket.uri}")
+  private String bitbucketUri;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
@@ -156,6 +159,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put(
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
+
+    options.put("BITBUCKET_HOST", bitbucketUri);
+
     try {
 
       options.put("PROJECT_ID", project.projectKey.toLowerCase());
