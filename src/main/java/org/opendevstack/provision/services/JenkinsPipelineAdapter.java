@@ -135,9 +135,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                 String.format(groupPattern, project.projectKey.toLowerCase()),
                 options.get(OpenProjectData.COMPONENT_ID_KEY).replace('-', '_'));
 
-        options.put("group_id", groupId);
-        options.put("project_id", project.projectKey.toLowerCase());
-        options.put("package_name", packageName);
+        options.put("GROUP_ID", groupId);
+        options.put("PROJECT_ID", project.projectKey.toLowerCase());
+        options.put("PACKAGE_NAME", packageName);
 
         executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
       }
@@ -158,7 +158,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
     try {
 
-      options.put("project_id", project.projectKey.toLowerCase());
+      options.put("PROJECT_ID", project.projectKey.toLowerCase());
       if (project.specialPermissionSet) {
         String entitlementGroups =
             "ADMINGROUP="
@@ -176,12 +176,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             project.projectAdminUser,
             entitlementGroups);
 
-        options.put("project_admin", project.projectAdminUser);
-        options.put("project_groups", entitlementGroups);
+        options.put("PROJECT_ADMIN", project.projectAdminUser);
+        options.put("PROJECT_GROUPS", entitlementGroups);
       } else {
         // someone is always logged in :)
         logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
-        options.put("project_admin", getUserName());
+        options.put("PROJECT_ADMIN", getUserName());
       }
       ExecutionsData data =
           prepareAndExecuteJob(
@@ -242,7 +242,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     String url;
     Execution execution = new Execution();
 
-    String projID = Objects.toString(options.get("project_id"));
+    String projID = Objects.toString(options.get("PROJECT_ID"));
 
     if (projectCreateOpenshiftJob.equals(jobNameOrId)) { // we create something
 
