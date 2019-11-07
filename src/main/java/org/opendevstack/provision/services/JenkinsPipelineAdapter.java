@@ -11,16 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.opendevstack.provision.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -29,11 +32,8 @@ import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.util.HttpVerb;
-import org.opendevstack.provision.util.RundeckJobStore;
-import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -43,50 +43,18 @@ import org.springframework.stereotype.Service;
  * @author Torsten Jaeschke
  */
 @Service
-public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionAdapter {
+public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobExecutionAdapter {
 
-  private static final Logger logger = LoggerFactory.getLogger(RundeckAdapter.class);
+  private static final Logger logger = LoggerFactory.getLogger(JenkinsPipelineAdapter.class);
 
-  public static final String DELETE_COMPONENT_JOB = "delete-component";
+  @Value("${openshift.jenkins.webhookproxy.name.pattern}")
+  private String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
-  public static final String DELETE_PROJECTS_JOB = "delete-projects";
-
-  private final Map<String, String> preAuthContent = new HashMap<>();
-
-  @Autowired private RundeckJobStore jobStore;
-
-  @Value("${rundeck.api.path}")
-  private String rundeckApiPath;
-
-  @Value("${rundeck.api.url}")
-  private String rundeckApiUrl;
-
-  @Value("${rundeck.auth.url}")
-  private String preAuthUrl;
-
-  @Value("${rundeck.uri}")
-  private String rundeckUri;
-
-  @Value("${rundeck.system.path}")
-  private String rundeckSystemPath;
-
-  @Value("${atlassian.domain}")
-  private String rundeckDomain;
-
-  @Value("${rundeck.project.name}")
-  private String rundeckProject;
+  @Value("${openshift.jenkins.trigger.secret}")
+  private String projectOpenshiftJenkinsTriggerSecret;
 
   @Value("${rundeck.group.pattern}")
   private String groupPattern;
-
-  @Value("${rundeck.artifact.pattern}")
-  private String artifactPattern;
-
-  @Value("${rundeck.project.group.quickstarter}")
-  private String projectQuickstarterGroup;
-
-  @Value("${rundeck.project.group.openshift}")
-  private String projectOpenshiftGroup;
 
   @Value("${rundeck.project.openshift.create.name}")
   private String projectCreateOpenshiftJob;
@@ -106,15 +74,47 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectPattern;
 
-  private static final String GENERIC_RUNDECK_ERRMSG = "Error in rundeck call: ";
+  @Value("#{${jenkinspipeline.quickstarter}}")
+  private Map<String, String> jenkinsPipelineQuickstarter;
 
-  public RundeckAdapter() {
-    super("rundeck");
+  @Value("${jenkinspipeline.create-ods-projects-job}")
+  private String jenkinsPipelineCreateOdsProjectsJob;
+
+  public JenkinsPipelineAdapter() {
+    super("jenkinspipeline");
   }
 
   public List<Job> getQuickstarters() {
-    initializeJobsForGroup(projectQuickstarterGroup);
-    return jobStore.getJobsByGroup(projectQuickstarterGroup);
+    return jenkinsPipelineQuickstarter.keySet().stream()
+        .map(
+            jobname -> {
+              Job job = createJobFromUrl(jobname, jenkinsPipelineQuickstarter.get(jobname));
+              logger.info("Available quickstarter: " + job);
+              return job;
+            })
+        .collect(Collectors.toList());
+  }
+
+  private Job createJobFromUrl(String jobname, String url) {
+    String gitURL = url.split("\\.git")[0] + ".git";
+    String jenkinsPath = url.split("\\.git")[1];
+    String branch = "master";
+    if (jenkinsPath.startsWith("#")) {
+      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
+      Matcher matcher = pattern.matcher(jenkinsPath);
+      matcher.find();
+      branch = matcher.group(1);
+      jenkinsPath = matcher.group(2);
+    } else {
+      jenkinsPath = jenkinsPath.substring(1);
+    }
+    Job job = new Job(jobname, true, jobname, jobname, gitURL, jenkinsPath, branch);
+    return job;
+  }
+
+  public Job getCreateOdsProjectsJob() {
+
+    return createJobFromUrl(projectCreateOpenshiftJob, jenkinsPipelineCreateOdsProjectsJob);
   }
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
@@ -122,8 +122,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     if (project == null || project.quickstarters == null) {
       return new ArrayList<>();
     }
-
-    initializeJobsForGroup(projectOpenshiftGroup);
 
     List<ExecutionsData> executionList = new ArrayList<>();
     if (project.quickstarters != null) {
@@ -141,36 +139,25 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
         options.put("project_id", project.projectKey.toLowerCase());
         options.put("package_name", packageName);
 
-        executionList.add(prepareAndExecuteJob(jobId, options));
+        executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
       }
     }
     return executionList;
   }
 
-  void initializeJobsForGroup(String group) {
-    if (!jobStore.hasJobWithGroup(group)) {
-      jobStore.addJobs(getJobsFromServer(group));
-    }
-  }
-
   @Override
   public OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException {
 
+    Map<String, String> options = new HashMap<>();
     Preconditions.checkNotNull(project, "Cannot create null project");
-    initializeJobsForGroup(projectOpenshiftGroup);
+
+    //    init webhook secret
+    project.webhookProxySecret = UUID.randomUUID().toString();
+    options.put(
+        "PIPELINE_TRIGGER_SECRET",
+        Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
     try {
 
-      // Note: the following 4 lines of code have been removed, since 'prepareAndExecuteJob'
-      //  will get the job from the RundeckJobStore-Bean, no need to search job by iterating over
-      //  result of 'getJobs'
-      //  TODO remove comment after PR https://github.com/opendevstack/ods-provisioning-app/pull/176
-      //  is merged to master
-      // to master branch
-      // List<Job> jobs = getJobs(projectOpenshiftGroup);
-      // for (Job job : jobs) {
-      //  if (job.getName()
-      //          .equalsIgnoreCase(projectCreateOpenshiftJob)) {
-      Map<String, String> options = new HashMap<>();
       options.put("project_id", project.projectKey.toLowerCase());
       if (project.specialPermissionSet) {
         String entitlementGroups =
@@ -196,7 +183,9 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
         logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
         options.put("project_admin", getUserName());
       }
-      ExecutionsData data = prepareAndExecuteJob(projectCreateOpenshiftJob, options);
+      ExecutionsData data =
+          prepareAndExecuteJob(
+              projectCreateOpenshiftJob, options, projectOpenshiftJenkinsTriggerSecret);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -235,38 +224,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     }
   }
 
-  /**
-   * Get the jobs with a given group from the rundeck server and returns these jobs.
-   *
-   * @param group the group
-   * @return the jobs that are loaded from the there
-   */
-  protected List<Job> getJobsFromServer(String group) {
-    String jobsUrl =
-        String.format("%s%s/project/%s/jobs", rundeckUri, rundeckApiPath, rundeckProject);
-
-    // List<Job> jobs = restClient.callHttpTypeRef(jobsUrl, jobPath, false,
-    // RestClient.HTTP_VERB.GET,
-    //   new TypeReference<List<Job>>() {});
-
-    try {
-      List<Job> jobs =
-          restClient.execute(
-              httpPreAuthenticatedCall(HttpVerb.GET)
-                  .url(jobsUrl)
-                  .queryParam("groupPath", group)
-                  .returnTypeReference(new TypeReference<List<Job>>() {}));
-      if (jobs == null) {
-        jobs = new ArrayList<>();
-      }
-      List<Job> enabledJobs = jobs.stream().filter(Job::isEnabled).collect(Collectors.toList());
-      return enabledJobs;
-    } catch (IOException ex) {
-      logger.error(GENERIC_RUNDECK_ERRMSG, ex);
-    }
-    return new ArrayList<>();
-  }
-
   @Override
   public Map<String, String> getProjects(String filter) {
     throw new NotImplementedException();
@@ -274,34 +231,79 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   @Override
   public String getAdapterApiUri() {
-    return rundeckApiUrl;
+    throw new NotImplementedException();
   }
 
-  private ExecutionsData prepareAndExecuteJob(String jobNameOrId, Map<String, String> options)
+  private ExecutionsData prepareAndExecuteJob(
+      String jobNameOrId, Map<String, String> options, String webhook_proxy_secret)
       throws IOException {
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
 
-    Job job = jobStore.getJobByNameOrId(jobNameOrId);
-
-    String url = String.format("%s%s/job/%s/run", rundeckUri, rundeckApiPath, job.getId());
-
+    String url;
     Execution execution = new Execution();
+
+    String projID = Objects.toString(options.get("project_id"));
+
+    if (projectCreateOpenshiftJob.equals(jobNameOrId)) { // we create something
+
+      Job job = getCreateOdsProjectsJob();
+
+      String webhookProxyHost =
+          String.format(
+              projectOpenshiftJenkinsWebhookProxyNamePattern, "prov", projectOpenshiftBaseDomain);
+      url =
+          "https://"
+              + webhookProxyHost
+              + "/build?trigger_secret="
+              + webhook_proxy_secret
+              + "&jenkinsfile_path="
+              + job.jenkinsfilePath
+              + "&component=ods-corejob-"
+              + job.name
+              + "-"
+              + projID;
+      execution.branch = job.branch;
+      execution.repository = job.gitURL;
+
+    } else {
+      String component_id = Objects.toString(options.get("component_id"));
+
+      final Job job =
+          getQuickstarters().stream().filter(x -> x.id.equals(jobNameOrId)).findFirst().get();
+
+      String webhookProxyHost =
+          String.format(
+              projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
+      url =
+          "https://"
+              + webhookProxyHost
+              + "/build?trigger_secret="
+              + webhook_proxy_secret
+              + "&jenkinsfile_path="
+              + job.jenkinsfilePath
+              + "&component=ods-quickstarter-"
+              + job.getName()
+              + "-"
+              + component_id;
+      execution.branch = job.branch;
+      execution.repository = job.gitURL;
+    }
     if (options != null) {
       execution.setOptions(options);
     }
     try {
       // ExecutionsData data = restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST,
       // ExecutionsData.class);
-      ExecutionsData data =
+      String data =
           restClient.execute(
-              httpPreAuthenticatedCall(HttpVerb.POST)
+              notAuthenticatedCall(HttpVerb.POST)
                   .url(url)
                   .body(execution)
-                  .returnType(ExecutionsData.class));
-      if (data != null && data.getError()) {
-        throw new IOException(data.getMessage());
-      }
-      return data;
+                  .returnType(String.class));
+      logger.info(data);
+      ExecutionsData ret = new ExecutionsData();
+      ret.setMessage(data);
+      return ret;
     } catch (IOException rundeckException) {
       logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
       throw rundeckException;
@@ -318,32 +320,10 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
     if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
       if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
-        String deleteProjectJob = jobStore.getJobIdForJobName(DELETE_PROJECTS_JOB);
-        if (deleteProjectJob == null) {
-          logger.error("Cannot find delete-projects job, hence" + " cannot delete project!");
-          leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
-        } else {
-          logger.debug(
-              "Calling delete-projects job for project {}" + " with id {}",
-              project.projectKey,
-              deleteProjectJob);
-
-          Map<String, String> options = new HashMap<>();
-          options.put("project_id", project.projectKey.toLowerCase());
-
-          try {
-            prepareAndExecuteJob(deleteProjectJob, options);
-          } catch (Exception allExecExceptions) {
-            logger.debug(
-                "Could not start delete job for project {}, {}",
-                project.projectKey,
-                allExecExceptions.getMessage());
-            leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
-            return leftovers;
-          }
-          return leftovers;
-        }
+        logger.debug("Could not start delete job for project {}, {}", project.projectKey);
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
         return leftovers;
+
       } else {
         logger.debug("Project {} not affected from cleanup", project.projectKey);
         return leftovers;
@@ -351,7 +331,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     }
 
     if (project.quickstarters != null || project.quickstarters.size() > 0) {
-      String deleteComponentJob = jobStore.getJobIdForJobName(DELETE_COMPONENT_JOB);
 
       int nonDeletedQuickstarters = 0;
       List<String> quickstartersToDelete = new ArrayList<>();
@@ -361,21 +340,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
       logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
       for (String quickstarterName : quickstartersToDelete) {
-        logger.debug(
-            "Cleanup of quickstarter {} thru job {}", quickstarterName, deleteComponentJob);
-
-        Map<String, String> options = new HashMap<>();
-        options.put("project_id", project.projectKey.toLowerCase());
-        options.put("component_id", quickstarterName);
-        try {
-          prepareAndExecuteJob(deleteComponentJob, options);
-        } catch (Exception allExecExceptions) {
-          logger.debug(
-              "Could not start delete job for component {}, {}",
-              quickstarterName,
-              allExecExceptions.getMessage());
-          nonDeletedQuickstarters++;
-        }
+        logger.debug("Could not start delete job for component {}, {}", quickstarterName);
+        nonDeletedQuickstarters++;
       }
 
       if (nonDeletedQuickstarters > 0) {
@@ -388,16 +354,5 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
         leftovers.size() == 0 ? 0 : leftovers.size());
 
     return leftovers;
-  }
-
-  private RestClientCall httpPreAuthenticatedCall(HttpVerb verb) {
-    if (preAuthContent.size() == 0) {
-      preAuthContent.put("j_username", getUserName());
-      preAuthContent.put("j_password", getUserPassword());
-    }
-    return notAuthenticatedCall(verb)
-        .preAuthenticated()
-        .preAuthUrl(preAuthUrl)
-        .preAuthContent(preAuthContent);
   }
 }
