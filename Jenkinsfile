@@ -45,7 +45,7 @@ def stageBuild(def context) {
       junit 'build/test-results/test/*.xml'
       if (status != 0) {
         error "Build failed!"
-      }      
+      }
     }
   }
 }
