@@ -51,8 +51,6 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
 
   public static final String DELETE_PROJECTS_JOB = "delete-projects";
 
-  private final Map<String, String> preAuthContent = new HashMap<>();
-
   @Autowired private RundeckJobStore jobStore;
 
   @Value("${rundeck.api.path}")
@@ -391,10 +389,10 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
   }
 
   private RestClientCall httpPreAuthenticatedCall(HttpVerb verb) {
-    if (preAuthContent.size() == 0) {
-      preAuthContent.put("j_username", getUserName());
-      preAuthContent.put("j_password", getUserPassword());
-    }
+    Map<String, String> preAuthContent = new HashMap<>();
+    preAuthContent.put("j_username", getUserName());
+    preAuthContent.put("j_password", getUserPassword());
+
     return notAuthenticatedCall(verb)
         .preAuthenticated()
         .preAuthUrl(preAuthUrl)
