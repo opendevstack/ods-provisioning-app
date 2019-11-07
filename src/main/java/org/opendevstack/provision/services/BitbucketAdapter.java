@@ -68,6 +68,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   private String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
+  @Value("${openshift.jenkins.trigger.secret}")
+  private String projectOpenshiftJenkinsTriggerSecret;
+
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
 
@@ -217,8 +220,11 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             projectOpenshiftJenkinsWebhookProxyNamePattern,
             project.projectKey.toLowerCase(),
             projectOpenshiftBaseDomain);
-    String webhookProxyUrl =
-        "https://" + webhookProxyHost + "?trigger_secret=" + project.webhookProxySecret;
+    String triggerSecret =
+        project.webhookProxySecret != null
+            ? project.webhookProxySecret
+            : projectOpenshiftJenkinsTriggerSecret;
+    String webhookProxyUrl = "https://" + webhookProxyHost + "?trigger_secret=" + triggerSecret;
     Webhook webhook = new Webhook();
     webhook.setName("Jenkins");
     webhook.setActive(true);
