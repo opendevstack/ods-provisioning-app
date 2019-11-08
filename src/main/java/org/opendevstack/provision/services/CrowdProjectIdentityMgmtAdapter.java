@@ -73,7 +73,7 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
     try {
       boolean exists = manager.existsGroupWithName(groupName);
       if (!exists) {
-        logger.error("group {0} does not exist!", groupName);
+        logger.error("group {} does not exist!", groupName);
       }
       return exists;
     } finally {
@@ -91,7 +91,7 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
     try {
       boolean exists = manager.existPrincipalWithName(userName);
       if (!exists) {
-        logger.error("principal {0} does not exist!", userName);
+        logger.error("principal {} does not exist!", userName);
       }
       return exists;
     } finally {

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
+import java.security.acl.Permission;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +59,12 @@ import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
+import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
 import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
+import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.RundeckAdapter;
@@ -108,6 +111,8 @@ public class E2EProjectAPIControllerTest {
 
   @Mock RestClient restClient;
   RestClientMockHelper mockHelper;
+  
+  @Mock CrowdProjectIdentityMgmtAdapter idmgtAdapter;
 
   @InjectMocks @Autowired private ProjectApiController apiController;
 
@@ -169,7 +174,7 @@ public class E2EProjectAPIControllerTest {
   /** Test positive - e2e new project - no quickstarters */
   @Test
   public void testProvisionNewSimpleProjectE2E() throws Exception {
-    testProvisionNewSimpleProjectInternal(false);
+    testProvisionNewSimpleProjectInternal(false, false);
   }
 
   /**
@@ -179,7 +184,17 @@ public class E2EProjectAPIControllerTest {
   @Test
   public void testProvisionNewSimpleProjectE2EFail() throws Exception {
     cleanUp();
-    testProvisionNewSimpleProjectInternal(true);
+    testProvisionNewSimpleProjectInternal(true, false);
+  }
+
+  /**
+   * Test negative - e2e new project, with perm set - no quickstarters, rollback any external changes - bugtracker,
+   * scm,... and also permission set
+   */
+  @Test
+  public void testProvisionNewSimplePermsetProjectE2EFail() throws Exception {
+    cleanUp();
+    testProvisionNewSimpleProjectInternal(true, true);
   }
 
   /** Test negative - e2e new project - no quickstarters, but NO cleanup allowed :) */
@@ -187,13 +202,15 @@ public class E2EProjectAPIControllerTest {
   public void testProvisionNewSimpleProjectE2EFailCleanupNotAllowed() throws Exception {
     cleanUp();
     apiController.cleanupAllowed = false;
-    testProvisionNewSimpleProjectInternal(true);
+    testProvisionNewSimpleProjectInternal(true, false);
   }
 
-  public void testProvisionNewSimpleProjectInternal(boolean fail) throws Exception {
+  public void testProvisionNewSimpleProjectInternal(boolean fail, boolean specialPermissionSet) throws Exception {
     // read the request
     OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
+    data.specialPermissionSet = specialPermissionSet;
+    
     // jira server create project response
     LeanJiraProject jiraProject =
         readTestData("jira-create-project-response", LeanJiraProject.class);
@@ -204,6 +221,18 @@ public class E2EProjectAPIControllerTest {
                 .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
                 .method(HttpMethod.POST))
         .thenReturn(jiraProject);
+    
+    // jira server create project response
+    PermissionSchemeResponse jiraProjectPermSet =
+        readTestData("jira-get-project-permissionsscheme", PermissionSchemeResponse.class);
+
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString("/permissionscheme"))
+                .method(HttpMethod.GET))
+        .thenReturn(jiraProjectPermSet);
+    
     // get confluence blueprints
     List<Blueprint> blList =
         readTestDataTypeRef(
@@ -337,15 +366,17 @@ public class E2EProjectAPIControllerTest {
         return;
       }
 
-      // 5 delete calls, jira / confluence / bitbucket project and two repos
-      mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), times(5));
+      // 5 delete calls, jira / confluence / bitbucket project and two repos, or 6 if permission set
+      int overallDeleteCalls = specialPermissionSet ? 6 : 5;      
+      mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), times(overallDeleteCalls));
 
-      // delete jira project
+      // delete jira project (and protentially permission set)
+      int jiraDeleteCalls = specialPermissionSet ? 2 : 1;
       mockHelper.verifyExecute(
           matchesClientCall()
               .url(containsString(realJiraAdapter.getAdapterApiUri()))
               .method(HttpMethod.DELETE),
-          times(1));
+          times(jiraDeleteCalls));
 
       // delete confluence space
       mockHelper.verifyExecute(
