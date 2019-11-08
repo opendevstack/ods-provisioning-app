@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
-import java.security.acl.Permission;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +110,7 @@ public class E2EProjectAPIControllerTest {
 
   @Mock RestClient restClient;
   RestClientMockHelper mockHelper;
-  
+
   @Mock CrowdProjectIdentityMgmtAdapter idmgtAdapter;
 
   @InjectMocks @Autowired private ProjectApiController apiController;
@@ -188,8 +187,8 @@ public class E2EProjectAPIControllerTest {
   }
 
   /**
-   * Test negative - e2e new project, with perm set - no quickstarters, rollback any external changes - bugtracker,
-   * scm,... and also permission set
+   * Test negative - e2e new project, with perm set - no quickstarters, rollback any external
+   * changes - bugtracker, scm,... and also permission set
    */
   @Test
   public void testProvisionNewSimplePermsetProjectE2EFail() throws Exception {
@@ -205,12 +204,13 @@ public class E2EProjectAPIControllerTest {
     testProvisionNewSimpleProjectInternal(true, false);
   }
 
-  public void testProvisionNewSimpleProjectInternal(boolean fail, boolean specialPermissionSet) throws Exception {
+  public void testProvisionNewSimpleProjectInternal(boolean fail, boolean specialPermissionSet)
+      throws Exception {
     // read the request
     OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
     data.specialPermissionSet = specialPermissionSet;
-    
+
     // jira server create project response
     LeanJiraProject jiraProject =
         readTestData("jira-create-project-response", LeanJiraProject.class);
@@ -221,18 +221,16 @@ public class E2EProjectAPIControllerTest {
                 .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
                 .method(HttpMethod.POST))
         .thenReturn(jiraProject);
-    
+
     // jira server create project response
     PermissionSchemeResponse jiraProjectPermSet =
         readTestData("jira-get-project-permissionsscheme", PermissionSchemeResponse.class);
 
     mockHelper
         .mockExecute(
-            matchesClientCall()
-                .url(containsString("/permissionscheme"))
-                .method(HttpMethod.GET))
+            matchesClientCall().url(containsString("/permissionscheme")).method(HttpMethod.GET))
         .thenReturn(jiraProjectPermSet);
-    
+
     // get confluence blueprints
     List<Blueprint> blList =
         readTestDataTypeRef(
@@ -367,8 +365,9 @@ public class E2EProjectAPIControllerTest {
       }
 
       // 5 delete calls, jira / confluence / bitbucket project and two repos, or 6 if permission set
-      int overallDeleteCalls = specialPermissionSet ? 6 : 5;      
-      mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), times(overallDeleteCalls));
+      int overallDeleteCalls = specialPermissionSet ? 6 : 5;
+      mockHelper.verifyExecute(
+          matchesClientCall().method(HttpMethod.DELETE), times(overallDeleteCalls));
 
       // delete jira project (and protentially permission set)
       int jiraDeleteCalls = specialPermissionSet ? 2 : 1;

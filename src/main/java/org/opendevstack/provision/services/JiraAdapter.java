@@ -533,10 +533,11 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       project.bugtrackerUrl = null;
     } catch (Exception cex) {
-      logger.error("Could not clean up jira project {} error: {}", project.projectKey, cex.getMessage());
+      logger.error(
+          "Could not clean up jira project {} error: {}", project.projectKey, cex.getMessage());
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
-      
+
     try {
       if (project.specialPermissionSet) {
         String permissionSchemeUrl = String.format("%s/permissionscheme", jiraProjectPath);
@@ -548,7 +549,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
           logger.debug(
               "Cleaning up permissionset {} {} - for project: {}",
               permissionScheme.getId(),
-              permissionScheme.getName(), project.projectKey);
+              permissionScheme.getName(),
+              project.projectKey);
         } else {
           logger.debug(
               "NOT Cleaning up permissionset {} {}, because it's a standard one",
@@ -562,13 +564,16 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 "%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
         // restClient.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
-        RestClientCall callPermissionSchemeDelete = 
+        RestClientCall callPermissionSchemeDelete =
             httpDelete().url(jiraPermissionSchemePath).returnType(null);
         restClient.execute(callPermissionSchemeDelete);
       }
 
     } catch (Exception cex) {
-      logger.error("Could not clean up jira project permission set {} error: {}", project.projectKey, cex.getMessage());
+      logger.error(
+          "Could not clean up jira project permission set {} error: {}",
+          project.projectKey,
+          cex.getMessage());
       cex.printStackTrace();
       // the reason to NOT add it here - is that we have check code in #createSpecialPermissions
     }
