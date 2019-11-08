@@ -574,8 +574,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
           "Could not clean up jira project permission set {} error: {}",
           project.projectKey,
           cex.getMessage());
-      cex.printStackTrace();
-      // the reason to NOT add it here - is that we have check code in #createSpecialPermissions
+      // the reason to NOT add it to the list here - is that we have check code in
+      // #createSpecialPermissions
     }
     logger.debug(
         "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
