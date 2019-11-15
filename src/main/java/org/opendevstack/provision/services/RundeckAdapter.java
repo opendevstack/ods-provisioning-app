@@ -227,7 +227,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
     } catch (IOException ex) {
       String error =
           String.format(
-              "Cannot execute job for project %s, error: %s", project.projectKey, ex.getMessage());
+              "Cannot execute job for project: \"%s\", error: %s",
+              project.projectKey, ex.getMessage());
       logger.error(error, ex);
       throw ex;
     }
@@ -301,7 +302,8 @@ public class RundeckAdapter extends BaseServiceAdapter implements IJobExecutionA
       }
       return data;
     } catch (IOException rundeckException) {
-      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
+      logger.error(
+          "Error starting job: \"{}\" - details: {}", jobNameOrId, rundeckException.getMessage());
       throw rundeckException;
     }
   }

@@ -195,11 +195,11 @@ public class ProjectApiController {
       String error =
           (cleanupResults.size() == 0)
               ? format(
-                  "An error occured while creating project %s, reason %s"
+                  "An error occured while creating project [%s], reason [%s]"
                       + " - but all cleaned up!",
                   newProject.projectKey, exProvisionNew.getMessage())
               : format(
-                  "An error occured while creating project %s, reason %s"
+                  "An error occured while creating project [%s], reason [%s]"
                       + " - cleanup attempted, but [%s] components are still there!",
                   newProject.projectKey, exProvisionNew.getMessage(), cleanupResults);
 
