@@ -87,7 +87,7 @@ objects:
             limits:
               memory: 2Gi
             requests:
-              memory: 100Mi
+              memory: 1Gi
           securityContext:
             capabilities: {}
             privileged: false
@@ -166,7 +166,6 @@ objects:
         terminationGracePeriodSeconds: 30
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
@@ -176,6 +175,7 @@ objects:
           name: jenkins-webhook-proxy:latest
           namespace: ${CD_NAMESPACE}
       type: ImageChange
+    - type: ConfigChange
 parameters:
 - name: NEXUS_URL
   required: true
