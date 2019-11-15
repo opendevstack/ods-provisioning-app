@@ -6,7 +6,7 @@ objects:
   metadata:
     labels:
       app: jenkins
-    name: ods-provisioning-app-production
+    name: ods-provisioning-app-${ODS_GIT_REF}
   spec:
     nodeSelector: {}
     output: {}
@@ -15,7 +15,7 @@ objects:
     runPolicy: Serial
     source:
       git:
-        ref: production
+        ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
       sourceSecret:
         name: cd-user-with-password
@@ -29,6 +29,8 @@ objects:
         secret: ${PIPELINE_TRIGGER_SECRET}
       type: Generic
 parameters:
+- name: ODS_GIT_REF
+  required: true
 - name: REPO_BASE
   required: true
 - name: PIPELINE_TRIGGER_SECRET
