@@ -63,6 +63,10 @@ objects:
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
+      # quickstarter & createProjects configuration
+      jenkinspipeline.quickstarter={beSpringBoot: 'opendevstack/ods-quickstarters.git#master/be-java-springboot/Jenkinsfile', dockerPlain: 'opendevstack/ods-quickstarters.git#master/docker-plain/Jenkinsfile', beGolangPlain: 'opendevstack/ods-quickstarters.git#master/be-golang-plain/Jenkinsfile', bePythonFlask: 'opendevstack/ods-quickstarters.git#master/be-python-flask/Jenkinsfile', dsJupyterNotebook: 'opendevstack/ods-quickstarters.git#master/ds-jupyter-notebook/Jenkinsfile', dsRshiny: 'opendevstack/ods-quickstarters.git#master/ds-rshiny/Jenkinsfile',feAngular: 'opendevstack/ods-quickstarters.git#master/fe-angular/Jenkinsfile',beTypescriptExpress: 'opendevstack/ods-quickstarters.git#master/be-typescript-express/Jenkinsfile',dsMlService: 'opendevstack/ods-quickstarters.git#master/ds-ml-service/Jenkinsfile',beAirflow: 'opendevstack/ods-quickstarters.git#master/be-airflow/Jenkinsfile',releaseManager: 'opendevstack/ods-quickstarters.git#master/release-manager/Jenkinsfile',beScalaAkka: 'opendevstack/ods-quickstarters.git#master/be-scala-akka/Jenkinsfile',e2eCypress: 'opendevstack/ods-quickstarters.git#master/e2e-cypress/Jenkinsfile', feReact: 'opendevstack/ods-quickstarters.git#master/fe-react/Jenkinsfile', feVue: 'opendevstack/ods-quickstarters.git#master/fe-vue/Jenkinsfile', feIonic: 'opendevstack/ods-quickstarters.git#master/fe-ionic/Jenkinsfile'}
+      jenkinspipeline.create-ods-projects-job=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
+      
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
