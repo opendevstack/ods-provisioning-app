@@ -46,7 +46,7 @@ public class DefaultController {
 
   IODSAuthnzAdapter manager;
 
-  private IJobExecutionAdapter rundeckAdapter;
+  private IJobExecutionAdapter jenkinspipelineAdapter;
 
   private IBugtrackerAdapter jiraAdapter;
 
@@ -95,7 +95,7 @@ public class DefaultController {
       return LOGIN_REDIRECT;
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
-      model.addAttribute("quickStarter", rundeckAdapter.getQuickstarters());
+      model.addAttribute("quickStarter", jenkinspipelineAdapter.getQuickstarters());
       model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
       model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
       model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);
@@ -139,7 +139,7 @@ public class DefaultController {
     Map<String, String> endpoints = new HashMap<>();
     endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
     endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
-    endpoints.put("RUNDECK", rundeckAdapter.getAdapterApiUri());
+    //    endpoints.put("RUNDECK", jenkinspipelineAdapter.getAdapterApiUri());
     endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
 
     model.addAttribute("endpointMap", endpoints);
@@ -185,8 +185,8 @@ public class DefaultController {
   }
 
   @Autowired
-  public void setRundeckAdapter(IJobExecutionAdapter rundeckAdapter) {
-    this.rundeckAdapter = rundeckAdapter;
+  public void setRundeckAdapter(IJobExecutionAdapter jenkinspipelineAdapter) {
+    this.jenkinspipelineAdapter = jenkinspipelineAdapter;
   }
 
   @Autowired

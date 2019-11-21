@@ -29,7 +29,7 @@ import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.services.RundeckAdapter;
+import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -51,7 +51,7 @@ public class QuickstarterApiControllerTest {
 
   @Autowired private WebApplicationContext context;
 
-  @MockBean RundeckAdapter rundeckAdapter;
+  @MockBean JenkinsPipelineAdapter rundeckAdapter;
 
   private List<Job> jobs;
   private OpenProjectData project;

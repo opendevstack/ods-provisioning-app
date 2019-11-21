@@ -176,16 +176,17 @@ public class DefaultControllerTest {
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
 
     // set the real thing
-    defaultController.setRundeckAdapter(realRundeckAdapter);
+    //    defaultController.setRundeckAdapter(realRundeckAdapter);
     defaultController.setSCMAdapter(realBitbucketAdapter);
 
     mockMvc
         .perform(get("/about"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(
-            MockMvcResultMatchers.content()
-                .string(CoreMatchers.containsString(realRundeckAdapter.getAdapterApiUri())))
+        //        .andExpect(
+        //            MockMvcResultMatchers.content()
+        //
+        // .string(CoreMatchers.containsString(realRundeckAdapter.getAdapterApiUri())))
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(CoreMatchers.containsString(realBitbucketAdapter.getAdapterApiUri())))
