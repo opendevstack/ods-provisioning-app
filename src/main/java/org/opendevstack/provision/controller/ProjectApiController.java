@@ -239,9 +239,15 @@ public class ProjectApiController {
         return ResponseEntity.notFound().build();
       }
 
+      // in case only quickstarters are passed - we are setting the upgrade flag
+      if (updatedProject.quickstarters != null && updatedProject.quickstarters.size() > 0) {
+        updatedProject.platformRuntime = true;
+      }
+
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
       updatedProject.projectName = storedExistingProject.projectName;
+      updatedProject.webhookProxySecret = storedExistingProject.webhookProxySecret;
 
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;

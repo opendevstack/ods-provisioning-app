@@ -16,18 +16,41 @@ package org.opendevstack.provision.model.rundeck;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
-  private String id;
-  private boolean enabled;
-  private String name;
-  private String href;
-  private String description;
-  private String group;
+  public String id;
+  public boolean enabled;
+  public String name;
+  public String description;
+
+  public String gitParentProject;
+  public String gitRepoName;
+  public String jenkinsfilePath;
+  public String branch;
+
+  public Job() {}
+
+  public Job(
+      String id,
+      boolean enabled,
+      String name,
+      String description,
+      String gitParentProject,
+      String gitRepoName,
+      String jenkinsfilePath,
+      String branch) {
+    this.id = id;
+    this.enabled = enabled;
+    this.name = name;
+    this.description = description;
+    this.gitParentProject = gitParentProject;
+    this.gitRepoName = gitRepoName;
+    this.jenkinsfilePath = jenkinsfilePath;
+    this.branch = branch;
+  }
 
   public String getId() {
     return id;
@@ -53,14 +76,6 @@ public class Job {
     this.name = name;
   }
 
-  public String getHref() {
-    return href;
-  }
-
-  public void setHref(String href) {
-    this.href = href;
-  }
-
   public String getDescription() {
     return description;
   }
@@ -69,24 +84,29 @@ public class Job {
     this.description = description;
   }
 
-  public String getGroup() {
-    return group;
-  }
-
-  public void setGroup(String group) {
-    this.group = group;
-  }
-
   public String toFormattedString() {
-    return String.format("Job id: %s, name: %s, group: %s", id, name, group);
+    return String.format("Job id: %s, name: %s", id, name);
   }
 
   @Override
   public String toString() {
-    return new ToStringBuilder(this)
-        .append("id", id)
-        .append("name", name)
-        .append("group", group)
-        .toString();
+    return "Job{"
+        + "id="
+        + id
+        + ", enabled="
+        + enabled
+        + ", name="
+        + name
+        + ", description="
+        + description
+        + ", gitParentProject="
+        + gitParentProject
+        + ", gitRepoName="
+        + gitRepoName
+        + ", jenkinsfilePath="
+        + jenkinsfilePath
+        + ", branch="
+        + branch
+        + '}';
   }
 }

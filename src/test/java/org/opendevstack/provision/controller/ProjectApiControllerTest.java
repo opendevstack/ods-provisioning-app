@@ -545,6 +545,41 @@ public class ProjectApiControllerTest {
   }
 
   @Test
+  public void updateProjectWithQSAdditionOnly() throws Exception {
+    // allow upgrade
+    apiController.ocUpgradeAllowed = true;
+
+    data.platformRuntime = false;
+    data.quickstarters = null;
+
+    // existing - store prior
+    when(storage.getProject(anyString())).thenReturn(data);
+
+    // upgrade to OC - based on a quickstarter
+    OpenProjectData upgrade = new OpenProjectData();
+    upgrade.projectKey = data.projectKey;
+    upgrade.platformRuntime = false;
+
+    Map<String, String> newQS = new HashMap<>();
+    newQS.put("component_type", "someComponentType");
+    newQS.put("component_id", "someComponentName");
+
+    upgrade.quickstarters = new ArrayList<>();
+    upgrade.quickstarters.add(newQS);
+
+    // this will error out - because of the test mock, but the key is scm project creation
+    mockMvc
+        .perform(
+            put("/api/v2/project")
+                .content(asJsonString(upgrade))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print());
+
+    Mockito.verify(bitbucketAdapter).createSCMProjectForODSProject(isNotNull());
+  }
+
+  @Test
   public void testProjectDescLengh() throws Exception {
     data.description =
         "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
