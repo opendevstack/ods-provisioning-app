@@ -1,3 +1,4 @@
 namespace prov-cd
-selector  app=jenkins
-param-dir ../../../ods-configuration/ods-provisioning-app/ocp-config/prov-cd
+selector app=jenkins
+param-file ../../../ods-configuration/ods-core.env
+ignore-unknown-parameters true

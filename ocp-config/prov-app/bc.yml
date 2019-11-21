@@ -15,7 +15,7 @@ objects:
         value: "Provisioning application"    
       to:
         kind: ImageStreamTag
-        name: prov-app:latest
+        name: prov-app:${ODS_VERSION}
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -26,3 +26,6 @@ objects:
       dockerStrategy: {}
       type: Docker
     triggers: []
+parameters:
+- name: ODS_VERSION
+  required: true

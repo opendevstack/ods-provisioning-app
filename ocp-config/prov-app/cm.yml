@@ -14,8 +14,8 @@ objects:
       logging.level.org.springframework=INFO
       logging.level.org.springframework.security=DEBUG
       logging.level.com.atlassian=INFO
-      logging.level.com.atlassian.crowd=${LOG_LEVEL_ATLASSIAN_CROWD}
-      logging.level.org.opendevstack=${LOG_LEVEL_OPENDEVSTACK}
+      logging.level.com.atlassian.crowd=${PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD}
+      logging.level.org.opendevstack=${PROV_APP_LOG_LEVEL_OPENDEVSTACK}
 
       # log file
       logging.file=provision.log
@@ -38,7 +38,7 @@ objects:
       project.template.key.names=${project.template.default.key},kanban
 
       # JIRA properties
-      jira.uri=${JIRA_URI}
+      jira.uri=${PROV_APP_JIRA_URI}
       jira.api.path=/rest/api/latest
       jira.permission.filepattern=classpath*:permission-templates/jira.permission.*
 
@@ -51,16 +51,16 @@ objects:
       jira.project.template.type.kanban=software
 
       # Confluence properties
-      confluence.uri=${CONFLUENCE_URI}
+      confluence.uri=${PROV_APP_CONFLUENCE_URI}
       confluence.api.path=/rest
       confluence.json.rpc.api.path=/rpc/json-rpc/confluenceservice-v2
       confluence.permission.filepattern=classpath*:permission-templates/confluence.permission.*
 
       # Bitbucket properties
-      bitbucket.uri=${BITBUCKET_URI}
+      bitbucket.uri=${PROV_APP_BITBUCKET_URI}
       bitbucket.api.path=/rest/api/1.0
       bitbucket.repository.pattern=%s-%s
-      bitbucket.default.user.group=${CROWD_USER_GROUP}
+      bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
       # openshift properties
@@ -75,23 +75,23 @@ objects:
       openshift.dev.project.name.pattern=%s%s-dev
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
-      openshift.jenkins.trigger.secret=${PIPELINE_TRIGGER_SECRET}
+      openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
       # Rundeck properties
-      rundeck.uri=${RUNDECK_URI}
+      rundeck.uri=${PROV_APP_RUNDECK_URI}
       rundeck.auth.url=${rundeck.uri}/rundeck/j_security_check
       rundeck.api.url=${rundeck.uri}/rundeck/api/19
       rundeck.system.path=/rundeck
       rundeck.api.path=/rundeck/api/19
       rundeck.project.name=Quickstarters
-      rundeck.group.pattern=${PACKAGE_PREFIX}.%s
+      rundeck.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
       rundeck.artifact.pattern=%s-%s
       rundeck.project.group.quickstarter=quickstarts
       rundeck.project.group.openshift=openshift
       rundeck.project.openshift.create.name=create-projects
 
       # Cookie Domain
-      atlassian.domain=${ATLASSIAN_DOMAIN}
+      atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}
 
       # Data for confluence space creation
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
@@ -99,14 +99,14 @@ objects:
       # idmanager
       provision.auth.provider=crowd
       spring.profiles.active=crowd
-      idmanager.group.opendevstack-users=${CROWD_USER_GROUP}
-      idmanager.group.opendevstack-administrators=${CROWD_ADMIN_GROUP}
+      idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
+      idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
 
       # crowd properties
       crowd.local.directory=LocalDirectory
       crowd.application.name=provision
-      crowd.application.password=${CROWD_PASSWORD}
-      crowd.server.url=${CROWD_URL}/crowd/services/
+      crowd.application.password=${PROV_APP_CROWD_PASSWORD}
+      crowd.server.url=${PROV_APP_CROWD_URI}/services/
       crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
 
       # crowd sso cookie keyname
@@ -115,13 +115,13 @@ objects:
       # local storage
       project.storage.local=/opt/provision/history/
 
-      jasypt.encryptor.password=${JASYPT_PASSWORD}
+      jasypt.encryptor.password=${PROV_APP_JASYPT_PASSWORD}
 
       # mail properties
       # enable mail sendout with project details
       mail.enabled=true
       
-      spring.mail.host=${MAIL_HOST}
+      spring.mail.host=${PROV_APP_MAIL_HOST}
       spring.mail.port=587
       spring.mail.protocol=smtp
       spring.mail.debug=true
@@ -131,24 +131,24 @@ objects:
       spring.mail.smtps.connectiontimeout=1000
       spring.mail.properties.mail.smtp.ssl.enable=true
       spring.mail.properties.mail.smtp.auth=true
-      spring.mail.username=${MAIL_USERNAME}
-      spring.mail.password=${MAIL_PASSWORD}
-      provison.mail.sender=provision@${MAIL_HOST}
+      spring.mail.username=${PROV_APP_MAIL_USERNAME}
+      spring.mail.password=${PROV_APP_MAIL_PASSWORD}
+      provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
 parameters:
-- name: JIRA_URI
+- name: PROV_APP_JIRA_URI
   required: true
   description: the URI of JIRA used to create new jira projects  
-- name: CONFLUENCE_URI
+- name: PROV_APP_CONFLUENCE_URI
   required: true
   description: the URI of confluence used to create new confluence spaces
-- name: BITBUCKET_URI
+- name: PROV_APP_BITBUCKET_URI
   required: true
   description: the URI of bitbucket used to create new project and repositories  
-- name: RUNDECK_URI
+- name: PROV_APP_RUNDECK_URI
   required: true
   description: the URI of rundeck used to kickstart provisioning projects and components  
-- name: CROWD_URL
+- name: PROV_APP_CROWD_URI
   required: true
   description: the URI of crowd used to authenticate users from the app against    
 - name: OPENSHIFT_API_HOST
@@ -157,7 +157,7 @@ parameters:
 - name: OPENSHIFT_CONSOLE_HOST
   required: true
   description: the console host of the OCP cluster 
-- name: CROWD_USER_GROUP
+- name: PROV_APP_CROWD_USER_GROUP
   required: true
   description: crowd user group     
 - name: CD_USER_ID
@@ -166,35 +166,35 @@ parameters:
 - name: OPENSHIFT_APPS_BASEDOMAIN
   required: true
   description: the domain of routes exposed on OCP   
-- name: PACKAGE_PREFIX
+- name: PROV_APP_PACKAGE_PREFIX
   required: true
   description: the default package prefix   
-- name: ATLASSIAN_DOMAIN
+- name: PROV_APP_ATLASSIAN_DOMAIN
   required: true
   description: the domain of the atlassian toolsuite needed for single signon cookies  
-- name: CROWD_PASSWORD
+- name: PROV_APP_CROWD_PASSWORD
   required: true
   description: password of the crowd app to authenticate the provision app against
-- name: JASYPT_PASSWORD
+- name: PROV_APP_JASYPT_PASSWORD
   required: true
-- name: MAIL_HOST
+- name: PROV_APP_MAIL_HOST
   required: true
   description: The hostname of the mailserver
-- name: MAIL_PASSWORD
+- name: PROV_APP_MAIL_PASSWORD
   required: true
   description: The password to authenticate against the mail server
-- name: MAIL_USERNAME
+- name: PROV_APP_MAIL_USERNAME
   required: true
   description: The username to authenticate against the mail server
-- name: CROWD_ADMIN_GROUP
+- name: PROV_APP_CROWD_ADMIN_GROUP
   required: true
   description: The crowd admin group name
-- name: PIPELINE_TRIGGER_SECRET
+- name: PROV_APP_PIPELINE_TRIGGER_SECRET
   required: true
   description: The trigger secret to pass to the webhook proxy
-- name: LOG_LEVEL_ATLASSIAN_CROWD
+- name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
   required: true
   description: Log level of Atlassian crowd package
-- name: LOG_LEVEL_OPENDEVSTACK
+- name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
   required: true
   description: Log level of OpenDevStack package

@@ -23,7 +23,7 @@ objects:
           app: prov-app
       spec:
         containers:
-        - image: ${TAILOR_NAMESPACE}/prov-app:latest
+        - image: ${TAILOR_NAMESPACE}/prov-app:${ODS_VERSION}
           imagePullPolicy: IfNotPresent
           name: prov-app
           ports:
@@ -59,16 +59,18 @@ objects:
           name: volume-ikfik
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
         - prov-app
         from:
           kind: ImageStreamTag
-          name: prov-app:latest
+          name: prov-app:${ODS_VERSION}
           namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
+    - type: ConfigChange
 parameters:
 - name: TAILOR_NAMESPACE
+  required: true
+- name: ODS_VERSION
   required: true
