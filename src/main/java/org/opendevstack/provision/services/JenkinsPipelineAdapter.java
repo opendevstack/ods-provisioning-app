@@ -99,7 +99,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private Job createJobFromUrl(String jobname, String url) {
-    String gitURL = url.split("\\.git")[0] + ".git";
+    String gitURL = url.split("\\.git")[0];
     String gitParentProject = gitURL.split("/")[0];
     String gitRepoName = gitURL.split("/")[1];
     String jenkinsPath = url.split("\\.git")[1];
