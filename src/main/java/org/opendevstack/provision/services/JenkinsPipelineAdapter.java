@@ -100,6 +100,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   private Job createJobFromUrl(String jobname, String url) {
     String gitURL = url.split("\\.git")[0] + ".git";
+    String gitParentProject = gitURL.split("/")[0];
+    String gitRepoName = gitURL.split("/")[1];
     String jenkinsPath = url.split("\\.git")[1];
     String branch = "master";
     if (jenkinsPath.startsWith("#")) {
@@ -111,7 +113,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     } else {
       jenkinsPath = jenkinsPath.substring(1);
     }
-    Job job = new Job(jobname, true, jobname, jobname, gitURL, jenkinsPath, branch);
+    Job job =
+        new Job(
+            jobname, true, jobname, jobname, gitParentProject, gitRepoName, jenkinsPath, branch);
     return job;
   }
 
@@ -269,7 +273,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + "-"
               + projID;
       execution.branch = job.branch;
-      execution.repository = job.gitURL;
+      execution.repository = job.gitRepoName;
+      execution.project = job.gitParentProject;
 
     } else {
       String component_id = Objects.toString(options.get("component_id"));
@@ -292,7 +297,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + "-"
               + component_id;
       execution.branch = job.branch;
-      execution.repository = job.gitURL;
+      execution.repository = job.gitRepoName;
+      execution.project = job.gitParentProject;
     }
     if (options != null) {
       execution.setOptions(options);

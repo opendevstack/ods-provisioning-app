@@ -27,6 +27,7 @@ public class Execution {
   public List<Option> env = new LinkedList<>();
   public String branch;
   public String repository;
+  public String project;
 
   public Map<String, String> getOptions() {
     throw new UnsupportedOperationException();

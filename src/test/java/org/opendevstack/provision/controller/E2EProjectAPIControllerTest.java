@@ -1,103 +1,107 @@
-///*
+/// *
 // * Copyright 2017-2019 the original author or authors.
 // *
-// * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+// * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+// except
 // * in compliance with the License. You may obtain a copy of the License at
 // *
 // * http://www.apache.org/licenses/LICENSE-2.0
 // *
-// * Unless required by applicable law or agreed to in writing, software distributed under the License
-// * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-// * or implied. See the License for the specific language governing permissions and limitations under
+// * Unless required by applicable law or agreed to in writing, software distributed under the
+// License
+// * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+// express
+// * or implied. See the License for the specific language governing permissions and limitations
+// under
 // * the License.
 // */
 //
-//package org.opendevstack.provision.controller;
+// package org.opendevstack.provision.controller;
 //
-//import static org.hamcrest.Matchers.allOf;
-//import static org.hamcrest.Matchers.containsString;
-//import static org.hamcrest.Matchers.instanceOf;
-//import static org.junit.Assert.assertEquals;
-//import static org.junit.Assert.assertNotNull;
-//import static org.junit.Assert.assertNull;
-//import static org.junit.Assert.assertTrue;
-//import static org.mockito.Mockito.never;
-//import static org.mockito.Mockito.times;
-//import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
-//import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+// import static org.hamcrest.Matchers.allOf;
+// import static org.hamcrest.Matchers.containsString;
+// import static org.hamcrest.Matchers.instanceOf;
+// import static org.junit.Assert.assertEquals;
+// import static org.junit.Assert.assertNotNull;
+// import static org.junit.Assert.assertNull;
+// import static org.junit.Assert.assertTrue;
+// import static org.mockito.Mockito.never;
+// import static org.mockito.Mockito.times;
+// import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
+// import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 //
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.google.common.base.Preconditions;
-//import java.io.File;
-//import java.io.IOException;
-//import java.util.Arrays;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Map.Entry;
-//import java.util.stream.Collectors;
-//import org.junit.AfterClass;
-//import org.junit.Before;
-//import org.junit.Test;
-//import org.junit.runner.RunWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//import org.mockito.verification.VerificationMode;
-//import org.opendevstack.provision.SpringBoot;
-//import org.opendevstack.provision.model.ExecutionsData;
-//import org.opendevstack.provision.model.OpenProjectData;
-//import org.opendevstack.provision.model.bitbucket.BitbucketProject;
-//import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
-//import org.opendevstack.provision.model.bitbucket.Repository;
-//import org.opendevstack.provision.model.bitbucket.RepositoryData;
-//import org.opendevstack.provision.model.confluence.Blueprint;
-//import org.opendevstack.provision.model.confluence.JiraServer;
-//import org.opendevstack.provision.model.confluence.Space;
-//import org.opendevstack.provision.model.confluence.SpaceData;
-//import org.opendevstack.provision.model.jira.LeanJiraProject;
-//import org.opendevstack.provision.model.jira.PermissionScheme;
-//import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
-//import org.opendevstack.provision.model.rundeck.Execution;
-//import org.opendevstack.provision.model.rundeck.Job;
-//import org.opendevstack.provision.services.BitbucketAdapter;
-//import org.opendevstack.provision.services.ConfluenceAdapter;
-//import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
-//import org.opendevstack.provision.services.JiraAdapter;
-//import org.opendevstack.provision.services.MailAdapter;
-//import org.opendevstack.provision.storage.LocalStorage;
-//import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
-//import org.opendevstack.provision.util.rest.RestClient;
-//import org.opendevstack.provision.util.rest.RestClientMockHelper;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.http.HttpMethod;
-//import org.springframework.http.MediaType;
-//import org.springframework.mock.web.MockHttpServletResponse;
-//import org.springframework.mock.web.MockHttpSession;
-//import org.springframework.test.annotation.DirtiesContext;
-//import org.springframework.test.context.junit4.SpringRunner;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.MvcResult;
-//import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-//import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-//import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+// import com.fasterxml.jackson.core.type.TypeReference;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.google.common.base.Preconditions;
+// import java.io.File;
+// import java.io.IOException;
+// import java.util.Arrays;
+// import java.util.List;
+// import java.util.Map;
+// import java.util.Map.Entry;
+// import java.util.stream.Collectors;
+// import org.junit.AfterClass;
+// import org.junit.Before;
+// import org.junit.Test;
+// import org.junit.runner.RunWith;
+// import org.mockito.InjectMocks;
+// import org.mockito.Mock;
+// import org.mockito.MockitoAnnotations;
+// import org.mockito.verification.VerificationMode;
+// import org.opendevstack.provision.SpringBoot;
+// import org.opendevstack.provision.model.ExecutionsData;
+// import org.opendevstack.provision.model.OpenProjectData;
+// import org.opendevstack.provision.model.bitbucket.BitbucketProject;
+// import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
+// import org.opendevstack.provision.model.bitbucket.Repository;
+// import org.opendevstack.provision.model.bitbucket.RepositoryData;
+// import org.opendevstack.provision.model.confluence.Blueprint;
+// import org.opendevstack.provision.model.confluence.JiraServer;
+// import org.opendevstack.provision.model.confluence.Space;
+// import org.opendevstack.provision.model.confluence.SpaceData;
+// import org.opendevstack.provision.model.jira.LeanJiraProject;
+// import org.opendevstack.provision.model.jira.PermissionScheme;
+// import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
+// import org.opendevstack.provision.model.rundeck.Execution;
+// import org.opendevstack.provision.model.rundeck.Job;
+// import org.opendevstack.provision.services.BitbucketAdapter;
+// import org.opendevstack.provision.services.ConfluenceAdapter;
+// import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
+// import org.opendevstack.provision.services.JiraAdapter;
+// import org.opendevstack.provision.services.MailAdapter;
+// import org.opendevstack.provision.storage.LocalStorage;
+// import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
+// import org.opendevstack.provision.util.rest.RestClient;
+// import org.opendevstack.provision.util.rest.RestClientMockHelper;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Value;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.http.HttpMethod;
+// import org.springframework.http.MediaType;
+// import org.springframework.mock.web.MockHttpServletResponse;
+// import org.springframework.mock.web.MockHttpSession;
+// import org.springframework.test.annotation.DirtiesContext;
+// import org.springframework.test.context.junit4.SpringRunner;
+// import org.springframework.test.web.servlet.MockMvc;
+// import org.springframework.test.web.servlet.MvcResult;
+// import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+// import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+// import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 //
-///**
+/// **
 // * End to end testcase with real result data - only mock is the RestClient - to feed the json
 // *
 // * @author utschig
 // */
-//@RunWith(SpringRunner.class)
-//@SpringBootTest(classes = SpringBoot.class)
-//@DirtiesContext
-//public class E2EProjectAPIControllerTest {
+// @RunWith(SpringRunner.class)
+// @SpringBootTest(classes = SpringBoot.class)
+// @DirtiesContext
+// public class E2EProjectAPIControllerTest {
 //  private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 //
 //  @InjectMocks @Autowired private JiraAdapter realJiraAdapter;
@@ -177,7 +181,8 @@
 //  }
 //
 //  /**
-//   * Test negative - e2e new project - no quickstarters, rollback any external changes - bugtracker,
+//   * Test negative - e2e new project - no quickstarters, rollback any external changes -
+// bugtracker,
 //   * scm,...
 //   */
 //  @Test
@@ -370,18 +375,21 @@
 //              .getResponse()
 //              .getContentAsString()
 //              .contains(
-//                  "An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!"));
+//                  "An error occured while creating project [TESTP], reason [Rundeck TestFail] -
+// but all cleaned up!"));
 //
 //      // no cleanup happening - so no delete calls
 //      if (!apiController.cleanupAllowed) {
 //        // 5 delete calls, jira / confluence / bitbucket project and two repos
 //        //        Mockito.verify(mockOldRestClient, times(0))
-//        //            .callHttp(anyString(), eq(null), anyBoolean(), eq(HttpVerb.DELETE), eq(null));
+//        //            .callHttp(anyString(), eq(null), anyBoolean(), eq(HttpVerb.DELETE),
+// eq(null));
 //        mockHelper.verifyExecute(matchesClientCall().method(HttpMethod.DELETE), never());
 //        return;
 //      }
 //
-//      // 5 delete calls, jira / confluence / bitbucket project and two repos, or 6 if permission set
+//      // 5 delete calls, jira / confluence / bitbucket project and two repos, or 6 if permission
+// set
 //      int overallDeleteCalls = specialPermissionSet ? 6 : 5;
 //      mockHelper.verifyExecute(
 //          matchesClientCall().method(HttpMethod.DELETE), times(overallDeleteCalls));
@@ -442,7 +450,8 @@
 //    OpenProjectData resultProject =
 //        new ObjectMapper()
 //            .readValue(
-//                resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+//                resultProjectGetResponse.getResponse().getContentAsString(),
+// OpenProjectData.class);
 //
 //    // verify the execution
 //    assertEquals(1, resultProject.lastExecutionJobs.size());
@@ -534,7 +543,8 @@
 //        .andDo(MockMvcResultHandlers.print())
 //        .andExpect(MockMvcResultMatchers.status().isOk());
 //
-//    String deleteProjectJobId = realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_PROJECTS_JOB);
+//    String deleteProjectJobId =
+// realJobStore.getJobIdForJobName(RundeckAdapter.DELETE_PROJECTS_JOB);
 //    assertNotNull(deleteProjectJobId);
 //
 //    // delete projects rundeck job
@@ -557,7 +567,8 @@
 //    testQuickstarterProvisionOnNewOpenProject(true);
 //  }
 //
-//  public OpenProjectData testQuickstarterProvisionOnNewOpenProject(boolean fail) throws Exception {
+//  public OpenProjectData testQuickstarterProvisionOnNewOpenProject(boolean fail) throws Exception
+// {
 //    // read the request
 //    OpenProjectData dataUpdate =
 //        readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
@@ -756,4 +767,4 @@
 //    Preconditions.checkNotNull(jobId, "job id cannot be null");
 //    return String.format("job/%s/run", jobId);
 //  }
-//}
+// }

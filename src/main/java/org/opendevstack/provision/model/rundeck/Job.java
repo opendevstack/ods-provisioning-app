@@ -26,7 +26,8 @@ public class Job {
   public String name;
   public String description;
 
-  public String gitURL;
+  public String gitParentProject;
+  public String gitRepoName;
   public String jenkinsfilePath;
   public String branch;
 
@@ -37,14 +38,16 @@ public class Job {
       boolean enabled,
       String name,
       String description,
-      String gitURL,
+      String gitParentProject,
+      String gitRepoName,
       String jenkinsfilePath,
       String branch) {
     this.id = id;
     this.enabled = enabled;
     this.name = name;
     this.description = description;
-    this.gitURL = gitURL;
+    this.gitParentProject = gitParentProject;
+    this.gitRepoName = gitRepoName;
     this.jenkinsfilePath = jenkinsfilePath;
     this.branch = branch;
   }
@@ -96,8 +99,10 @@ public class Job {
         + name
         + ", description="
         + description
-        + ", gitURL="
-        + gitURL
+        + ", gitParentProject="
+        + gitParentProject
+        + ", gitRepoName="
+        + gitRepoName
         + ", jenkinsfilePath="
         + jenkinsfilePath
         + ", branch="
