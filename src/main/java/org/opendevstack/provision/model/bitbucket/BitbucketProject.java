@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,15 +14,14 @@
 
 package org.opendevstack.provision.model.bitbucket;
 
-import javax.annotation.Generated;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.annotation.Generated;
 
 /**
  * Bitbucket project model
  *
- * { "key": "PRJ", "name": "My Cool Project", "description": "The description for my cool project.",
- * "avatar": "data:image/png;base64,<base64-encoded-image-data>" }
+ * <p>{ "key": "PRJ", "name": "My Cool Project", "description": "The description for my cool
+ * project.", "avatar": "data:image/png;base64,<base64-encoded-image-data>" }
  *
  * @author Torsten Jaeschke
  */
@@ -33,7 +32,6 @@ public class BitbucketProject {
   private String key;
   private String name;
   private String description;
-
 
   public String getKey() {
     return key;
@@ -58,5 +56,4 @@ public class BitbucketProject {
   public void setDescription(String description) {
     this.description = description;
   }
-
 }

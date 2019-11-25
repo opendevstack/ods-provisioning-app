@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,21 +14,43 @@
 
 package org.opendevstack.provision.model.rundeck;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
-  private String id;
-  private boolean enabled;
-  private String name;
-  private String href;
-  private String description;
+  public String id;
+  public boolean enabled;
+  public String name;
+  public String description;
+
+  public String gitParentProject;
+  public String gitRepoName;
+  public String jenkinsfilePath;
+  public String branch;
+
+  public Job() {}
+
+  public Job(
+      String id,
+      boolean enabled,
+      String name,
+      String description,
+      String gitParentProject,
+      String gitRepoName,
+      String jenkinsfilePath,
+      String branch) {
+    this.id = id;
+    this.enabled = enabled;
+    this.name = name;
+    this.description = description;
+    this.gitParentProject = gitParentProject;
+    this.gitRepoName = gitRepoName;
+    this.jenkinsfilePath = jenkinsfilePath;
+    this.branch = branch;
+  }
 
   public String getId() {
     return id;
@@ -54,19 +76,37 @@ public class Job {
     this.name = name;
   }
 
-  public String getHref() {
-    return href;
-  }
-
-  public void setHref(String href) {
-    this.href = href;
-  }
-
   public String getDescription() {
     return description;
   }
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public String toFormattedString() {
+    return String.format("Job id: %s, name: %s", id, name);
+  }
+
+  @Override
+  public String toString() {
+    return "Job{"
+        + "id="
+        + id
+        + ", enabled="
+        + enabled
+        + ", name="
+        + name
+        + ", description="
+        + description
+        + ", gitParentProject="
+        + gitParentProject
+        + ", gitRepoName="
+        + gitRepoName
+        + ", jenkinsfilePath="
+        + jenkinsfilePath
+        + ", branch="
+        + branch
+        + '}';
   }
 }

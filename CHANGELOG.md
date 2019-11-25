@@ -1,9 +1,28 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.0] - 2019-10-10
 
 ### Added
 - Provision app should create jira component when new boilerplate component is provisioned ([#147](https://github.com/opendevstack/ods-provisioning-app/issues/147))
+- Provision app code does not follow google java conventions as mandated in PMC ([#167](https://github.com/opendevstack/ods-provisioning-app/issues/167))
+- Provision application only writes projectdata for further use in case no errors occur during provision ([#157](https://github.com/opendevstack/ods-provisioning-app/issues/157))
+- Provision app fails to save state of a project in case of (another) project descriptor being corrupted ([#171](https://github.com/opendevstack/ods-provisioning-app/issues/171))
+- Add option to authenticate via oauth2 instead of crowd. ([#170](https://github.com/opendevstack/ods-provisioning-app/issues/170))
+- Feature/webjars dependency agnostic([#235](https://github.com/opendevstack/ods-provisioning-app/issues/235))
+- Spotless: Enforce formatting ([#185](https://github.com/opendevstack/ods-provisioning-app/issues/185))
+- Bugfix for checking against existing projects and addition of jira component creation -> master ([#148](https://github.com/opendevstack/ods-provisioning-app/issues/148))
+- Service adapter framework ([#164](https://github.com/opendevstack/ods-provisioning-app/issues/164))
+
+### Fixed
+- Prov app fails when another Rundeck Job is stil running (api.error.execution.conflict)([#145](https://github.com/opendevstack/ods-provisioning-app/issues/145))
+- Latest master does not load provision endpoint ([#239](https://github.com/opendevstack/ods-provisioning-app/issues/239))
+- Antorra docs need to be updated with latest master ([#245](https://github.com/opendevstack/ods-provisioning-app/issues/245))
+- getProject is returning always a project even if the requested project does not exist ([#174](https://github.com/opendevstack/ods-provisioning-app/issues/174))
+
+### Changed
+- Add service framework to hook in different adapter implementations instead of the provided ones ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
+- Webjars dependencies should be version agnostic([#233](https://github.com/opendevstack/ods-provisioning-app/issues/233))
+
 
 ## [1.1.0] - 2019-05-28
 

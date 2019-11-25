@@ -9,32 +9,60 @@ import org.junit.Test;
 
 public class GitUrlWranglerTest {
   private GitUrlWrangler urlWrangler = new GitUrlWrangler();
+
   @Test
   public void replacesUsernameWithTechnicalUser() throws UnsupportedEncodingException {
     String href = "https://opendevstack.developer@bitbucket.opendevstack.org";
     String result = urlWrangler.buildGitUrl("opendevstack.developer", "cd_user", href);
-    assertEquals( "https://cd_user@bitbucket.opendevstack.org", result );
+    assertEquals("https://cd_user@bitbucket.opendevstack.org", result);
+  }
+
+  @Test
+  public void replacesUsernameWithTechnicalUserCorrectlyWhenUsernamePartOfUrl()
+      throws UnsupportedEncodingException {
+    String username = "sla";
+    String href = "https://" + username + "@bitbucket.opendevstack" + username + ".org";
+    String result = urlWrangler.buildGitUrl(username, "cd_user", href);
+    assertEquals("https://cd_user@bitbucket.opendevstack" + username + ".org", result);
   }
 
   @Test
   public void insertsTechnicalUserIfUserAbsent() throws UnsupportedEncodingException {
     String href = "https://bitbucket.opendevstack.org";
     String result = urlWrangler.buildGitUrl("opendevstack.developer", "cd_user", href);
-    assertEquals( "https://cd_user@bitbucket.opendevstack.org", result );
+    assertEquals("https://cd_user@bitbucket.opendevstack.org", result);
+  }
+
+  @Test
+  public void insertsTechnicalUserIfUserAbsentButPartOfUrl() throws UnsupportedEncodingException {
+    String username = "sla";
+    String href = "https://bitbucket.opendevstack" + username + ".org";
+    String result = urlWrangler.buildGitUrl(username, "cd_user", href);
+    assertEquals("https://cd_user@bitbucket.opendevstack" + username + ".org", result);
   }
 
   @Test
   public void handlesAlreadyUrlEncodedUsernameCorrectly() throws UnsupportedEncodingException {
     String href = "https://opendevstack+developer@bitbucket.opendevstack.org";
     String result = urlWrangler.buildGitUrl("opendevstack+developer", "cd_user", href);
-    assertEquals( "https://cd_user@bitbucket.opendevstack.org", result );
+    assertEquals("https://cd_user@bitbucket.opendevstack.org", result);
+  }
+
+  @Test
+  public void handlesAlreadyUrlEncodedUsernameCorrectlyWhenUsernamePartOfUrl()
+      throws UnsupportedEncodingException {
+    String username = "sla";
+    String href = "https://" + username + "@bitbucket.opendevstack.org/tst" + username + "ods.git";
+    String result = urlWrangler.buildGitUrl(username, "cd_user", href);
+    assertEquals(
+        "https://cd_user@bitbucket.opendevstack.org" + "/tst" + username + "ods.git", result);
   }
 
   @Test
   public void leavesSshUrlsUnmodified() throws UnsupportedEncodingException {
     String cloneUrl = "ssh://git@bitbucket.opendevstack.org";
     String result = urlWrangler.buildGitUrl("opendevstack.developer", "cd_user", cloneUrl);
-    assertEquals( cloneUrl, result );
+    assertEquals(cloneUrl, result);
   }
 
   @Test
@@ -47,8 +75,5 @@ public class GitUrlWranglerTest {
   public void notCorrectlyEncodedStringsAreDetected() {
     assertFalse(urlWrangler.followsUrlEncodingScheme("opendevstack developer"));
     assertFalse(urlWrangler.followsUrlEncodingScheme("opendevstack@developer"));
-
   }
-
-
 }

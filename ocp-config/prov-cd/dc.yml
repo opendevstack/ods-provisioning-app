@@ -60,7 +60,7 @@ objects:
                 name: nexus
           - name: BITBUCKET_HOST
             value: ${BITBUCKET_HOST}
-          image: cd/jenkins-master:latest
+          image: cd/jenkins-master:${ODS_VERSION}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 30
@@ -87,7 +87,7 @@ objects:
             limits:
               memory: 2Gi
             requests:
-              memory: 100Mi
+              memory: 1Gi
           securityContext:
             capabilities: {}
             privileged: false
@@ -115,7 +115,7 @@ objects:
         - jenkins
         from:
           kind: ImageStreamTag
-          name: jenkins-master:latest
+          name: jenkins-master:${ODS_VERSION}
           namespace: cd
       type: ImageChange
     - type: ConfigChange
@@ -141,7 +141,6 @@ objects:
       type: Rolling
     template:
       metadata:
-        annotations: {}
         labels:
           app: jenkins-webhook-proxy
       spec:
@@ -154,7 +153,7 @@ objects:
               secretKeyRef:
                 key: trigger-secret
                 name: webhook-proxy
-          image: ${CD_NAMESPACE}/jenkins-webhook-proxy:latest
+          image: ${CD_NAMESPACE}/jenkins-webhook-proxy:${ODS_VERSION}
           imagePullPolicy: Always
           name: webhook-proxy
           resources: {}
@@ -167,17 +166,19 @@ objects:
         terminationGracePeriodSeconds: 30
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
         - webhook-proxy
         from:
           kind: ImageStreamTag
-          name: jenkins-webhook-proxy:latest
+          name: jenkins-webhook-proxy:${ODS_VERSION}
           namespace: ${CD_NAMESPACE}
       type: ImageChange
+    - type: ConfigChange
 parameters:
+- name: ODS_VERSION
+  required: true
 - name: NEXUS_URL
   required: true
 - name: SONARQUBE_URL

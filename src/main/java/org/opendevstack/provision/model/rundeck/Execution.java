@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,25 +14,26 @@
 
 package org.opendevstack.provision.model.rundeck;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Generated;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-/**
- * @author Torsten Jaeschke
- */
+/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties({"options"})
 public class Execution {
-  private Map<String, String> options;
+  public List<Option> env = new LinkedList<>();
+  public String branch;
+  public String repository;
+  public String project;
 
   public Map<String, String> getOptions() {
-    return options;
+    throw new UnsupportedOperationException();
   }
 
   public void setOptions(Map<String, String> options) {
-    this.options = options;
+    options.keySet().stream().forEach(x -> env.add(new Option(x, options.get(x))));
   }
 }

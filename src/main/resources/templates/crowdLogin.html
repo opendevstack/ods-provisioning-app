@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PROJECT PROVISION</title>
+
+    <div th:replace="fragments/header :: header-css"/>
+
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header"/>
+
+<div class="container">
+
+    <div class="starter-template">
+        <form name="f" th:action="@{/j_security_check}" method="post">
+            <fieldset>
+                <legend class="col-form-legend">Please Login</legend>
+                <div th:if="${param.error}" class="alert alert-danger">
+                    Invalid username and password.
+                </div>
+                <div th:if="${param.logout}" class="alert alert-success">
+                    You have been logged out.
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control"/>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-default disable" id="btn_login" disabled="true">Log in</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+</div>
+<!-- /.container -->
+
+<div th:replace="fragments/footer :: footer"/>
+
+<!-- ensure IE does not fly -->
+<script type="text/javascript" >
+
+    var browserNotAllowed = false;
+    
+    if(navigator.userAgent.indexOf("Firefox") != -1 )
+    {
+        alert("ODS Provision application does not support Firefox! Please use Google Chrome.");
+        browserNotAllowed = true;
+    }
+    else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true ))
+    {
+        alert("ODS Provision application does not support Internet Explorer! Please use Google Chrome.");
+        browserNotAllowed = true;
+    }
+
+    $(document).ready(function() {
+        if(browserNotAllowed == false){
+            $("#btn_login").removeClass("disable");
+            $("#btn_login").prop("disabled", false);
+        }
+    })
+</script>
+
+</body>
+
+</html>

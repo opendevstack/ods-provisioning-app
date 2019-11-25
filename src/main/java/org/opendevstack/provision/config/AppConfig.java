@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,8 +17,6 @@ package org.opendevstack.provision.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.opendevstack.provision.util.RundeckJobStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +34,7 @@ public class AppConfig {
 
   @Value("${project.template.key.names:default}")
   String[] projectTemplateKeyNames;
-	
+
   @Bean
   public SpringTemplateEngine templateEngine(ITemplateResolver templateResolver) {
     SpringTemplateEngine templateEngine = new SpringTemplateEngine();
@@ -45,14 +43,8 @@ public class AppConfig {
     return templateEngine;
   }
 
-  @Bean
-  public RundeckJobStore jobStore() {
-    return new RundeckJobStore();
-  }
-  
-  @Bean (name = "projectKeys")
-  public List<String> globalProjectKeys () 
-  {
-	return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));  
+  @Bean(name = "projectKeys")
+  public List<String> globalProjectKeys() {
+    return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));
   }
 }
