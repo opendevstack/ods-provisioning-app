@@ -164,7 +164,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
 
-    options.put("BITBUCKET_HOST", bitbucketUri);
 
     try {
 
