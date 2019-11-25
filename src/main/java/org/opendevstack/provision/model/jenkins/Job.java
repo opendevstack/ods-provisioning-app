@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.model.rundeck;
+package org.opendevstack.provision.model.jenkins;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;

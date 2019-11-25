@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.model.rundeck;
+package org.opendevstack.provision.model.jenkins;
 
 public class Option {
   public String name;

@@ -28,7 +28,7 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
