@@ -167,7 +167,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
 
-    options.put("CD_USER_ID_B64", Base64.getEncoder().encodeToString(project.cdUser.getBytes()));
+    String projectCdUser = generalCdUser;
+    if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
+      projectCdUser = project.cdUser;
+    }
+
+    options.put("CD_USER_ID_B64", Base64.getEncoder().encodeToString(projectCdUser.getBytes()));
 
     try {
       options.put("PROJECT_ID", project.projectKey.toLowerCase());
