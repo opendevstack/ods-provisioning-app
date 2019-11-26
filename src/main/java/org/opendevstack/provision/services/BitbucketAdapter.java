@@ -163,8 +163,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
           String gitHttpUrl = componentRepository.get(URL_TYPE.URL_CLONE_HTTP);
 
-          gitHttpUrl = gitUrlWrangler.buildGitUrl(manager.getUserName(), technicalUser, gitHttpUrl);
-
           componentRepository.put(URL_TYPE.URL_CLONE_HTTP, gitHttpUrl);
         } catch (IOException ex) {
           logger.error(
