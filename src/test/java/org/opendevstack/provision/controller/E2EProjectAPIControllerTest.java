@@ -107,7 +107,7 @@ public class E2EProjectAPIControllerTest {
 
   @InjectMocks @Autowired private BitbucketAdapter realBitbucketAdapter;
 
-  @InjectMocks @Autowired private JenkinsPipelineAdapter realJenkinsPipelineAdapter;
+  @InjectMocks @Autowired private JenkinsPipelineAdapter realRundeckAdapter;
 
   @Mock RestClient restClient;
   RestClientMockHelper mockHelper;
@@ -155,8 +155,8 @@ public class E2EProjectAPIControllerTest {
     realMailAdapter.isMailEnabled = false;
 
     // populate the rundeck jobs
-    List<Job> jobList =
-        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+//    List<Job> jobList =
+//        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
 
     // realJobStore.addJobs(jobList);
   }
@@ -316,7 +316,7 @@ public class E2EProjectAPIControllerTest {
             .method(HttpMethod.POST),
         times(0));
 
-    mockRundeckDefaultJobs();
+    // mockRundeckDefaultJobs();
 
     // rundeck create-projects job execution
     ExecutionsData execution =
@@ -324,23 +324,25 @@ public class E2EProjectAPIControllerTest {
 
     // will cause cleanup
     if (fail) {
+      //TODO url needs to be replaced for simulating failurs, since rundec no longer exists
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  .url(containsString(realJenkinsPipelineAdapter.getAdapterApiUri()))
+                  .url(containsString(realRundeckAdapter.getAdapterApiUri()))
                   .url(containsString("/run"))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
           .thenThrow(new IOException("Rundeck TestFail"));
     } else {
-      // String createJobId = realJobStore.getJobIdForJobName("create-projects");
-      // assertNotNull(createJobId);
+//      String createJobId = realJobStore.getJobIdForJobName("create-projects");
+//      assertNotNull(createJobId);
 
+      String jenkinsfilePath="create-projects/Jenkinsfile";
+      String component="ods-corejob-create-projects-testp";
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  //    .url(containsString(createRundeckJobPath(createJobId)))
-                  .url(containsString("/run"))
+                  .url(containsString(createJenkinsJobPath(jenkinsfilePath, component)))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
           .thenReturn(execution);
@@ -453,31 +455,7 @@ public class E2EProjectAPIControllerTest {
     assertEquals("Repository created", 2, resultProject.repositories.size());
   }
 
-  public void mockRundeckDefaultJobs() throws Exception {
-    List<Job> jobList =
-        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
-    mockRundeckJobs(jobList);
-  }
 
-  public void mockRundeckJobs(List<Job> jobList) throws IOException {
-    //    Map<String, List<Job>> groups =
-    //        jobList.stream().collect(Collectors.groupingBy(j -> j.getGroup()));
-    //    for (Entry<String, List<Job>> jobGrouped : groups.entrySet()) {
-    //      List<Job> value = jobGrouped.getValue();
-    //      String key = jobGrouped.getKey();
-    //      mockHelper
-    //          .mockExecute(
-    //              matchesClientCall()
-    //                  .url(
-    //                      containsString(
-    //                          (realJenkinsPipelineAdapter.getAdapterApiUri() + "/project/")
-    //                              + "Quickstarters/jobs"))
-    //                  .queryParam("groupPath", key)
-    //                  .method(HttpMethod.GET))
-    //          .thenReturn(value);
-    //    }
-    //    realJobStore.addJobs(jobList);
-  }
 
   /** Test positive new quickstarter */
   @Test
@@ -488,7 +466,7 @@ public class E2EProjectAPIControllerTest {
   /** Test positive new quickstarter and delete project afterwards */
   @Test
   public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
-    mockRundeckDefaultJobs();
+    // mockRundeckDefaultJobs();
     OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
 
@@ -596,7 +574,7 @@ public class E2EProjectAPIControllerTest {
     mockHelper
         .mockExecute(
             matchesClientCall()
-                .url(containsString(realJenkinsPipelineAdapter.getAdapterApiUri() + "/project/"))
+                .url(containsString(realRundeckAdapter.getAdapterApiUri() + "/project/"))
                 .method(HttpMethod.GET))
         .thenReturn(jobList);
     // rundeck create component job execution
@@ -705,7 +683,7 @@ public class E2EProjectAPIControllerTest {
   @Test
   public void testLegacyProjectUpgradeOnGet() throws Exception {
     // populate the rundeck jobs
-    mockRundeckDefaultJobs();
+    // mockRundeckDefaultJobs();
     // get the project thru its key
     MvcResult resultLegacyProjectGetResponse =
         mockMvc
@@ -757,5 +735,10 @@ public class E2EProjectAPIControllerTest {
   private String createRundeckJobPath(String jobId) {
     Preconditions.checkNotNull(jobId, "job id cannot be null");
     return String.format("job/%s/run", jobId);
+  }
+
+  private String createJenkinsJobPath(String jenkinsfilePath, String component) {
+    return
+        "https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="+jenkinsfilePath+"&component="+component;
   }
 }
