@@ -14,6 +14,11 @@
 
 package org.opendevstack.provision.model.jenkins;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 public class Option {
   public String name;
   public String value;
@@ -24,4 +29,40 @@ public class Option {
   }
 
   public Option() {}
+
+  public String getName() {
+    return name;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+        .append("name", name)
+        .append("value", value)
+        .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof Option)) {
+      return false;
+    }
+
+    Option option = (Option) o;
+
+    return new EqualsBuilder().append(name, option.name).append(value, option.value).isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37).append(name).append(value).toHashCode();
+  }
 }

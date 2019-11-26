@@ -88,6 +88,22 @@ public class Job {
     return String.format("Job id: %s, name: %s", id, name);
   }
 
+  public String getGitParentProject() {
+    return gitParentProject;
+  }
+
+  public String getGitRepoName() {
+    return gitRepoName;
+  }
+
+  public String getJenkinsfilePath() {
+    return jenkinsfilePath;
+  }
+
+  public String getBranch() {
+    return branch;
+  }
+
   @Override
   public String toString() {
     return "Job{"

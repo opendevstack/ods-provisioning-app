@@ -71,7 +71,7 @@ public class ProjectApiController {
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
   @Autowired private ISCMAdapter bitbucketAdapter;
-  @Autowired private IJobExecutionAdapter rundeckAdapter;
+  @Autowired private IJobExecutionAdapter jenkinsPipelineAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
 
@@ -363,7 +363,7 @@ public class ProjectApiController {
           bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(project, auxiliaryRepositories);
 
       // provision platform projects
-      project = rundeckAdapter.createPlatformProjects(project);
+      project = jenkinsPipelineAdapter.createPlatformProjects(project);
     }
 
     int newQuickstarters = (project.quickstarters == null ? 0 : project.quickstarters.size());
@@ -414,7 +414,8 @@ public class ProjectApiController {
     if (project.lastExecutionJobs == null) {
       project.lastExecutionJobs = new ArrayList<>();
     }
-    List<ExecutionsData> jobs = rundeckAdapter.provisionComponentsBasedOnQuickstarters(project);
+    List<ExecutionsData> jobs =
+        jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project);
     logger.debug("New quickstarter rundeck executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
@@ -443,7 +444,7 @@ public class ProjectApiController {
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      List<Job> allQuickstarterJobs = rundeckAdapter.getQuickstarters();
+      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getQuickstarters();
 
       for (Map<String, String> quickstarters : project.quickstarters) {
         String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
@@ -664,7 +665,7 @@ public class ProjectApiController {
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();
 
-    notCleanedUpComponents.putAll(rundeckAdapter.cleanup(stage, project));
+    notCleanedUpComponents.putAll(jenkinsPipelineAdapter.cleanup(stage, project));
 
     notCleanedUpComponents.putAll(bitbucketAdapter.cleanup(stage, project));
 

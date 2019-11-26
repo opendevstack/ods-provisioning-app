@@ -16,13 +16,8 @@ package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
-import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
@@ -30,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.NotImplementedException;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,14 +34,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Execution;
 import org.opendevstack.provision.model.jenkins.Job;
-
+import org.opendevstack.provision.model.jenkins.Option;
 import org.opendevstack.provision.util.ValueCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
@@ -61,25 +56,31 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   private static final String PROJECT_ID = "1";
   private static final String PROJECT_KEY = "123key";
 
-  @Autowired CrowdAuthenticationManager manager;
-
-  @Autowired @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
+  @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
   @Before
   public void setup() {
     MockitoAnnotations.initMocks(this);
+    jenkinsPipelineAdapter.jenkinsPipelineQuickstarter = new HashMap<>();
+    jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
+    jenkinsPipelineAdapter.projectCreateOpenshiftJob = "create-projects";
+    jenkinsPipelineAdapter.jenkinsPipelineCreateOdsProjectsJob =
+        "opendevstack/ods-core.git#production/create-projects/Jenkinsfile";
+    jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
+    jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
+    jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
+    jenkinsPipelineAdapter.projectOpenshiftDevProjectPattern = "%s/project/%s-dev";
+    jenkinsPipelineAdapter.projectOpenshiftConsoleUri = "https://192.168.56.101:8443/console";
+    jenkinsPipelineAdapter.projectOpenshiftTestProjectPattern = "%s/project/%s-test";
+    jenkinsPipelineAdapter.bitbucketUri = "http://192.168.56.31:7990";
+    jenkinsPipelineAdapter.useTechnicalUser = true;
+    jenkinsPipelineAdapter.userName = "maier";
     super.beforeTest();
   }
 
   @Test
-  public void getQuickstarter() throws Exception {
+  public void getQuickstarter() {
     JenkinsPipelineAdapter spyAdapter = Mockito.spy(jenkinsPipelineAdapter);
-
-    String group = "testgroup";
-
-
-    List<Job> jobList = asList(Mockito.mock(Job.class));
-
     int expectedQuickstarterSize = jenkinsPipelineAdapter.getJenkinsPipelineQuickstarter().size();
 
     int actualQuickstarterSize = spyAdapter.getQuickstarters().size();
@@ -105,26 +106,23 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void executeJobs() throws Exception {
 
+    String jobName = "jobName";
+    String url = "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile";
+    jenkinsPipelineAdapter.jenkinsPipelineQuickstarter.put(jobName, url);
     OpenProjectData project = new OpenProjectData();
     project.projectKey = PROJECT_KEY;
-
-    Job job = new Job();
-    job.setId(PROJECT_ID);
+    project.webhookProxySecret = "secret101";
+    Job job = jenkinsPipelineAdapter.createJobFromUrl(jobName, url);
 
     Map<String, String> testjob = new HashMap<>();
-    testjob.put(OpenProjectData.COMPONENT_ID_KEY, COMPONENT_ID);
-    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, COMPONENT_ID);
+    testjob.put(OpenProjectData.COMPONENT_ID_KEY, job.getId());
+    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
 
     List<Map<String, String>> quickstart = new ArrayList<>();
-
     quickstart.add(testjob);
     project.quickstarters = quickstart;
 
-    Execution exec = generateDefaultExecution();
-
     mockJobsInServer(asList(job));
-
-    mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
 
     int expectedExecutionsSize = 1;
 
@@ -134,11 +132,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(expectedExecutionsSize, actualExecutionsSize);
   }
 
-  private void mockRestClientToReturnExecutionData(Class input, Class output)
-      throws java.io.IOException {
-    Object data = mock(output);
-
-    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(data);
+  private void mockRestClientToReturnExecutionData(String output) throws java.io.IOException {
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(output);
   }
 
   @Test
@@ -156,30 +151,28 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jobs.add(job1);
     jobs.add(job2);
 
-    String userNameFromCrowd = "crowdUsername";
-
     mockJobsInServer(jobs);
 
-    mockRestClientToReturnExecutionData(Execution.class, ExecutionsData.class);
+    ValueCaptor<Execution> bodyCaptor = new ValueCaptor<>();
+    mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(bodyCaptor))
+        .thenReturn("Hello World");
 
     OpenProjectData expectedOpenProjectData = generateDefaultOpenProjectData();
-    manager.setUserName(userNameFromCrowd);
 
-    OpenProjectData createdOpenProjectData = jenkinsPipelineAdapter.createPlatformProjects(projectData);
+    OpenProjectData createdOpenProjectData =
+        jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
-    Execution execution = new Execution();
-    Map<String, String> options = new HashMap<>();
-    options.put("project_id", projectData.projectKey);
-    options.put("project_admin", userNameFromCrowd);
-    execution.setOptions(options);
+    Execution capturedBody = bodyCaptor.getValues().get(0);
+    Assertions.assertThat(capturedBody.branch).isEqualTo("production");
+    Assertions.assertThat(capturedBody.repository).isEqualTo("ods-core");
+    Assertions.assertThat(capturedBody.project).isEqualTo("opendevstack");
+    List<Option> env = capturedBody.env;
+    Assertions.assertThat(env)
+        .contains(
+            new Option("PROJECT_ID", projectData.projectKey),
+            new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
+            new Option("BITBUCKET_HOST", jenkinsPipelineAdapter.bitbucketUri));
 
-    verifyExecute(
-        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)));
-
-    options.put("project_admin", "crowdUsername-WRONG");
-    verifyExecute(
-        matchesClientCall().method(HttpMethod.POST).bodyMatches(samePropertyValuesAs(execution)),
-        never());
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
     assertEquals(
@@ -206,11 +199,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
 
-    OpenProjectData projectData = new OpenProjectData();
-    projectData.projectKey = "key";
-
-    ExecutionsData execData = new ExecutionsData();
-
     Job job1 = new Job();
     job1.setName("create-projects");
     Job job2 = new Job();
@@ -220,38 +208,72 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jobs.add(job1);
     jobs.add(job2);
 
+    OpenProjectData projectData = new OpenProjectData();
     // create special permissionset - here crowd userdetails should never be called
+    projectData.projectKey = "key";
     projectData.specialPermissionSet = true;
     projectData.projectAdminUser = "clemens";
     projectData.projectAdminGroup = "agroup";
     projectData.projectUserGroup = "ugroup";
     projectData.projectReadonlyGroup = "rgroup";
-
     mockJobsInServer(jobs);
 
-
-    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(execData);
+    ValueCaptor<Object> valueHolder = new ValueCaptor<>();
+    mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder))
+        .thenReturn("Hello World");
 
     jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
-    ValueCaptor<Object> valueHolder = new ValueCaptor<>();
-    verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder));
+    // ValueCaptor<Object> valueHolder = new ValueCaptor<>();
+    // verifyExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder));
 
-    Execution execVerify = (Execution) valueHolder.getValues().get(0);
-    assertNotNull(execVerify);
-    assertEquals(execVerify.getOptions().get("project_id"), projectData.projectKey);
-    assertEquals(execVerify.getOptions().get("project_admin"), projectData.projectAdminUser);
-    String groups = execVerify.getOptions().get("project_groups");
+    Execution actualBody = (Execution) valueHolder.getValues().get(0);
+    assertNotNull(actualBody);
+    Assertions.assertThat(actualBody.getOptionValue("PROJECT_ADMIN"))
+        .isEqualTo(projectData.projectAdminUser);
+    Assertions.assertThat(actualBody.getOptionValue("PROJECT_ID"))
+        .isEqualTo(projectData.projectKey);
+
+    String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
-    assertTrue(
-        groups.contains("ADMINGROUP=" + projectData.projectAdminGroup)
-            && groups.contains("USERGROUP=" + projectData.projectUserGroup)
-            && groups.contains("READONLYGROUP=" + projectData.projectReadonlyGroup));
+    Assertions.assertThat(groups).contains("ADMINGROUP=" + projectData.projectAdminGroup);
+    Assertions.assertThat(groups).contains("USERGROUP=" + projectData.projectUserGroup);
+    Assertions.assertThat(groups).contains("READONLYGROUP=" + projectData.projectReadonlyGroup);
   }
 
   @Test
-  public void getEndpointAPIPath() throws Exception {
-    assertEquals("http://192.168.56.31:4440/api/19", jenkinsPipelineAdapter.getAdapterApiUri());
+  public void getEndpointAPIPath() {
+    Assertions.assertThatThrownBy(() -> jenkinsPipelineAdapter.getAdapterApiUri())
+        .isInstanceOf(NotImplementedException.class)
+        .hasMessageContaining("Code is not implemented");
+  }
+
+  @Test
+  public void createJobFromUrlWithBranchSpecification() {
+    Job job =
+        jenkinsPipelineAdapter.createJobFromUrl(
+            "jobName", "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile");
+    checkCommonJobParameters(job);
+    Assertions.assertThat(job.getBranch()).isEqualTo("branch");
+  }
+
+  @Test
+  public void createJobFromUrlWithoutBranchSpecification() {
+    Job job =
+        jenkinsPipelineAdapter.createJobFromUrl(
+            "jobName", "gitParentProject/gitRepoName.git/path-to/Jenkinsfile");
+    checkCommonJobParameters(job);
+    Assertions.assertThat(job.getBranch()).isEqualTo("master");
+  }
+
+  private void checkCommonJobParameters(Job job) {
+    Assertions.assertThat(job.getId()).isEqualTo("jobName");
+    Assertions.assertThat(job.isEnabled()).isTrue();
+    Assertions.assertThat(job.getName()).isEqualTo("jobName");
+    Assertions.assertThat(job.getDescription()).isEqualTo("jobName");
+    Assertions.assertThat(job.getGitParentProject()).isEqualTo("gitParentProject");
+    Assertions.assertThat(job.getGitRepoName()).isEqualTo("gitRepoName");
+    Assertions.assertThat(job.getJenkinsfilePath()).isEqualTo("path-to/Jenkinsfile");
   }
 
   private OpenProjectData generateDefaultOpenProjectData() {
