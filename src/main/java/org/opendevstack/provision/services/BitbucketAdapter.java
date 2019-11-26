@@ -276,11 +276,11 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     }
 
     String projectCdUser = technicalUser;
-    if(project.cdUser != null && !project.cdUser.trim().isEmpty()) {
+    if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
       projectCdUser = project.cdUser;
     }
     // set the technical user in any case
-    setProjectPermissions(projectData, ID_USERS, project.cdUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
+    setProjectPermissions(projectData, ID_USERS, projectCdUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
 
     return projectData;
   }
