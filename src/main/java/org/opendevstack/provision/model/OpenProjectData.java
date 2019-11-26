@@ -42,7 +42,7 @@ public class OpenProjectData {
   public String projectKey = null;
   /** The secret to call webhook_proxy within the new env. Needed 2 create quickstarters */
   public String webhookProxySecret = null;
-  /** The project specific cd-user*/
+  /** The project specific cd-user */
   public String cdUser = null;
   /**
    * Map of quickstarters used, to get the chosen name of the quickstarter picked, use {@link
