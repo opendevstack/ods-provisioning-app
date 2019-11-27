@@ -97,7 +97,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
-@Ignore("TODO fix in #282")
+//@Ignore("TODO fix in #282")
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
@@ -328,8 +328,9 @@ public class E2EProjectAPIControllerTest {
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  .url(containsString(realRundeckAdapter.getAdapterApiUri()))
-                  .url(containsString("/run"))
+                  //.url(containsString(realRundeckAdapter.getAdapterApiUri()))
+                  .url(containsString(createJenkinsJobPath("create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
+                  //.url(containsString("/run"))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
           .thenThrow(new IOException("Rundeck TestFail"));
@@ -345,7 +346,7 @@ public class E2EProjectAPIControllerTest {
                   .url(containsString(createJenkinsJobPath(jenkinsfilePath, component)))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
-          .thenReturn(execution);
+          .thenReturn(execution.toString());
     }
 
     // create the ODS project
