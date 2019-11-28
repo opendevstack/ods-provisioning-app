@@ -15,8 +15,7 @@ public class ScmGlobalProperties {
     return readableRepos;
   }
 
-  public void setReadableRepos(
-      Map<String, List<String>> readableRepos) {
+  public void setReadableRepos(Map<String, List<String>> readableRepos) {
     this.readableRepos = readableRepos;
   }
 }

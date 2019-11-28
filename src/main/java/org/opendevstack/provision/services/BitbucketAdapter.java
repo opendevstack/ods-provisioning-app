@@ -87,8 +87,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
   private boolean grantRepositoryWriteToAllOpenDevStackUsers;
 
-  @Autowired
-  private ScmGlobalProperties scmGlobalProperties;
+  @Autowired private ScmGlobalProperties scmGlobalProperties;
 
   @Autowired IODSAuthnzAdapter manager;
 
@@ -285,22 +284,26 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
       projectCdUser = project.cdUser;
 
-      scmGlobalProperties.getReadableRepos().forEach((k,v) -> {
-        logger.info("Huhu");
-        logger.info(k);
-      });
+      scmGlobalProperties
+          .getReadableRepos()
+          .forEach(
+              (k, v) -> {
+                logger.info("Huhu");
+                logger.info(k);
+              });
 
-//      String finalCdUser = projectCdUser;
-//      globalReadRepositories.forEach(
-//          item -> {
-//            String[] parts = item.split("/");
-//            try {
-//              setRepositoryPermissions(
-//                  parts[1], parts[0], ID_USERS, finalCdUser, REPOSITORY_PERMISSIONS.REPO_READ);
-//            } catch (IOException e) {
-//              logger.error("Unable to set global read permission for user: ", e);
-//            }
-//          });
+      //      String finalCdUser = projectCdUser;
+      //      globalReadRepositories.forEach(
+      //          item -> {
+      //            String[] parts = item.split("/");
+      //            try {
+      //              setRepositoryPermissions(
+      //                  parts[1], parts[0], ID_USERS, finalCdUser,
+      // REPOSITORY_PERMISSIONS.REPO_READ);
+      //            } catch (IOException e) {
+      //              logger.error("Unable to set global read permission for user: ", e);
+      //            }
+      //          });
     }
     // set the technical user in any case
     setProjectPermissions(projectData, ID_USERS, projectCdUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
