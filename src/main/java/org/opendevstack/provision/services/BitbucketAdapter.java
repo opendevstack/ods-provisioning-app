@@ -30,6 +30,7 @@ import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.Webhook;
+import org.opendevstack.provision.properties.ScmGlobalProperties;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
@@ -86,6 +87,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
   private boolean grantRepositoryWriteToAllOpenDevStackUsers;
 
+  @Autowired
+  private ScmGlobalProperties scmGlobalProperties;
+
   @Autowired IODSAuthnzAdapter manager;
 
   private static final String PROJECT_PATTERN = "%s%s/projects";
@@ -101,7 +105,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   public enum REPOSITORY_PERMISSIONS {
     REPO_ADMIN,
-    REPO_WRITE
+    REPO_WRITE,
+    REPO_READ
   }
 
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
@@ -273,9 +278,29 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
           projectData, ID_GROUPS, openDevStackUsersGroupName, PROJECT_PERMISSIONS.PROJECT_READ);
     }
 
+    // define cd user
     String projectCdUser = technicalUser;
+
+    // proof if CD user is project specific, if so, set read permessions to global read repos
     if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
       projectCdUser = project.cdUser;
+
+      scmGlobalProperties.getReadableRepos().forEach((k,v) -> {
+        logger.info("Huhu");
+        logger.info(k);
+      });
+
+//      String finalCdUser = projectCdUser;
+//      globalReadRepositories.forEach(
+//          item -> {
+//            String[] parts = item.split("/");
+//            try {
+//              setRepositoryPermissions(
+//                  parts[1], parts[0], ID_USERS, finalCdUser, REPOSITORY_PERMISSIONS.REPO_READ);
+//            } catch (IOException e) {
+//              logger.error("Unable to set global read permission for user: ", e);
+//            }
+//          });
     }
     // set the technical user in any case
     setProjectPermissions(projectData, ID_USERS, projectCdUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
@@ -306,7 +331,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
           openDevStackUsersGroupName,
           data.getSlug());
       setRepositoryPermissions(
-          data,
+          data.getSlug(),
           projectKey,
           ID_GROUPS,
           openDevStackUsersGroupName,
@@ -339,19 +364,18 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       RepositoryData data, String key, String userOrGroup, String userOrGroupName)
       throws IOException {
     setRepositoryPermissions(
-        data, key, userOrGroup, userOrGroupName, REPOSITORY_PERMISSIONS.REPO_ADMIN);
+        data.getSlug(), key, userOrGroup, userOrGroupName, REPOSITORY_PERMISSIONS.REPO_ADMIN);
   }
 
   private void setRepositoryPermissions(
-      RepositoryData data,
+      String repo,
       String key,
       String userOrGroup,
       String userOrGroupName,
       REPOSITORY_PERMISSIONS permission)
       throws IOException {
     String basePath = getAdapterApiUri();
-    String url =
-        String.format("%s/%s/repos/%s/permissions/%s", basePath, key, data.getSlug(), userOrGroup);
+    String url = String.format("%s/%s/repos/%s/permissions/%s", basePath, key, repo, userOrGroup);
 
     // restClient.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
     restClient.execute(
