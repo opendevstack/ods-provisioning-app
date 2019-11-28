@@ -280,30 +280,31 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     // define cd user
     String projectCdUser = technicalUser;
 
-    // proof if CD user is project specific, if so, set read permessions to global read repos
+    // proof if CD user is project specific, if so, set read permissions to global read repos
     if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
       projectCdUser = project.cdUser;
+
+      String finalCdUser = projectCdUser;
 
       scmGlobalProperties
           .getReadableRepos()
           .forEach(
               (k, v) -> {
-                logger.info("Huhu");
-                logger.info(k);
+                logger.debug("Set permissions for repos in project {}", k);
+                for (String repo : v) {
+                  try {
+                    logger.debug(
+                        "Set permission for repo {} in project {} for user {} ",
+                        repo,
+                        k,
+                        finalCdUser);
+                    setRepositoryPermissions(
+                        repo, k, ID_USERS, finalCdUser, REPOSITORY_PERMISSIONS.REPO_READ);
+                  } catch (IOException e) {
+                    logger.error("Unable to set global read permission for cd user", e);
+                  }
+                }
               });
-
-      //      String finalCdUser = projectCdUser;
-      //      globalReadRepositories.forEach(
-      //          item -> {
-      //            String[] parts = item.split("/");
-      //            try {
-      //              setRepositoryPermissions(
-      //                  parts[1], parts[0], ID_USERS, finalCdUser,
-      // REPOSITORY_PERMISSIONS.REPO_READ);
-      //            } catch (IOException e) {
-      //              logger.error("Unable to set global read permission for user: ", e);
-      //            }
-      //          });
     }
     // set the technical user in any case
     setProjectPermissions(projectData, ID_USERS, projectCdUser, PROJECT_PERMISSIONS.PROJECT_WRITE);
