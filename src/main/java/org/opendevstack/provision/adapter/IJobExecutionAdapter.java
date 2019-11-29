@@ -33,7 +33,7 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @return the list of quickstarters, never null but can be empty
    */
-  public List<Job> getQuickstarters();
+  public List<Job> getComponentQuickstarters();
 
   /**
    * Create platform projects, e.g. openshift projects to house later components created thru {@link
