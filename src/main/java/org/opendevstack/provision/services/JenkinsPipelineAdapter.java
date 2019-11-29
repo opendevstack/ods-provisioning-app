@@ -86,6 +86,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.uri}")
   private String bitbucketUri;
 
+  @Value("${ods.image-tag}")
+  private String odsImageTag;
+
+  @Value("${ods.git-ref}")
+  private String odsGitRef;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
@@ -148,6 +154,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("GROUP_ID", groupId);
         options.put("PROJECT_ID", project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
+        options.put("ODS_IMAGE_TAG", odsImageTag);
+        options.put("ODS_GIT_REF", odsGitRef);
 
         executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
       }
@@ -193,6 +201,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
         options.put("PROJECT_ADMIN", getUserName());
       }
+
+      options.put("ODS_IMAGE_TAG", odsImageTag);
+      options.put("ODS_GIT_REF", odsGitRef);
       ExecutionsData data =
           prepareAndExecuteJob(
               projectCreateOpenshiftJob, options, projectOpenshiftJenkinsTriggerSecret);
