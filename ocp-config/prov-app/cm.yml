@@ -63,8 +63,10 @@ objects:
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
-      # quickstarter & createProjects configuration
-      jenkinspipeline.create-ods-projects-job=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
+      #createProjects configuration
+      jenkinspipeline.quickstarter.create-projects.desc=Create Project. Only used internally, therefore separated from other quickstarters
+      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
+      jenkinspipeline.quickstarter.create-projects.type=project
       # Backend Quickstarter
       jenkinspipeline.quickstarter.beSpringBoot.desc=Backend - SpringBoot/Java
       jenkinspipeline.quickstarter.beSpringBoot.url=opendevstack/ods-quickstarters.git#production/be-java-springboot/Jenkinsfile
@@ -130,7 +132,6 @@ objects:
       rundeck.artifact.pattern=%s-%s
       rundeck.project.group.quickstarter=quickstarts
       rundeck.project.group.openshift=openshift
-      rundeck.project.openshift.create.name=create-projects
 
       # Cookie Domain
       atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}

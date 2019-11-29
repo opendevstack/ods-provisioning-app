@@ -21,17 +21,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
+import org.opendevstack.provision.config.Quickstarter;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -64,9 +62,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${rundeck.group.pattern}")
   private String groupPattern;
 
-  @Value("${rundeck.project.openshift.create.name}")
-  private String projectCreateOpenshiftJob;
-
   @Value("${openshift.apps.basedomain}")
   private String projectOpenshiftBaseDomain;
 
@@ -82,16 +77,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectPattern;
 
-
   @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
-
-  @Value("${jenkinspipeline.create-ods-projects-job}")
-  private String jenkinsPipelineCreateOdsProjectsJob;
 
   @Value("${bitbucket.uri}")
   private String bitbucketUri;
 
-  private List<Job> quickstarters;
+  private List<Job> componentQuickstarters;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
@@ -99,42 +90,21 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   @PostConstruct
   public void init() {
-    quickstarters =
+    componentQuickstarters =
         jenkinsPipelineProperties.getQuickstarter().values().stream()
-            .map(Job::new).sorted(Comparator.comparing(Job::getDescription))
+            .filter(Quickstarter::isComponentQuickstarter)
+            .map(Job::new)
+            .sorted(Comparator.comparing(Job::getDescription))
             .collect(Collectors.toList());
-    logger.info("Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
+    logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
   }
 
-  public List<Job> getQuickstarters() {
-    return quickstarters;
-  }
-
-  @Deprecated
-  private Job createJobFromUrl(String jobname, String url) {
-    String gitURL = url.split("\\.git")[0];
-    String gitParentProject = gitURL.split("/")[0];
-    String gitRepoName = gitURL.split("/")[1];
-    String jenkinsPath = url.split("\\.git")[1];
-    String branch = "master";
-    if (jenkinsPath.startsWith("#")) {
-      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
-      Matcher matcher = pattern.matcher(jenkinsPath);
-      matcher.find();
-      branch = matcher.group(1);
-      jenkinsPath = matcher.group(2);
-    } else {
-      jenkinsPath = jenkinsPath.substring(1);
-    }
-    Job job =
-        new Job(
-            jobname, true, jobname, jobname, gitParentProject, gitRepoName, jenkinsPath, branch);
-    return job;
+  public List<Job> getComponentQuickstarters() {
+    return componentQuickstarters;
   }
 
   public Job getCreateOdsProjectsJob() {
-
-    return createJobFromUrl(projectCreateOpenshiftJob, jenkinsPipelineCreateOdsProjectsJob);
+    return new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter());
   }
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
@@ -159,7 +129,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("PROJECT_ID", project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
 
-        executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
+        final Job job =
+            getComponentQuickstarters().stream().filter(x -> x.id.equals(jobId)).findFirst().get();
+        executionList.add(prepareAndExecuteJob(job, options, project.webhookProxySecret));
       }
     }
     return executionList;
@@ -205,7 +177,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
       ExecutionsData data =
           prepareAndExecuteJob(
-              projectCreateOpenshiftJob, options, projectOpenshiftJenkinsTriggerSecret);
+              new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter()),
+              options,
+              projectOpenshiftJenkinsTriggerSecret);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -256,8 +230,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private ExecutionsData prepareAndExecuteJob(
-      String jobNameOrId, Map<String, String> options, String webhook_proxy_secret)
-      throws IOException {
+      final Job job, Map<String, String> options, String webhook_proxy_secret) throws IOException {
+
+    String jobNameOrId = job.getName();
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
 
     String url;
@@ -265,10 +240,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     String projID = Objects.toString(options.get("PROJECT_ID"));
 
-    boolean createNewInitiative = projectCreateOpenshiftJob.equals(jobNameOrId);
+    boolean createNewInitiative =
+        jenkinsPipelineProperties.getCreateProjectQuickstarter().getName().equals(jobNameOrId);
     if (createNewInitiative) {
-
-      Job job = getCreateOdsProjectsJob();
 
       String webhookProxyHost =
           String.format(
@@ -290,9 +264,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     } else {
       String component_id = Objects.toString(options.get("component_id"));
-
-      final Job job =
-          getQuickstarters().stream().filter(x -> x.id.equals(jobNameOrId)).findFirst().get();
 
       String webhookProxyHost =
           String.format(

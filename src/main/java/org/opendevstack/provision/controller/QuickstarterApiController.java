@@ -47,7 +47,7 @@ public class QuickstarterApiController {
       produces = {"application/json"},
       method = RequestMethod.GET)
   public ResponseEntity<List<Job>> getTechTemplates() {
-    return ResponseEntity.ok().body(rundeckAdapter.getQuickstarters());
+    return ResponseEntity.ok().body(rundeckAdapter.getComponentQuickstarters());
   }
 
   @RequestMapping(

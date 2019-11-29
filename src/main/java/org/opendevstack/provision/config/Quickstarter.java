@@ -10,6 +10,7 @@ public class Quickstarter {
   private String name;
   private String url;
   private String desc;
+  private QuickstarterType type = QuickstarterType.component;
 
   public String getUrl() {
     return url;
@@ -36,12 +37,25 @@ public class Quickstarter {
     this.name = name;
   }
 
+  public QuickstarterType getType() {
+    return type;
+  }
+
+  public void setType(QuickstarterType type) {
+    this.type = type;
+  }
+
+  public boolean isComponentQuickstarter() {
+    return QuickstarterType.component.equals(this.getType());
+  }
+
   @Override
   public String toString() {
     return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
         .append("name", name)
         .append("url", url)
         .append("desc", desc)
+        .append("type", type)
         .toString();
   }
 
