@@ -27,10 +27,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
 import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.webhookproxy.Annotations;
+import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,8 +222,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               project.projectKey.toLowerCase());
 
       project.lastExecutionJobs = new ArrayList<>();
-      project.lastExecutionJobs.add(data.getPermalink());
-      logger.debug("Project creation job: {} ", data.getPermalink());
+      ExecutionJob executionJob = new ExecutionJob(data.getJobName(), data.getPermalink());
+      project.lastExecutionJobs.add(executionJob);
+      logger.debug("Project creation job: {} ", executionJob);
       return project;
     } catch (IOException ex) {
       String error =
@@ -251,7 +255,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     String projID = Objects.toString(options.get("PROJECT_ID"));
 
-    if (projectCreateOpenshiftJob.equals(jobNameOrId)) { // we create something
+    boolean createNewInitiative = projectCreateOpenshiftJob.equals(jobNameOrId);
+    if (createNewInitiative) {
 
       Job job = getCreateOdsProjectsJob();
 
@@ -301,17 +306,27 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       execution.setOptions(options);
     }
     try {
-      // ExecutionsData data = restClient.callHttp(url, execution, false, RestClient.HTTP_VERB.POST,
-      // ExecutionsData.class);
-      String data =
+      CreateProjectResponse data =
           restClient.execute(
               notAuthenticatedCall(HttpVerb.POST)
                   .url(url)
                   .body(execution)
-                  .returnType(String.class));
-      logger.info(data);
+                  .returnType(CreateProjectResponse.class));
+      logger.info("Webhook proxy returned " + data.toString());
       ExecutionsData ret = new ExecutionsData();
-      ret.setMessage(data);
+      ret.setMessage(data.toString());
+
+      String namespace = data.getMetadata().getNamespace();
+      Annotations annotations = data.getMetadata().getAnnotations();
+
+      String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
+      String buildNumber = annotations.getBuildNumber();
+      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
+      String href =
+          String.format(
+              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
+      ret.setJobName(jobName);
+      ret.setPermalink(href);
       return ret;
     } catch (IOException rundeckException) {
       logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);

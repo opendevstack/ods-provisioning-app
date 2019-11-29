@@ -393,12 +393,12 @@ function summarize(data) {
 	 console.log("jobs found: " + data.lastExecutionJobs + " length: " + data.lastExecutionJobs.length);
      html = "";
      if (data.lastExecutionJobs.length == 0) {
-		 html += "<a href='" + data.lastExecutionJobs +"' target='_blank'>" + data.lastExecutionJobs +"</a></br>";
+		 html += "No Job</br>";
      } 
      else {
     	 for (var jobId = 0; jobId < data.lastExecutionJobs.length; jobId++) {
-    		 var jobUrl = data.lastExecutionJobs[jobId];
-    		 html += "<a href='" + jobUrl +"' target='_blank'>" + jobUrl +"</a></br>";
+    		 var job = data.lastExecutionJobs[jobId];
+    		 html += "<a href='" + job.url +"' target='_blank'>" + job.name +"</a></br>";
     		 console.log(html)
     	 } 
      }
