@@ -17,17 +17,21 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.model.ExecutionJob;
+import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Execution;
@@ -37,6 +41,7 @@ import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -77,8 +82,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.jenkins.project.name.pattern}")
   private String projectOpenshiftJenkinsProjectPattern;
 
-  @Value("#{${jenkinspipeline.quickstarter}}")
-  private Map<String, String> jenkinsPipelineQuickstarter;
+
+  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${jenkinspipeline.create-ods-projects-job}")
   private String jenkinsPipelineCreateOdsProjectsJob;
@@ -86,21 +91,26 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.uri}")
   private String bitbucketUri;
 
+  private List<Job> quickstarters;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
 
-  public List<Job> getQuickstarters() {
-    return jenkinsPipelineQuickstarter.keySet().stream()
-        .map(
-            jobname -> {
-              Job job = createJobFromUrl(jobname, jenkinsPipelineQuickstarter.get(jobname));
-              logger.info("Available quickstarter: " + job);
-              return job;
-            })
-        .collect(Collectors.toList());
+  @PostConstruct
+  public void init() {
+    quickstarters =
+        jenkinsPipelineProperties.getQuickstarter().values().stream()
+            .map(Job::new).sorted(Comparator.comparing(Job::getDescription))
+            .collect(Collectors.toList());
+    logger.info("Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
   }
 
+  public List<Job> getQuickstarters() {
+    return quickstarters;
+  }
+
+  @Deprecated
   private Job createJobFromUrl(String jobname, String url) {
     String gitURL = url.split("\\.git")[0];
     String gitParentProject = gitURL.split("/")[0];
