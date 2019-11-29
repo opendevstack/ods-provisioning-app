@@ -321,7 +321,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
       String buildNumber = annotations.getBuildNumber();
-      String jenkinsHost = String.format("jenkins-%s-cd%s", "prov", projectOpenshiftBaseDomain);
+      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
       String href =
           String.format(
               "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
