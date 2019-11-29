@@ -359,7 +359,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     openDataRepo.put(legacyRepoData.getName(), legacyRepoData.convertRepoToOpenDataProjectRepo());
     apiInput.repositories = openDataRepo;
 
-    Map<String, String> created = mocked.createComponentsForProjectRepositories(apiInput);
+    Map<String, String> created =
+        mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
 
     verifyExecute(
         matchesClientCall()
@@ -377,14 +378,26 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     apiInput.projectKey = "Ai00000001";
     apiInput.repositories = openDataRepo;
 
-    created = mocked.createComponentsForProjectRepositories(apiInput);
+    created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
+    assertEquals(1, created.size());
+    entry = created.entrySet().iterator().next();
+    assertEquals("Technology-fe-angular", entry.getKey());
+
+    // test with exclude
+    List<String> excludes = new ArrayList<>();
+    excludes.add("ai00000001-fe-angular");
+    created = mocked.createComponentsForProjectRepositories(apiInput, excludes);
+    assertEquals(0, created.size());
+
+    // test with null
+    created = mocked.createComponentsForProjectRepositories(apiInput, null);
     assertEquals(1, created.size());
     entry = created.entrySet().iterator().next();
     assertEquals("Technology-fe-angular", entry.getKey());
 
     // test with component creation == false
     mocked.createJiraComponents = false;
-    created = mocked.createComponentsForProjectRepositories(apiInput);
+    created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
     assertEquals(0, created.size());
   }
 

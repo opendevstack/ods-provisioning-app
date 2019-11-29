@@ -204,14 +204,13 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         small.setId(singleScheme.getId());
         // restClient.callHttp(path, small, true, RestClient.HTTP_VERB.PUT, null);
         restClient.execute(httpPut().body(small).url(path).returnType(null));
-
         updatedPermissions++;
       }
     } catch (Exception createPermissions) {
       // continue - we are ok if permissions fail, because the admin has access, and
-      // create the set
+      // can create / link the set
       logger.error(
-          "Could not update permissionset: {} \n Exception: {} ",
+          "Could not update jira project permissionset: {} Exception: {} ",
           project.projectKey,
           createPermissions.getMessage());
     }
@@ -445,9 +444,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   @Override
-  public Map<String, String> createComponentsForProjectRepositories(OpenProjectData data) {
+  public Map<String, String> createComponentsForProjectRepositories(
+      OpenProjectData data, List<String> exclusions) {
     if (!createJiraComponents) {
-      logger.debug("not creating jira components");
+      logger.debug("Not creating jira components for repo!, functionality disabled!");
       return new HashMap<>();
     }
     Preconditions.checkNotNull(data, "data input cannot be null");
@@ -461,7 +461,17 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       for (Entry<String, Map<URL_TYPE, String>> repo : repositories.entrySet()) {
         String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
 
-        logger.debug("Repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
+        logger.debug("Found repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
+
+        if (exclusions != null && exclusions.contains(repo.getKey())) {
+          logger.debug(
+              "Not creating jira component for repo: {} because of exclusionList {}",
+              repo.getKey(),
+              exclusions);
+          continue;
+        } else {
+          logger.debug("Creating jira component for repo: {}", repo.getKey());
+        }
 
         Component component = new Component();
         component.setName(
@@ -517,17 +527,30 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         "Cleaning up bugtracker space: {} with url {}", project.projectKey, project.bugtrackerUrl);
 
     try {
+      // restClient.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
+      RestClientCall callJiraProjectDelete = httpDelete().url(jiraProjectPath).returnType(null);
+      restClient.execute(callJiraProjectDelete);
+
+      project.bugtrackerUrl = null;
+    } catch (Exception cex) {
+      logger.error(
+          "Could not clean up jira project {} error: {}", project.projectKey, cex.getMessage());
+      leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
+    }
+
+    try {
       if (project.specialPermissionSet) {
         String permissionSchemeUrl = String.format("%s/permissionscheme", jiraProjectPath);
 
-        RestClientCall call =
+        RestClientCall callGetScheme =
             httpGet().url(permissionSchemeUrl).returnType(PermissionSchemeResponse.class);
-        PermissionSchemeResponse permissionScheme = restClient.execute(call);
+        PermissionSchemeResponse permissionScheme = restClient.execute(callGetScheme);
         if (permissionScheme.getName().contains(project.projectKey)) {
           logger.debug(
-              "Cleaning up permissionset {} {}",
+              "Cleaning up permissionset {} {} - for project: {}",
               permissionScheme.getId(),
-              permissionScheme.getName());
+              permissionScheme.getName(),
+              project.projectKey);
         } else {
           logger.debug(
               "NOT Cleaning up permissionset {} {}, because it's a standard one",
@@ -541,19 +564,18 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 "%s%s/permissionscheme/%s", jiraUri, jiraApiPath, permissionScheme.getId());
 
         // restClient.callHttp(jiraPermissionSchemePath, null, true, HTTP_VERB.DELETE, null);
-        RestClientCall call2 = httpDelete().url(jiraPermissionSchemePath).returnType(null);
-        restClient.execute(call2);
+        RestClientCall callPermissionSchemeDelete =
+            httpDelete().url(jiraPermissionSchemePath).returnType(null);
+        restClient.execute(callPermissionSchemeDelete);
       }
 
-      // restClient.callHttp(jiraProjectPath, null, true, HTTP_VERB.DELETE, null);
-      RestClientCall call2 = httpDelete().url(jiraProjectPath).returnType(null);
-      restClient.execute(call2);
-
-      project.bugtrackerUrl = null;
     } catch (Exception cex) {
-      logger.error("Could not cleanup jira: ", cex);
-      logger.error("Could not clean up project {} error: {}", project.projectKey, cex.getMessage());
-      leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
+      logger.error(
+          "Could not clean up jira project permission set {} error: {}",
+          project.projectKey,
+          cex.getMessage());
+      // the reason to NOT add it to the list here - is that we have check code in
+      // #createSpecialPermissions
     }
     logger.debug(
         "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);

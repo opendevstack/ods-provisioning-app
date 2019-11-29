@@ -76,11 +76,16 @@ public class RestClient {
   }
 
   private void sendPreAuthRequest(Request preAuthRequest) throws IOException {
-
     try (Response preAuthResponse = this.client.newCall(preAuthRequest).execute()) {
+      String preAuthResponseBody = "";
+      try {
+        preAuthResponseBody = preAuthResponse.body().string();
+      } catch (Throwable t) {
+        preAuthResponseBody = "could not read response body";
+      }
       if (!preAuthResponse.isSuccessful()
-          || preAuthResponse.body().string().contains("Invalid username and password")) {
-        throw new IOException("Could not authenticate: " + preAuthResponse.body().string());
+          || preAuthResponseBody.contains("Invalid username and password")) {
+        throw new IOException("Could not authenticate: " + preAuthResponseBody);
       }
       LOG.info("Authenticated");
     }

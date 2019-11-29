@@ -15,6 +15,7 @@
 package org.opendevstack.provision.adapter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -85,9 +86,11 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
    *
    * @param data the project containing only the new repositories and quickstarters {@link
    *     OpenProjectData#quickstarters} and {@link OpenProjectData#repositories}
+   * @param exclusions list of components to not create
    * @return the name and descriptions of the components created
    */
-  public Map<String, String> createComponentsForProjectRepositories(OpenProjectData data);
+  public Map<String, String> createComponentsForProjectRepositories(
+      OpenProjectData data, List<String> exclusions);
 
   boolean isSpecialPermissionSchemeEnabled();
 }

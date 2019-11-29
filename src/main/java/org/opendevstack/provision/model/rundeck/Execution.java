@@ -15,20 +15,25 @@
 package org.opendevstack.provision.model.rundeck;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 
 /** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties({"options"})
 public class Execution {
-  private Map<String, String> options;
+  public List<Option> env = new LinkedList<>();
+  public String branch;
+  public String repository;
+  public String project;
 
   public Map<String, String> getOptions() {
-    return options;
+    throw new UnsupportedOperationException();
   }
 
   public void setOptions(Map<String, String> options) {
-    this.options = options;
+    options.keySet().stream().forEach(x -> env.add(new Option(x, options.get(x))));
   }
 }

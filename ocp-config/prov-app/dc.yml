@@ -1,5 +1,10 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: TAILOR_NAMESPACE
+  required: true
+- name: ODS_IMAGE_TAG
+  required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -19,13 +24,11 @@ objects:
       type: Recreate
     template:
       metadata:
-        annotations: {}
-        creationTimestamp: null
         labels:
           app: prov-app
       spec:
         containers:
-        - image: ${TAILOR_NAMESPACE}/prov-app:latest
+        - image: ${TAILOR_NAMESPACE}/prov-app:${ODS_IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           name: prov-app
           ports:
@@ -61,16 +64,13 @@ objects:
           name: volume-ikfik
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
         - prov-app
         from:
           kind: ImageStreamTag
-          name: prov-app:latest
+          name: prov-app:${ODS_IMAGE_TAG}
           namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
-parameters:
-- name: TAILOR_NAMESPACE
-  required: true
+    - type: ConfigChange

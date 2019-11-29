@@ -74,13 +74,8 @@ public class ProjectData {
   /** Create a permission set within the spaces / projects / repositories */
   public boolean createpermissionset = false;
 
-  /**
-   * The last jobs that where triggered by {@link
-   * IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or {@link
-   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
-   */
   @JsonIgnoreProperties({"lastJobs"})
-  public List<String> lastJobs = null;
+  public List<ExecutionJob> lastJobs = null;
 
   /** The type of project(s) that should be created, used for templating */
   public String projectType = null;

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.rundeck.Job;
@@ -194,11 +196,11 @@ public class ProjectApiController {
       String error =
           (cleanupResults.size() == 0)
               ? format(
-                  "An error occured while creating project %s, reason %s"
+                  "An error occured while creating project [%s], reason [%s]"
                       + " - but all cleaned up!",
                   newProject.projectKey, exProvisionNew.getMessage())
               : format(
-                  "An error occured while creating project %s, reason %s"
+                  "An error occured while creating project [%s], reason [%s]"
                       + " - cleanup attempted, but [%s] components are still there!",
                   newProject.projectKey, exProvisionNew.getMessage(), cleanupResults);
 
@@ -238,9 +240,15 @@ public class ProjectApiController {
         return ResponseEntity.notFound().build();
       }
 
+      // in case only quickstarters are passed - we are setting the upgrade flag
+      if (updatedProject.quickstarters != null && updatedProject.quickstarters.size() > 0) {
+        updatedProject.platformRuntime = true;
+      }
+
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
       updatedProject.projectName = storedExistingProject.projectName;
+      updatedProject.webhookProxySecret = storedExistingProject.webhookProxySecret;
 
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
@@ -342,15 +350,15 @@ public class ProjectApiController {
       return project;
     }
 
+    // create auxilaries - for design and for the ocp artifacts
+    String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
+
     if (project.scmvcsUrl == null) {
       // create the bugtracker project
       project.scmvcsUrl = bitbucketAdapter.createSCMProjectForODSProject(project);
 
       Preconditions.checkNotNull(
           project.scmvcsUrl, bitbucketAdapter.getClass() + " did not return scmvcs url");
-
-      // create auxilaries - for design and for the ocp artifacts
-      String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
 
       project.repositories =
           bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(project, auxiliaryRepositories);
@@ -375,7 +383,7 @@ public class ProjectApiController {
     }
 
     logger.debug(
-        "New quickstarters {}, existing repos: {}, new repos; {}",
+        "New quickstarters {}, prior existing repos: {}, now project repos: {}",
         newQuickstarters,
         existingComponentRepos,
         project.repositories.size());
@@ -391,8 +399,16 @@ public class ProjectApiController {
     // quickstarters
     addRepositoryUrlsToQuickstarters(project);
 
+    List<String> auxiliariesToExclude = new ArrayList<>();
+    final String projectKey = project.projectKey;
+    Arrays.asList(auxiliaryRepositories)
+        .forEach(
+            repoName ->
+                auxiliariesToExclude.add(
+                    bitbucketAdapter.createRepoNameFromComponentName(projectKey, repoName)));
+
     // create jira components from newly created repos
-    jiraAdapter.createComponentsForProjectRepositories(project);
+    jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
 
     // add the long running execution links from the
     // IJobExecutionAdapter, so the consumer can track them
@@ -400,10 +416,11 @@ public class ProjectApiController {
       project.lastExecutionJobs = new ArrayList<>();
     }
     List<ExecutionsData> jobs = rundeckAdapter.provisionComponentsBasedOnQuickstarters(project);
-    logger.debug("New executions: {}", jobs.size());
+    logger.debug("New quickstarter rundeck executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
-      project.lastExecutionJobs.add(singleJob.getPermalink());
+      project.lastExecutionJobs.add(
+          new ExecutionJob(singleJob.getJobName(), singleJob.getPermalink()));
     }
 
     return project;
@@ -547,7 +564,7 @@ public class ProjectApiController {
 
   private void addRepositoryUrlsToQuickstarters(OpenProjectData project) {
     if (project.quickstarters == null || project.repositories == null) {
-      logger.debug("Nothing to do on project {}", project.projectKey);
+      logger.debug("Repository Url mgmt - nothing to do on project {}", project.projectKey);
       return;
     }
 

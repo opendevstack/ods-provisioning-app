@@ -185,35 +185,8 @@
                     <label for="platformRuntime">Create Openshift Project</label>
                     <input type="checkbox" name="platformRuntime" id="platformRuntime" checked="true"/>
 				</div>                
+                <button type="submit" class="btn btn-default pull-right">Start provision</button>
             </fieldset>
-            <fieldset class="form-group quickstartergroup">
-                <legend class="col-form-legend">Quickstarter</legend>
-
-                <div class="form-group form-inline entry">
-                        <div class="checkbox">
-                            <!-- label -->
-                                <input type="checkbox" name="quickstart-checked-1"  disabled="disabled"/>
-                            <!-- span th:text="${project.description}"></span></label> -->
-                            <select class="form-control quickstart-chooser" name="quickstart-type-1">
-                                <option value=""></option>
-                                <option th:each="project : ${quickStarter}" th:value="${project.id}" th:text="${project.description}">Project name</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group pull-right input-group col-xs-5">
-                                <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id" data-unique-error="The component id already exist"/>
-                                <span class="input-group-btn">
-                                <button class="btn btn-success btn-add" type="button">
-                                    <span class="glyphicon glyphicon-plus"></span>
-                                </button>
-                            </span>
-                            <div class="row"></div>
-                            <div class="help-block with-errors" name="quickstart-error-1"></div>
-                        </div>
-                </div>
-
-            </fieldset>
-            <button type="submit" class="btn btn-default pull-right">Start provision</button>
         </form>
 
     </div>
@@ -277,7 +250,7 @@
                                 </div>
 								<div class="row">
                                     <div class="col-xs-8 col-sm-6">
-                                        Provisioniong jobs:
+                                        Provisioning jobs:
                                     </div>
                                     <div class="col-xs-4 col-sm-6" id="dataJobUrls"></div>
                                 </div>                                

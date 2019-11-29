@@ -1,5 +1,22 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: ODS_IMAGE_TAG
+  required: true
+- name: NEXUS_URL
+  required: true
+- name: SONARQUBE_URL
+  required: true
+- name: REPO_BASE
+  required: true
+- name: DOCKER_REGISTRY
+  required: true
+- name: NEXUS_USERNAME
+  required: true
+- name: BITBUCKET_HOST
+  required: true
+- name: CD_NAMESPACE
+  value: cd
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -60,7 +77,7 @@ objects:
                 name: nexus
           - name: BITBUCKET_HOST
             value: ${BITBUCKET_HOST}
-          image: cd/jenkins-master:latest
+          image: cd/jenkins-master:${ODS_IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 30
@@ -87,7 +104,7 @@ objects:
             limits:
               memory: 2Gi
             requests:
-              memory: 100Mi
+              memory: 1Gi
           securityContext:
             capabilities: {}
             privileged: false
@@ -115,7 +132,7 @@ objects:
         - jenkins
         from:
           kind: ImageStreamTag
-          name: jenkins-master:latest
+          name: jenkins-master:${ODS_IMAGE_TAG}
           namespace: cd
       type: ImageChange
     - type: ConfigChange
@@ -141,7 +158,6 @@ objects:
       type: Rolling
     template:
       metadata:
-        annotations: {}
         labels:
           app: jenkins-webhook-proxy
       spec:
@@ -154,7 +170,7 @@ objects:
               secretKeyRef:
                 key: trigger-secret
                 name: webhook-proxy
-          image: ${CD_NAMESPACE}/jenkins-webhook-proxy:latest
+          image: ${CD_NAMESPACE}/jenkins-webhook-proxy:${ODS_IMAGE_TAG}
           imagePullPolicy: Always
           name: webhook-proxy
           resources: {}
@@ -167,28 +183,13 @@ objects:
         terminationGracePeriodSeconds: 30
     test: false
     triggers:
-    - type: ConfigChange
     - imageChangeParams:
         automatic: true
         containerNames:
         - webhook-proxy
         from:
           kind: ImageStreamTag
-          name: jenkins-webhook-proxy:latest
+          name: jenkins-webhook-proxy:${ODS_IMAGE_TAG}
           namespace: ${CD_NAMESPACE}
       type: ImageChange
-parameters:
-- name: NEXUS_URL
-  required: true
-- name: SONARQUBE_URL
-  required: true
-- name: REPO_BASE
-  required: true
-- name: DOCKER_REGISTRY
-  required: true
-- name: NEXUS_USERNAME
-  required: true
-- name: BITBUCKET_HOST
-  required: true
-- name: CD_NAMESPACE
-  value: cd
+    - type: ConfigChange

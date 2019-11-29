@@ -28,10 +28,10 @@ import javax.annotation.Generated;
 public class ExecutionsData {
   Integer id;
   String status;
-  String href;
   String errorCode;
   String message;
   boolean error;
+  String jobName;
   String permalink;
 
   public Integer getId() {
@@ -50,20 +50,20 @@ public class ExecutionsData {
     this.status = status;
   }
 
-  public String getHref() {
-    return href;
-  }
-
-  public void setHref(String href) {
-    this.href = href;
-  }
-
   public void setPermalink(String permalink) {
     this.permalink = permalink;
   }
 
   public String getPermalink() {
     return this.permalink;
+  }
+
+  public String getJobName() {
+    return jobName;
+  }
+
+  public void setJobName(String jobName) {
+    this.jobName = jobName;
   }
 
   public void setErrorCode(String errorCode) {

@@ -40,6 +40,9 @@ public class OpenProjectData {
   public String description = null;
   /** The unique key of the project, must not be null */
   public String projectKey = null;
+
+  /** The secret to call webhook_proxy within the new env. Needed 2 create quickstarters */
+  public String webhookProxySecret = null;
   /**
    * Map of quickstarters used, to get the chosen name of the quickstarter picked, use {@link
    * #COMPONENT_ID_KEY} against the map contained. To get the quickstarter's type use {@link
@@ -83,11 +86,11 @@ public class OpenProjectData {
 
   /**
    * The last jobs that where triggered by {@link
-   * IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or {@link
-   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
+   * IJobExecutionAdapter#createPlatformProjects(OpenProjectData)} or {@link
+   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(OpenProjectData)}
    */
   @JsonIgnoreProperties({"lastExecutionJobs"})
-  public List<String> lastExecutionJobs = null;
+  public List<ExecutionJob> lastExecutionJobs = null;
 
   /** The type of project(s) that should be created, used for templating */
   public String projectType = null;

@@ -44,6 +44,7 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
@@ -210,7 +211,7 @@ public class ProjectApiControllerTest {
         .createComponentRepositoriesForODSProject(isNotNull());
     // jira components
     Mockito.verify(jiraAdapter, Mockito.times(1))
-        .createComponentsForProjectRepositories(isNotNull());
+        .createComponentsForProjectRepositories(isNotNull(), isNotNull());
   }
 
   @Test
@@ -270,6 +271,33 @@ public class ProjectApiControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void addProjectInLegacyFormatErrorsOut() throws Exception {
+    ProjectData oldLegacyData = new ProjectData();
+    oldLegacyData.name = "abcName";
+    oldLegacyData.key = "abcKey";
+
+    // new endpoint - old format, fail!
+    mockMvc
+        .perform(
+            post("/api/v2/project")
+                .content(asJsonString(oldLegacyData))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+    // wrong (old) endpoint
+    mockMvc
+        .perform(
+            post("/api/v1/project")
+                .content(asJsonString(oldLegacyData))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isNotFound());
   }
 
   @Test
@@ -514,6 +542,41 @@ public class ProjectApiControllerTest {
 
     // rundeck should have been called (and repo creation as well)
     Mockito.verify(bitbucketAdapter, Mockito.times(2)).createSCMProjectForODSProject(isNotNull());
+  }
+
+  @Test
+  public void updateProjectWithQSAdditionOnly() throws Exception {
+    // allow upgrade
+    apiController.ocUpgradeAllowed = true;
+
+    data.platformRuntime = false;
+    data.quickstarters = null;
+
+    // existing - store prior
+    when(storage.getProject(anyString())).thenReturn(data);
+
+    // upgrade to OC - based on a quickstarter
+    OpenProjectData upgrade = new OpenProjectData();
+    upgrade.projectKey = data.projectKey;
+    upgrade.platformRuntime = false;
+
+    Map<String, String> newQS = new HashMap<>();
+    newQS.put("component_type", "someComponentType");
+    newQS.put("component_id", "someComponentName");
+
+    upgrade.quickstarters = new ArrayList<>();
+    upgrade.quickstarters.add(newQS);
+
+    // this will error out - because of the test mock, but the key is scm project creation
+    mockMvc
+        .perform(
+            put("/api/v2/project")
+                .content(asJsonString(upgrade))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print());
+
+    Mockito.verify(bitbucketAdapter).createSCMProjectForODSProject(isNotNull());
   }
 
   @Test
