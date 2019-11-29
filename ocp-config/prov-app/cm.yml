@@ -25,7 +25,7 @@ parameters:
   description: the API host of the OCP cluster
 - name: OPENSHIFT_CONSOLE_HOST
   required: true
-  description: the console host of the OCP cluster 
+  description: the console host of the OCP cluster
 - name: PROV_APP_CROWD_USER_GROUP
   required: true
   description: crowd user group
@@ -171,7 +171,7 @@ objects:
       jenkinspipeline.quickstarter.feIonic.desc=Mobile - Ionic
       jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#production/fe-ionic/Jenkinsfile
 
-      # Other Quickstarters
+      # Other quickstarters
       jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
       jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#production/be-airflow/Jenkinsfile
       jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
