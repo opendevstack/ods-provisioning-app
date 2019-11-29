@@ -157,7 +157,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("ODS_IMAGE_TAG", odsImageTag);
         options.put("ODS_GIT_REF", odsGitRef);
 
-        executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
+        String triggerSecret =
+            project.webhookProxySecret != null
+                ? project.webhookProxySecret
+                : projectOpenshiftJenkinsTriggerSecret;
+
+        executionList.add(prepareAndExecuteJob(jobId, options, triggerSecret));
       }
     }
     return executionList;
