@@ -12,6 +12,26 @@ public class Quickstarter {
   private String desc;
   private QuickstarterType type = QuickstarterType.component;
 
+  public Quickstarter() {}
+
+  private Quickstarter(String name, String url, String desc) {
+    this.name = name;
+    this.url = url;
+    this.desc = desc;
+  }
+
+  public static Quickstarter componentQuickstarter(String name, String url, String desc) {
+    Quickstarter result = new Quickstarter(name, url, desc);
+    result.type = QuickstarterType.component;
+    return result;
+  }
+
+  public static Quickstarter projectQuickstarter(String name, String url, String desc) {
+    Quickstarter result = new Quickstarter(name, url, desc);
+    result.type = QuickstarterType.project;
+    return result;
+  }
+
   public String getUrl() {
     return url;
   }

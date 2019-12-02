@@ -34,7 +34,6 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Execution;
 import org.opendevstack.provision.model.jenkins.Job;
-import org.opendevstack.provision.model.webhookproxy.Annotations;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.jenkins.project.name.pattern}")
   protected String projectOpenshiftJenkinsProjectPattern;
 
-  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
+  @Autowired protected JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${bitbucket.uri}")
   protected String bitbucketUri;
@@ -97,6 +96,10 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .sorted(Comparator.comparing(Job::getDescription))
             .collect(Collectors.toList());
     logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
+  }
+
+  public JenkinsPipelineProperties getJenkinsPipelineProperties() {
+    return jenkinsPipelineProperties;
   }
 
   public List<Job> getComponentQuickstarters() {
@@ -126,7 +129,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("PACKAGE_NAME", packageName);
 
         final Job job =
-            getComponentQuickstarters().stream().filter(x -> x.id.equals(jobId)).findFirst().get();
+            getComponentQuickstarters().stream()
+                .filter(x -> x.id.equals(jobId))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new RuntimeException(
+                            String.format("Cannot find quickstarter with id=%s!", jobId)));
         executionList.add(prepareAndExecuteJob(job, options, project.webhookProxySecret));
       }
     }
@@ -243,11 +252,10 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       ExecutionsData executionsData = new ExecutionsData();
       executionsData.setMessage(data.toString());
 
-      String namespace = data.getMetadata().getNamespace();
-      Annotations annotations = data.getMetadata().getAnnotations();
+      String namespace = data.extractNamespace();
 
-      String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
-      String buildNumber = annotations.getBuildNumber();
+      String jobName = String.format("%s-%s", namespace, data.extractBuildConfigName());
+      String buildNumber = data.extractBuildNumber();
       String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
       String href =
           String.format(

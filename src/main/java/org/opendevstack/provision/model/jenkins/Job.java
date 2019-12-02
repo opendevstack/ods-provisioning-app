@@ -56,11 +56,11 @@ public class Job {
   }
 
   public Job(Quickstarter quickstarter) {
-    initJob(quickstarter.getName(), quickstarter.getUrl());
+    this(quickstarter.getName(), quickstarter.getUrl());
     description = quickstarter.getDesc();
   }
 
-  private void initJob(String jobname, String url) {
+  public Job(String jobname, String url) {
     String gitURL = url.split("\\.git")[0];
     gitParentProject = gitURL.split("/")[0];
     gitRepoName = gitURL.split("/")[1];

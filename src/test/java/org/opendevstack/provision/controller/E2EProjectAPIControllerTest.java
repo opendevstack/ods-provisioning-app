@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
+import static java.lang.String.format;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -45,9 +47,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.model.ExecutionsData;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
@@ -58,10 +61,10 @@ import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.model.jenkins.Execution;
-import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
+import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
@@ -69,6 +72,7 @@ import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.storage.LocalStorage;
+import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientMockHelper;
@@ -97,7 +101,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
-@Ignore("TODO fix in #282")
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
@@ -316,19 +319,13 @@ public class E2EProjectAPIControllerTest {
             .method(HttpMethod.POST),
         times(0));
 
-    // mockRundeckDefaultJobs();
-
-    // rundeck create-projects job execution
-    ExecutionsData execution =
-        readTestData("rundeck-create-project-response", ExecutionsData.class);
-
+    CreateProjectResponse configuredResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse("demo-cd", "build-config", 1);
     // will cause cleanup
     if (fail) {
-      // TODO url needs to be replaced for simulating failurs, since rundec no longer exists
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  // .url(containsString(realRundeckAdapter.getAdapterApiUri()))
                   .url(
                       containsString(
                           createJenkinsJobPath(
@@ -338,18 +335,16 @@ public class E2EProjectAPIControllerTest {
                   .method(HttpMethod.POST))
           .thenThrow(new IOException("Rundeck TestFail"));
     } else {
-      //      String createJobId = realJobStore.getJobIdForJobName("create-projects");
-      //      assertNotNull(createJobId);
-
-      String jenkinsfilePath = "create-projects/Jenkinsfile";
-      String component = "ods-corejob-create-projects-testp";
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  .url(containsString(createJenkinsJobPath(jenkinsfilePath, component)))
+                  .url(
+                      containsString(
+                          createJenkinsJobPath(
+                              "create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
-          .thenReturn(execution.toString());
+          .thenReturn(configuredResponse);
     }
 
     // create the ODS project
@@ -453,10 +448,32 @@ public class E2EProjectAPIControllerTest {
 
     // verify the execution
     assertEquals(1, resultProject.lastExecutionJobs.size());
-    assertEquals(execution.getPermalink(), resultProject.lastExecutionJobs.iterator().next());
+    ExecutionJob actualJob = resultProject.lastExecutionJobs.iterator().next();
+    assertActualJobMatchesInputParams(actualJob, configuredResponse);
 
     // verify 2 repos are created
     assertEquals("Repository created", 2, resultProject.repositories.size());
+  }
+
+  private void assertActualJobMatchesInputParams(
+      ExecutionJob actualJob, CreateProjectResponse configuredResponse) {
+    String namespace = configuredResponse.extractNamespace();
+    Assertions.assertThat(actualJob.getName())
+        .isEqualTo(namespace + "-" + configuredResponse.extractBuildConfigName());
+
+    Assertions.assertThat(actualJob.getUrl())
+        .contains(
+            format(
+                "https://jenkins-%s.192.168.56.101.nip.io/job/%s/job/%s-%s/%s",
+                namespace,
+                namespace,
+                namespace,
+                configuredResponse.extractBuildConfigName(),
+                configuredResponse.extractBuildNumber()));
+
+    String expectedUrlSuffix =
+        configuredResponse.extractBuildConfigName() + "/" + configuredResponse.extractBuildNumber();
+    Assertions.assertThat(actualJob.getUrl()).endsWith(expectedUrlSuffix);
   }
 
   /** Test positive new quickstarter */
@@ -467,8 +484,8 @@ public class E2EProjectAPIControllerTest {
 
   /** Test positive new quickstarter and delete project afterwards */
   @Test
+  @Ignore("TODO Still needs to be fixed")
   public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
-    // mockRundeckDefaultJobs();
     OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
 
@@ -569,40 +586,25 @@ public class E2EProjectAPIControllerTest {
                 .method(HttpMethod.POST))
         .thenReturn(bitbucketRepositoryDataQSRepo);
 
-    // get the rundeck jobs
-    List<Job> jobList =
-        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+    CreateProjectResponse configuredCreateProjectResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse("demo-dev", "my-build-config", 2);
 
-    mockHelper
-        .mockExecute(
+    OngoingStubbing<Object> stub =
+        mockHelper.mockExecute(
             matchesClientCall()
-                .url(containsString(realRundeckAdapter.getAdapterApiUri() + "/project/"))
-                .method(HttpMethod.GET))
-        .thenReturn(jobList);
-    // rundeck create component job execution
-    ExecutionsData execution =
-        readTestData("rundeck-create-python-qs-response", ExecutionsData.class);
-
-    String createPythonComponentQSJob = realJobStore.getJobIdForJobName("create-rshiny");
-    assertNotNull(createPythonComponentQSJob);
-
+                .url(
+                    containsString(
+                        "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
+                .url(
+                    containsString(
+                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-bePythonFlask-be-python-flask"))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST));
     // if !fail - return a clean response from rundeck, else let the execution post fail
     if (!fail) {
-      mockHelper
-          .mockExecute(
-              matchesClientCall()
-                  .url(containsString(createRundeckJobPath(createPythonComponentQSJob)))
-                  .bodyMatches(instanceOf(Execution.class))
-                  .method(HttpMethod.POST))
-          .thenReturn(execution);
+      stub.thenReturn(configuredCreateProjectResponse);
     } else {
-      mockHelper
-          .mockExecute(
-              matchesClientCall()
-                  .url(containsString(createRundeckJobPath(createPythonComponentQSJob)))
-                  .bodyMatches(instanceOf(Execution.class))
-                  .method(HttpMethod.POST))
-          .thenThrow(new IOException("Rundeck provision job failed"));
+      stub.thenThrow(new IOException("Rundeck provision job failed"));
     }
 
     // update the project with the new quickstarter
@@ -670,7 +672,8 @@ public class E2EProjectAPIControllerTest {
     assertEquals(1, createdQuickstarters.size());
 
     assertEquals(1, resultProject.lastExecutionJobs.size());
-    assertEquals(execution.getPermalink(), resultProject.lastExecutionJobs.iterator().next());
+    ExecutionJob actualJob = resultProject.lastExecutionJobs.iterator().next();
+    assertActualJobMatchesInputParams(actualJob, configuredCreateProjectResponse);
 
     // return the new fully built project for further use
     return resultProject;
@@ -736,7 +739,7 @@ public class E2EProjectAPIControllerTest {
 
   private String createRundeckJobPath(String jobId) {
     Preconditions.checkNotNull(jobId, "job id cannot be null");
-    return String.format("job/%s/run", jobId);
+    return format("job/%s/run", jobId);
   }
 
   private String createJenkinsJobPath(String jenkinsfilePath, String component) {
