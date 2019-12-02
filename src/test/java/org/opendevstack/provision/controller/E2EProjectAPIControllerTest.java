@@ -97,7 +97,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
-//@Ignore("TODO fix in #282")
+@Ignore("TODO fix in #282")
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
@@ -155,8 +155,8 @@ public class E2EProjectAPIControllerTest {
     realMailAdapter.isMailEnabled = false;
 
     // populate the rundeck jobs
-//    List<Job> jobList =
-//        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
+    //    List<Job> jobList =
+    //        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
 
     // realJobStore.addJobs(jobList);
   }
@@ -324,22 +324,25 @@ public class E2EProjectAPIControllerTest {
 
     // will cause cleanup
     if (fail) {
-      //TODO url needs to be replaced for simulating failurs, since rundec no longer exists
+      // TODO url needs to be replaced for simulating failurs, since rundec no longer exists
       mockHelper
           .mockExecute(
               matchesClientCall()
-                  //.url(containsString(realRundeckAdapter.getAdapterApiUri()))
-                  .url(containsString(createJenkinsJobPath("create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
-                  //.url(containsString("/run"))
+                  // .url(containsString(realRundeckAdapter.getAdapterApiUri()))
+                  .url(
+                      containsString(
+                          createJenkinsJobPath(
+                              "create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
+                  // .url(containsString("/run"))
                   .bodyMatches(instanceOf(Execution.class))
                   .method(HttpMethod.POST))
           .thenThrow(new IOException("Rundeck TestFail"));
     } else {
-//      String createJobId = realJobStore.getJobIdForJobName("create-projects");
-//      assertNotNull(createJobId);
+      //      String createJobId = realJobStore.getJobIdForJobName("create-projects");
+      //      assertNotNull(createJobId);
 
-      String jenkinsfilePath="create-projects/Jenkinsfile";
-      String component="ods-corejob-create-projects-testp";
+      String jenkinsfilePath = "create-projects/Jenkinsfile";
+      String component = "ods-corejob-create-projects-testp";
       mockHelper
           .mockExecute(
               matchesClientCall()
@@ -455,8 +458,6 @@ public class E2EProjectAPIControllerTest {
     // verify 2 repos are created
     assertEquals("Repository created", 2, resultProject.repositories.size());
   }
-
-
 
   /** Test positive new quickstarter */
   @Test
@@ -739,7 +740,9 @@ public class E2EProjectAPIControllerTest {
   }
 
   private String createJenkinsJobPath(String jenkinsfilePath, String component) {
-    return
-        "https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="+jenkinsfilePath+"&component="+component;
+    return "https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+        + jenkinsfilePath
+        + "&component="
+        + component;
   }
 }

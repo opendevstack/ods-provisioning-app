@@ -411,7 +411,9 @@ public class ProjectApiController {
     if (project.bugtrackerSpace) {
       jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
     } else {
-      logger.info("Do not create bugtracker components for {}, since it has no bugtragger space configured!", project.projectKey);
+      logger.info(
+          "Do not create bugtracker components for {}, since it has no bugtragger space configured!",
+          project.projectKey);
     }
 
     // add the long running execution links from the
