@@ -18,23 +18,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.config.JenkinsPipelineProperties;
+import org.opendevstack.provision.config.Quickstarter;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Execution;
 import org.opendevstack.provision.model.jenkins.Job;
+import org.opendevstack.provision.model.webhookproxy.Annotations;
+import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -57,9 +63,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${rundeck.group.pattern}")
   protected String groupPattern;
 
-  @Value("${rundeck.project.openshift.create.name}")
-  protected String projectCreateOpenshiftJob;
-
   @Value("${openshift.apps.basedomain}")
   protected String projectOpenshiftBaseDomain;
 
@@ -75,18 +78,26 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.jenkins.project.name.pattern}")
   protected String projectOpenshiftJenkinsProjectPattern;
 
-  @Value("#{${jenkinspipeline.quickstarter}}")
-  protected Map<String, String> jenkinsPipelineQuickstarter;
-
-  @Value("${jenkinspipeline.create-ods-projects-job}")
-  protected String jenkinsPipelineCreateOdsProjectsJob;
+  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${bitbucket.uri}")
   protected String bitbucketUri;
 
+  private List<Job> componentQuickstarters;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
+
+  @PostConstruct
+  public void init() {
+    componentQuickstarters =
+        jenkinsPipelineProperties.getQuickstarter().values().stream()
+            .filter(Quickstarter::isComponentQuickstarter)
+            .map(Job::new)
+            .sorted(Comparator.comparing(Job::getDescription))
+            .collect(Collectors.toList());
+    logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
 
   public Map<String, String> getJenkinsPipelineQuickstarter() {
     return Collections.unmodifiableMap(jenkinsPipelineQuickstarter);
@@ -103,30 +114,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         .collect(Collectors.toList());
   }
 
-  protected Job createJobFromUrl(String jobname, String url) {
-    String gitURL = url.split("\\.git")[0];
-    String gitParentProject = gitURL.split("/")[0];
-    String gitRepoName = gitURL.split("/")[1];
-    String jenkinsPath = url.split("\\.git")[1];
-    String branch = "master";
-    if (jenkinsPath.startsWith("#")) {
-      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
-      Matcher matcher = pattern.matcher(jenkinsPath);
-      matcher.find();
-      branch = matcher.group(1);
-      jenkinsPath = matcher.group(2);
-    } else {
-      jenkinsPath = jenkinsPath.substring(1);
-    }
-    Job job =
-        new Job(
-            jobname, true, jobname, jobname, gitParentProject, gitRepoName, jenkinsPath, branch);
-    return job;
+  public List<Job> getComponentQuickstarters() {
+    return componentQuickstarters;
   }
 
   public Job getCreateOdsProjectsJob() {
-
-    return createJobFromUrl(projectCreateOpenshiftJob, jenkinsPipelineCreateOdsProjectsJob);
+    return new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter());
   }
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
@@ -151,7 +144,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("PROJECT_ID", project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
 
-        executionList.add(prepareAndExecuteJob(jobId, options, project.webhookProxySecret));
+        final Job job =
+            getComponentQuickstarters().stream().filter(x -> x.id.equals(jobId)).findFirst().get();
+        executionList.add(prepareAndExecuteJob(job, options, project.webhookProxySecret));
       }
     }
     return executionList;
@@ -169,10 +164,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
 
-    options.put("BITBUCKET_HOST", bitbucketUri);
-
     try {
-
       options.put("PROJECT_ID", project.projectKey.toLowerCase());
       if (project.specialPermissionSet) {
         String entitlementGroups =
@@ -200,7 +192,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
       ExecutionsData data =
           prepareAndExecuteJob(
-              projectCreateOpenshiftJob, options, projectOpenshiftJenkinsTriggerSecret);
+              new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter()),
+              options,
+              projectOpenshiftJenkinsTriggerSecret);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -227,8 +221,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               project.projectKey.toLowerCase());
 
       project.lastExecutionJobs = new ArrayList<>();
-      project.lastExecutionJobs.add(data.getPermalink());
-      logger.debug("Project creation job: {} ", data.getPermalink());
+      ExecutionJob executionJob = new ExecutionJob(data.getJobName(), data.getPermalink());
+      project.lastExecutionJobs.add(executionJob);
+      logger.debug("Project creation job: {} ", executionJob);
       return project;
     } catch (IOException ex) {
       String error =
@@ -250,8 +245,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private ExecutionsData prepareAndExecuteJob(
-      String jobNameOrId, Map<String, String> options, String webhook_proxy_secret)
-      throws IOException {
+      final Job job, Map<String, String> options, String webhook_proxy_secret) throws IOException {
+
+    String jobNameOrId = job.getName();
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
     Execution execution = buildExecutionObject(jobNameOrId, options, webhook_proxy_secret);
     try {
@@ -276,9 +272,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       String jobNameOrId, Map<String, String> options, String webhookProxySecret) {
     String projID = Objects.toString(options.get("PROJECT_ID"));
     Execution execution = new Execution();
-    if (projectCreateOpenshiftJob.equals(jobNameOrId)) { // we create something
-
-      Job job = getCreateOdsProjectsJob();
+    boolean createNewInitiative =
+        jenkinsPipelineProperties.getCreateProjectQuickstarter().getName().equals(jobNameOrId);
+    if (createNewInitiative) {
 
       String webhookProxyHost =
           String.format(
@@ -301,8 +297,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     } else {
       String component_id = Objects.toString(options.get("component_id"));
 
-      final Job job = findJobWitchNameOrId(jobNameOrId);
-
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
@@ -324,7 +318,33 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (options != null) {
       execution.setOptions(options);
     }
-    return execution;
+    try {
+      CreateProjectResponse data =
+          restClient.execute(
+              notAuthenticatedCall(HttpVerb.POST)
+                  .url(url)
+                  .body(execution)
+                  .returnType(CreateProjectResponse.class));
+      logger.info("Webhook proxy returned " + data.toString());
+      ExecutionsData ret = new ExecutionsData();
+      ret.setMessage(data.toString());
+
+      String namespace = data.getMetadata().getNamespace();
+      Annotations annotations = data.getMetadata().getAnnotations();
+
+      String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
+      String buildNumber = annotations.getBuildNumber();
+      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
+      String href =
+          String.format(
+              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
+      ret.setJobName(jobName);
+      ret.setPermalink(href);
+      return ret;
+    } catch (IOException rundeckException) {
+      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
+      throw rundeckException;
+    }
   }
 
   private Job findJobWitchNameOrId(String jobNameOrId) {

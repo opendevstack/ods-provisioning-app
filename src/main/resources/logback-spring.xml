@@ -47,4 +47,8 @@
 		<appender-ref ref="STDOUT" />
 	</root>
 
+	<logger name="com.atlassian.crowd" level="WARN"/>
+	<logger name="org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager" level="INFO"/>
+	<logger name="org.opendevstack.provision.util.rest.RestClientCall" level="INFO"/>
+
 </configuration>

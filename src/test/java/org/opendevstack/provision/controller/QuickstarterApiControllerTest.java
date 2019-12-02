@@ -77,7 +77,7 @@ public class QuickstarterApiControllerTest {
 
   @Test
   public void getQuickstarters() throws Exception {
-    Mockito.when(rundeckAdapter.getQuickstarters()).thenReturn(jobs);
+    Mockito.when(rundeckAdapter.getComponentQuickstarters()).thenReturn(jobs);
 
     mockMvc
         .perform(get("/api/v1/quickstarter"))

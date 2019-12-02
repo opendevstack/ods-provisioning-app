@@ -35,6 +35,7 @@ import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
+import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
@@ -419,7 +420,8 @@ public class ProjectApiController {
     logger.debug("New quickstarter rundeck executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
-      project.lastExecutionJobs.add(singleJob.getPermalink());
+      project.lastExecutionJobs.add(
+          new ExecutionJob(singleJob.getJobName(), singleJob.getPermalink()));
     }
 
     return project;
@@ -444,7 +446,7 @@ public class ProjectApiController {
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getQuickstarters();
+      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getComponentQuickstarters();
 
       for (Map<String, String> quickstarters : project.quickstarters) {
         String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
