@@ -129,9 +129,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("PROJECT_ID", project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
 
+        String triggerSecret =
+            project.webhookProxySecret != null
+                ? project.webhookProxySecret
+                : projectOpenshiftJenkinsTriggerSecret;
+
         final Job job =
             getComponentQuickstarters().stream().filter(x -> x.id.equals(jobId)).findFirst().get();
-        executionList.add(prepareAndExecuteJob(job, options, project.webhookProxySecret));
+        executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
       }
     }
     return executionList;
