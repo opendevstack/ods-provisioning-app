@@ -408,7 +408,11 @@ public class ProjectApiController {
                     bitbucketAdapter.createRepoNameFromComponentName(projectKey, repoName)));
 
     // create jira components from newly created repos
-    jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
+    if (project.bugtrackerSpace) {
+      jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
+    } else {
+      logger.info("Do not create bugtracker components for {}, since it has no bugtragger space configured!", project.projectKey);
+    }
 
     // add the long running execution links from the
     // IJobExecutionAdapter, so the consumer can track them
