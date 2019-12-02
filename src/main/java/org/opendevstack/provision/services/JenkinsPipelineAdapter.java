@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to interact with rundeck
+ * Service to interact with Jenkins in order to provision projects and components.
  *
  * @author Torsten Jaeschke
  */
@@ -58,7 +58,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.jenkins.trigger.secret}")
   private String projectOpenshiftJenkinsTriggerSecret;
 
-  @Value("${rundeck.group.pattern}")
+  @Value("${artifact.group.pattern}")
   protected String groupPattern;
 
   @Value("${openshift.apps.basedomain}")
@@ -357,7 +357,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
       for (String quickstarterName : quickstartersToDelete) {
-        logger.debug("Could not start delete job for component {}, {}", quickstarterName);
+        logger.debug("Could not start delete job for component {}", quickstarterName);
         nonDeletedQuickstarters++;
       }
 
@@ -367,8 +367,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     }
 
     logger.debug(
-        "Cleanup done - status: {} components are left ..",
-        leftovers.size() == 0 ? 0 : leftovers.size());
+        "Cleanup done - status: {} components are left ..", leftovers.size());
 
     return leftovers;
   }

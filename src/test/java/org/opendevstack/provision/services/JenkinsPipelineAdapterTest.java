@@ -56,8 +56,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  private static final String COMPONENT_ID = "2";
-  private static final String PROJECT_ID = "1";
   private static final String PROJECT_KEY = "123key";
 
   @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;

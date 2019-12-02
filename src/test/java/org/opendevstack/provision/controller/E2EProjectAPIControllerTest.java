@@ -154,12 +154,6 @@ public class E2EProjectAPIControllerTest {
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
-
-    // populate the rundeck jobs
-    //    List<Job> jobList =
-    //        readTestDataTypeRef("rundeck-get-jobs-response", new TypeReference<List<Job>>() {});
-
-    // realJobStore.addJobs(jobList);
   }
 
   @AfterClass
@@ -482,7 +476,7 @@ public class E2EProjectAPIControllerTest {
 
   /** Test positive new quickstarter and delete project afterwards */
   @Test
-  @Ignore("TODO Still needs to be fixed")
+  @Ignore("TODO Enable test. Has to be done via #294")
   public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
     OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
@@ -508,17 +502,9 @@ public class E2EProjectAPIControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk());
 
     String deleteComponentJobId = "RundeckAdapter.DELETE_COMPONENT_JOB";
-    //        realJobStore.getJobIdForJobName("RundeckAdapter.DELETE_COMPONENT_JOB");
-    assertNotNull(deleteComponentJobId);
 
-    // delete component thru rundeck
+    // TODO delete component via Jenkins job
 
-    mockHelper.verifyExecute(
-        matchesClientCall()
-            .url(containsString(createRundeckJobPath(deleteComponentJobId)))
-            .bodyMatches(instanceOf(Execution.class))
-            .method(HttpMethod.POST),
-        times(1));
 
     // delete the ODS project
     mockMvc
@@ -531,10 +517,10 @@ public class E2EProjectAPIControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk());
 
     String deleteProjectJobId = "RundeckAdapter.DELETE_PROJECTS_JOB";
-    // realJobStore.getJobIdForJobName("RundeckAdapter.DELETE_PROJECTS_JOB");
+
     assertNotNull(deleteProjectJobId);
 
-    // delete projects rundeck job
+    // TODO delete project via Jenkins job
     RestClientCallArgumentMatcher wantedArgument =
         matchesClientCall()
             .url(containsString(createRundeckJobPath(deleteComponentJobId)))
@@ -598,11 +584,11 @@ public class E2EProjectAPIControllerTest {
                         "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-bePythonFlask-be-python-flask"))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
-    // if !fail - return a clean response from rundeck, else let the execution post fail
-    if (!fail) {
-      stub.thenReturn(configuredCreateProjectResponse);
+    if (fail) {
+      stub.thenThrow(
+          new IOException("Provision via Jenkins fails, because this was requested in test."));
     } else {
-      stub.thenThrow(new IOException("Rundeck provision job failed"));
+      stub.thenReturn(configuredCreateProjectResponse);
     }
 
     // update the project with the new quickstarter
@@ -685,9 +671,6 @@ public class E2EProjectAPIControllerTest {
   /** Test legacy upgrade e2e */
   @Test
   public void testLegacyProjectUpgradeOnGet() throws Exception {
-    // populate the rundeck jobs
-    // mockRundeckDefaultJobs();
-    // get the project thru its key
     MvcResult resultLegacyProjectGetResponse =
         mockMvc
             .perform(

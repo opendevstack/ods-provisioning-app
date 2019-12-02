@@ -237,7 +237,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   /**
-   * define a custom authentication manager, which is able to hold the password for rundeck
+   * define a custom authentication manager, which is able to hold the password
    *
    * @return
    * @throws IOException
