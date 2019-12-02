@@ -366,8 +366,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
     }
 
-    logger.debug(
-        "Cleanup done - status: {} components are left ..", leftovers.size());
+    logger.debug("Cleanup done - status: {} components are left ..", leftovers.size());
 
     return leftovers;
   }

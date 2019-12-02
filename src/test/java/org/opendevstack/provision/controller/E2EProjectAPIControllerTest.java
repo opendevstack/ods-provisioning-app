@@ -505,7 +505,6 @@ public class E2EProjectAPIControllerTest {
 
     // TODO delete component via Jenkins job
 
-
     // delete the ODS project
     mockMvc
         .perform(
