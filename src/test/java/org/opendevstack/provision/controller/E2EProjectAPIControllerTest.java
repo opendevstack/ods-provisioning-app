@@ -474,10 +474,9 @@ public class E2EProjectAPIControllerTest {
     testQuickstarterProvisionOnNewOpenProject(false);
   }
 
-  /** Test positive new quickstarter and delete project afterwards */
+  /** Test positive new quickstarter and delete whole project afterwards */
   @Test
-  @Ignore("TODO Enable test. Has to be done via #294")
-  public void testQuickstarterProvisionOnNewOpenProjectInclDelete() throws Exception {
+  public void testQuickstarterProvisionOnNewOpenProjectInclDeleteWholeProject() throws Exception {
     OpenProjectData createdProjectIncludingQuickstarters =
         testQuickstarterProvisionOnNewOpenProject(false);
 
@@ -490,7 +489,60 @@ public class E2EProjectAPIControllerTest {
     toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
-    // delete the quickstarter IN the project
+    CreateProjectResponse configuredResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse("testp", "build-config", 1);
+    String jenkinsJobPath =
+        createJenkinsJobPath("delete-projects/Jenkinsfile", "ods-corejob-delete-projects-testp");
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(jenkinsJobPath))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST))
+        .thenReturn(configuredResponse);
+    // delete whole projects (-cd, -dev and -test), calls
+    // org.opendevstack.provision.controller.ProjectApiController.deleteProject
+
+    mockMvc
+        .perform(
+            delete("/api/v2/project/" + toClean.projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .session(mocksession)
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+
+  /** Test positive new quickstarter and delete single component afterwards */
+  @Test
+  @Ignore("TODO via #296")
+  public void testQuickstarterProvisionOnNewOpenProjectInclDeleteSingleComponent()
+      throws Exception {
+    OpenProjectData createdProjectIncludingQuickstarters =
+        testQuickstarterProvisionOnNewOpenProject(false);
+
+    assertNotNull(createdProjectIncludingQuickstarters);
+    assertNotNull(createdProjectIncludingQuickstarters.projectKey);
+    assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
+    assertEquals(1, createdProjectIncludingQuickstarters.quickstarters.size());
+
+    OpenProjectData toClean = new OpenProjectData();
+    toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
+    toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
+
+    CreateProjectResponse configuredResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse("testp", "build-config", 1);
+    String jenkinsJobPath =
+        createJenkinsJobPath("delete-projects/Jenkinsfile", "ods-corejob-delete-projects-testp");
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(jenkinsJobPath))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST))
+        .thenReturn(configuredResponse);
+    // delete single component (via
+    // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
     mockMvc
         .perform(
             delete("/api/v2/project/")
@@ -500,37 +552,6 @@ public class E2EProjectAPIControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
-
-    String deleteComponentJobId = "RundeckAdapter.DELETE_COMPONENT_JOB";
-
-    // TODO delete component via Jenkins job
-
-    // delete the ODS project
-    mockMvc
-        .perform(
-            delete("/api/v2/project/" + toClean.projectKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .session(mocksession)
-                .accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
-
-    String deleteProjectJobId = "RundeckAdapter.DELETE_PROJECTS_JOB";
-
-    assertNotNull(deleteProjectJobId);
-
-    // TODO delete project via Jenkins job
-    RestClientCallArgumentMatcher wantedArgument =
-        matchesClientCall()
-            .url(containsString(createRundeckJobPath(deleteComponentJobId)))
-            .bodyMatches(instanceOf(Execution.class))
-            .method(HttpMethod.POST);
-    mockHelper.verifyExecute(
-        matchesClientCall()
-            .url(containsString(createRundeckJobPath(deleteProjectJobId)))
-            .bodyMatches(instanceOf(Execution.class))
-            .method(HttpMethod.POST),
-        times(1));
   }
 
   /** Test NEGATIVE new quickstarter - rollback ONE created repo */
@@ -715,11 +736,6 @@ public class E2EProjectAPIControllerTest {
       throw new IOException("Cannot find testfile with name:" + dataFile.getName());
     }
     return dataFile;
-  }
-
-  private String createRundeckJobPath(String jobId) {
-    Preconditions.checkNotNull(jobId, "job id cannot be null");
-    return format("job/%s/run", jobId);
   }
 
   private String createJenkinsJobPath(String jenkinsfilePath, String component) {
