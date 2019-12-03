@@ -1,5 +1,72 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: ODS_IMAGE_TAG
+  required: true
+- name: ODS_GIT_REF
+  required: true
+- name: PROV_APP_JIRA_URI
+  required: true
+  description: the URI of JIRA used to create new jira projects
+- name: PROV_APP_CONFLUENCE_URI
+  required: true
+  description: the URI of confluence used to create new confluence spaces
+- name: PROV_APP_BITBUCKET_URI
+  required: true
+  description: the URI of bitbucket used to create new project and repositories
+- name: PROV_APP_RUNDECK_URI
+  required: true
+  description: the URI of rundeck used to kickstart provisioning projects and components
+- name: PROV_APP_CROWD_URI
+  required: true
+  description: the URI of crowd used to authenticate users from the app against
+- name: OPENSHIFT_API_HOST
+  required: true
+  description: the API host of the OCP cluster
+- name: OPENSHIFT_CONSOLE_HOST
+  required: true
+  description: the console host of the OCP cluster
+- name: PROV_APP_CROWD_USER_GROUP
+  required: true
+  description: crowd user group
+- name: CD_USER_ID
+  required: true
+  description: the username of the CD user
+- name: OPENSHIFT_APPS_BASEDOMAIN
+  required: true
+  description: the domain of routes exposed on OCP
+- name: PROV_APP_PACKAGE_PREFIX
+  required: true
+  description: the default package prefix
+- name: PROV_APP_ATLASSIAN_DOMAIN
+  required: true
+  description: the domain of the atlassian toolsuite needed for single signon cookies
+- name: PROV_APP_CROWD_PASSWORD
+  required: true
+  description: password of the crowd app to authenticate the provision app against
+- name: PROV_APP_JASYPT_PASSWORD
+  required: true
+- name: PROV_APP_MAIL_HOST
+  required: true
+  description: The hostname of the mailserver
+- name: PROV_APP_MAIL_PASSWORD
+  required: true
+  description: The password to authenticate against the mail server
+- name: PROV_APP_MAIL_USERNAME
+  required: true
+  description: The username to authenticate against the mail server
+- name: PROV_APP_CROWD_ADMIN_GROUP
+  required: true
+  description: The crowd admin group name
+- name: PROV_APP_PIPELINE_TRIGGER_SECRET
+  required: true
+  description: The trigger secret to pass to the webhook proxy
+- name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
+  required: true
+  description: Log level of Atlassian crowd package
+- name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
+  required: true
+  description: Log level of OpenDevStack package
 objects:
 - kind: ConfigMap
   metadata:
@@ -67,10 +134,55 @@ objects:
       scm.global.readablerepos.opendevstack[1]=ods-quickstarters
       scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
 
-      # quickstarter & createProjects configuration
-      jenkinspipeline.quickstarter={beSpringBoot: 'opendevstack/ods-quickstarters.git#production/be-java-springboot/Jenkinsfile', dockerPlain: 'opendevstack/ods-quickstarters.git#production/docker-plain/Jenkinsfile', beGolangPlain: 'opendevstack/ods-quickstarters.git#production/be-golang-plain/Jenkinsfile', bePythonFlask: 'opendevstack/ods-quickstarters.git#production/be-python-flask/Jenkinsfile', dsJupyterNotebook: 'opendevstack/ods-quickstarters.git#production/ds-jupyter-notebook/Jenkinsfile', dsRshiny: 'opendevstack/ods-quickstarters.git#production/ds-rshiny/Jenkinsfile',feAngular: 'opendevstack/ods-quickstarters.git#production/fe-angular/Jenkinsfile',beTypescriptExpress: 'opendevstack/ods-quickstarters.git#production/be-typescript-express/Jenkinsfile',dsMlService: 'opendevstack/ods-quickstarters.git#production/ds-ml-service/Jenkinsfile',beAirflow: 'opendevstack/ods-quickstarters.git#production/be-airflow/Jenkinsfile',releaseManager: 'opendevstack/ods-quickstarters.git#production/release-manager/Jenkinsfile',beScalaAkka: 'opendevstack/ods-quickstarters.git#production/be-scala-akka/Jenkinsfile',e2eCypress: 'opendevstack/ods-quickstarters.git#production/e2e-cypress/Jenkinsfile', feReact: 'opendevstack/ods-quickstarters.git#production/fe-react/Jenkinsfile', feVue: 'opendevstack/ods-quickstarters.git#production/fe-vue/Jenkinsfile', feIonic: 'opendevstack/ods-quickstarters.git#production/fe-ionic/Jenkinsfile'}
-      jenkinspipeline.create-ods-projects-job=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
-      
+      # ODS properties
+      ods.image-tag=${ODS_IMAGE_TAG}
+      ods.git-ref=${ODS_GIT_REF}
+
+      # createProjects configuration
+      jenkinspipeline.quickstarter.create-projects.desc=Create Project. Only used internally, therefore separated from other quickstarters
+      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
+      jenkinspipeline.quickstarter.create-projects.type=project
+
+      # Backend quickstarters
+      jenkinspipeline.quickstarter.beSpringBoot.desc=Backend - SpringBoot/Java
+      jenkinspipeline.quickstarter.beSpringBoot.url=opendevstack/ods-quickstarters.git#production/be-java-springboot/Jenkinsfile
+      jenkinspipeline.quickstarter.dockerPlain.desc=Backend - Docker/Plain
+      jenkinspipeline.quickstarter.dockerPlain.url=opendevstack/ods-quickstarters.git#production/docker-plain/Jenkinsfile
+      jenkinspipeline.quickstarter.beGolangPlain.desc=Backend - Golang
+      jenkinspipeline.quickstarter.beGolangPlain.url=opendevstack/ods-quickstarters.git#production/be-golang-plain/Jenkinsfile
+      jenkinspipeline.quickstarter.bePythonFlask.desc=Backend - Python/Flask
+      jenkinspipeline.quickstarter.bePythonFlask.url=opendevstack/ods-quickstarters.git#production/be-python-flask/Jenkinsfile
+      jenkinspipeline.quickstarter.beScalaAkka.desc=Backend - Scala/Akka
+      jenkinspipeline.quickstarter.beScalaAkka.url=opendevstack/ods-quickstarters.git#production/be-scala-akka/Jenkinsfile
+      jenkinspipeline.quickstarter.beTypescriptExpress.desc=Backend - NodeJS/Express
+      jenkinspipeline.quickstarter.beTypescriptExpress.url=opendevstack/ods-quickstarters.git#production/be-typescript-express/Jenkinsfile
+
+      # Data Science quickstarters
+      jenkinspipeline.quickstarter.dsJupyterNotebook.desc=Data Science - Jupyter Notebook
+      jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#production/ds-jupyter-notebook/Jenkinsfile
+      jenkinspipeline.quickstarter.dsRshiny.desc=Data Science - R-Shiny
+      jenkinspipeline.quickstarter.dsRshiny.url=opendevstack/ods-quickstarters.git#production/ds-rshiny/Jenkinsfile
+      jenkinspipeline.quickstarter.dsMlService.desc=Data Science - Machine Learning
+      jenkinspipeline.quickstarter.dsMlService.url=opendevstack/ods-quickstarters.git#production/ds-ml-service/Jenkinsfile
+
+      # Frontend quickstarters
+      jenkinspipeline.quickstarter.feAngular.desc=Frontend - Angular
+      jenkinspipeline.quickstarter.feAngular.url=opendevstack/ods-quickstarters.git#production/fe-angular/Jenkinsfile
+      jenkinspipeline.quickstarter.feReact.desc=Frontend - React
+      jenkinspipeline.quickstarter.feReact.url=opendevstack/ods-quickstarters.git#production/fe-react/Jenkinsfile
+      jenkinspipeline.quickstarter.feVue.desc=Frontend - Vue
+      jenkinspipeline.quickstarter.feVue.url=opendevstack/ods-quickstarters.git#production/fe-vue/Jenkinsfile
+      jenkinspipeline.quickstarter.feIonic.desc=Mobile - Ionic
+      jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#production/fe-ionic/Jenkinsfile
+
+      # Other quickstarters
+      jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
+      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#production/be-airflow/Jenkinsfile
+      jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
+      jenkinspipeline.quickstarter.e2eCypress.url=opendevstack/ods-quickstarters.git#production/e2e-cypress/Jenkinsfile
+      jenkinspipeline.quickstarter.releaseManager.desc=Other - Releasemanager
+      jenkinspipeline.quickstarter.releaseManager.url=opendevstack/ods-quickstarters.git#production/release-manager/Jenkinsfile
+
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
@@ -85,18 +197,8 @@ objects:
       openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
-      # Rundeck properties
-      rundeck.uri=${PROV_APP_RUNDECK_URI}
-      rundeck.auth.url=${rundeck.uri}/rundeck/j_security_check
-      rundeck.api.url=${rundeck.uri}/rundeck/api/19
-      rundeck.system.path=/rundeck
-      rundeck.api.path=/rundeck/api/19
-      rundeck.project.name=Quickstarters
-      rundeck.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
-      rundeck.artifact.pattern=%s-%s
-      rundeck.project.group.quickstarter=quickstarts
-      rundeck.project.group.openshift=openshift
-      rundeck.project.openshift.create.name=create-projects
+      artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
+
 
       # Cookie Domain
       atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}
@@ -143,66 +245,3 @@ objects:
       spring.mail.password=${PROV_APP_MAIL_PASSWORD}
       provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
-parameters:
-- name: PROV_APP_JIRA_URI
-  required: true
-  description: the URI of JIRA used to create new jira projects  
-- name: PROV_APP_CONFLUENCE_URI
-  required: true
-  description: the URI of confluence used to create new confluence spaces
-- name: PROV_APP_BITBUCKET_URI
-  required: true
-  description: the URI of bitbucket used to create new project and repositories  
-- name: PROV_APP_RUNDECK_URI
-  required: true
-  description: the URI of rundeck used to kickstart provisioning projects and components  
-- name: PROV_APP_CROWD_URI
-  required: true
-  description: the URI of crowd used to authenticate users from the app against    
-- name: OPENSHIFT_API_HOST
-  required: true
-  description: the API host of the OCP cluster   
-- name: OPENSHIFT_CONSOLE_HOST
-  required: true
-  description: the console host of the OCP cluster 
-- name: PROV_APP_CROWD_USER_GROUP
-  required: true
-  description: crowd user group     
-- name: CD_USER_ID
-  required: true
-  description: the username of the CD user     
-- name: OPENSHIFT_APPS_BASEDOMAIN
-  required: true
-  description: the domain of routes exposed on OCP   
-- name: PROV_APP_PACKAGE_PREFIX
-  required: true
-  description: the default package prefix   
-- name: PROV_APP_ATLASSIAN_DOMAIN
-  required: true
-  description: the domain of the atlassian toolsuite needed for single signon cookies  
-- name: PROV_APP_CROWD_PASSWORD
-  required: true
-  description: password of the crowd app to authenticate the provision app against
-- name: PROV_APP_JASYPT_PASSWORD
-  required: true
-- name: PROV_APP_MAIL_HOST
-  required: true
-  description: The hostname of the mailserver
-- name: PROV_APP_MAIL_PASSWORD
-  required: true
-  description: The password to authenticate against the mail server
-- name: PROV_APP_MAIL_USERNAME
-  required: true
-  description: The username to authenticate against the mail server
-- name: PROV_APP_CROWD_ADMIN_GROUP
-  required: true
-  description: The crowd admin group name
-- name: PROV_APP_PIPELINE_TRIGGER_SECRET
-  required: true
-  description: The trigger secret to pass to the webhook proxy
-- name: PROV_APP_LOG_LEVEL_ATLASSIAN_CROWD
-  required: true
-  description: Log level of Atlassian crowd package
-- name: PROV_APP_LOG_LEVEL_OPENDEVSTACK
-  required: true
-  description: Log level of OpenDevStack package

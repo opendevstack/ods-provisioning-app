@@ -12,10 +12,13 @@
  * the License.
  */
 
-package org.opendevstack.provision.model.rundeck;
+package org.opendevstack.provision.model.jenkins;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Generated;
+import org.opendevstack.provision.config.Quickstarter;
 
 /** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
@@ -52,6 +55,31 @@ public class Job {
     this.branch = branch;
   }
 
+  public Job(Quickstarter quickstarter) {
+    this(quickstarter.getName(), quickstarter.getUrl());
+    description = quickstarter.getDesc();
+  }
+
+  public Job(String jobname, String url) {
+    String gitURL = url.split("\\.git")[0];
+    gitParentProject = gitURL.split("/")[0];
+    gitRepoName = gitURL.split("/")[1];
+    jenkinsfilePath = url.split("\\.git")[1];
+    branch = "master";
+    if (jenkinsfilePath.startsWith("#")) {
+      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
+      Matcher matcher = pattern.matcher(jenkinsfilePath);
+      matcher.find();
+      branch = matcher.group(1);
+      jenkinsfilePath = matcher.group(2);
+    } else {
+      jenkinsfilePath = jenkinsfilePath.substring(1);
+    }
+    enabled = true;
+    id = jobname;
+    name = jobname;
+  }
+
   public String getId() {
     return id;
   }
@@ -86,6 +114,22 @@ public class Job {
 
   public String toFormattedString() {
     return String.format("Job id: %s, name: %s", id, name);
+  }
+
+  public String getGitParentProject() {
+    return gitParentProject;
+  }
+
+  public String getGitRepoName() {
+    return gitRepoName;
+  }
+
+  public String getJenkinsfilePath() {
+    return jenkinsfilePath;
+  }
+
+  public String getBranch() {
+    return branch;
   }
 
   @Override

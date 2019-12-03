@@ -87,11 +87,11 @@ public class OpenProjectData {
 
   /**
    * The last jobs that where triggered by {@link
-   * IJobExecutionAdapter#createPlatformProjects(ProjectData, String)} or {@link
-   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(ProjectData)}
+   * IJobExecutionAdapter#createPlatformProjects(OpenProjectData)} or {@link
+   * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(OpenProjectData)}
    */
   @JsonIgnoreProperties({"lastExecutionJobs"})
-  public List<String> lastExecutionJobs = null;
+  public List<ExecutionJob> lastExecutionJobs = null;
 
   /** The type of project(s) that should be created, used for templating */
   public String projectType = null;

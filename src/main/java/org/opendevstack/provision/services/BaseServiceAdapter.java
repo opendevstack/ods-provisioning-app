@@ -17,7 +17,7 @@ public class BaseServiceAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseServiceAdapter.class);
 
-  private boolean useTechnicalUser;
+  boolean useTechnicalUser;
   protected String userName;
   protected String userPassword;
   private final String configurationPrefix;

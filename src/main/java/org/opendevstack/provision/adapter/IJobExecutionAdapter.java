@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.jenkins.Job;
 
 /**
  * Job execution adapter, called to delegate long running provision, e.g. of components and
@@ -33,7 +33,7 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @return the list of quickstarters, never null but can be empty
    */
-  public List<Job> getQuickstarters();
+  public List<Job> getComponentQuickstarters();
 
   /**
    * Create platform projects, e.g. openshift projects to house later components created thru {@link

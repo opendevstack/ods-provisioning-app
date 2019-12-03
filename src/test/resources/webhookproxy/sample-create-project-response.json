@@ -1,0 +1,84 @@
+{
+  "kind": "Build",
+  "apiVersion": "build.openshift.io/v1",
+  "metadata": {
+    "name": "ods-corejob-create-projects-tst04-production-1",
+    "namespace": "prov-cd",
+    "selfLink": "/apis/build.openshift.io/v1/namespaces/prov-cd/buildconfigs/ods-corejob-create-projects-tst04-production-1/instantiate",
+    "uid": "b0cb02d7-11a9-11ea-9997-08002750261b",
+    "resourceVersion": "913911",
+    "creationTimestamp": "2019-11-28T06:38:30Z",
+    "labels": {
+      "buildconfig": "ods-corejob-create-projects-tst04-production",
+      "openshift.io/build-config.name": "ods-corejob-create-projects-tst04-production",
+      "openshift.io/build.start-policy": "Serial"
+    },
+      "annotations": {
+      "openshift.io/build-config.name": "ods-corejob-create-projects-tst04-production",
+      "openshift.io/build.number": "1"
+    },
+    "ownerReferences": [
+      {
+        "apiVersion": "build.openshift.io/v1",
+        "kind": "BuildConfig",
+        "name": "ods-corejob-create-projects-tst04-production",
+        "uid": "b0c5bb4d-11a9-11ea-9997-08002750261b",
+        "controller": true
+      }
+    ]
+  },
+  "spec": {
+    "serviceAccount": "builder",
+    "source": {
+      "type": "Git",
+      "git": {
+        "uri": "http://cd_user@192.168.56.31:7990/scm/opendevstack/ods-core.git",
+        "ref": "production"
+      },
+      "sourceSecret": {
+        "name": "cd-user-with-password"
+      }
+    },
+    "strategy": {
+      "type": "JenkinsPipeline",
+      "jenkinsPipelineStrategy": {
+        "jenkinsfilePath": "create-projects/Jenkinsfile",
+        "env": [
+          {
+            "name": "PIPELINE_TRIGGER_SECRET",
+            "value": "YTQzNjQ5ZDAtMDFhNS00NzU3LTk2NDYtMTc1NGVkMjNlYTdh"
+          },
+          {
+            "name": "PROJECT_ADMIN",
+            "value": "opendevstack.admin"
+          },
+          {
+            "name": "PROJECT_ID",
+            "value": "tst04"
+          }
+        ]
+      }
+    },
+    "output": {},
+    "resources": {},
+    "postCommit": {},
+    "nodeSelector": {},
+    "triggeredBy": [
+      {
+        "message": "Generic WebHook",
+        "genericWebHook": {
+          "secret": "\u003csecret\u003e"
+        }
+      }
+    ]
+  },
+  "status": {
+    "phase": "New",
+    "config": {
+      "kind": "BuildConfig",
+      "namespace": "prov-cd",
+      "name": "ods-corejob-create-projects-tst04-production"
+    },
+    "output": {}
+  }
+}
