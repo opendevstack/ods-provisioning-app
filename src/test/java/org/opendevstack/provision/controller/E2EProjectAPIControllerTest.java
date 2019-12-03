@@ -41,6 +41,7 @@ import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -514,6 +515,7 @@ public class E2EProjectAPIControllerTest {
 
   /** Test positive new quickstarter and delete single component afterwards */
   @Test
+  @Ignore("TODO via #296")
   public void testQuickstarterProvisionOnNewOpenProjectInclDeleteSingleComponent()
       throws Exception {
     OpenProjectData createdProjectIncludingQuickstarters =
