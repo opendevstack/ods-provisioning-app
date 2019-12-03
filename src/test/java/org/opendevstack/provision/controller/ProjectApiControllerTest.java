@@ -18,6 +18,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -74,7 +76,7 @@ public class ProjectApiControllerTest {
   @Mock private IBugtrackerAdapter jiraAdapter;
   @Mock private ICollaborationAdapter confluenceAdapter;
   @Mock private ISCMAdapter bitbucketAdapter;
-  @Mock private IJobExecutionAdapter rundeckAdapter;
+  @Mock private IJobExecutionAdapter jenkinsPipelineAdapter;
   @Mock private MailAdapter mailAdapter;
   @Mock private IStorage storage;
   @Mock private StorageAdapter filteredStorage;
@@ -148,9 +150,8 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    // rundeck should NOT have been called and neither bitbucket
-    Mockito.verify(rundeckAdapter, Mockito.never()).createPlatformProjects(isNotNull());
-    Mockito.verify(bitbucketAdapter, Mockito.never()).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(jenkinsPipelineAdapter, never()).createPlatformProjects(isNotNull());
+    Mockito.verify(bitbucketAdapter, never()).createSCMProjectForODSProject(isNotNull());
 
     // try with failing storage
     when(storage.storeProject(data)).thenThrow(IOException.class);
@@ -189,7 +190,7 @@ public class ProjectApiControllerTest {
     when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
     when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
-    when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
+    when(jenkinsPipelineAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     when(storage.storeProject(data)).thenReturn("created");
 
@@ -204,13 +205,12 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    // rundeck should have been called (and repo creation as well)
-    Mockito.verify(rundeckAdapter, Mockito.times(1)).createPlatformProjects(isNotNull());
-    Mockito.verify(bitbucketAdapter, Mockito.times(1)).createSCMProjectForODSProject(isNotNull());
-    Mockito.verify(bitbucketAdapter, Mockito.times(1))
+    Mockito.verify(jenkinsPipelineAdapter, times(1)).createPlatformProjects(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1)).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1))
         .createComponentRepositoriesForODSProject(isNotNull());
     // jira components
-    Mockito.verify(jiraAdapter, Mockito.times(1))
+    Mockito.verify(jiraAdapter, times(1))
         .createComponentsForProjectRepositories(isNotNull(), isNotNull());
   }
 
@@ -460,7 +460,7 @@ public class ProjectApiControllerTest {
     when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
     when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
-    when(rundeckAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
+    when(jenkinsPipelineAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
     Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
     when(storage.storeProject(data)).thenReturn("created");
 
@@ -491,9 +491,8 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    // rundeck should have been called (and repo creation as well)
-    Mockito.verify(rundeckAdapter, Mockito.times(1)).createPlatformProjects(isNotNull());
-    Mockito.verify(bitbucketAdapter, Mockito.times(1)).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(jenkinsPipelineAdapter, times(1)).createPlatformProjects(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1)).createSCMProjectForODSProject(isNotNull());
 
     // upgrade to OC with upgrade forbidden
     data.platformRuntime = false;
@@ -523,8 +522,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    // rundeck should NOT have been called (and repo creation as well)
-    Mockito.verify(rundeckAdapter).createPlatformProjects(isNotNull());
+    Mockito.verify(jenkinsPipelineAdapter).createPlatformProjects(isNotNull());
     Mockito.verify(bitbucketAdapter).createSCMProjectForODSProject(isNotNull());
 
     // now w/o upgrade
@@ -540,8 +538,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    // rundeck should have been called (and repo creation as well)
-    Mockito.verify(bitbucketAdapter, Mockito.times(2)).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(2)).createSCMProjectForODSProject(isNotNull());
   }
 
   @Test

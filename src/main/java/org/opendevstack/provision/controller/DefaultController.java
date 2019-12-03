@@ -95,7 +95,7 @@ public class DefaultController {
       return LOGIN_REDIRECT;
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
-      model.addAttribute("quickStarter", jenkinspipelineAdapter.getQuickstarters());
+      model.addAttribute("quickStarter", jenkinspipelineAdapter.getComponentQuickstarters());
       model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
       model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
       model.addAttribute("ocUpgradeAllowed", ocUpgradeAllowed);

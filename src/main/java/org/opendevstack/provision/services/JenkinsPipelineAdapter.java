@@ -17,31 +17,35 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.config.JenkinsPipelineProperties;
+import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Execution;
-import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.model.webhookproxy.Annotations;
+import org.opendevstack.provision.model.jenkins.Execution;
+import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to interact with rundeck
+ * Service to interact with Jenkins in order to provision projects and components.
  *
  * @author Torsten Jaeschke
  */
@@ -51,40 +55,33 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private static final Logger logger = LoggerFactory.getLogger(JenkinsPipelineAdapter.class);
 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
-  private String projectOpenshiftJenkinsWebhookProxyNamePattern;
+  protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
   private String projectOpenshiftJenkinsTriggerSecret;
 
-  @Value("${rundeck.group.pattern}")
-  private String groupPattern;
-
-  @Value("${rundeck.project.openshift.create.name}")
-  private String projectCreateOpenshiftJob;
+  @Value("${artifact.group.pattern}")
+  protected String groupPattern;
 
   @Value("${openshift.apps.basedomain}")
-  private String projectOpenshiftBaseDomain;
+  protected String projectOpenshiftBaseDomain;
 
   @Value("${openshift.console.uri}")
-  private String projectOpenshiftConsoleUri;
+  protected String projectOpenshiftConsoleUri;
 
   @Value("${openshift.test.project.name.pattern}")
-  private String projectOpenshiftTestProjectPattern;
+  protected String projectOpenshiftTestProjectPattern;
 
   @Value("${openshift.dev.project.name.pattern}")
-  private String projectOpenshiftDevProjectPattern;
+  protected String projectOpenshiftDevProjectPattern;
 
   @Value("${openshift.jenkins.project.name.pattern}")
-  private String projectOpenshiftJenkinsProjectPattern;
+  protected String projectOpenshiftJenkinsProjectPattern;
 
-  @Value("#{${jenkinspipeline.quickstarter}}")
-  private Map<String, String> jenkinsPipelineQuickstarter;
-
-  @Value("${jenkinspipeline.create-ods-projects-job}")
-  private String jenkinsPipelineCreateOdsProjectsJob;
+  @Autowired protected JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${bitbucket.uri}")
-  private String bitbucketUri;
+  protected String bitbucketUri;
 
   @Value("${ods.image-tag}")
   private String odsImageTag;
@@ -92,45 +89,29 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${ods.git-ref}")
   private String odsGitRef;
 
+  private List<Job> componentQuickstarters;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
 
-  public List<Job> getQuickstarters() {
-    return jenkinsPipelineQuickstarter.keySet().stream()
-        .map(
-            jobname -> {
-              Job job = createJobFromUrl(jobname, jenkinsPipelineQuickstarter.get(jobname));
-              logger.info("Available quickstarter: " + job);
-              return job;
-            })
-        .collect(Collectors.toList());
+  @PostConstruct
+  public void init() {
+    componentQuickstarters =
+        jenkinsPipelineProperties.getQuickstarter().values().stream()
+            .filter(Quickstarter::isComponentQuickstarter)
+            .map(Job::new)
+            .sorted(Comparator.comparing(Job::getDescription))
+            .collect(Collectors.toList());
+    logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
   }
 
-  private Job createJobFromUrl(String jobname, String url) {
-    String gitURL = url.split("\\.git")[0];
-    String gitParentProject = gitURL.split("/")[0];
-    String gitRepoName = gitURL.split("/")[1];
-    String jenkinsPath = url.split("\\.git")[1];
-    String branch = "master";
-    if (jenkinsPath.startsWith("#")) {
-      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
-      Matcher matcher = pattern.matcher(jenkinsPath);
-      matcher.find();
-      branch = matcher.group(1);
-      jenkinsPath = matcher.group(2);
-    } else {
-      jenkinsPath = jenkinsPath.substring(1);
-    }
-    Job job =
-        new Job(
-            jobname, true, jobname, jobname, gitParentProject, gitRepoName, jenkinsPath, branch);
-    return job;
+  public JenkinsPipelineProperties getJenkinsPipelineProperties() {
+    return jenkinsPipelineProperties;
   }
 
-  public Job getCreateOdsProjectsJob() {
-
-    return createJobFromUrl(projectCreateOpenshiftJob, jenkinsPipelineCreateOdsProjectsJob);
+  public List<Job> getComponentQuickstarters() {
+    return componentQuickstarters;
   }
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
@@ -162,7 +143,15 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                 ? project.webhookProxySecret
                 : projectOpenshiftJenkinsTriggerSecret;
 
-        executionList.add(prepareAndExecuteJob(jobId, options, triggerSecret));
+        final Job job =
+            getComponentQuickstarters().stream()
+                .filter(x -> x.id.equals(jobId))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new RuntimeException(
+                            String.format("Cannot find quickstarter with id=%s!", jobId)));
+        executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
       }
     }
     return executionList;
@@ -211,7 +200,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       options.put("ODS_GIT_REF", odsGitRef);
       ExecutionsData data =
           prepareAndExecuteJob(
-              projectCreateOpenshiftJob, options, projectOpenshiftJenkinsTriggerSecret);
+              new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter()),
+              options,
+              projectOpenshiftJenkinsTriggerSecret);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -262,28 +253,55 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private ExecutionsData prepareAndExecuteJob(
-      String jobNameOrId, Map<String, String> options, String webhook_proxy_secret)
-      throws IOException {
-    Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
+      final Job job, Map<String, String> options, String webhookProxySecret) throws IOException {
 
-    String url;
+    String jobNameOrId = job.getName();
+    Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
+    Execution execution = buildExecutionObject(job, options, webhookProxySecret);
+
+    try {
+      CreateProjectResponse data =
+          restClient.execute(
+              notAuthenticatedCall(HttpVerb.POST)
+                  .url(execution.url)
+                  .body(execution)
+                  .returnType(CreateProjectResponse.class));
+      logger.info("Webhook proxy returned " + data.toString());
+      ExecutionsData executionsData = new ExecutionsData();
+      executionsData.setMessage(data.toString());
+
+      String namespace = data.extractNamespace();
+
+      String jobName = String.format("%s-%s", namespace, data.extractBuildConfigName());
+      String buildNumber = data.extractBuildNumber();
+      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
+      String href =
+          String.format(
+              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
+      executionsData.setJobName(jobName);
+      executionsData.setPermalink(href);
+      return executionsData;
+    } catch (IOException rundeckException) {
+      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
+      throw rundeckException;
+    }
+  }
+
+  private Execution buildExecutionObject(
+      Job job, Map<String, String> options, String webhookProxySecret) {
+    String projID = Objects.toString(options.get("PROJECT_ID"));
     Execution execution = new Execution();
 
-    String projID = Objects.toString(options.get("PROJECT_ID"));
-
-    boolean createNewInitiative = projectCreateOpenshiftJob.equals(jobNameOrId);
-    if (createNewInitiative) {
-
-      Job job = getCreateOdsProjectsJob();
+    if (jenkinsPipelineProperties.isCreateOrDeleteProjectJob(job.getId())) {
 
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, "prov", projectOpenshiftBaseDomain);
-      url =
+      execution.url =
           "https://"
               + webhookProxyHost
               + "/build?trigger_secret="
-              + webhook_proxy_secret
+              + webhookProxySecret
               + "&jenkinsfile_path="
               + job.jenkinsfilePath
               + "&component=ods-corejob-"
@@ -297,17 +315,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     } else {
       String component_id = Objects.toString(options.get("component_id"));
 
-      final Job job =
-          getQuickstarters().stream().filter(x -> x.id.equals(jobNameOrId)).findFirst().get();
-
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
-      url =
+      execution.url =
           "https://"
               + webhookProxyHost
               + "/build?trigger_secret="
-              + webhook_proxy_secret
+              + webhookProxySecret
               + "&jenkinsfile_path="
               + job.jenkinsfilePath
               + "&component=ods-quickstarter-"
@@ -321,33 +336,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (options != null) {
       execution.setOptions(options);
     }
-    try {
-      CreateProjectResponse data =
-          restClient.execute(
-              notAuthenticatedCall(HttpVerb.POST)
-                  .url(url)
-                  .body(execution)
-                  .returnType(CreateProjectResponse.class));
-      logger.info("Webhook proxy returned " + data.toString());
-      ExecutionsData ret = new ExecutionsData();
-      ret.setMessage(data.toString());
-
-      String namespace = data.getMetadata().getNamespace();
-      Annotations annotations = data.getMetadata().getAnnotations();
-
-      String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
-      String buildNumber = annotations.getBuildNumber();
-      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
-      String href =
-          String.format(
-              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
-      ret.setJobName(jobName);
-      ret.setPermalink(href);
-      return ret;
-    } catch (IOException rundeckException) {
-      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
-      throw rundeckException;
-    }
+    return execution;
   }
 
   @Override
@@ -356,43 +345,73 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     Preconditions.checkNotNull(stage);
     Preconditions.checkNotNull(project);
 
-    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+        stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)
+            ? cleanupWholeProjects(project)
+            : cleanupQuickstartersOnly(project);
+    logger.debug("Cleanup done - status: {} components are left ..", leftovers.size());
 
-    if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
-      if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
-        logger.debug("Could not start delete job for project {}, {}", project.projectKey);
+    return leftovers;
+  }
+
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupWholeProjects(OpenProjectData project) {
+    if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
+
+      Map<String, String> options = new HashMap<>();
+      options.put("PROJECT_ID", project.projectKey.toLowerCase());
+      options.put("ODS_IMAGE_TAG", odsImageTag);
+      options.put("component_id", project.projectKey.toLowerCase());
+      options.put("ODS_GIT_REF", odsGitRef);
+
+      try {
+        Job job = new Job(jenkinsPipelineProperties.getDeleteProjectQuickstarter());
+        logger.debug(
+            "Calling delete-projects job for project {}" + " with id {}",
+            project.projectKey,
+            job.getId());
+        ExecutionsData data =
+            prepareAndExecuteJob(job, options, projectOpenshiftJenkinsTriggerSecret);
+        logger.info("Result of cleanup: {}", data.toString());
+        return Collections.emptyMap();
+      } catch (IOException e) {
+        logger.debug(
+            "Could not start delete job for project {}: {}", project.projectKey, e.getMessage());
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
         leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
-        return leftovers;
-
-      } else {
-        logger.debug("Project {} not affected from cleanup", project.projectKey);
         return leftovers;
       }
     }
 
-    if (project.quickstarters != null || project.quickstarters.size() > 0) {
+    logger.debug("Project {} not affected from cleanup", project.projectKey);
+    return Collections.emptyMap();
+  }
 
-      int nonDeletedQuickstarters = 0;
-      List<String> quickstartersToDelete = new ArrayList<>();
-      for (Map<String, String> quickstarterOptions : project.quickstarters) {
-        quickstartersToDelete.add(quickstarterOptions.get(OpenProjectData.COMPONENT_ID_KEY));
-      }
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupQuickstartersOnly(
+      OpenProjectData project) {
 
+    if (CollectionUtils.isNotEmpty(project.quickstarters)) {
+      List<String> quickstartersToDelete =
+          project.quickstarters.stream()
+              .map(q -> q.get(OpenProjectData.COMPONENT_ID_KEY))
+              .collect(Collectors.toList());
       logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
-      for (String quickstarterName : quickstartersToDelete) {
-        logger.debug("Could not start delete job for component {}, {}", quickstarterName);
-        nonDeletedQuickstarters++;
-      }
 
-      if (nonDeletedQuickstarters > 0) {
-        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER, nonDeletedQuickstarters);
+      // TODO #294 delete single component one after one, remove from quickstartersToDelete list,
+      // log if remove fails via
+      // logger.debug("Could not start delete job for component {}", quickstarterName);
+
+      if (!quickstartersToDelete.isEmpty()) {
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER, quickstartersToDelete.size());
+        return leftovers;
+      } else {
+        return Collections.emptyMap();
       }
     }
 
     logger.debug(
-        "Cleanup done - status: {} components are left ..",
-        leftovers.size() == 0 ? 0 : leftovers.size());
-
-    return leftovers;
+        "Project {} not affected from cleanup: no quickstarter defined that should be deleted.",
+        project.projectKey);
+    return Collections.emptyMap();
   }
 }

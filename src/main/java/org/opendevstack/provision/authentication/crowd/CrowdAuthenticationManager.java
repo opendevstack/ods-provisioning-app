@@ -44,7 +44,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 /**
- * Custom Authentication manager to integrate the password storing for rundeck authentication
+ * Custom Authentication manager to integrate the password storing for authentication
  *
  * @author Torsten Jaeschke
  */

@@ -135,7 +135,7 @@ public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClient
     return bodyMatches(equalTo(value));
   }
 
-  public RestClientCallArgumentMatcher bodyCaptor(ValueCaptor<Object> captor) {
+  public <T> RestClientCallArgumentMatcher bodyCaptor(ValueCaptor<T> captor) {
     captorMap.put(RestClientCall::getBody, captor);
     return this;
   }

@@ -19,7 +19,7 @@ import java.util.List;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.jenkins.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,7 +47,7 @@ public class QuickstarterApiController {
       produces = {"application/json"},
       method = RequestMethod.GET)
   public ResponseEntity<List<Job>> getTechTemplates() {
-    return ResponseEntity.ok().body(rundeckAdapter.getQuickstarters());
+    return ResponseEntity.ok().body(rundeckAdapter.getComponentQuickstarters());
   }
 
   @RequestMapping(
