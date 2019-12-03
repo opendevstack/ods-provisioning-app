@@ -90,7 +90,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private List<Job> componentQuickstarters;
 
   @Value("${bitbucket.technical.user}")
-  private String generalCdUser;
+  protected String generalCdUser;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
