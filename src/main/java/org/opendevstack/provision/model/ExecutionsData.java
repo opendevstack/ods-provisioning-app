@@ -16,6 +16,8 @@ package org.opendevstack.provision.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
  * error: {"error":true,"apiversion":19,"errorCode":"api.error.job.options-invalid","message":"Job
@@ -88,5 +90,18 @@ public class ExecutionsData {
 
   public String getMessage() {
     return this.message;
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+        .append("id", id)
+        .append("status", status)
+        .append("errorCode", errorCode)
+        .append("message", message)
+        .append("error", error)
+        .append("jobName", jobName)
+        .append("permalink", permalink)
+        .toString();
   }
 }

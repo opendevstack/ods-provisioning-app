@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class JenkinsPipelineProperties {
 
   private final Map<String, Quickstarter> quickstarter = new HashMap<>();
+  public final String QUICKSTARTER_CREATE_PROJECTS = "create-projects";
+  public final String QUICKSTARTER_DELETE_PROJECTS = "delete-projects";
 
   @PostConstruct
   public void setNameInAllQuickstarters() {
@@ -30,7 +32,18 @@ public class JenkinsPipelineProperties {
   }
 
   public Quickstarter getCreateProjectQuickstarter() {
-    String name = "create-projects";
+    return getQuickstarter(QUICKSTARTER_CREATE_PROJECTS);
+  }
+
+  public Quickstarter getDeleteProjectQuickstarter() {
+    return getQuickstarter(QUICKSTARTER_DELETE_PROJECTS);
+  }
+
+  public boolean isCreateOrDeleteProjectJob(String jobId) {
+    return QUICKSTARTER_CREATE_PROJECTS.equals(jobId) || QUICKSTARTER_DELETE_PROJECTS.equals(jobId);
+  }
+
+  private Quickstarter getQuickstarter(String name) {
     return quickstarter.values().stream()
         .filter(q -> q.getName().equals(name))
         .findFirst()

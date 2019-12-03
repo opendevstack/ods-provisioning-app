@@ -631,7 +631,7 @@ public class ProjectApiController {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
-    Preconditions.checkNotNull(deletableComponents, "Cannot delete null project");
+    Preconditions.checkNotNull(deletableComponents, "Cannot delete null components");
     Preconditions.checkNotNull(
         deletableComponents.quickstarters, "No quickstarters to delete are passed");
 
