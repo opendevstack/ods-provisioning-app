@@ -64,7 +64,8 @@ objects:
       bitbucket.technical.user=${CD_USER_ID}
 
       scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
-      scm.global.readablerepos.opendevstack[1]=ods-ods-quickstarters
+      scm.global.readablerepos.opendevstack[1]=ods-quickstarters
+      scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
 
       # quickstarter & createProjects configuration
       jenkinspipeline.quickstarter={beSpringBoot: 'opendevstack/ods-quickstarters.git#production/be-java-springboot/Jenkinsfile', dockerPlain: 'opendevstack/ods-quickstarters.git#production/docker-plain/Jenkinsfile', beGolangPlain: 'opendevstack/ods-quickstarters.git#production/be-golang-plain/Jenkinsfile', bePythonFlask: 'opendevstack/ods-quickstarters.git#production/be-python-flask/Jenkinsfile', dsJupyterNotebook: 'opendevstack/ods-quickstarters.git#production/ds-jupyter-notebook/Jenkinsfile', dsRshiny: 'opendevstack/ods-quickstarters.git#production/ds-rshiny/Jenkinsfile',feAngular: 'opendevstack/ods-quickstarters.git#production/fe-angular/Jenkinsfile',beTypescriptExpress: 'opendevstack/ods-quickstarters.git#production/be-typescript-express/Jenkinsfile',dsMlService: 'opendevstack/ods-quickstarters.git#production/ds-ml-service/Jenkinsfile',beAirflow: 'opendevstack/ods-quickstarters.git#production/be-airflow/Jenkinsfile',releaseManager: 'opendevstack/ods-quickstarters.git#production/release-manager/Jenkinsfile',beScalaAkka: 'opendevstack/ods-quickstarters.git#production/be-scala-akka/Jenkinsfile',e2eCypress: 'opendevstack/ods-quickstarters.git#production/e2e-cypress/Jenkinsfile', feReact: 'opendevstack/ods-quickstarters.git#production/fe-react/Jenkinsfile', feVue: 'opendevstack/ods-quickstarters.git#production/fe-vue/Jenkinsfile', feIonic: 'opendevstack/ods-quickstarters.git#production/fe-ionic/Jenkinsfile'}
