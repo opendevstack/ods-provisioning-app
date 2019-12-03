@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.jenkins.Job;
 
 /**
  * Job execution adapter, called to delegate long running provision, e.g. of components and

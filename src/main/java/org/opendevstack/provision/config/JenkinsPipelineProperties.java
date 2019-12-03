@@ -1,5 +1,6 @@
 package org.opendevstack.provision.config;
 
+import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JenkinsPipelineProperties {
 
-  private Map<String, Quickstarter> quickstarter;
+  private final Map<String, Quickstarter> quickstarter = new HashMap<>();
 
   @PostConstruct
   public void setNameInAllQuickstarters() {
@@ -21,7 +22,11 @@ public class JenkinsPipelineProperties {
   }
 
   public void setQuickstarter(Map<String, Quickstarter> quickstarter) {
-    this.quickstarter = quickstarter;
+    this.quickstarter.putAll(quickstarter);
+  }
+
+  public void addQuickstarter(Quickstarter quickstarter) {
+    this.quickstarter.put(quickstarter.getName(), quickstarter);
   }
 
   public Quickstarter getCreateProjectQuickstarter() {

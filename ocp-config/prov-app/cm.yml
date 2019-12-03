@@ -193,17 +193,8 @@ objects:
       openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
-      # Rundeck properties
-      rundeck.uri=${PROV_APP_RUNDECK_URI}
-      rundeck.auth.url=${rundeck.uri}/rundeck/j_security_check
-      rundeck.api.url=${rundeck.uri}/rundeck/api/19
-      rundeck.system.path=/rundeck
-      rundeck.api.path=/rundeck/api/19
-      rundeck.project.name=Quickstarters
-      rundeck.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
-      rundeck.artifact.pattern=%s-%s
-      rundeck.project.group.quickstarter=quickstarts
-      rundeck.project.group.openshift=openshift
+      artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
+
 
       # Cookie Domain
       atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}

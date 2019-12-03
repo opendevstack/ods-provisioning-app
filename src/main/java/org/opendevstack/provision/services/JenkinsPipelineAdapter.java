@@ -32,9 +32,8 @@ import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Execution;
-import org.opendevstack.provision.model.rundeck.Job;
-import org.opendevstack.provision.model.webhookproxy.Annotations;
+import org.opendevstack.provision.model.jenkins.Execution;
+import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.HttpVerb;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to interact with rundeck
+ * Service to interact with Jenkins in order to provision projects and components.
  *
  * @author Torsten Jaeschke
  */
@@ -54,33 +53,33 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private static final Logger logger = LoggerFactory.getLogger(JenkinsPipelineAdapter.class);
 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
-  private String projectOpenshiftJenkinsWebhookProxyNamePattern;
+  protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
   private String projectOpenshiftJenkinsTriggerSecret;
 
-  @Value("${rundeck.group.pattern}")
-  private String groupPattern;
+  @Value("${artifact.group.pattern}")
+  protected String groupPattern;
 
   @Value("${openshift.apps.basedomain}")
-  private String projectOpenshiftBaseDomain;
+  protected String projectOpenshiftBaseDomain;
 
   @Value("${openshift.console.uri}")
-  private String projectOpenshiftConsoleUri;
+  protected String projectOpenshiftConsoleUri;
 
   @Value("${openshift.test.project.name.pattern}")
-  private String projectOpenshiftTestProjectPattern;
+  protected String projectOpenshiftTestProjectPattern;
 
   @Value("${openshift.dev.project.name.pattern}")
-  private String projectOpenshiftDevProjectPattern;
+  protected String projectOpenshiftDevProjectPattern;
 
   @Value("${openshift.jenkins.project.name.pattern}")
-  private String projectOpenshiftJenkinsProjectPattern;
+  protected String projectOpenshiftJenkinsProjectPattern;
 
-  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
+  @Autowired protected JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${bitbucket.uri}")
-  private String bitbucketUri;
+  protected String bitbucketUri;
 
   @Value("${ods.image-tag}")
   private String odsImageTag;
@@ -105,12 +104,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
   }
 
-  public List<Job> getComponentQuickstarters() {
-    return componentQuickstarters;
+  public JenkinsPipelineProperties getJenkinsPipelineProperties() {
+    return jenkinsPipelineProperties;
   }
 
-  public Job getCreateOdsProjectsJob() {
-    return new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter());
+  public List<Job> getComponentQuickstarters() {
+    return componentQuickstarters;
   }
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
@@ -143,7 +142,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                 : projectOpenshiftJenkinsTriggerSecret;
 
         final Job job =
-            getComponentQuickstarters().stream().filter(x -> x.id.equals(jobId)).findFirst().get();
+            getComponentQuickstarters().stream()
+                .filter(x -> x.id.equals(jobId))
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new RuntimeException(
+                            String.format("Cannot find quickstarter with id=%s!", jobId)));
         executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
       }
     }
@@ -250,24 +255,52 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     String jobNameOrId = job.getName();
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
+    Execution execution = buildExecutionObject(job, options, webhook_proxy_secret);
 
-    String url;
-    Execution execution = new Execution();
+    try {
+      CreateProjectResponse data =
+          restClient.execute(
+              notAuthenticatedCall(HttpVerb.POST)
+                  .url(execution.url)
+                  .body(execution)
+                  .returnType(CreateProjectResponse.class));
+      logger.info("Webhook proxy returned " + data.toString());
+      ExecutionsData executionsData = new ExecutionsData();
+      executionsData.setMessage(data.toString());
 
+      String namespace = data.extractNamespace();
+
+      String jobName = String.format("%s-%s", namespace, data.extractBuildConfigName());
+      String buildNumber = data.extractBuildNumber();
+      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
+      String href =
+          String.format(
+              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
+      executionsData.setJobName(jobName);
+      executionsData.setPermalink(href);
+      return executionsData;
+    } catch (IOException rundeckException) {
+      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
+      throw rundeckException;
+    }
+  }
+
+  private Execution buildExecutionObject(
+      Job job, Map<String, String> options, String webhookProxySecret) {
     String projID = Objects.toString(options.get("PROJECT_ID"));
-
+    Execution execution = new Execution();
     boolean createNewInitiative =
-        jenkinsPipelineProperties.getCreateProjectQuickstarter().getName().equals(jobNameOrId);
+        jenkinsPipelineProperties.getCreateProjectQuickstarter().getName().equals(job.getId());
     if (createNewInitiative) {
 
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, "prov", projectOpenshiftBaseDomain);
-      url =
+      execution.url =
           "https://"
               + webhookProxyHost
               + "/build?trigger_secret="
-              + webhook_proxy_secret
+              + webhookProxySecret
               + "&jenkinsfile_path="
               + job.jenkinsfilePath
               + "&component=ods-corejob-"
@@ -284,11 +317,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
-      url =
+      execution.url =
           "https://"
               + webhookProxyHost
               + "/build?trigger_secret="
-              + webhook_proxy_secret
+              + webhookProxySecret
               + "&jenkinsfile_path="
               + job.jenkinsfilePath
               + "&component=ods-quickstarter-"
@@ -302,33 +335,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (options != null) {
       execution.setOptions(options);
     }
-    try {
-      CreateProjectResponse data =
-          restClient.execute(
-              notAuthenticatedCall(HttpVerb.POST)
-                  .url(url)
-                  .body(execution)
-                  .returnType(CreateProjectResponse.class));
-      logger.info("Webhook proxy returned " + data.toString());
-      ExecutionsData ret = new ExecutionsData();
-      ret.setMessage(data.toString());
-
-      String namespace = data.getMetadata().getNamespace();
-      Annotations annotations = data.getMetadata().getAnnotations();
-
-      String jobName = String.format("%s-%s", namespace, annotations.getBuildConfigName());
-      String buildNumber = annotations.getBuildNumber();
-      String jenkinsHost = String.format("jenkins-%s%s", namespace, projectOpenshiftBaseDomain);
-      String href =
-          String.format(
-              "https://%s/job/%s/job/%s/%s", jenkinsHost, namespace, jobName, buildNumber);
-      ret.setJobName(jobName);
-      ret.setPermalink(href);
-      return ret;
-    } catch (IOException rundeckException) {
-      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
-      throw rundeckException;
-    }
+    return execution;
   }
 
   @Override
@@ -361,7 +368,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
       for (String quickstarterName : quickstartersToDelete) {
-        logger.debug("Could not start delete job for component {}, {}", quickstarterName);
+        logger.debug("Could not start delete job for component {}", quickstarterName);
         nonDeletedQuickstarters++;
       }
 
@@ -370,9 +377,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
     }
 
-    logger.debug(
-        "Cleanup done - status: {} components are left ..",
-        leftovers.size() == 0 ? 0 : leftovers.size());
+    logger.debug("Cleanup done - status: {} components are left ..", leftovers.size());
 
     return leftovers;
   }

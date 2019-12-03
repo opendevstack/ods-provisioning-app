@@ -65,7 +65,7 @@ public class DefaultControllerTest {
 
   @Autowired private WebApplicationContext context;
 
-  @Autowired IJobExecutionAdapter realRundeckAdapter;
+  @Autowired IJobExecutionAdapter realJobExecutionAdapter;
 
   @Autowired ISCMAdapter realBitbucketAdapter;
 
@@ -183,10 +183,6 @@ public class DefaultControllerTest {
         .perform(get("/about"))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk())
-        //        .andExpect(
-        //            MockMvcResultMatchers.content()
-        //
-        // .string(CoreMatchers.containsString(realRundeckAdapter.getAdapterApiUri())))
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(CoreMatchers.containsString(realBitbucketAdapter.getAdapterApiUri())))

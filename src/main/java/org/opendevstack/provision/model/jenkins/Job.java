@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.model.rundeck;
+package org.opendevstack.provision.model.jenkins;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.regex.Matcher;
@@ -56,11 +56,11 @@ public class Job {
   }
 
   public Job(Quickstarter quickstarter) {
-    initJob(quickstarter.getName(), quickstarter.getUrl());
+    this(quickstarter.getName(), quickstarter.getUrl());
     description = quickstarter.getDesc();
   }
 
-  private void initJob(String jobname, String url) {
+  public Job(String jobname, String url) {
     String gitURL = url.split("\\.git")[0];
     gitParentProject = gitURL.split("/")[0];
     gitRepoName = gitURL.split("/")[1];
@@ -114,6 +114,22 @@ public class Job {
 
   public String toFormattedString() {
     return String.format("Job id: %s, name: %s", id, name);
+  }
+
+  public String getGitParentProject() {
+    return gitParentProject;
+  }
+
+  public String getGitRepoName() {
+    return gitRepoName;
+  }
+
+  public String getJenkinsfilePath() {
+    return jenkinsfilePath;
+  }
+
+  public String getBranch() {
+    return branch;
   }
 
   @Override
