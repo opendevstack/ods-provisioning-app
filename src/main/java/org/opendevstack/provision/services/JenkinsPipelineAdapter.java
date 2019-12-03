@@ -17,6 +17,7 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
@@ -261,11 +263,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private ExecutionsData prepareAndExecuteJob(
-      final Job job, Map<String, String> options, String webhook_proxy_secret) throws IOException {
+      final Job job, Map<String, String> options, String webhookProxySecret) throws IOException {
 
     String jobNameOrId = job.getName();
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
-    Execution execution = buildExecutionObject(job, options, webhook_proxy_secret);
+    Execution execution = buildExecutionObject(job, options, webhookProxySecret);
 
     try {
       CreateProjectResponse data =
@@ -299,9 +301,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       Job job, Map<String, String> options, String webhookProxySecret) {
     String projID = Objects.toString(options.get("PROJECT_ID"));
     Execution execution = new Execution();
-    boolean createNewInitiative =
-        jenkinsPipelineProperties.getCreateProjectQuickstarter().getName().equals(job.getId());
-    if (createNewInitiative) {
+
+    if (jenkinsPipelineProperties.isCreateOrDeleteProjectJob(job.getId())) {
 
       String webhookProxyHost =
           String.format(
@@ -354,41 +355,73 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     Preconditions.checkNotNull(stage);
     Preconditions.checkNotNull(project);
 
-    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
-
-    if (stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
-      if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
-        logger.debug("Could not start delete job for project {}, {}", project.projectKey);
-        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
-        return leftovers;
-
-      } else {
-        logger.debug("Project {} not affected from cleanup", project.projectKey);
-        return leftovers;
-      }
-    }
-
-    if (project.quickstarters != null || project.quickstarters.size() > 0) {
-
-      int nonDeletedQuickstarters = 0;
-      List<String> quickstartersToDelete = new ArrayList<>();
-      for (Map<String, String> quickstarterOptions : project.quickstarters) {
-        quickstartersToDelete.add(quickstarterOptions.get(OpenProjectData.COMPONENT_ID_KEY));
-      }
-
-      logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
-      for (String quickstarterName : quickstartersToDelete) {
-        logger.debug("Could not start delete job for component {}", quickstarterName);
-        nonDeletedQuickstarters++;
-      }
-
-      if (nonDeletedQuickstarters > 0) {
-        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER, nonDeletedQuickstarters);
-      }
-    }
-
+    Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
+        stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)
+            ? cleanupWholeProjects(project)
+            : cleanupQuickstartersOnly(project);
     logger.debug("Cleanup done - status: {} components are left ..", leftovers.size());
 
     return leftovers;
+  }
+
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupWholeProjects(OpenProjectData project) {
+    if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
+
+      Map<String, String> options = new HashMap<>();
+      options.put("PROJECT_ID", project.projectKey.toLowerCase());
+      options.put("ODS_IMAGE_TAG", odsImageTag);
+      options.put("component_id", project.projectKey.toLowerCase());
+      options.put("ODS_GIT_REF", odsGitRef);
+
+      try {
+        Job job = new Job(jenkinsPipelineProperties.getDeleteProjectQuickstarter());
+        logger.debug(
+            "Calling delete-projects job for project {}" + " with id {}",
+            project.projectKey,
+            job.getId());
+        ExecutionsData data =
+            prepareAndExecuteJob(job, options, projectOpenshiftJenkinsTriggerSecret);
+        logger.info("Result of cleanup: {}", data.toString());
+        return Collections.emptyMap();
+      } catch (IOException e) {
+        logger.debug(
+            "Could not start delete job for project {}: {}", project.projectKey, e.getMessage());
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT, 1);
+        return leftovers;
+      }
+    }
+
+    logger.debug("Project {} not affected from cleanup", project.projectKey);
+    return Collections.emptyMap();
+  }
+
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupQuickstartersOnly(
+      OpenProjectData project) {
+
+    if (CollectionUtils.isNotEmpty(project.quickstarters)) {
+      List<String> quickstartersToDelete =
+          project.quickstarters.stream()
+              .map(q -> q.get(OpenProjectData.COMPONENT_ID_KEY))
+              .collect(Collectors.toList());
+      logger.debug("Cleanup of quickstarters {}", quickstartersToDelete);
+
+      // TODO #294 delete single component one after one, remove from quickstartersToDelete list,
+      // log if remove fails via
+      // logger.debug("Could not start delete job for component {}", quickstarterName);
+
+      if (!quickstartersToDelete.isEmpty()) {
+        Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
+        leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER, quickstartersToDelete.size());
+        return leftovers;
+      } else {
+        return Collections.emptyMap();
+      }
+    }
+
+    logger.debug(
+        "Project {} not affected from cleanup: no quickstarter defined that should be deleted.",
+        project.projectKey);
+    return Collections.emptyMap();
   }
 }
