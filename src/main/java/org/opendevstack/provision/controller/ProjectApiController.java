@@ -38,7 +38,7 @@ import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.rundeck.Job;
+import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
@@ -72,7 +72,7 @@ public class ProjectApiController {
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
   @Autowired private ISCMAdapter bitbucketAdapter;
-  @Autowired private IJobExecutionAdapter rundeckAdapter;
+  @Autowired private IJobExecutionAdapter jenkinsPipelineAdapter;
   @Autowired private MailAdapter mailAdapter;
   @Autowired private IStorage directStorage;
 
@@ -364,7 +364,7 @@ public class ProjectApiController {
           bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(project, auxiliaryRepositories);
 
       // provision platform projects
-      project = rundeckAdapter.createPlatformProjects(project);
+      project = jenkinsPipelineAdapter.createPlatformProjects(project);
     }
 
     int newQuickstarters = (project.quickstarters == null ? 0 : project.quickstarters.size());
@@ -408,14 +408,21 @@ public class ProjectApiController {
                     bitbucketAdapter.createRepoNameFromComponentName(projectKey, repoName)));
 
     // create jira components from newly created repos
-    jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
+    if (project.bugtrackerSpace) {
+      jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
+    } else {
+      logger.info(
+          "Do not create bugtracker components for {}, since it has no bugtragger space configured!",
+          project.projectKey);
+    }
 
     // add the long running execution links from the
     // IJobExecutionAdapter, so the consumer can track them
     if (project.lastExecutionJobs == null) {
       project.lastExecutionJobs = new ArrayList<>();
     }
-    List<ExecutionsData> jobs = rundeckAdapter.provisionComponentsBasedOnQuickstarters(project);
+    List<ExecutionsData> jobs =
+        jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project);
     logger.debug("New quickstarter rundeck executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
@@ -445,7 +452,7 @@ public class ProjectApiController {
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      List<Job> allQuickstarterJobs = rundeckAdapter.getQuickstarters();
+      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getComponentQuickstarters();
 
       for (Map<String, String> quickstarters : project.quickstarters) {
         String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
@@ -624,7 +631,7 @@ public class ProjectApiController {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
-    Preconditions.checkNotNull(deletableComponents, "Cannot delete null project");
+    Preconditions.checkNotNull(deletableComponents, "Cannot delete null components");
     Preconditions.checkNotNull(
         deletableComponents.quickstarters, "No quickstarters to delete are passed");
 
@@ -666,7 +673,7 @@ public class ProjectApiController {
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();
 
-    notCleanedUpComponents.putAll(rundeckAdapter.cleanup(stage, project));
+    notCleanedUpComponents.putAll(jenkinsPipelineAdapter.cleanup(stage, project));
 
     notCleanedUpComponents.putAll(bitbucketAdapter.cleanup(stage, project));
 

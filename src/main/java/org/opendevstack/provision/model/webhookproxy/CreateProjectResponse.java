@@ -43,6 +43,18 @@ public class CreateProjectResponse {
     this.status = status;
   }
 
+  public String extractNamespace() {
+    return getMetadata().getNamespace();
+  }
+
+  public String extractBuildConfigName() {
+    return getMetadata().getAnnotations().getBuildConfigName();
+  }
+
+  public String extractBuildNumber() {
+    return getMetadata().getAnnotations().getBuildNumber();
+  }
+
   @Override
   public String toString() {
     return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
