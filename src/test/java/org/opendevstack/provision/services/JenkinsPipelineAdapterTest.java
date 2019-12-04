@@ -57,9 +57,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
-  private final String JOB_1_NAME = "JOB_1_NAME";
+  private final String JOB_1_NAME = "beSpringBoot";
   private final String JOB_1_URL = "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile";
-  private final String JOB_1_LEGACY_ID = "42";
+  private final String JOB_1_LEGACY_ID = "e5b77f0f-262a-42f9-9d06-5d9052c1f394";
 
   @Before
   public void setup() {
@@ -69,11 +69,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter
         .getJenkinsPipelineProperties()
         .addQuickstarter(
-            Quickstarter.componentQuickstarter(
-                JOB_1_NAME,
-                JOB_1_URL,
-                "dummy description",
-                "25B5ADC7-938F-4B09-9DDD-7E9399BBF94D"));
+            Quickstarter.componentQuickstarter(JOB_1_NAME, JOB_1_URL, "dummy description"));
     jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
@@ -128,7 +124,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData project = new OpenProjectData();
     project.projectKey = PROJECT_KEY;
     project.webhookProxySecret = "secret101";
-    Job job = new Job(JOB_1_NAME, JOB_1_URL, JOB_1_LEGACY_ID);
+    Job job = new Job(JOB_1_NAME, JOB_1_URL);
 
     Map<String, String> testjob = new HashMap<>();
     testjob.put(OpenProjectData.COMPONENT_ID_KEY, job.getId());

@@ -25,7 +25,6 @@ import org.opendevstack.provision.config.Quickstarter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
   public String id;
-  public String legacyCt;
   public boolean enabled;
   public String name;
   public String description;
@@ -57,11 +56,11 @@ public class Job {
   }
 
   public Job(Quickstarter quickstarter) {
-    this(quickstarter.getName(), quickstarter.getUrl(), quickstarter.getLegacyCt());
+    this(quickstarter.getName(), quickstarter.getUrl());
     description = quickstarter.getDesc();
   }
 
-  public Job(String jobname, String url, String legacyCt) {
+  public Job(String jobname, String url) {
     String gitURL = url.split("\\.git")[0];
     gitParentProject = gitURL.split("/")[0];
     gitRepoName = gitURL.split("/")[1];
@@ -79,7 +78,6 @@ public class Job {
     enabled = true;
     id = jobname;
     name = jobname;
-    this.legacyCt = legacyCt;
   }
 
   public String getId() {
@@ -134,17 +132,11 @@ public class Job {
     return branch;
   }
 
-  public String getLegacyCt() {
-    return legacyCt;
-  }
-
   @Override
   public String toString() {
     return "Job{"
         + "id="
         + id
-        + ", legacyCt="
-        + legacyCt
         + ", enabled="
         + enabled
         + ", name="

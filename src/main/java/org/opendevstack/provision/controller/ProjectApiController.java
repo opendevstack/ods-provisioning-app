@@ -451,8 +451,9 @@ public class ProjectApiController {
       for (Map<String, String> quickstarters : project.quickstarters) {
         String componentType = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
         Optional<Job> maybeComponent = jenkinsPipelineAdapter.getComponentByType(componentType);
-        maybeComponent.ifPresent(
-            job -> quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription()));
+
+        String componentDescription = maybeComponent.map(Job::getDescription).orElse(componentType);
+        quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, componentDescription);
         enhancedStarters.add(quickstarters);
       }
       project.quickstarters = enhancedStarters;
