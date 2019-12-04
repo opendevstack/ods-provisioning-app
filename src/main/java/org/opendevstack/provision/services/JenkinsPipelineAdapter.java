@@ -112,7 +112,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .put("9992a587-959c-4ceb-8e3f-c1390e40c582", "bePythonFlask")
             .put("14ce143c-7d2a-11e7-bb31-be2e44b06b34", "beScalaAkka")
             .put("7f98bafb-c81d-4eb0-aad1-700b6c05fc12", "beTypescriptExpress")
-            .put("a7b930b2-d125-48ce-9997-9643faa9cdd0", "a7b930b2-d125-48ce-9997-9643faa9cdd0")
+            .put("a7b930b2-d125-48ce-9997-9643faa9cdd0", "jupyter_notebook")
             .put("69405fd4-b0c2-45a8-a6dc-0870ea56166e", "dsRshiny")
             .put("1deb3f34-5cd4-439b-b987-440dc6591fdf", "dsMlService")
             .put("560954ef-d245-456c-9460-6c592c9d7784", "feAngular")
