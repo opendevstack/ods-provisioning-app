@@ -16,6 +16,8 @@ package org.opendevstack.provision.services;
 
 import static org.junit.Assert.*;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -67,13 +69,13 @@ public class StorageAdapterTest {
       // open project
       OpenProjectData data = new OpenProjectData();
       data.projectName = "testproject";
-      data.projectKey = "testpprojectKey";
+      data.projectKey = "Z_KEY";
       data.projectAdminGroup = "testgroup";
 
       // case sensitive right group
       OpenProjectData dataProtected = new OpenProjectData();
       dataProtected.projectName = "testprojectProtected";
-      dataProtected.projectKey = "testprojectProtected";
+      dataProtected.projectKey = "A_KEY";
       dataProtected.projectAdminGroup = "testgroup";
       dataProtected.specialPermissionSet = true;
 
@@ -87,7 +89,7 @@ public class StorageAdapterTest {
       // group upper lower case
       OpenProjectData dataProtectedCase = new OpenProjectData();
       dataProtectedCase.projectName = "testprojectProtectedC";
-      dataProtectedCase.projectKey = "testprojectProtectedC";
+      dataProtectedCase.projectKey = "F_KEY";
       dataProtectedCase.projectAdminGroup = "testGroup";
       dataProtectedCase.specialPermissionSet = true;
 
@@ -104,6 +106,8 @@ public class StorageAdapterTest {
 
       Map<String, OpenProjectData> testresult = adapter.listProjectHistory();
       assertEquals(3, testresult.size());
+      assertEquals(
+          Lists.newArrayList("A_KEY", "F_KEY", "Z_KEY"), new ArrayList<>(testresult.keySet()));
       assertFalse(testresult.containsKey(dataProtectedWrong.projectKey));
     } finally {
       SecurityContextHolder.clearContext();
