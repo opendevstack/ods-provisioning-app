@@ -21,10 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.apache.commons.lang.NotImplementedException;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -60,8 +57,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
-  private final String JOB_1_NAME = "JOB_1_NAME";
+  private final String JOB_1_NAME = "beSpringBoot";
   private final String JOB_1_URL = "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile";
+  private final String JOB_1_LEGACY_ID = "e5b77f0f-262a-42f9-9d06-5d9052c1f394";
 
   @Before
   public void setup() {
@@ -276,5 +274,17 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     result.platformRuntime = true;
     result.projectKey = "key";
     return result;
+  }
+
+  @Test
+  public void getComponentByLegacyComponentType() {
+    Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_LEGACY_ID);
+    assertTrue(foundByLegacyType.isPresent());
+  }
+
+  @Test
+  public void getComponentByNameComponentType() {
+    Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_NAME);
+    assertTrue(foundByLegacyType.isPresent());
   }
 }

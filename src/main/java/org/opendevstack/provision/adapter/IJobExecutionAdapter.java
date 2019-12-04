@@ -16,6 +16,7 @@ package org.opendevstack.provision.adapter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
@@ -59,4 +60,12 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    */
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
       throws IOException;
+
+  /**
+   * Returns the quickstarter for this component type a.k.a. name
+   *
+   * @param componentType type of the component a.k.a name
+   * @return Some job if a matching one was found
+   */
+  Optional<Job> getComponentByType(String componentType);
 }

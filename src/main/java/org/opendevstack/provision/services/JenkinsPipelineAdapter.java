@@ -13,17 +13,12 @@
  */
 package org.opendevstack.provision.services;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.collections.CollectionUtils;
@@ -95,6 +90,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     super("jenkinspipeline");
   }
 
+  private Map<String, Job> nameToJobMappings;
+  private Map<String, String> legacyComponentTypeToNameMappings;
+
   @PostConstruct
   public void init() {
     componentQuickstarters =
@@ -104,6 +102,28 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .sorted(Comparator.comparing(Job::getDescription))
             .collect(Collectors.toList());
     logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
+
+    nameToJobMappings = componentQuickstarters.stream().collect(toMap(Job::getName, job -> job));
+    legacyComponentTypeToNameMappings =
+        ImmutableMap.<String, String>builder()
+            .put("e5b77f0f-262a-42f9-9d06-5d9052c1f394", "beSpringBoot")
+            .put("e59e71f5-76e0-4b8c-b040-a526197ee84d", "dockerPlain")
+            .put("f3a7717d-f51a-426c-82fe-4574d4e595ad", "beGolangPlain")
+            .put("9992a587-959c-4ceb-8e3f-c1390e40c582", "bePythonFlask")
+            .put("14ce143c-7d2a-11e7-bb31-be2e44b06b34", "beScalaAkka")
+            .put("7f98bafb-c81d-4eb0-aad1-700b6c05fc12", "beTypescriptExpress")
+            .put("a7b930b2-d125-48ce-9997-9643faa9cdd0", "jupyter_notebook")
+            .put("69405fd4-b0c2-45a8-a6dc-0870ea56166e", "dsRshiny")
+            .put("1deb3f34-5cd4-439b-b987-440dc6591fdf", "dsMlService")
+            .put("560954ef-d245-456c-9460-6c592c9d7784", "feAngular")
+            .put("a86d6f06-cedc-4c16-a92c-5ca48e400c3a", "feReact")
+            .put("15b927c0-f46b-46a6-984b-2bf5c4c2c756", "feVue")
+            .put("6b205842-6321-4ade-b094-219b78d5acc0", "feIonic")
+            .put("7d10fbfe-e129-4bab-87f5-4cc2de89f071", "beAirflow")
+            .put("48c077f7-8bda-4f05-af5a-6fe085c9d405", "releaseManager")
+            .build();
+
+    logger.info("legacyComponentTypeToNameMappings: {}", legacyComponentTypeToNameMappings);
   }
 
   public JenkinsPipelineProperties getJenkinsPipelineProperties() {
@@ -155,6 +175,22 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
     }
     return executionList;
+  }
+
+  private Optional<Job> getComponentByName(String name) {
+    return Optional.ofNullable(nameToJobMappings.get(name));
+  }
+
+  @Override
+  public Optional<Job> getComponentByType(String componentType) {
+    Optional<String> maybeName =
+        Optional.ofNullable(legacyComponentTypeToNameMappings.get(componentType));
+
+    if (maybeName.isPresent()) {
+      return maybeName.flatMap(this::getComponentByName);
+    } else {
+      return getComponentByName(componentType);
+    }
   }
 
   @Override

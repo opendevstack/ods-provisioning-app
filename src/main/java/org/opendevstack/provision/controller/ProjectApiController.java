@@ -19,11 +19,7 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -452,15 +448,12 @@ public class ProjectApiController {
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getComponentQuickstarters();
-
       for (Map<String, String> quickstarters : project.quickstarters) {
-        String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
-        allQuickstarterJobs.stream()
-            .filter(j -> quickstarter.equals(j.getId()))
-            .findFirst()
-            .ifPresent(
-                job -> quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, job.getDescription()));
+        String componentType = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
+        Optional<Job> maybeComponent = jenkinsPipelineAdapter.getComponentByType(componentType);
+
+        String componentDescription = maybeComponent.map(Job::getDescription).orElse(componentType);
+        quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, componentDescription);
         enhancedStarters.add(quickstarters);
       }
       project.quickstarters = enhancedStarters;
