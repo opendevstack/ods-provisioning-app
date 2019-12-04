@@ -13,17 +13,12 @@
  */
 package org.opendevstack.provision.services;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.collections.CollectionUtils;
@@ -95,6 +90,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     super("jenkinspipeline");
   }
 
+  private Map<String, Job> componentTypeToJobMappings;
+
   @PostConstruct
   public void init() {
     componentQuickstarters =
@@ -104,6 +101,21 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .sorted(Comparator.comparing(Job::getDescription))
             .collect(Collectors.toList());
     logger.info("All Quickstarters" + jenkinsPipelineProperties.getQuickstarter());
+
+    Map<String, Job> nameToJobMappings =
+        componentQuickstarters.stream().collect(toMap(Job::getName, job -> job));
+    Map<String, Job> legacyCtToJobMappings =
+        componentQuickstarters.stream()
+            .filter(j -> j.legacyCt != null)
+            .collect(toMap(Job::getLegacyCt, job -> job));
+    nameToJobMappings.putAll(legacyCtToJobMappings);
+
+    componentTypeToJobMappings = nameToJobMappings;
+    logger.info(
+        "componentTypeMappings: {}",
+        componentTypeToJobMappings.entrySet().stream()
+            .map(es -> es.getKey() + " -> " + es.getValue().name)
+            .collect(toList()));
   }
 
   public JenkinsPipelineProperties getJenkinsPipelineProperties() {
@@ -155,6 +167,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
     }
     return executionList;
+  }
+
+  @Override
+  public Optional<Job> getComponentByType(String componentType) {
+    return Optional.ofNullable(componentTypeToJobMappings.get(componentType));
   }
 
   @Override

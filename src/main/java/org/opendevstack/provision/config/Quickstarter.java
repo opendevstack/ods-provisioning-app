@@ -10,24 +10,27 @@ public class Quickstarter {
   private String name;
   private String url;
   private String desc;
+  private String legacyCt;
   private QuickstarterType type = QuickstarterType.component;
 
   public Quickstarter() {}
 
-  private Quickstarter(String name, String url, String desc) {
+  private Quickstarter(String name, String url, String desc, String legacyCt) {
     this.name = name;
     this.url = url;
     this.desc = desc;
+    this.legacyCt = legacyCt;
   }
 
-  public static Quickstarter componentQuickstarter(String name, String url, String desc) {
-    Quickstarter result = new Quickstarter(name, url, desc);
+  public static Quickstarter componentQuickstarter(
+      String name, String url, String desc, String legacyCt) {
+    Quickstarter result = new Quickstarter(name, url, desc, legacyCt);
     result.type = QuickstarterType.component;
     return result;
   }
 
   public static Quickstarter projectQuickstarter(String name, String url, String desc) {
-    Quickstarter result = new Quickstarter(name, url, desc);
+    Quickstarter result = new Quickstarter(name, url, desc, null);
     result.type = QuickstarterType.project;
     return result;
   }
@@ -69,10 +72,19 @@ public class Quickstarter {
     return QuickstarterType.component.equals(this.getType());
   }
 
+  public void setLegacyCt(String legacyCt) {
+    this.legacyCt = legacyCt;
+  }
+
+  public String getLegacyCt() {
+    return legacyCt;
+  }
+
   @Override
   public String toString() {
     return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
         .append("name", name)
+        .append("legacyCt", legacyCt)
         .append("url", url)
         .append("desc", desc)
         .append("type", type)
