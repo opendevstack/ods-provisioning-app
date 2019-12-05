@@ -15,19 +15,18 @@
 package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -157,6 +156,8 @@ public class E2EProjectAPIControllerTest {
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
+    // override configuration in application.properties, some tests depends on cleanupAllowed
+    apiController.cleanupAllowed = true;
   }
 
   @AfterClass
@@ -705,6 +706,24 @@ public class E2EProjectAPIControllerTest {
 
     // verify 2 quickstarters are there
     assertEquals(2, resultLegacyProject.quickstarters.size());
+  }
+
+  @Test
+  public void getProjectQuickStarterDescription() throws Exception {
+    mockMvc
+        .perform(get("/api/v2/project/LEGPROJ").accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.quickstarters[0].component_type", is("9992a587-959c-4ceb-8e3f-c1390e40c582")))
+        .andExpect(jsonPath("$.quickstarters[0].component_id", is("be-python-flask")))
+        .andExpect(
+            jsonPath("$.quickstarters[0].component_description", is("Backend - Python/Flask")))
+        .andExpect(jsonPath("$.quickstarters[1].component_type", is("bePythonFlask")))
+        .andExpect(jsonPath("$.quickstarters[1].component_id", is("logviewer")))
+        .andExpect(
+            jsonPath("$.quickstarters[1].component_description", is("Backend - Python/Flask")))
+        .andDo(MockMvcResultHandlers.print());
   }
 
   /*

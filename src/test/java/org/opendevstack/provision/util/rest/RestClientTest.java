@@ -82,7 +82,7 @@ public class RestClientTest {
     assertNotNull(response);
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void callHttpMissingUrl() throws Exception {
     client.execute(validGetCall().url(null));
   }
