@@ -150,7 +150,7 @@ dependencies {
     compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
 
     //easy http calls to atlassian JSON APIs
-    compile "com.squareup.okhttp3:okhttp:3.8.0"
+    compile "com.squareup.okhttp3:okhttp:4.1.0"
 
     //jsonschema2pojo-grade-plugin
     // Required if generating equals, hashCode, or toString methods
