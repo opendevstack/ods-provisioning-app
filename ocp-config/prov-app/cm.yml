@@ -130,6 +130,10 @@ objects:
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
+      scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
+      scm.global.readablerepos.opendevstack[1]=ods-quickstarters
+      scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
+
       # ODS properties
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}

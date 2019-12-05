@@ -82,6 +82,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.bitbucketUri = "http://192.168.56.31:7990";
     jenkinsPipelineAdapter.useTechnicalUser = true;
     jenkinsPipelineAdapter.userName = "maier";
+    jenkinsPipelineAdapter.generalCdUser = "cd_user";
     jenkinsPipelineAdapter.init();
     super.beforeTest();
   }
