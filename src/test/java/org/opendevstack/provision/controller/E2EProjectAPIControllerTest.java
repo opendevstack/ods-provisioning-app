@@ -154,6 +154,8 @@ public class E2EProjectAPIControllerTest {
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
+    // override configuration in application.properties, some tests depends on cleanupAllowed
+    apiController.cleanupAllowed = true;
   }
 
   @AfterClass
