@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.AboutChangesData;
@@ -45,7 +46,7 @@ public class StorageAdapter implements IServiceAdapter {
 
   public Map<String, OpenProjectData> listProjectHistory() {
     Map<String, OpenProjectData> allProjects = storage.listProjectHistory();
-    Map<String, OpenProjectData> filteredProjects = new HashMap<>();
+    Map<String, OpenProjectData> filteredAndOrderedProjects = new TreeMap<>();
 
     Collection<? extends GrantedAuthority> authorities = authManager.getAuthorities();
     logger.debug("User: {} Authorities: {}", authManager.getUserName(), authorities);
@@ -60,19 +61,19 @@ public class StorageAdapter implements IServiceAdapter {
           projectData.specialPermissionSet);
 
       if (!projectData.specialPermissionSet) {
-        filteredProjects.put(projectData.projectKey, projectData);
+        filteredAndOrderedProjects.put(projectData.projectKey, projectData);
       } else {
         for (GrantedAuthority authority : authorities) {
           if (authority.getAuthority().equalsIgnoreCase(projectData.projectAdminGroup)
               || authority.getAuthority().equalsIgnoreCase(projectData.projectUserGroup)) {
-            filteredProjects.put(projectData.projectKey, projectData);
+            filteredAndOrderedProjects.put(projectData.projectKey, projectData);
             break;
           }
         }
       }
     }
 
-    return filteredProjects;
+    return filteredAndOrderedProjects;
   }
 
   public AboutChangesData listAboutChangesData() {

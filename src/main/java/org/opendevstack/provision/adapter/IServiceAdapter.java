@@ -25,12 +25,12 @@ import org.opendevstack.provision.model.OpenProjectData;
  */
 public interface IServiceAdapter {
   /** Stage the adapters are in during project creation & update */
-  public static enum LIFECYCLE_STAGE {
+  enum LIFECYCLE_STAGE {
     INITIAL_CREATION,
     QUICKSTARTER_PROVISION
   }
   /** Enum used for cleanup to define any leftovers after cleanup */
-  public static enum CLEANUP_LEFTOVER_COMPONENTS {
+  enum CLEANUP_LEFTOVER_COMPONENTS {
     COLLABORATION_SPACE,
     BUGTRACKER_PROJECT,
     SCM_PROJECT,
@@ -40,7 +40,7 @@ public interface IServiceAdapter {
     PROJECT_DB
   }
   /** Project template key enum */
-  public static enum PROJECT_TEMPLATE {
+  enum PROJECT_TEMPLATE {
     TEMPLATE_KEY,
     TEMPLATE_TYPE_KEY
   }
@@ -49,17 +49,16 @@ public interface IServiceAdapter {
    * Return a list of project per adapter
    *
    * @param filter a filter (e.g. key), can be null
-   * @param crowdCookieValue the SSO cookie value
    * @return a map with project key and name, never null, but potentially empty
    */
-  public Map<String, String> getProjects(String filter);
+  Map<String, String> getProjects(String filter);
 
   /**
    * Get the adapter's used rest / api URI
    *
    * @return the URI
    */
-  public String getAdapterApiUri();
+  String getAdapterApiUri();
 
   /**
    * Called by {@link ProjectApiController} in case of error, and need to cleanup already created
@@ -70,6 +69,5 @@ public interface IServiceAdapter {
    * @param project the project
    * @return a map with component amounts that could not be cleaned up
    */
-  public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
-      LIFECYCLE_STAGE stage, OpenProjectData project);
+  Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage, OpenProjectData project);
 }
