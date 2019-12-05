@@ -452,7 +452,7 @@ public class ProjectApiController {
     if (project.quickstarters != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getComponentQuickstarters();
+      List<Job> allQuickstarterJobs = jenkinsPipelineAdapter.getQuickstarterJobs();
 
       for (Map<String, String> quickstarters : project.quickstarters) {
         String quickstarter = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
