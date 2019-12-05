@@ -101,7 +101,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     logger.info("All Quickstarters:" + jenkinsPipelineProperties.getQuickstarter());
     logger.info("All Adminjobs:" + jenkinsPipelineProperties.getAdminjobs());
 
-    nameToJobMappings = componentQuickstarters.stream().collect(toMap(Job::getName, job -> job));
+    nameToJobMappings = quickstarterJobs.stream().collect(toMap(Job::getName, job -> job));
     legacyComponentTypeToNameMappings =
         ImmutableMap.<String, String>builder()
             .put("e5b77f0f-262a-42f9-9d06-5d9052c1f394", "beSpringBoot")
