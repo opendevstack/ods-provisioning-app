@@ -33,6 +33,14 @@
     <div class="col-xs-8 col-sm-6">Bitbucket:</div>
     <div class="col-xs-4 col-sm-6"><a th:href="@{${project.scmvcsUrl}}" target="_blank"><span th:text="${project.scmvcsUrl}"></span></a></div>
   </div>
+  <div class="row" th:if="${project.cdUser != null}">
+    <div class="col-xs-8 col-sm-6">CD User:</div>
+    <div class="col-xs-4 col-sm-6"><span th:text="${project.cdUser}"></span></div>
+  </div>
+  <div class="row" th:if="${project.cdUser != null}">
+    <div class="col-xs-8 col-sm-6"><b>Caution:</b></div>
+    <div class="col-xs-4 col-sm-6"><span>You will have to set the CD user password in the Openshift webconsole of the project's CD project. There you will have to modify the cd-user-with-password secret</span></div>
+  </div>
   <!-- jenkins -->
   <div class="row" th:if="${project.platformBuildEngineUrl != null}">
     <div class="col-xs-8 col-sm-6">Build engine:</div>

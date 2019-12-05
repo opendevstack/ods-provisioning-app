@@ -143,7 +143,24 @@
                     <select class="form-control projectType-chooser" name="projectType" id="projectType">
                     	<option th:each="pType : ${projectTypes}" th:value="${pType}" th:text="${pType}" />
                     </select>
-                </div>                
+                </div>
+                <!-- tjaeschke project specific cd user -->
+                <div class="form-group" th:classappend="text-info">
+                    <div class="form-group">
+                        <label for="projectSpecificCdUser">Define project specific CD user</label>
+                        <input type="checkbox" name="projectSpecificCdUser" id="projectSpecificCdUser"/>
+                    </div>
+                    <div class="form-group hidden" id="cduserinfodiv">
+                        If you define a project specific CD user, the user has to exist in your identity management and has to be able to access your GIT server.<br />
+                        After project creation you will have to change the CD user password in the Openshift Webconsole of the created CD project.
+                    </div>
+                    <div class="form-group hidden" id="cduserdiv">
+                        <label for="cdUser"  class="control-label">CD User</label>
+                        <input type="text" class="form-control" name="cdUser" placeholder="Project specific CD user" maxlength="80" id="cdUser"/>
+                        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+                        <div class="help-block with-errors"></div>
+                    </div>
+                </div>
                 <!-- cutschig user and admin group -->
                 <div class="form-group" th:if="${specialPermissionSchemeEnabled}" th:classappend="text-info">
                     <div class="form-group">

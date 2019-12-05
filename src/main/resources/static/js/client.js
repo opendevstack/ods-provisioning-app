@@ -133,9 +133,27 @@ $(document).ready(function(){
         $( "#auserdiv" ).addClass("hidden");    	
     }
     nameCompare = {};
-  });  
+  });
 
-  
+  $("#projectSpecificCdUser").change(function() {
+    if ( $( "#projectSpecificCdUser" )[0] .checked)
+    {
+      $( "#cduserdiv" ).removeClass("hidden");
+      $( "#cduserinfodiv" ).removeClass("hidden");
+
+      $( "#cdUser" ).prop("required", true);
+
+      $( "#cdUser" ).focus();
+    } else {
+      $( "#cduserdiv" ).addClass("hidden");
+      $( "#cduserinfodiv" ).addClass("hidden");
+
+      $( "#cdUser" ).prop("required", false);
+      $( "#cdUser" ).val('');
+    }
+    nameCompare = {};
+  });
+
   /**
    * This is the event handler for the quickstarter select box
    */
