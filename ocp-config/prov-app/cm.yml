@@ -130,54 +130,58 @@ objects:
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
 
+      scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
+      scm.global.readablerepos.opendevstack[1]=ods-quickstarters
+      scm.global.readablerepos.opendevstack[2]=ods-mro-jenkins-shared-library
+
       # ODS properties
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}
 
       # createProjects configuration
       jenkinspipeline.quickstarter.create-projects.desc=Create Project. Only used internally, therefore separated from other quickstarters
-      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#production/create-projects/Jenkinsfile
+      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#${ODS_GIT_REF}/create-projects/Jenkinsfile
       jenkinspipeline.quickstarter.create-projects.type=project
 
       # Backend quickstarters
       jenkinspipeline.quickstarter.beSpringBoot.desc=Backend - SpringBoot/Java
-      jenkinspipeline.quickstarter.beSpringBoot.url=opendevstack/ods-quickstarters.git#production/be-java-springboot/Jenkinsfile
+      jenkinspipeline.quickstarter.beSpringBoot.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-java-springboot/Jenkinsfile
       jenkinspipeline.quickstarter.dockerPlain.desc=Backend - Docker/Plain
-      jenkinspipeline.quickstarter.dockerPlain.url=opendevstack/ods-quickstarters.git#production/docker-plain/Jenkinsfile
+      jenkinspipeline.quickstarter.dockerPlain.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/docker-plain/Jenkinsfile
       jenkinspipeline.quickstarter.beGolangPlain.desc=Backend - Golang
-      jenkinspipeline.quickstarter.beGolangPlain.url=opendevstack/ods-quickstarters.git#production/be-golang-plain/Jenkinsfile
+      jenkinspipeline.quickstarter.beGolangPlain.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-golang-plain/Jenkinsfile
       jenkinspipeline.quickstarter.bePythonFlask.desc=Backend - Python/Flask
-      jenkinspipeline.quickstarter.bePythonFlask.url=opendevstack/ods-quickstarters.git#production/be-python-flask/Jenkinsfile
+      jenkinspipeline.quickstarter.bePythonFlask.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-python-flask/Jenkinsfile
       jenkinspipeline.quickstarter.beScalaAkka.desc=Backend - Scala/Akka
-      jenkinspipeline.quickstarter.beScalaAkka.url=opendevstack/ods-quickstarters.git#production/be-scala-akka/Jenkinsfile
+      jenkinspipeline.quickstarter.beScalaAkka.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-scala-akka/Jenkinsfile
       jenkinspipeline.quickstarter.beTypescriptExpress.desc=Backend - NodeJS/Express
-      jenkinspipeline.quickstarter.beTypescriptExpress.url=opendevstack/ods-quickstarters.git#production/be-typescript-express/Jenkinsfile
+      jenkinspipeline.quickstarter.beTypescriptExpress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-typescript-express/Jenkinsfile
 
       # Data Science quickstarters
       jenkinspipeline.quickstarter.dsJupyterNotebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#production/ds-jupyter-notebook/Jenkinsfile
+      jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-jupyter-notebook/Jenkinsfile
       jenkinspipeline.quickstarter.dsRshiny.desc=Data Science - R-Shiny
-      jenkinspipeline.quickstarter.dsRshiny.url=opendevstack/ods-quickstarters.git#production/ds-rshiny/Jenkinsfile
+      jenkinspipeline.quickstarter.dsRshiny.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-rshiny/Jenkinsfile
       jenkinspipeline.quickstarter.dsMlService.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.dsMlService.url=opendevstack/ods-quickstarters.git#production/ds-ml-service/Jenkinsfile
+      jenkinspipeline.quickstarter.dsMlService.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-ml-service/Jenkinsfile
 
       # Frontend quickstarters
       jenkinspipeline.quickstarter.feAngular.desc=Frontend - Angular
-      jenkinspipeline.quickstarter.feAngular.url=opendevstack/ods-quickstarters.git#production/fe-angular/Jenkinsfile
+      jenkinspipeline.quickstarter.feAngular.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-angular/Jenkinsfile
       jenkinspipeline.quickstarter.feReact.desc=Frontend - React
-      jenkinspipeline.quickstarter.feReact.url=opendevstack/ods-quickstarters.git#production/fe-react/Jenkinsfile
+      jenkinspipeline.quickstarter.feReact.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-react/Jenkinsfile
       jenkinspipeline.quickstarter.feVue.desc=Frontend - Vue
-      jenkinspipeline.quickstarter.feVue.url=opendevstack/ods-quickstarters.git#production/fe-vue/Jenkinsfile
+      jenkinspipeline.quickstarter.feVue.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-vue/Jenkinsfile
       jenkinspipeline.quickstarter.feIonic.desc=Mobile - Ionic
-      jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#production/fe-ionic/Jenkinsfile
+      jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-ionic/Jenkinsfile
 
       # Other quickstarters
       jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
-      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#production/be-airflow/Jenkinsfile
+      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-airflow/Jenkinsfile
       jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
-      jenkinspipeline.quickstarter.e2eCypress.url=opendevstack/ods-quickstarters.git#production/e2e-cypress/Jenkinsfile
+      jenkinspipeline.quickstarter.e2eCypress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/e2e-cypress/Jenkinsfile
       jenkinspipeline.quickstarter.releaseManager.desc=Other - Releasemanager
-      jenkinspipeline.quickstarter.releaseManager.url=opendevstack/ods-quickstarters.git#production/release-manager/Jenkinsfile
+      jenkinspipeline.quickstarter.releaseManager.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/release-manager/Jenkinsfile
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
