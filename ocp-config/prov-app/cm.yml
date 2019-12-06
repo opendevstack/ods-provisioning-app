@@ -180,7 +180,7 @@ objects:
 
       #Other quickstarters
       jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
-      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-airflow/Jenkinsfile
+      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/airflow-cluster/Jenkinsfile
       jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
       jenkinspipeline.quickstarter.e2eCypress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/e2e-cypress/Jenkinsfile
       jenkinspipeline.quickstarter.releaseManager.desc=Other - Releasemanager
