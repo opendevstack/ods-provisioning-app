@@ -19,7 +19,11 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -450,9 +454,12 @@ public class ProjectApiController {
 
       for (Map<String, String> quickstarters : project.quickstarters) {
         String componentType = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
-        Optional<Job> maybeComponent = jenkinsPipelineAdapter.getComponentByType(componentType);
 
-        String componentDescription = maybeComponent.map(Job::getDescription).orElse(componentType);
+        String componentDescription =
+            jenkinsPipelineAdapter
+                .getComponentByType(componentType)
+                .map(Job::getDescription)
+                .orElse(componentType);
         quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, componentDescription);
         enhancedStarters.add(quickstarters);
       }

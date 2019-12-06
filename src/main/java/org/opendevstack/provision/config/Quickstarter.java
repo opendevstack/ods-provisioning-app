@@ -26,9 +26,9 @@ public class Quickstarter {
     return result;
   }
 
-  public static Quickstarter projectQuickstarter(String name, String url, String desc) {
+  public static Quickstarter adminjobQuickstarter(String name, String url, String desc) {
     Quickstarter result = new Quickstarter(name, url, desc);
-    result.type = QuickstarterType.project;
+    result.type = QuickstarterType.adminjob;
     return result;
   }
 
@@ -63,10 +63,6 @@ public class Quickstarter {
 
   public void setType(QuickstarterType type) {
     this.type = type;
-  }
-
-  public boolean isComponentQuickstarter() {
-    return QuickstarterType.component.equals(this.getType());
   }
 
   @Override

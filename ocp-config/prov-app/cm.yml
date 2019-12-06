@@ -138,10 +138,13 @@ objects:
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}
 
-      # createProjects configuration
-      jenkinspipeline.quickstarter.create-projects.desc=Create Project. Only used internally, therefore separated from other quickstarters
-      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#${ODS_GIT_REF}/create-projects/Jenkinsfile
-      jenkinspipeline.quickstarter.create-projects.type=project
+      # adminjobs configuration: create projects, delete-projects and delete-components
+      jenkinspipeline.adminjobs.create-projects.desc=Create Project
+      jenkinspipeline.adminjobs.create-projects.url=opendevstack/ods-core.git#${ODS_GIT_REF}/create-projects/Jenkinsfile
+      jenkinspipeline.adminjobs.delete-projects.desc=Delete openshift project
+      jenkinspipeline.adminjobs.delete-projects.url=opendevstack/ods-core.git#${ODS_GIT_REF}/delete-projects/Jenkinsfile
+      jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
+      jenkinspipeline.adminjobs.delete-components.url=opendevstack/ods-core.git#${ODS_GIT_REF}/delete-components/Jenkinsfile
 
       # Backend quickstarters
       jenkinspipeline.quickstarter.beSpringBoot.desc=Backend - SpringBoot/Java
@@ -175,7 +178,7 @@ objects:
       jenkinspipeline.quickstarter.feIonic.desc=Mobile - Ionic
       jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-ionic/Jenkinsfile
 
-      # Other quickstarters
+      #Other quickstarters
       jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
       jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-airflow/Jenkinsfile
       jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
