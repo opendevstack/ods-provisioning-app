@@ -69,6 +69,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${openshift.dev.project.name.pattern}")
   protected String projectOpenshiftDevProjectPattern;
 
+  @Value("${openshift.cd.project.name.pattern}")
+  protected String projectOpenshiftCdProjectPattern;
+
   @Value("${openshift.jenkins.project.name.pattern}")
   protected String projectOpenshiftJenkinsProjectPattern;
 
@@ -263,6 +266,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       // we can only add the console based links - as no routes are created per
       // default
+      project.platformCdEnvironmentUrl =
+          String.format(
+              projectOpenshiftCdProjectPattern,
+              projectOpenshiftConsoleUri.trim(),
+              project.projectKey.toLowerCase());
+
       project.platformDevEnvironmentUrl =
           String.format(
               projectOpenshiftDevProjectPattern,

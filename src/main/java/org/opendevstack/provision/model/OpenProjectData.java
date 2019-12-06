@@ -68,6 +68,8 @@ public class OpenProjectData {
   public Map<String, Map<URL_TYPE, String>> repositories = null;
   /** The url of the jenkins / build engine */
   public String platformBuildEngineUrl = null;
+  /** The url of the cd environment */
+  public String platformCdEnvironmentUrl = null;
   /** The url of the dev environment */
   public String platformDevEnvironmentUrl = null;
   /** The url of the test environment */

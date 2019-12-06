@@ -42,10 +42,11 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @param project the project including the project's name and key {@link
    *     OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-   * @return the project with filled {@link OpenProjectData#platformDevEnvironmentUrl}, {@link
-   *     OpenProjectData#platformTestEnvironmentUrl}, {{@link
-   *     OpenProjectData#platformBuildEngineUrl} and {@link OpenProjectData#lastExecutionJobs} which
-   *     contains the link the jobs that were kicked off
+   * @return the project with filled {@link OpenProjectData#platformCdEnvironmentUrl}, {@link
+   *     OpenProjectData#platformDevEnvironmentUrl}, {@link
+   *     OpenProjectData#platformTestEnvironmentUrl}, {@link OpenProjectData#platformBuildEngineUrl}
+   *     and {@link OpenProjectData#lastExecutionJobs} which contains the link the jobs that were
+   *     kicked off
    * @throws IOException in case the projects cannot be created
    */
   OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException;

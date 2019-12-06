@@ -72,6 +72,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
+    jenkinsPipelineAdapter.projectOpenshiftCdProjectPattern = "%s/project/%s-cd";
     jenkinsPipelineAdapter.projectOpenshiftDevProjectPattern = "%s/project/%s-dev";
     jenkinsPipelineAdapter.projectOpenshiftConsoleUri = "https://192.168.56.101:8443/console";
     jenkinsPipelineAdapter.projectOpenshiftTestProjectPattern = "%s/project/%s-test";
@@ -191,6 +192,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
     assertEquals(
+        expectedOpenProjectData.platformCdEnvironmentUrl,
+        createdOpenProjectData.platformCdEnvironmentUrl);
+    assertEquals(
         expectedOpenProjectData.platformDevEnvironmentUrl,
         createdOpenProjectData.platformDevEnvironmentUrl);
     assertEquals(
@@ -268,6 +272,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private OpenProjectData generateDefaultOpenProjectData() {
     OpenProjectData result = new OpenProjectData();
+    result.platformCdEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-cd";
     result.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
     result.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
     result.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";

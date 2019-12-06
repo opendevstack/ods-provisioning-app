@@ -147,15 +147,15 @@
                 <!-- tjaeschke project specific cd user -->
                 <div class="form-group" th:classappend="text-info">
                     <div class="form-group">
-                        <label for="projectSpecificCdUser">Define project specific CD user</label>
+                        <label for="projectSpecificCdUser">Use project specific CD user</label>
                         <input type="checkbox" name="projectSpecificCdUser" id="projectSpecificCdUser"/>
                     </div>
                     <div class="form-group hidden" id="cduserinfodiv">
-                        If you define a project specific CD user, the user has to exist in your identity management and has to be able to access your GIT server.<br />
-                        After project creation you will have to change the CD user password in the Openshift Webconsole of the created CD project.
+                        If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.<br />
+                        After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project.
                     </div>
                     <div class="form-group hidden" id="cduserdiv">
-                        <label for="cdUser"  class="control-label">CD User</label>
+                        <label for="cdUser"  class="control-label">CD Username</label>
                         <input type="text" class="form-control" name="cdUser" placeholder="Project specific CD user" maxlength="80" id="cdUser"/>
                         <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
                         <div class="help-block with-errors"></div>
@@ -220,57 +220,62 @@
                     <div id="resProject" class="alert">Project provision in progress</div>
                     <div id="projectData" class="hide">
                         <div class="row">
-                            <div class="col-sm-9">
+                            <div class="col-sm-12">
                                 <b>Summary</b>
                                 <div class="row">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         Name:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataProjectName"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataProjectName"></div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         Key:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataProjectKey"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataProjectKey"></div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-xs-8 col-sm-6">
-                                        JIRA / confluence space created:
+                                    <div class="col-xs-4 col-sm-4">
+                                        JIRA / Confluence space:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataJiraConfluenceCreated"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataJiraConfluenceCreated"></div>
                                 </div>
-                                
                                 <div class="row" id="dataJiraUrlDiv">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         JIRA:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataJiraUrl"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataJiraUrl"></div>
                                 </div>
                                 <div class="row" id="dataConfluenceUrlDiv">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         Confluence:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataConfluenceUrl"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataConfluenceUrl"></div>
                                 </div>
                                 <div class="row" id="dataJenkinsUrlDiv">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         Jenkins:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataJenkinsUrl"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataJenkinsUrl"></div>
                                 </div>
                                 <div class="row" id="dataBitbucketUrlDiv">
-                                    <div class="col-xs-8 col-sm-6">
+                                    <div class="col-xs-4 col-sm-4">
                                         Bitbucket project:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataBitbucketUrl"></div>
+                                    <div class="col-xs-8 col-sm-8" id="dataBitbucketUrl"></div>
                                 </div>
-								<div class="row">
-                                    <div class="col-xs-8 col-sm-6">
-                                        Provisioning jobs:
+                                <div class="row">
+                                    <div class="col-xs-4 col-sm-4">
+                                        Provisioning job:
                                     </div>
-                                    <div class="col-xs-4 col-sm-6" id="dataJobUrls"></div>
-                                </div>                                
+                                    <div class="col-xs-8 col-sm-8" id="dataJobUrls"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-4 col-sm-4">
+                                        CD user:
+                                    </div>
+                                    <div class="col-xs-8 col-sm-8" id="dataCdUser"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
