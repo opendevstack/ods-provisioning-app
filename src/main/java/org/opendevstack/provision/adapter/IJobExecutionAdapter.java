@@ -34,7 +34,7 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @return the list of quickstarters, never null but can be empty
    */
-  public List<Job> getComponentQuickstarters();
+  List<Job> getQuickstarterJobs();
 
   /**
    * Create platform projects, e.g. openshift projects to house later components created thru {@link
@@ -42,13 +42,14 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @param project the project including the project's name and key {@link
    *     OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-   * @return the project with filled {@link OpenProjectData#platformDevEnvironmentUrl}, {@link
-   *     OpenProjectData#platformTestEnvironmentUrl}, {{@link
-   *     OpenProjectData#platformBuildEngineUrl} and {@link OpenProjectData#lastExecutionJobs} which
-   *     contains the link the jobs that were kicked off
+   * @return the project with filled {@link OpenProjectData#platformCdEnvironmentUrl}, {@link
+   *     OpenProjectData#platformDevEnvironmentUrl}, {@link
+   *     OpenProjectData#platformTestEnvironmentUrl}, {@link OpenProjectData#platformBuildEngineUrl}
+   *     and {@link OpenProjectData#lastExecutionJobs} which contains the link the jobs that were
+   *     kicked off
    * @throws IOException in case the projects cannot be created
    */
-  public OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException;
+  OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException;
 
   /**
    * Create platform components based on passed {@link OpenProjectData#quickstarters}
@@ -58,7 +59,7 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *     URLs to the jobs kicked off.
    * @throws IOException in case the platform components could NOT be provisioned
    */
-  public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
+  List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
       throws IOException;
 
   /**

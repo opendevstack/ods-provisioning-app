@@ -51,7 +51,7 @@ public class QuickstarterApiControllerTest {
 
   @Autowired private WebApplicationContext context;
 
-  @MockBean JenkinsPipelineAdapter rundeckAdapter;
+  @MockBean JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
   private List<Job> jobs;
   private OpenProjectData project;
@@ -77,7 +77,7 @@ public class QuickstarterApiControllerTest {
 
   @Test
   public void getQuickstarters() throws Exception {
-    Mockito.when(rundeckAdapter.getComponentQuickstarters()).thenReturn(jobs);
+    Mockito.when(jenkinsPipelineAdapter.getQuickstarterJobs()).thenReturn(jobs);
 
     mockMvc
         .perform(get("/api/v1/quickstarter"))
@@ -86,7 +86,7 @@ public class QuickstarterApiControllerTest {
 
   @Test
   public void executeJobs() throws Exception {
-    Mockito.when(rundeckAdapter.provisionComponentsBasedOnQuickstarters(project))
+    Mockito.when(jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project))
         .thenReturn(executions);
 
     mockMvc

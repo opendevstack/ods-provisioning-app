@@ -18,6 +18,8 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.opendevstack.provision.config.Quickstarter.adminjobQuickstarter;
+import static org.opendevstack.provision.config.Quickstarter.componentQuickstarter;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
@@ -32,7 +34,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
-import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Execution;
@@ -66,14 +67,12 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     MockitoAnnotations.initMocks(this);
 
     jenkinsPipelineAdapter.jenkinsPipelineProperties = buildJenkinsPipelineProperties();
-    jenkinsPipelineAdapter
-        .getJenkinsPipelineProperties()
-        .addQuickstarter(
-            Quickstarter.componentQuickstarter(JOB_1_NAME, JOB_1_URL, "dummy description"));
+
     jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
+    jenkinsPipelineAdapter.projectOpenshiftCdProjectPattern = "%s/project/%s-cd";
     jenkinsPipelineAdapter.projectOpenshiftDevProjectPattern = "%s/project/%s-dev";
     jenkinsPipelineAdapter.projectOpenshiftConsoleUri = "https://192.168.56.101:8443/console";
     jenkinsPipelineAdapter.projectOpenshiftTestProjectPattern = "%s/project/%s-test";
@@ -88,19 +87,21 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   private JenkinsPipelineProperties buildJenkinsPipelineProperties() {
     JenkinsPipelineProperties jenkinsPipelineProperties = new JenkinsPipelineProperties();
     jenkinsPipelineProperties.addQuickstarter(
-        Quickstarter.projectQuickstarter(
+        adminjobQuickstarter(
             "create-projects",
             "opendevstack/ods-core.git#production/create-projects/Jenkinsfile",
             "internal quickstarter for creating new initiatives"));
+    jenkinsPipelineProperties.addQuickstarter(
+        componentQuickstarter(JOB_1_NAME, JOB_1_URL, "dummy description"));
     return jenkinsPipelineProperties;
   }
 
   @Test
   public void getQuickstarter() {
     JenkinsPipelineAdapter spyAdapter = Mockito.spy(jenkinsPipelineAdapter);
-    int expectedQuickstarterSize = jenkinsPipelineAdapter.getComponentQuickstarters().size();
+    int expectedQuickstarterSize = jenkinsPipelineAdapter.getQuickstarterJobs().size();
 
-    int actualQuickstarterSize = spyAdapter.getComponentQuickstarters().size();
+    int actualQuickstarterSize = spyAdapter.getQuickstarterJobs().size();
 
     assertEquals(expectedQuickstarterSize, actualQuickstarterSize);
   }
@@ -191,6 +192,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
     assertEquals(
+        expectedOpenProjectData.platformCdEnvironmentUrl,
+        createdOpenProjectData.platformCdEnvironmentUrl);
+    assertEquals(
         expectedOpenProjectData.platformDevEnvironmentUrl,
         createdOpenProjectData.platformDevEnvironmentUrl);
     assertEquals(
@@ -268,6 +272,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private OpenProjectData generateDefaultOpenProjectData() {
     OpenProjectData result = new OpenProjectData();
+    result.platformCdEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-cd";
     result.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
     result.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
     result.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
