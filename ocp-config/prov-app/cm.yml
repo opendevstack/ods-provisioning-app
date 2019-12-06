@@ -92,7 +92,7 @@ objects:
       server.connection-timeout=90000
       spring.session.timeout=240
       spring.mvc.async.request-timeout=90000
-      
+
       # server port
       server.port=8080
       server.use-forward-headers=true
@@ -161,6 +161,8 @@ objects:
       jenkinspipeline.quickstarter.beTypescriptExpress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-typescript-express/Jenkinsfile
 
       # Data Science quickstarters
+      jenkinspipeline.quickstarter.dsJupyterNotebook.desc=Data Science - Plotly Dash
+      jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-dash/Jenkinsfile
       jenkinspipeline.quickstarter.dsJupyterNotebook.desc=Data Science - Jupyter Notebook
       jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-jupyter-notebook/Jenkinsfile
       jenkinspipeline.quickstarter.dsRshiny.desc=Data Science - R-Shiny
@@ -234,7 +236,7 @@ objects:
       # mail properties
       # enable mail sendout with project details
       mail.enabled=true
-      
+
       spring.mail.host=${PROV_APP_MAIL_HOST}
       spring.mail.port=587
       spring.mail.protocol=smtp
