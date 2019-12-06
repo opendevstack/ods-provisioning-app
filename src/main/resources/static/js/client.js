@@ -393,18 +393,20 @@ function isUniqueComponentId(newCompId,elName) {
 function summarize(data) {
   $("#dataProjectName").html(data.projectName);
   $("#dataProjectKey").html(data.projectKey);
-  
-  $("#dataJiraConfluenceCreated").text(data.bugtrackerSpace);
+
+  if (data.bugtrackerSpace) {
+    $("#dataJiraConfluenceCreated").text("Created");
+  } else {
+    $("#dataJiraConfluenceCreated").text("Not created");
+  }
   
   // this is for the default case where spaces should be created.
-  if (data.bugtrackerSpace) 
-  {
-	  $("#dataJiraUrl").html("<a href='" + data.bugtrackerUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
-	  $("#dataConfluenceUrl").html("<a href='" + data.collaborationSpaceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
-  } else 
-  {
-  	  $("#dataJiraUrlDiv").hide();
-  	  $("#dataConfluenceUrlDiv").hide();
+  if (data.bugtrackerSpace) {
+    $("#dataJiraUrl").html('<a href="' + data.bugtrackerUrl + '" target="_blank">' + data.bugtrackerUrl + '</a>');
+    $("#dataConfluenceUrl").html('<a href="' + data.collaborationSpaceUrl + '" target="_blank">' + data.collaborationSpaceUrl + '</a>');
+  } else {
+      $("#dataJiraUrlDiv").hide();
+      $("#dataConfluenceUrlDiv").hide();
   }
 
   if (data.lastExecutionJobs != null) {
