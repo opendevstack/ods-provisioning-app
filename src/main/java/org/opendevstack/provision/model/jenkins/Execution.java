@@ -30,6 +30,7 @@ public class Execution {
   public List<Option> env = new LinkedList<>();
   public String branch;
   public String repository;
+  public String project;
   public String url;
 
   public void setOptions(Map<String, String> options) {
@@ -50,6 +51,7 @@ public class Execution {
         .append("env", env)
         .append("branch", branch)
         .append("repository", repository)
+        .append("project", project)
         .append("url", url)
         .toString();
   }

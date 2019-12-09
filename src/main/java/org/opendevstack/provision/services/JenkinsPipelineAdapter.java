@@ -80,6 +80,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.uri}")
   protected String bitbucketUri;
 
+  @Value("${bitbucket.opendevstack.project}")
+  protected String bitbucketOdsProject;
+
   @Value("${ods.image-tag}")
   private String odsImageTag;
 
@@ -369,6 +372,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + (deleteComponentJob ? options.get("component_id") : projID);
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
+      execution.project = bitbucketOdsProject;
 
     } else {
       String component_id = Objects.toString(options.get("component_id"));
@@ -389,6 +393,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + component_id;
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
+      execution.project = bitbucketOdsProject;
     }
     if (options != null) {
       execution.setOptions(options);
