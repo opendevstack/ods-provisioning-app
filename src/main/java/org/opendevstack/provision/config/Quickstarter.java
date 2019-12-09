@@ -31,8 +31,12 @@ public class Quickstarter {
   }
 
   public static Quickstarter componentQuickstarter(
-      String name, String url, String desc, Optional<String> branch, Optional<String> jenkinsfile) {
-    Quickstarter result = new Quickstarter(name, url, desc, branch, jenkinsfile);
+      String name,
+      String repo,
+      String desc,
+      Optional<String> branch,
+      Optional<String> jenkinsfile) {
+    Quickstarter result = new Quickstarter(name, repo, desc, branch, jenkinsfile);
     result.type = QuickstarterType.component;
     return result;
   }
@@ -52,8 +56,8 @@ public class Quickstarter {
     return repo;
   }
 
-  public void setRepo(String url) {
-    this.repo = url;
+  public void setRepo(String repo) {
+    this.repo = repo;
   }
 
   public String getDesc() {
@@ -103,6 +107,8 @@ public class Quickstarter {
         .append("name", name)
         .append("repo", repo)
         .append("desc", desc)
+        .append("branch", desc)
+        .append("jenkinsfile", desc)
         .append("type", type)
         .toString();
   }
