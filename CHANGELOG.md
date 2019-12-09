@@ -4,6 +4,7 @@
 ### Added
 - Replace Rundeck with (Jenkins) pipelines ([#265](https://github.com/opendevstack/ods-provisioning-app/pull/265))
 - Added support for project specific CD user ([#297](https://github.com/opendevstack/ods-provisioning-app/pull/297))
+- Create project specific trigger secret ([#317](https://github.com/opendevstack/ods-provisioning-app/issues/317))
 
 ### Changed
 - Create service framework to allow integration to other bugtrackers/scm & idmgt ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
