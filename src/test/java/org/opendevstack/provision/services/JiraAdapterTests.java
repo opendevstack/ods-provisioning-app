@@ -336,7 +336,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   public void testComponentCreation() throws Exception {
     TypeReference reference = new TypeReference<Map<String, Map<String, List<Link>>>>() {};
 
-    Map<String, Map<String, List<Link>>> repos =
+    // see https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.10#reported-problems
+    Map<String, Map<String, List<Link>>> repos = (Map<String, Map<String, List<Link>>>)
         new ObjectMapper()
             .readValue(
                 Thread.currentThread()
