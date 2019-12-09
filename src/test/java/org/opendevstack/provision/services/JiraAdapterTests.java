@@ -337,13 +337,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     TypeReference reference = new TypeReference<Map<String, Map<String, List<Link>>>>() {};
 
     // see https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.10#reported-problems
-    Map<String, Map<String, List<Link>>> repos = (Map<String, Map<String, List<Link>>>)
-        new ObjectMapper()
-            .readValue(
-                Thread.currentThread()
-                    .getContextClassLoader()
-                    .getResourceAsStream("data/repositoryTestData.txt"),
-                reference);
+    Map<String, Map<String, List<Link>>> repos =
+        (Map<String, Map<String, List<Link>>>)
+            new ObjectMapper()
+                .readValue(
+                    Thread.currentThread()
+                        .getContextClassLoader()
+                        .getResourceAsStream("data/repositoryTestData.txt"),
+                    reference);
 
     String repoName = "ai00000001-fe-angular";
 
