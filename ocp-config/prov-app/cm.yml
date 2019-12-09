@@ -140,65 +140,65 @@ objects:
 
       # adminjobs configuration: create projects, delete-projects and delete-components
       jenkinspipeline.adminjobs.create-projects.desc=Create Project
-      jenkinspipeline.adminjobs.create-projects.repo=ods-core.git
+      jenkinspipeline.adminjobs.create-projects.repo=ods-core
 
       jenkinspipeline.adminjobs.delete-projects.desc=Delete openshift project
-      jenkinspipeline.adminjobs.delete-projects.repo=ods-core.git
+      jenkinspipeline.adminjobs.delete-projects.repo=ods-core
 
       jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
-      jenkinspipeline.adminjobs.delete-components.repo=ods-core.git
+      jenkinspipeline.adminjobs.delete-components.repo=ods-core
 
       # Backend quickstarters
       jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
-      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.docker-plain.desc=Backend - Docker/Plain
-      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
-      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
-      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
-      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
-      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
 
       # Data Science quickstarters
       jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
-      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
 
       # Frontend quickstarters
       jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
-      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
-      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
-      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
-      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
       #Other quickstarters
       jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
-      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
-      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
-      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters.git
+      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
