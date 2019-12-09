@@ -1,30 +1,49 @@
 package org.opendevstack.provision.model.jenkins;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Optional;
 import org.junit.Test;
 
 public class JobTest {
 
+  private String odsGitRef = "production";
+
   @Test
-  public void createJobFromUrlWithBranchSpecification() {
-    Job job = new Job("jobName", "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile");
-    checkCommonJobParameters(job);
-    Assertions.assertThat(job.getBranch()).isEqualTo("branch");
+  public void createJobOnlyWithNameAndRepo() {
+    Job job = new Job("jobName", "gitRepoName.git", Optional.empty(), Optional.empty(), odsGitRef);
+    assertThat(job.getName()).isEqualTo("jobName");
+    assertThat(job.isEnabled()).isTrue();
+    assertThat(job.getBranch()).isEqualTo(odsGitRef);
+    assertThat(job.getGitRepoName()).isEqualTo("gitRepoName");
+    assertThat(job.getJenkinsfilePath()).isEqualTo("jobName/Jenkinsfile");
   }
 
   @Test
-  public void createJobFromUrlWithoutBranchSpecification() {
-    Job job = new Job("jobName", "gitParentProject/gitRepoName.git/path-to/Jenkinsfile");
-    checkCommonJobParameters(job);
-    Assertions.assertThat(job.getBranch()).isEqualTo("master");
+  public void createJobWithCustomBranch() {
+    Job job =
+        new Job(
+            "jobName", "gitRepoName.git", Optional.of("customBranch"), Optional.empty(), odsGitRef);
+    assertThat(job.getName()).isEqualTo("jobName");
+    assertThat(job.isEnabled()).isTrue();
+    assertThat(job.getBranch()).isEqualTo("customBranch");
+    assertThat(job.getGitRepoName()).isEqualTo("gitRepoName");
+    assertThat(job.getJenkinsfilePath()).isEqualTo("jobName/Jenkinsfile");
   }
 
-  private void checkCommonJobParameters(Job job) {
-    Assertions.assertThat(job.getId()).isEqualTo("jobName");
-    Assertions.assertThat(job.isEnabled()).isTrue();
-    Assertions.assertThat(job.getName()).isEqualTo("jobName");
-    Assertions.assertThat(job.getGitParentProject()).isEqualTo("gitParentProject");
-    Assertions.assertThat(job.getGitRepoName()).isEqualTo("gitRepoName");
-    Assertions.assertThat(job.getJenkinsfilePath()).isEqualTo("path-to/Jenkinsfile");
+  @Test
+  public void createJobWithCustomJenkinsfilePath() {
+    Job job =
+        new Job(
+            "jobName",
+            "gitRepoName.git",
+            Optional.empty(),
+            Optional.of("a/custom/path/Jenkinsfile"),
+            odsGitRef);
+    assertThat(job.getName()).isEqualTo("jobName");
+    assertThat(job.isEnabled()).isTrue();
+    assertThat(job.getBranch()).isEqualTo(odsGitRef);
+    assertThat(job.getGitRepoName()).isEqualTo("gitRepoName");
+    assertThat(job.getJenkinsfilePath()).isEqualTo("a/custom/path/Jenkinsfile");
   }
 }

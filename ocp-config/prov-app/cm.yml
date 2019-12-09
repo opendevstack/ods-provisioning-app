@@ -129,6 +129,7 @@ objects:
       bitbucket.repository.pattern=%s-%s
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
+      bitbucket.opendevstack.project=opendevstack
 
       scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
       scm.global.readablerepos.opendevstack[1]=ods-quickstarters
@@ -138,50 +139,78 @@ objects:
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}
 
-      # createProjects configuration
-      jenkinspipeline.quickstarter.create-projects.desc=Create Project. Only used internally, therefore separated from other quickstarters
-      jenkinspipeline.quickstarter.create-projects.url=opendevstack/ods-core.git#${ODS_GIT_REF}/create-projects/Jenkinsfile
-      jenkinspipeline.quickstarter.create-projects.type=project
+      #############
+      # Job configurations can have the following properties:
+      #
+      # Mandatory:
+      # jenkinspipeline.[some-job-name].desc -> description of the Job
+      # jenkinspipeline.[some-job-name].repo -> repo name of the Job
+      #
+      # Optional:
+      # jenkinspipeline.[some-job-name].branch -> a branch differing from ods.git-ref
+      # jenkinspipeline.[some-job-name].jenkinsfile -> a path to the jenkinsfile differing from [some-job-name]/Jenkinsfile
+      #############
+      # adminjobs configuration: create projects, delete-projects and delete-components
+      jenkinspipeline.adminjobs.create-projects.desc=Create Project
+      jenkinspipeline.adminjobs.create-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-projects.desc=Delete openshift project
+      jenkinspipeline.adminjobs.delete-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
+      jenkinspipeline.adminjobs.delete-components.repo=ods-core
 
       # Backend quickstarters
-      jenkinspipeline.quickstarter.beSpringBoot.desc=Backend - SpringBoot/Java
-      jenkinspipeline.quickstarter.beSpringBoot.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-java-springboot/Jenkinsfile
-      jenkinspipeline.quickstarter.dockerPlain.desc=Backend - Docker/Plain
-      jenkinspipeline.quickstarter.dockerPlain.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/docker-plain/Jenkinsfile
-      jenkinspipeline.quickstarter.beGolangPlain.desc=Backend - Golang
-      jenkinspipeline.quickstarter.beGolangPlain.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-golang-plain/Jenkinsfile
-      jenkinspipeline.quickstarter.bePythonFlask.desc=Backend - Python/Flask
-      jenkinspipeline.quickstarter.bePythonFlask.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-python-flask/Jenkinsfile
-      jenkinspipeline.quickstarter.beScalaAkka.desc=Backend - Scala/Akka
-      jenkinspipeline.quickstarter.beScalaAkka.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-scala-akka/Jenkinsfile
-      jenkinspipeline.quickstarter.beTypescriptExpress.desc=Backend - NodeJS/Express
-      jenkinspipeline.quickstarter.beTypescriptExpress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-typescript-express/Jenkinsfile
+      jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
+      jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
+      jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-python-flask.desc=Backend - Python/Flask
+      jenkinspipeline.quickstarter.be-python-flask.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-scala-akka.desc=Backend - Scala/Akka
+      jenkinspipeline.quickstarter.be-scala-akka.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
+      jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
 
       # Data Science quickstarters
-      jenkinspipeline.quickstarter.dsJupyterNotebook.desc=Data Science - Jupyter Notebook
-      jenkinspipeline.quickstarter.dsJupyterNotebook.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-jupyter-notebook/Jenkinsfile
-      jenkinspipeline.quickstarter.dsRshiny.desc=Data Science - R-Shiny
-      jenkinspipeline.quickstarter.dsRshiny.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-rshiny/Jenkinsfile
-      jenkinspipeline.quickstarter.dsMlService.desc=Data Science - Machine Learning
-      jenkinspipeline.quickstarter.dsMlService.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/ds-ml-service/Jenkinsfile
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
+      jenkinspipeline.quickstarter.ds-jupyter-notebook.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-rshiny.desc=Data Science - R-Shiny
+      jenkinspipeline.quickstarter.ds-rshiny.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.ds-ml-service.desc=Data Science - Machine Learning
+      jenkinspipeline.quickstarter.ds-ml-service.repo=ods-quickstarters
 
       # Frontend quickstarters
-      jenkinspipeline.quickstarter.feAngular.desc=Frontend - Angular
-      jenkinspipeline.quickstarter.feAngular.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-angular/Jenkinsfile
-      jenkinspipeline.quickstarter.feReact.desc=Frontend - React
-      jenkinspipeline.quickstarter.feReact.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-react/Jenkinsfile
-      jenkinspipeline.quickstarter.feVue.desc=Frontend - Vue
-      jenkinspipeline.quickstarter.feVue.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-vue/Jenkinsfile
-      jenkinspipeline.quickstarter.feIonic.desc=Mobile - Ionic
-      jenkinspipeline.quickstarter.feIonic.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/fe-ionic/Jenkinsfile
+      jenkinspipeline.quickstarter.fe-angular.desc=Frontend - Angular
+      jenkinspipeline.quickstarter.fe-angular.repo=ods-quickstarters
 
-      # Other quickstarters
-      jenkinspipeline.quickstarter.beAirflow.desc=Other - Airflow
-      jenkinspipeline.quickstarter.beAirflow.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/be-airflow/Jenkinsfile
-      jenkinspipeline.quickstarter.e2eCypress.desc=Other - Cypress E2E test
-      jenkinspipeline.quickstarter.e2eCypress.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/e2e-cypress/Jenkinsfile
-      jenkinspipeline.quickstarter.releaseManager.desc=Other - Releasemanager
-      jenkinspipeline.quickstarter.releaseManager.url=opendevstack/ods-quickstarters.git#${ODS_GIT_REF}/release-manager/Jenkinsfile
+      jenkinspipeline.quickstarter.fe-react.desc=Frontend - React
+      jenkinspipeline.quickstarter.fe-react.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-vue.desc=Frontend - Vue
+      jenkinspipeline.quickstarter.fe-vue.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.fe-ionic.desc=Mobile - Ionic
+      jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
+
+      #Other quickstarters
+      jenkinspipeline.quickstarter.docker-plain.desc=Docker/Plain
+      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
+      jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.e2e-cypress.desc=Other - Cypress E2E test
+      jenkinspipeline.quickstarter.e2e-cypress.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
+      jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
@@ -193,6 +222,7 @@ objects:
       # openshift project name patterns
       openshift.test.project.name.pattern=%s%s-test
       openshift.dev.project.name.pattern=%s%s-dev
+      openshift.cd.project.name.pattern=%s%s-cd
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.webhookproxy.name.pattern=webhook-proxy-%s-cd%s
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}

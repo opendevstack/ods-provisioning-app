@@ -1,5 +1,6 @@
 package org.opendevstack.provision.config;
 
+import java.util.Optional;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -8,36 +9,55 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public class Quickstarter {
 
   private String name;
-  private String url;
+  private String repo;
   private String desc;
+  private Optional<String> branch = Optional.empty();
+  private Optional<String> jenkinsfile = Optional.empty();
   private QuickstarterType type = QuickstarterType.component;
 
   public Quickstarter() {}
 
-  private Quickstarter(String name, String url, String desc) {
+  private Quickstarter(
+      String name,
+      String repo,
+      String desc,
+      Optional<String> branch,
+      Optional<String> jenkinsfile) {
     this.name = name;
-    this.url = url;
+    this.repo = repo;
     this.desc = desc;
+    this.branch = branch;
+    this.jenkinsfile = jenkinsfile;
   }
 
-  public static Quickstarter componentQuickstarter(String name, String url, String desc) {
-    Quickstarter result = new Quickstarter(name, url, desc);
+  public static Quickstarter componentQuickstarter(
+      String name,
+      String repo,
+      String desc,
+      Optional<String> branch,
+      Optional<String> jenkinsfile) {
+    Quickstarter result = new Quickstarter(name, repo, desc, branch, jenkinsfile);
     result.type = QuickstarterType.component;
     return result;
   }
 
-  public static Quickstarter projectQuickstarter(String name, String url, String desc) {
-    Quickstarter result = new Quickstarter(name, url, desc);
-    result.type = QuickstarterType.project;
+  public static Quickstarter adminjobQuickstarter(
+      String name,
+      String repo,
+      String desc,
+      Optional<String> branch,
+      Optional<String> jenkinsfile) {
+    Quickstarter result = new Quickstarter(name, repo, desc, branch, jenkinsfile);
+    result.type = QuickstarterType.adminjob;
     return result;
   }
 
-  public String getUrl() {
-    return url;
+  public String getRepo() {
+    return repo;
   }
 
-  public void setUrl(String url) {
-    this.url = url;
+  public void setRepo(String repo) {
+    this.repo = repo;
   }
 
   public String getDesc() {
@@ -65,16 +85,30 @@ public class Quickstarter {
     this.type = type;
   }
 
-  public boolean isComponentQuickstarter() {
-    return QuickstarterType.component.equals(this.getType());
+  public Optional<String> getBranch() {
+    return branch;
+  }
+
+  public void setBranch(Optional<String> branch) {
+    this.branch = branch;
+  }
+
+  public Optional<String> getJenkinsfile() {
+    return jenkinsfile;
+  }
+
+  public void setJenkinsfile(Optional<String> jenkinsfile) {
+    this.jenkinsfile = jenkinsfile;
   }
 
   @Override
   public String toString() {
     return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
         .append("name", name)
-        .append("url", url)
+        .append("repo", repo)
         .append("desc", desc)
+        .append("branch", desc)
+        .append("jenkinsfile", desc)
         .append("type", type)
         .toString();
   }
