@@ -129,6 +129,7 @@ objects:
       bitbucket.repository.pattern=%s-%s
       bitbucket.default.user.group=${PROV_APP_CROWD_USER_GROUP}
       bitbucket.technical.user=${CD_USER_ID}
+      bitbucket.opendevstack.project=opendevstack
 
       scm.global.readablerepos.opendevstack[0]=ods-jenkins-shared-library
       scm.global.readablerepos.opendevstack[1]=ods-quickstarters
