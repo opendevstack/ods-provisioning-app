@@ -6,7 +6,7 @@
 - Added support for project specific CD user ([#297](https://github.com/opendevstack/ods-provisioning-app/pull/297))
 
 ### Changed
-- Create service framework to allow integration to other bugtrackers/scm & idmgt ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86)
+- Create service framework to allow integration to other bugtrackers/scm & idmgt ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
 - Uptake 4.1.0 okhttp ([#303](https://github.com/opendevstack/ods-provisioning-app/issues/303))
 - Bump httpasyncclient from 4.0-beta3-atlassian-1 to 4.1.4  ([#205](https://github.com/opendevstack/ods-provisioning-app/issues/205))
 
