@@ -60,8 +60,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private final String JOB_1_NAME = "be-java-springboot";
   private final String JOB_1_REPO = "gitRepoName.git";
-  //  private final String JOB_1_URL =
-  // "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile";
   private final String JOB_1_LEGACY_ID = "e5b77f0f-262a-42f9-9d06-5d9052c1f394";
 
   @Before
@@ -94,7 +92,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             "ods-core.git",
             "internal quickstarter for creating new initiatives",
             Optional.of("production"),
-            Optional.of("/create-projects/Jenkinsfile")));
+            Optional.of("create-projects/Jenkinsfile")));
     jenkinsPipelineProperties.addQuickstarter(
         componentQuickstarter(
             JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty()));

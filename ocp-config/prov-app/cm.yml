@@ -164,9 +164,6 @@ objects:
       jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
       jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
 
-      jenkinspipeline.quickstarter.docker-plain.desc=Backend - Docker/Plain
-      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
-
       jenkinspipeline.quickstarter.be-golang-plain.desc=Backend - Golang
       jenkinspipeline.quickstarter.be-golang-plain.repo=ods-quickstarters
 
@@ -203,6 +200,9 @@ objects:
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
       #Other quickstarters
+      jenkinspipeline.quickstarter.docker-plain.desc=Docker/Plain
+      jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
+
       jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
       jenkinspipeline.quickstarter.airflow-cluster.repo=ods-quickstarters
 
