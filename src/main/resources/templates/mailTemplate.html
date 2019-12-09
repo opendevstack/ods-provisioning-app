@@ -39,7 +39,7 @@
   </div>
   <div class="row" th:if="${project.cdUser != null and !project.cdUser.trim().isEmpty()}">
     <div class="col-xs-8 col-sm-6"><b>CAUTION:</b></div>
-    <div class="col-xs-4 col-sm-6"><span>You will have to modify the <a th:href="@{${project.platformCdEnvironmentUrl} + '/browse/secrets/cd-user-with-password'}" target="_blank">cd-user-with-password secret</a> of your project's CD project in the OpenShift webconsole. The password can be set in base64 encoding via "Actions > Edit YAML". Provisioning quickstarters will NOT work until you have completed this step.</span></div>
+    <div class="col-xs-4 col-sm-6"><span>You will have to set the <a th:href="@{${project.platformCdEnvironmentUrl} + '/browse/secrets/cd-user-with-password'}" target="_blank">cd-user-with-password secret</a> of your project's CD project in the OpenShift webconsole. The current cd user password can be set in base64 encoding via "Actions > Edit YAML". Provisioning quickstarters will NOT work until you have completed this step.</span></div>
   </div>
   <!-- jenkins -->
   <div class="row" th:if="${project.platformBuildEngineUrl != null}">
