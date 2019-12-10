@@ -38,10 +38,12 @@ import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -49,9 +51,20 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.GenericFilterBean;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Class for setting the security configuration and security related configurations
@@ -64,6 +77,21 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 @EnableEncryptableProperties
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  @Value("${crowd.application.name}")
+  String crowdApplicationName;
+
+  @Value("${crowd.application.password}")
+  String crowdApplicationPassword;
+
+  @Value("${crowd.server.url}")
+  String crowdServerUrl;
+
+  @Value("${crowd.cookie.domain}")
+  String cookieDomain;
+
+  @Autowired
+  private ApplicationContext context;
 
   /**
    * Configure the security for the spring application
@@ -97,20 +125,41 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
         .logout()
         .addLogoutHandler(crowdLogoutHandler())
-        .permitAll();
+        .permitAll()
+            .and()
+            .addFilterAfter(logoutTriggerFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
-  @Value("${crowd.application.name}")
-  String crowdApplicationName;
+  @Bean
+  public GenericFilterBean logoutTriggerFilter() {
 
-  @Value("${crowd.application.password}")
-  String crowdApplicationPassword;
+    return new GenericFilterBean() {
 
-  @Value("${crowd.server.url}")
-  String crowdServerUrl;
+      private int counter;
 
-  @Value("${crowd.cookie.domain}")
-  String cookieDomain;
+      @Override
+      public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !isAnonymousUser(authentication.getPrincipal())) {
+          CrowdAuthenticationManager manager = getApplicationContext().getBean(CrowdAuthenticationManager.class);
+          if (null == manager.getUserName() || counter == 20) {
+            crowdLogoutHandler().logout((HttpServletRequest) request, (HttpServletResponse) response, authentication);
+            SecurityContextHolder.clearContext();
+            return;
+          }
+          counter++;
+        }
+
+        chain.doFilter(request, response);
+      }
+
+      public boolean isAnonymousUser(Object principal) {
+        return principal instanceof String && "anonymousUser".equals((String) principal);
+      }
+
+    };
+
+  }
 
   /**
    * Get the properties used for crowd authentication
@@ -139,6 +188,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
    * @throws IOException
    */
   @Bean
+  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
   public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
     CrowdLogoutHandler clh = new CrowdLogoutHandler();
     clh.setHttpAuthenticator(httpAuthenticator());
