@@ -393,18 +393,20 @@ function isUniqueComponentId(newCompId,elName) {
 function summarize(data) {
   $("#dataProjectName").html(data.projectName);
   $("#dataProjectKey").html(data.projectKey);
-  
-  $("#dataJiraConfluenceCreated").text(data.bugtrackerSpace);
+
+  if (data.bugtrackerSpace) {
+    $("#dataJiraConfluenceCreated").text("Created");
+  } else {
+    $("#dataJiraConfluenceCreated").text("Not created");
+  }
   
   // this is for the default case where spaces should be created.
-  if (data.bugtrackerSpace) 
-  {
-	  $("#dataJiraUrl").html("<a href='" + data.bugtrackerUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
-	  $("#dataConfluenceUrl").html("<a href='" + data.collaborationSpaceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
-  } else 
-  {
-  	  $("#dataJiraUrlDiv").hide();
-  	  $("#dataConfluenceUrlDiv").hide();
+  if (data.bugtrackerSpace) {
+    $("#dataJiraUrl").html('<a href="' + data.bugtrackerUrl + '" target="_blank">' + data.bugtrackerUrl + '</a>');
+    $("#dataConfluenceUrl").html('<a href="' + data.collaborationSpaceUrl + '" target="_blank">' + data.collaborationSpaceUrl + '</a>');
+  } else {
+      $("#dataJiraUrlDiv").hide();
+      $("#dataConfluenceUrlDiv").hide();
   }
 
   if (data.lastExecutionJobs != null) {
@@ -433,7 +435,13 @@ function summarize(data) {
   {
   	  $("#dataJenkinsUrlDiv").hide();
   	  $("#dataBitbucketUrlDiv").hide();
-  }  
+  }
+
+  if (data.cdUser != null && data.cdUser.length > 0) {
+    $("#dataCdUser").html('Project specific CD user<br/>After project creation is complete, you will have to set the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The actual password can be set in base64 encoding via "Actions > Edit YAML".');
+  } else {
+    $("#dataCdUser").html('Global CD user');
+  }
   
   $("#projectData").removeClass("hide");
 
