@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
@@ -20,9 +21,9 @@ public class ControllerAdviceExceptionHandler extends ResponseEntityExceptionHan
     private IODSAuthnzAdapter manager;
 
     @ExceptionHandler(MissingCredentialsInfoException.class)
-    public ResponseEntity handleException(MissingCredentialsInfoException ex) {
+    public ResponseEntity handleException(MissingCredentialsInfoException ex, WebRequest request) {
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = request.getRemoteUser();
 
         // Clean up spring security context
         SecurityContextHolder.clearContext();
@@ -36,7 +37,7 @@ public class ControllerAdviceExceptionHandler extends ResponseEntityExceptionHan
             logger.warn("Error while trying to invalidate identity!");
         }
 
-        logger.error("Removed user session for user {}! [{}]", principal, ex);
+        logger.error("Removed user session for user '" + username + "'!", ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
