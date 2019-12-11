@@ -1,9 +1,7 @@
 package org.opendevstack.provision.services;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
-
-import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.opendevstack.provision.util.HttpVerb;
 import org.opendevstack.provision.util.rest.RestClient;
@@ -13,12 +11,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
+
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 public class BaseServiceAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseServiceAdapter.class);
 
   boolean useTechnicalUser;
-  // TODO fix this!
   protected String userName;
   protected String userPassword;
   private final String configurationPrefix;
@@ -88,12 +89,16 @@ public class BaseServiceAdapter {
   private RestClientCall authenticatedCall(HttpVerb verb) {
     RestClientCall call = notAuthenticatedCall(verb);
 
-    if (useTechnicalUser) {
-      return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
+    try {
+      if (useTechnicalUser) {
+        return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
+      }
+      CredentialsInfo credentialsInfo =
+              new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
+      return call.basicAuthenticated(credentialsInfo);
+    } catch (IllegalArgumentException ex) {
+      throw new MissingCredentialsInfoException("Not able to create credentials info!", ex);
     }
-    CredentialsInfo credentialsInfo =
-        new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
-    return call.basicAuthenticated(credentialsInfo);
   }
 
   public RestClientCall notAuthenticatedCall(HttpVerb verb) {

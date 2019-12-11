@@ -14,8 +14,6 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -34,9 +32,6 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
@@ -55,20 +50,13 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Class for setting the security configuration and security related configurations
@@ -131,14 +119,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
         .logout()
         .addLogoutHandler(crowdLogoutHandler())
-        .permitAll()
-        .and()
-        .addFilterAfter(sessionExpiredFilter(), UsernamePasswordAuthenticationFilter.class);
-  }
-
-  @Bean
-  public GenericFilterBean sessionExpiredFilter() {
-    return new SessionExpiredFilter();
+        .permitAll();
   }
 
   /**
@@ -350,46 +331,4 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         crowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
   }
 
-  /**
-   *
-   */
-  private class SessionExpiredFilter extends GenericFilterBean {
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-      // Process only if user is not anonymous user and was previously authenticated
-      if (authentication != null && authentication.isAuthenticated() && !isAnonymousUser(authentication.getPrincipal())) {
-
-        CrowdAuthenticationManager manager = getApplicationContext().getBean(CrowdAuthenticationManager.class);
-
-        // activate session cleanup if manager does not have the username value anymore
-        // this could happens if the session expires
-        // because manager keeps this information as session aware bean
-        if (null == manager.getUserName()) {
-
-          // Clean up spring security context
-          SecurityContextHolder.clearContext();
-
-          // Clean up crowd authenticator
-          try {
-            httpAuthenticator().logoff((HttpServletRequest) request, (HttpServletResponse) response);
-          } catch (InvalidAuthorizationTokenException e) {
-            logger.warn("Crowd session logout exception was triggered", e);
-          } catch (InvalidAuthenticationException e) {
-            logger.warn("Crowd session logout exception was triggered", e);
-          }
-        }
-      }
-
-      chain.doFilter(request, response);
-    }
-
-    public boolean isAnonymousUser(Object principal) {
-      return principal instanceof String && "anonymousUser".equals((String) principal);
-    }
-
-  }
 }
