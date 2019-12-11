@@ -80,6 +80,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.uri}")
   protected String bitbucketUri;
 
+  @Value("${bitbucket.opendevstack.project}")
+  protected String bitbucketOdsProject;
+
   @Value("${ods.image-tag}")
   private String odsImageTag;
 
@@ -107,21 +110,21 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     nameToJobMappings = quickstarterJobs.stream().collect(toMap(Job::getName, job -> job));
     legacyComponentTypeToNameMappings =
         ImmutableMap.<String, String>builder()
-            .put("e5b77f0f-262a-42f9-9d06-5d9052c1f394", "beSpringBoot")
-            .put("e59e71f5-76e0-4b8c-b040-a526197ee84d", "dockerPlain")
-            .put("f3a7717d-f51a-426c-82fe-4574d4e595ad", "beGolangPlain")
-            .put("9992a587-959c-4ceb-8e3f-c1390e40c582", "bePythonFlask")
-            .put("14ce143c-7d2a-11e7-bb31-be2e44b06b34", "beScalaAkka")
-            .put("7f98bafb-c81d-4eb0-aad1-700b6c05fc12", "beTypescriptExpress")
-            .put("a7b930b2-d125-48ce-9997-9643faa9cdd0", "jupyter_notebook")
-            .put("69405fd4-b0c2-45a8-a6dc-0870ea56166e", "dsRshiny")
-            .put("1deb3f34-5cd4-439b-b987-440dc6591fdf", "dsMlService")
-            .put("560954ef-d245-456c-9460-6c592c9d7784", "feAngular")
-            .put("a86d6f06-cedc-4c16-a92c-5ca48e400c3a", "feReact")
-            .put("15b927c0-f46b-46a6-984b-2bf5c4c2c756", "feVue")
-            .put("6b205842-6321-4ade-b094-219b78d5acc0", "feIonic")
-            .put("7d10fbfe-e129-4bab-87f5-4cc2de89f071", "beAirflow")
-            .put("48c077f7-8bda-4f05-af5a-6fe085c9d405", "releaseManager")
+            .put("e5b77f0f-262a-42f9-9d06-5d9052c1f394", "be-java-springboot")
+            .put("e59e71f5-76e0-4b8c-b040-a526197ee84d", "docker-plain")
+            .put("f3a7717d-f51a-426c-82fe-4574d4e595ad", "be-golang-plain")
+            .put("9992a587-959c-4ceb-8e3f-c1390e40c582", "be-python-flask")
+            .put("14ce143c-7d2a-11e7-bb31-be2e44b06b34", "be-scala-akka")
+            .put("7f98bafb-c81d-4eb0-aad1-700b6c05fc12", "be-typescript-express")
+            .put("a7b930b2-d125-48ce-9997-9643faa9cdd0", "ds-jupyter-notebook")
+            .put("69405fd4-b0c2-45a8-a6dc-0870ea56166e", "ds-rshiny")
+            .put("1deb3f34-5cd4-439b-b987-440dc6591fdf", "ds-ml-service")
+            .put("560954ef-d245-456c-9460-6c592c9d7784", "fe-angular")
+            .put("a86d6f06-cedc-4c16-a92c-5ca48e400c3a", "fe-react")
+            .put("15b927c0-f46b-46a6-984b-2bf5c4c2c756", "fe-vue")
+            .put("6b205842-6321-4ade-b094-219b78d5acc0", "fe-ionic")
+            .put("7d10fbfe-e129-4bab-87f5-4cc2de89f071", "airflow-cluster")
+            .put("48c077f7-8bda-4f05-af5a-6fe085c9d405", "release-manager")
             .build();
 
     logger.info("legacyComponentTypeToNameMappings: {}", legacyComponentTypeToNameMappings);
@@ -129,7 +132,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   private List<Job> convertQuickstarterToJobs(Map<String, Quickstarter> quickstarterMap) {
     return quickstarterMap.values().stream()
-        .map(Job::new)
+        .map(qs -> new Job(qs, odsGitRef))
         .sorted(Comparator.comparing(Job::getDescription))
         .collect(Collectors.toList());
   }
@@ -250,7 +253,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       options.put("ODS_GIT_REF", odsGitRef);
       ExecutionsData data =
           prepareAndExecuteJob(
-              new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter()),
+              new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),
               options,
               projectOpenshiftJenkinsTriggerSecret);
 
@@ -369,7 +372,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + (deleteComponentJob ? options.get("component_id") : projID);
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
-      execution.project = job.gitParentProject;
+      execution.project = bitbucketOdsProject;
 
     } else {
       String component_id = Objects.toString(options.get("component_id"));
@@ -390,7 +393,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               + component_id;
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
-      execution.project = job.gitParentProject;
+      execution.project = bitbucketOdsProject;
     }
     if (options != null) {
       execution.setOptions(options);
@@ -459,7 +462,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       CLEANUP_LEFTOVER_COMPONENTS objectType) {
     String projectId = project.projectKey.toLowerCase();
     Map<String, String> options = buildAdminJobOptions(projectId, componentId);
-    Job job = new Job(adminQuickstarter);
+    Job job = new Job(adminQuickstarter, odsGitRef);
     try {
 
       logger.debug("Calling job {} for project {}", job.getId(), project.projectKey);

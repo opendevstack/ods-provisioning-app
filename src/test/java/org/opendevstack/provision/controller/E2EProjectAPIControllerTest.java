@@ -595,7 +595,7 @@ public class E2EProjectAPIControllerTest {
                         "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
                 .url(
                     containsString(
-                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-bePythonFlask-be-python-flask"))
+                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-be-python-flask-be-python-flask"))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
@@ -719,7 +719,7 @@ public class E2EProjectAPIControllerTest {
         .andExpect(jsonPath("$.quickstarters[0].component_id", is("be-python-flask")))
         .andExpect(
             jsonPath("$.quickstarters[0].component_description", is("Backend - Python/Flask")))
-        .andExpect(jsonPath("$.quickstarters[1].component_type", is("bePythonFlask")))
+        .andExpect(jsonPath("$.quickstarters[1].component_type", is("be-python-flask")))
         .andExpect(jsonPath("$.quickstarters[1].component_id", is("logviewer")))
         .andExpect(
             jsonPath("$.quickstarters[1].component_description", is("Backend - Python/Flask")))

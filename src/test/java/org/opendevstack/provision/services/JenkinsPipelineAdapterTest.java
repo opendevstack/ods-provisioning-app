@@ -58,8 +58,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
-  private final String JOB_1_NAME = "beSpringBoot";
-  private final String JOB_1_URL = "gitParentProject/gitRepoName.git#branch/path-to/Jenkinsfile";
+  private final String JOB_1_NAME = "be-java-springboot";
+  private final String JOB_1_REPO = "gitRepoName.git";
   private final String JOB_1_LEGACY_ID = "e5b77f0f-262a-42f9-9d06-5d9052c1f394";
 
   @Before
@@ -89,10 +89,13 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineProperties.addQuickstarter(
         adminjobQuickstarter(
             "create-projects",
-            "opendevstack/ods-core.git#production/create-projects/Jenkinsfile",
-            "internal quickstarter for creating new initiatives"));
+            "ods-core.git",
+            "internal quickstarter for creating new initiatives",
+            Optional.of("production"),
+            Optional.of("create-projects/Jenkinsfile")));
     jenkinsPipelineProperties.addQuickstarter(
-        componentQuickstarter(JOB_1_NAME, JOB_1_URL, "dummy description"));
+        componentQuickstarter(
+            JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty()));
     return jenkinsPipelineProperties;
   }
 
@@ -126,7 +129,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData project = new OpenProjectData();
     project.projectKey = PROJECT_KEY;
     project.webhookProxySecret = "secret101";
-    Job job = new Job(JOB_1_NAME, JOB_1_URL);
+    String odsGitRef = "production";
+    Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
 
     Map<String, String> testjob = new HashMap<>();
     testjob.put(OpenProjectData.COMPONENT_ID_KEY, job.getId());
@@ -182,7 +186,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     Execution capturedBody = bodyCaptor.getValues().get(0);
     Assertions.assertThat(capturedBody.branch).isEqualTo("production");
     Assertions.assertThat(capturedBody.repository).isEqualTo("ods-core");
-    Assertions.assertThat(capturedBody.project).isEqualTo("opendevstack");
     List<Option> env = capturedBody.env;
     Assertions.assertThat(env)
         .contains(

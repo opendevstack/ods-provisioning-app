@@ -15,7 +15,7 @@
     "package_name" : "com.bix_digital.legproj.be_python_flask",
     "joblink" : "http://rundeck.ods.bb/project/Quickstarters/execution/show/745"
   }, {
-    "component_type" : "bePythonFlask",
+    "component_type" : "be-python-flask",
     "component_id" : "logviewer",
     "git_url_http" : "https://cd_user@bitbucket.ods.bb/scm/legproj/legproj-firewall-logviewer.git",
     "git_url_ssh" : "ssh://git@bitbucket.ods.bb:7999/legproj/legproj-firewall-logviewer.git",
