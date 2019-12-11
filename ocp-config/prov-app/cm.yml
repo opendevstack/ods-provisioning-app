@@ -200,7 +200,7 @@ objects:
       jenkinspipeline.quickstarter.fe-ionic.repo=ods-quickstarters
 
       #Other quickstarters
-      jenkinspipeline.quickstarter.docker-plain.desc=Docker/Plain
+      jenkinspipeline.quickstarter.docker-plain.desc=Other - Docker/Plain
       jenkinspipeline.quickstarter.docker-plain.repo=ods-quickstarters
 
       jenkinspipeline.quickstarter.airflow-cluster.desc=Other - Airflow
