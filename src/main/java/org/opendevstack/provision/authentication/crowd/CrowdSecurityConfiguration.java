@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
@@ -38,6 +40,8 @@ import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -77,6 +81,8 @@ import javax.servlet.http.HttpServletResponse;
 @EnableEncryptableProperties
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  private static final Logger logger = LoggerFactory.getLogger(CrowdSecurityConfiguration.class);
 
   @Value("${crowd.application.name}")
   String crowdApplicationName;
@@ -126,39 +132,13 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .logout()
         .addLogoutHandler(crowdLogoutHandler())
         .permitAll()
-            .and()
-            .addFilterAfter(logoutTriggerFilter(), UsernamePasswordAuthenticationFilter.class);
+        .and()
+        .addFilterAfter(sessionExpiredFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
   @Bean
-  public GenericFilterBean logoutTriggerFilter() {
-
-    return new GenericFilterBean() {
-
-      private int counter;
-
-      @Override
-      public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && !isAnonymousUser(authentication.getPrincipal())) {
-          CrowdAuthenticationManager manager = getApplicationContext().getBean(CrowdAuthenticationManager.class);
-          if (null == manager.getUserName() || counter == 20) {
-            crowdLogoutHandler().logout((HttpServletRequest) request, (HttpServletResponse) response, authentication);
-            SecurityContextHolder.clearContext();
-            return;
-          }
-          counter++;
-        }
-
-        chain.doFilter(request, response);
-      }
-
-      public boolean isAnonymousUser(Object principal) {
-        return principal instanceof String && "anonymousUser".equals((String) principal);
-      }
-
-    };
-
+  public GenericFilterBean sessionExpiredFilter() {
+    return new SessionExpiredFilter();
   }
 
   /**
@@ -368,5 +348,48 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
         crowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
+  }
+
+  /**
+   *
+   */
+  private class SessionExpiredFilter extends GenericFilterBean {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+      // Process only if user is not anonymous user and was previously authenticated
+      if (authentication != null && authentication.isAuthenticated() && !isAnonymousUser(authentication.getPrincipal())) {
+
+        CrowdAuthenticationManager manager = getApplicationContext().getBean(CrowdAuthenticationManager.class);
+
+        // activate session cleanup if manager does not have the username value anymore
+        // this could happens if the session expires
+        // because manager keeps this information as session aware bean
+        if (null == manager.getUserName()) {
+
+          // Clean up spring security context
+          SecurityContextHolder.clearContext();
+
+          // Clean up crowd authenticator
+          try {
+            httpAuthenticator().logoff((HttpServletRequest) request, (HttpServletResponse) response);
+          } catch (InvalidAuthorizationTokenException e) {
+            logger.warn("Crowd session logout exception was triggered", e);
+          } catch (InvalidAuthenticationException e) {
+            logger.warn("Crowd session logout exception was triggered", e);
+          }
+        }
+      }
+
+      chain.doFilter(request, response);
+    }
+
+    public boolean isAnonymousUser(Object principal) {
+      return principal instanceof String && "anonymousUser".equals((String) principal);
+    }
+
   }
 }
