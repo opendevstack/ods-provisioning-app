@@ -107,8 +107,8 @@ public class Quickstarter {
         .append("name", name)
         .append("repo", repo)
         .append("desc", desc)
-        .append("branch", desc)
-        .append("jenkinsfile", desc)
+        .append("branch", branch)
+        .append("jenkinsfile", jenkinsfile)
         .append("type", type)
         .toString();
   }

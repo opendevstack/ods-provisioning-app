@@ -438,7 +438,7 @@ function summarize(data) {
   }
 
   if (data.cdUser != null && data.cdUser.length > 0) {
-    $("#dataCdUser").html('Project specific CD user<br/>After project creation is complete, you will have to modify the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The password can be set in base64 encoding via "Actions > Edit YAML".');
+    $("#dataCdUser").html('Project specific CD user<br/>After project creation is complete, you will have to set the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The actual password can be set in base64 encoding via "Actions > Edit YAML".');
   } else {
     $("#dataCdUser").html('Global CD user');
   }
