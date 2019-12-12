@@ -27,11 +27,13 @@ import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matc
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
@@ -52,6 +54,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
+
   @Autowired @InjectMocks ConfluenceAdapter confluenceAdapter;
 
   @Value("${confluence.blueprint.key}")
@@ -59,6 +63,12 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
   // RestClient restClient;
   @Autowired ConfigurableEnvironment environment;
+
+  @Before
+  public void initTests() {
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
+  }
 
   @Test
   public void createConfluenceSpaceForProject() throws Exception {

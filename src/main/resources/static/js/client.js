@@ -36,6 +36,12 @@ var validatorOptions = {
   }
 };
 
+$(document).ajaxError(function( event, jqxhr, settings, thrownError ) {
+  if (jqxhr.status == 401) {
+    window.location.href = '/login';
+  }
+});
+
 $(document).ready(function(){
    $('form#createProject').validator(validatorOptions);
    $('form#modifyProject').validator(validatorOptions);
@@ -278,14 +284,16 @@ $(document).ready(function(){
           $("#createProject").trigger("reset");
           $("#createProject").show();
         },
-        error:  function(data, status, xhr){
+        error:  function(xhr, status, data){
+          if (xhr.status != 401) {
             console.log("fail");
-            console.log( data );
+            console.log(xhr);
           $("#resProject")
           .addClass("alert-danger")
-          .text("Could not create project: " + data.responseText);
+          .text("Could not create project: " + xhr.responseText);
           $("#resButton").button("reset");
           $("#createProject").show();
+          }
         }
       });
     }
@@ -331,14 +339,16 @@ $(document).ready(function(){
           $("#modifyProject").show();
           //startProvision(data);
         },
-        error:  function(data, status, xhr){
+        error:  function(xhr, status, data){
+          if (xhr.status !== 401) {
             console.log("fail");
-            console.log( data );
-          $("#resProject")
-          .addClass("alert-danger")
-          .text("Can not update project, error " + data.responseText);
-          $("#resButton").button("reset");
-          $("#modifyProject").show();
+            console.log(xhr);
+            $("#resProject")
+                .addClass("alert-danger")
+                .text("Can not update project, error " + xhr.responseText);
+            $("#resButton").button("reset");
+            $("#modifyProject").show();
+          }
         }
       });
 

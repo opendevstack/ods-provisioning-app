@@ -52,6 +52,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
@@ -78,6 +79,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
+
   @Mock CrowdUserDetailsService service;
 
   List<LeanJiraProject> projects = new ArrayList<>();
@@ -98,6 +101,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   public void initTests() {
     projects = new ArrayList<>();
     objectMapper = new ObjectMapper();
+
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
   }
 
   @Test
