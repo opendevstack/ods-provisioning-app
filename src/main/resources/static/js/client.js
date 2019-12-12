@@ -270,7 +270,7 @@ $(document).ready(function(){
         timeout: 480000,
         success: function(data, status, xhr){
 
-          summarize(data);
+          summarize(data, "created");
 
           $("#resProject")
           .addClass("alert-success")
@@ -329,7 +329,7 @@ $(document).ready(function(){
         contentType:"application/json; charset=utf-8",
         dataType:"json",
         success: function(data, status, xhr){
-          summarize(data);
+          summarize(data, "updated");
           $("#resProject")
           .addClass("alert-success")
           .text("Project successfully updated.");
@@ -400,7 +400,7 @@ function isUniqueComponentId(newCompId,elName) {
 }
 
 //add summarization to modal html
-function summarize(data) {
+function summarize(data, actionType) {
   $("#dataProjectName").html(data.projectName);
   $("#dataProjectKey").html(data.projectKey);
 
@@ -448,7 +448,11 @@ function summarize(data) {
   }
 
   if (data.cdUser != null && data.cdUser.length > 0) {
-    $("#dataCdUser").html('Project specific CD user<br/>After project creation is complete, you will have to set the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The actual password can be set in base64 encoding via "Actions > Edit YAML".');
+    var cdUserHtml = 'Project specific CD user';
+    if (actionType != 'updated') {
+      cdUserHtml += '<br/>After project creation is complete, you will have to set the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The actual password can be set in base64 encoding via "Actions > Edit YAML".';
+    }
+    $("#dataCdUser").html(cdUserHtml);
   } else {
     $("#dataCdUser").html('Global CD user');
   }
