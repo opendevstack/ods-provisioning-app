@@ -52,6 +52,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
@@ -70,13 +71,20 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Brokmeier, Pascal */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
+@TestPropertySource(
+    properties = {
+      "provision.auth.provider=crowd",
+    })
 public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
+
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
 
   @Mock CrowdUserDetailsService service;
 
@@ -98,6 +106,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   public void initTests() {
     projects = new ArrayList<>();
     objectMapper = new ObjectMapper();
+
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
   }
 
   @Test
