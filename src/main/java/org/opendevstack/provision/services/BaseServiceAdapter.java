@@ -94,7 +94,7 @@ public class BaseServiceAdapter {
         return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
       }
       CredentialsInfo credentialsInfo =
-              new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
+          new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
       return call.basicAuthenticated(credentialsInfo);
     } catch (IllegalArgumentException ex) {
       throw new MissingCredentialsInfoException("Not able to create credentials info!", ex);
