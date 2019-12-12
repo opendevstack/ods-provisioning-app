@@ -308,6 +308,8 @@ public class ProjectApiController {
       mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
       return ResponseEntity.ok().body(storedExistingProject);
+    } catch (MissingCredentialsInfoException ex) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     } catch (Exception exProvision) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, updatedProject);
