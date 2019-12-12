@@ -35,6 +35,7 @@ import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
+import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
