@@ -1,6 +1,7 @@
-package org.opendevstack.provision.authentication;
+package org.opendevstack.provision.config;
 
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

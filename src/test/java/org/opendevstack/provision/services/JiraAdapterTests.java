@@ -71,17 +71,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Brokmeier, Pascal */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-@TestPropertySource(
-    properties = {
-      "provision.auth.provider=crowd",
-    })
 public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   @Autowired private IODSAuthnzAdapter authnzAdapter;
