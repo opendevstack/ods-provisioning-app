@@ -4,7 +4,6 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.opendevstack.provision.util.HttpVerb;
 import org.opendevstack.provision.util.rest.RestClient;
@@ -88,16 +87,12 @@ public class BaseServiceAdapter {
   private RestClientCall authenticatedCall(HttpVerb verb) {
     RestClientCall call = notAuthenticatedCall(verb);
 
-    try {
-      if (useTechnicalUser) {
-        return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
-      }
-      CredentialsInfo credentialsInfo =
-          new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
-      return call.basicAuthenticated(credentialsInfo);
-    } catch (IllegalArgumentException ex) {
-      throw new MissingCredentialsInfoException("Not able to create credentials info!", ex);
+    if (useTechnicalUser) {
+      return call.basicAuthenticated(new CredentialsInfo(userName, userPassword));
     }
+    CredentialsInfo credentialsInfo =
+        new CredentialsInfo(manager.getUserName(), manager.getUserPassword());
+    return call.basicAuthenticated(credentialsInfo);
   }
 
   public RestClientCall notAuthenticatedCall(HttpVerb verb) {
