@@ -47,6 +47,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
@@ -100,6 +101,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @DirtiesContext
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
+
+  @Mock private IODSAuthnzAdapter mockAuthnzAdapter;
 
   @InjectMocks @Autowired private JiraAdapter realJiraAdapter;
 
@@ -158,6 +161,9 @@ public class E2EProjectAPIControllerTest {
     realMailAdapter.isMailEnabled = false;
     // override configuration in application.properties, some tests depends on cleanupAllowed
     apiController.cleanupAllowed = true;
+
+    when(mockAuthnzAdapter.getUserName()).thenReturn("testUserName");
+    when(mockAuthnzAdapter.getUserPassword()).thenReturn("testUserPassword");
   }
 
   @AfterClass
