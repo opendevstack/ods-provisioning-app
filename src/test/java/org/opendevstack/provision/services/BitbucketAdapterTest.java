@@ -30,12 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
@@ -59,10 +61,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
+
   @Mock BitbucketProjectData bitbucketData;
   @Mock BitbucketProject project;
   @InjectMocks @Autowired BitbucketAdapter bitbucketAdapter;
   @Mock Repository repo;
+
+  @Before
+  public void initTests() {
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
+  }
 
   @Test
   public void createSCMProjectForODSProject() throws Exception {
