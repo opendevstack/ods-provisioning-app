@@ -15,30 +15,29 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ControllerAdviceExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ControllerAdviceExceptionHandler.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(ControllerAdviceExceptionHandler.class);
 
-    @Autowired
-    private IODSAuthnzAdapter manager;
+  @Autowired private IODSAuthnzAdapter manager;
 
-    @ExceptionHandler(MissingCredentialsInfoException.class)
-    public ResponseEntity handleException(MissingCredentialsInfoException ex, WebRequest request) {
+  @ExceptionHandler(MissingCredentialsInfoException.class)
+  public ResponseEntity handleException(MissingCredentialsInfoException ex, WebRequest request) {
 
-        String username = request.getRemoteUser();
+    String username = request.getRemoteUser();
 
-        // Clean up spring security context
-        SecurityContextHolder.clearContext();
-        logger.info("Spring security context cleared!!");
+    // Clean up spring security context
+    SecurityContextHolder.clearContext();
+    logger.info("Spring security context cleared!!");
 
-        try {
-            // Invalidate indentity
-            manager.invalidateIdentity();
-            logger.info("Identity invalidated!");
-        } catch (Exception e) {
-            logger.warn("Error while trying to invalidate identity!");
-        }
-
-        logger.error("Removed user session for user '" + username + "'!", ex);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    try {
+      // Invalidate indentity
+      manager.invalidateIdentity();
+      logger.info("Identity invalidated!");
+    } catch (Exception e) {
+      logger.warn("Error while trying to invalidate identity!");
     }
 
+    logger.error("Removed user session for user '" + username + "'!", ex);
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+  }
 }

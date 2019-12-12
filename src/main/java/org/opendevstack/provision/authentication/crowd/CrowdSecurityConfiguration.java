@@ -32,6 +32,9 @@ import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
@@ -53,10 +56,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 /**
  * Class for setting the security configuration and security related configurations
@@ -84,8 +83,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
 
-  @Autowired
-  private ApplicationContext context;
+  @Autowired private ApplicationContext context;
 
   /**
    * Configure the security for the spring application
@@ -330,5 +328,4 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return new RemoteCrowdAuthenticationProvider(
         crowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
   }
-
 }
