@@ -12,7 +12,7 @@
 - Uptake 4.1.0 okhttp ([#303](https://github.com/opendevstack/ods-provisioning-app/issues/303))
 - Bump httpasyncclient from 4.0-beta3-atlassian-1 to 4.1.4  ([#205](https://github.com/opendevstack/ods-provisioning-app/issues/205))
 - Upgrade Spring to 2.2.2 ([#319](https://github.com/opendevstack/ods-provisioning-app/pull/319))
-- Configure image tag and Git ref for production pipeline ([#324](https://github.com/opendevstack/ods-provisioning-app/pull/324)
+- Configure image tag and Git ref for production pipeline ([#324](https://github.com/opendevstack/ods-provisioning-app/pull/324))
 
 ### Fixed
 - App wants to create jira components for project without bugtracker space ([#292](https://github.com/opendevstack/ods-provisioning-app/issues/292))
