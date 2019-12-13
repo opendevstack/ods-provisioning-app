@@ -71,4 +71,6 @@ public interface IODSAuthnzAdapter {
   String addGroup(String groupName) throws IdMgmtException;
 
   String getAdapterApiUri();
+
+  void setUserName(String testUserName);
 }
