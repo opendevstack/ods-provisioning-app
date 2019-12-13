@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+
+## [2.0] - 2019-12-13
+
 ### Added
 - Replace Rundeck with (Jenkins) pipelines ([#265](https://github.com/opendevstack/ods-provisioning-app/pull/265))
 - Added support for project specific CD user ([#297](https://github.com/opendevstack/ods-provisioning-app/pull/297))
