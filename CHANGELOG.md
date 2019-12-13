@@ -5,11 +5,13 @@
 - Replace Rundeck with (Jenkins) pipelines ([#265](https://github.com/opendevstack/ods-provisioning-app/pull/265))
 - Added support for project specific CD user ([#297](https://github.com/opendevstack/ods-provisioning-app/pull/297))
 - Create project specific trigger secret ([#317](https://github.com/opendevstack/ods-provisioning-app/issues/317))
+- Order "Select existing project" drop-down ([#299](https://github.com/opendevstack/ods-provisioning-app/issues/299))
 
 ### Changed
 - Create service framework to allow integration to other bugtrackers/scm & idmgt ([#86](https://github.com/opendevstack/ods-provisioning-app/issues/86))
 - Uptake 4.1.0 okhttp ([#303](https://github.com/opendevstack/ods-provisioning-app/issues/303))
 - Bump httpasyncclient from 4.0-beta3-atlassian-1 to 4.1.4  ([#205](https://github.com/opendevstack/ods-provisioning-app/issues/205))
+- Upgrade Spring to 2.2.2 ([#319](https://github.com/opendevstack/ods-provisioning-app/pull/319))
 
 ### Fixed
 - App wants to create jira components for project without bugtracker space ([#292](https://github.com/opendevstack/ods-provisioning-app/issues/292))
@@ -19,6 +21,8 @@
 - JIRA components are (wrongly) created for auxiliary repositories ([#255](https://github.com/opendevstack/ods-provisioning-app/issues/255))
 - Provisioning app fails to clean up failed provisioning attempt ([#267](https://github.com/opendevstack/ods-provisioning-app/issues/267))
 - Random error while creating projects - reason "closed" ([#264](https://github.com/opendevstack/ods-provisioning-app/issues/264))
+- Session timeout issues ([#318](https://github.com/opendevstack/ods-provisioning-app/issues/318))
+- Quickstarters are not populated due to Rundeck session issues ([#293](https://github.com/opendevstack/ods-provisioning-app/issues/293))
 
 ## [1.2.0] - 2019-10-10
 
