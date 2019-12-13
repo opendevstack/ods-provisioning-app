@@ -1,17 +1,15 @@
 package org.opendevstack.provision.util;
 
 import okhttp3.Credentials;
-import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
+import org.springframework.util.Assert;
 
 public class CredentialsInfo {
   private final String userName;
   private final String userPassword;
 
   public CredentialsInfo(String userName, String userPassword) {
-    if (userName == null || userPassword == null) {
-      throw new MissingCredentialsInfoException("Not able to create credentials info!");
-    }
-
+    Assert.notNull(userName, "userName is null!");
+    Assert.notNull(userPassword, "userPassword is null!");
     this.userName = userName;
     this.userPassword = userPassword;
   }
