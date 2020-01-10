@@ -1,6 +1,6 @@
 name: ods-provisioning-app
 title: Provisioning App
-version: latest
+version: 2.x
 
 nav:
   - modules/ROOT/nav.adoc
