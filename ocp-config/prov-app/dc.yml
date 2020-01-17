@@ -3,8 +3,6 @@ kind: Template
 parameters:
 - name: TAILOR_NAMESPACE
   required: true
-- name: ODS_IMAGE_TAG
-  required: true
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -28,7 +26,7 @@ objects:
           app: prov-app
       spec:
         containers:
-        - image: ${TAILOR_NAMESPACE}/prov-app:${ODS_IMAGE_TAG}
+        - image: ${TAILOR_NAMESPACE}/prov-app:latest
           imagePullPolicy: IfNotPresent
           name: prov-app
           ports:
@@ -70,7 +68,7 @@ objects:
         - prov-app
         from:
           kind: ImageStreamTag
-          name: prov-app:${ODS_IMAGE_TAG}
+          name: prov-app:latest
           namespace: ${TAILOR_NAMESPACE}
       type: ImageChange
     - type: ConfigChange
