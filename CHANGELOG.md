@@ -4,6 +4,9 @@
 
 ## [2.0] - 2019-12-13
 
+### Fixed
+- Use image tag `latest` for prov-app DC ([#332](https://github.com/opendevstack/ods-provisioning-app/pull/332))
+
 ### Added
 - Replace Rundeck with (Jenkins) pipelines ([#265](https://github.com/opendevstack/ods-provisioning-app/pull/265))
 - Added support for project specific CD user ([#297](https://github.com/opendevstack/ods-provisioning-app/pull/297))
