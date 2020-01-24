@@ -332,7 +332,7 @@ public class E2EProjectAPIControllerTest {
                         createJenkinsJobPath(
                             "prov",
                             "create-projects/Jenkinsfile",
-                            "ods-corejob-create-projects-testp")))
+                            "ods-corejob-" + data.projectKey.toLowerCase())))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
@@ -543,8 +543,7 @@ public class E2EProjectAPIControllerTest {
         CreateProjectResponseUtil.buildDummyCreateProjectResponse(namespace, "build-config", 1);
 
     String jenkinsJobPath =
-        createJenkinsJobPath(
-            namespace, jobName + "/Jenkinsfile", "ods-corejob-" + jobName + "-" + prefix);
+        createJenkinsJobPath(namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix);
     mockHelper
         .mockExecute(
             matchesClientCall()
@@ -601,7 +600,7 @@ public class E2EProjectAPIControllerTest {
                         "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
                 .url(
                     containsString(
-                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-be-python-flask-be-python-flask"))
+                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
