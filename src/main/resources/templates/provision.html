@@ -91,7 +91,7 @@
                 </div>
             </fieldset>
             <fieldset class="form-group quickstartergroup">
-                <legend class="col-form-legend">Quickstarter</legend>
+                <legend class="col-form-legend">Quickstarter3</legend>
                 <div class="form-group form-inline entry">
                     <div class="checkbox">
                         <!-- label -->
@@ -103,7 +103,10 @@
                     </div>
 
                     <div class="form-group pull-right input-group col-xs-5">
-                        <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id" data-unique-error="The component id already exist"/>
+                        <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id"
+                               minlength="3" maxlength="40"
+                               data-equalsqsid-error="Component id must be different than quickstarter id!"
+                               data-unique-error="The component id already exist"/>
                         <span class="input-group-btn">
                                 <button class="btn btn-success btn-add" type="button">
                                     <span class="glyphicon glyphicon-plus"></span>

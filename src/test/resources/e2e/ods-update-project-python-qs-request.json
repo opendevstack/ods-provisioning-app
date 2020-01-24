@@ -3,7 +3,7 @@
 	"quickstarters": [
 		{
 			"component_type": "be-python-flask",
-			"component_id": "be-python-flask"
+			"component_id": "be-python"
 		}
 	]
 }

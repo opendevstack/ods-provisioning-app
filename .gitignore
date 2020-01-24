@@ -37,3 +37,5 @@ gradle.properties
 /src/main/resources/__application.properties
 /src/main/resources/application-oauth2private.properties
 /src/main/resources/application-testods.properties
+
+/src/main/resources/history-local/

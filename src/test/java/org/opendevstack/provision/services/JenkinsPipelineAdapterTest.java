@@ -153,6 +153,86 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(expectedExecutionsSize, actualExecutionsSize);
   }
 
+  @Test
+  public void testBuildExecutionUrl() {
+
+    String webhookProxySecret = "secret101";
+    String webhookHost = "localhost";
+
+    String odsGitRef = "production";
+    String componentId = "be-acc-service";
+    Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
+
+    String expectedUrl =
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component="
+            + JenkinsPipelineAdapter.EXECUTION_URL_COMP_PREFIX
+            + "-"
+            + componentId;
+
+    String actualUrl =
+        JenkinsPipelineAdapter.buildExecutionUrl(job, componentId, webhookProxySecret, webhookHost);
+
+    assertEquals(expectedUrl, actualUrl);
+  }
+
+  @Test
+  public void testBuildExecutionUrlAdminJob() {
+
+    String webhookProxySecret = "secret101";
+    String webhookHost = "localhost";
+
+    String odsGitRef = "production";
+    Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
+
+    String componentId = "be-acc-service";
+
+    Map<String, String> testjob = new HashMap<>();
+    testjob.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
+    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
+
+    // Case: delete component job
+    String expectedUrl =
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component="
+            + JenkinsPipelineAdapter.EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
+            + "-"
+            + componentId;
+
+    String actualUrl =
+        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
+            job, componentId, job.getId(), webhookProxySecret, webhookHost, true);
+    assertEquals(expectedUrl, actualUrl);
+
+    // Case: do not delete component job
+    expectedUrl =
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component="
+            + JenkinsPipelineAdapter.EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
+            + "-"
+            + job.getId();
+
+    actualUrl =
+        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
+            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+    assertEquals(expectedUrl, actualUrl);
+  }
+
   private void mockRestClientToReturnExecutionData(String output) throws java.io.IOException {
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(output);
   }

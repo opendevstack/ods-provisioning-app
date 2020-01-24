@@ -48,6 +48,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   private static final Logger logger = LoggerFactory.getLogger(JenkinsPipelineAdapter.class);
 
+  public static final String EXECUTION_URL_COMP_PREFIX = "ods-qs";
+  public static final String EXECUTION_URL_ADMIN_JOB_COMP_PREFIX = "ods-corejob";
+
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
@@ -178,7 +181,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                     () ->
                         new RuntimeException(
                             String.format("Cannot find quickstarter with id=%s!", jobId)));
-        executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
+        ExecutionsData executionsData = prepareAndExecuteJob(job, options, triggerSecret);
+        executionList.add(executionsData);
       }
     }
     return executionList;
@@ -348,8 +352,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   private Execution buildExecutionObject(
       Job job, Map<String, String> options, String webhookProxySecret) {
+
     String projID = Objects.toString(options.get("PROJECT_ID"));
     Execution execution = new Execution();
+
+    String componentId = Objects.toString(options.get("component_id"));
 
     if (jenkinsPipelineProperties.isAdminjob(job.getId())) {
 
@@ -359,38 +366,22 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               projectOpenshiftJenkinsWebhookProxyNamePattern,
               deleteComponentJob ? projID : "prov",
               projectOpenshiftBaseDomain);
-      execution.url =
-          "https://"
-              + webhookProxyHost
-              + "/build?trigger_secret="
-              + webhookProxySecret
-              + "&jenkinsfile_path="
-              + job.jenkinsfilePath
-              + "&component=ods-corejob-"
-              + job.name
-              + "-"
-              + (deleteComponentJob ? options.get("component_id") : projID);
+      String url =
+          buildExecutionUrlAdminJob(
+              job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
+      execution.url = url;
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
       execution.project = bitbucketOdsProject;
 
     } else {
-      String component_id = Objects.toString(options.get("component_id"));
-
       String webhookProxyHost =
           String.format(
               projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
+
       execution.url =
-          "https://"
-              + webhookProxyHost
-              + "/build?trigger_secret="
-              + webhookProxySecret
-              + "&jenkinsfile_path="
-              + job.jenkinsfilePath
-              + "&component=ods-quickstarter-"
-              + job.getName()
-              + "-"
-              + component_id;
+          JenkinsPipelineAdapter.buildExecutionUrl(
+              job, componentId, webhookProxySecret, webhookProxyHost);
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
       execution.project = bitbucketOdsProject;
@@ -398,7 +389,41 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (options != null) {
       execution.setOptions(options);
     }
+
+    logger.info("Execution url={}", execution.url);
+
     return execution;
+  }
+
+  private static String buildExecutionBaseUrl(
+      Job job, String webhookProxySecret, String webhookProxyHost) {
+    return "https://"
+        + webhookProxyHost
+        + "/build?trigger_secret="
+        + webhookProxySecret
+        + "&jenkinsfile_path="
+        + job.jenkinsfilePath;
+  }
+
+  public static String buildExecutionUrlAdminJob(
+      Job job,
+      String componentId,
+      String projID,
+      String webhookProxySecret,
+      String webhookProxyHost,
+      boolean deleteComponentJob) {
+    String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
+    return baseUrl
+        + "&component="
+        + EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
+        + "-"
+        + (deleteComponentJob ? componentId : projID);
+  }
+
+  public static String buildExecutionUrl(
+      Job job, String component_id, String webhookProxySecret, String webhookProxyHost) {
+    String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
+    return baseUrl + "&component=" + EXECUTION_URL_COMP_PREFIX + "-" + component_id;
   }
 
   @Override

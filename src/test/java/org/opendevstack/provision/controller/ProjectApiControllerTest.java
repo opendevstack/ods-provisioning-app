@@ -26,12 +26,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
 import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -671,5 +671,121 @@ public class ProjectApiControllerTest {
     data.projectUserGroup = origin.projectUserGroup;
     data.projectReadonlyGroup = origin.projectReadonlyGroup;
     return data;
+  }
+
+  @Test
+  public void validateQuickstartersAcceptNoNullOrEmptyParams() {
+
+    // case parameter is null
+    try {
+      ProjectApiController.validateQuickstarters(
+          null, new ArrayList<Consumer<Map<String, String>>>());
+    } catch (IllegalArgumentException e) {
+      // expected!
+      Assert.assertTrue(e.getMessage().contains("null"));
+    }
+
+    // case validators list is empty
+    try {
+      ProjectApiController.validateQuickstarters(
+          data, new ArrayList<Consumer<Map<String, String>>>());
+    } catch (IllegalArgumentException e) {
+      // expected!
+      Assert.assertTrue(e.getMessage().contains("validators"));
+    }
+
+    // case data is not null and validators is not empty
+    Consumer<Map<String, String>> acceptAllValidator =
+        stringStringMap -> {
+          return;
+        };
+    ProjectApiController.validateQuickstarters(data, Arrays.asList(acceptAllValidator));
+  }
+
+  @Test
+  public void validComponentIdLength() {
+
+    Consumer<Map<String, String>> validator = ProjectApiController.createComponentIdValidator();
+
+    // case component id is null
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", null);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("null"));
+    }
+
+    // case component id is empty
+    String empty = "";
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", empty);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("empty"));
+    }
+
+    // case component id longer than max length
+    String tooLong = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH + 1);
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", tooLong);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains(tooLong));
+    }
+
+    // case component id longer than max length
+    String tooShort = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MIN_LENGTH - 1);
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", tooShort);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains(tooShort));
+    }
+
+    // case component id is longer or equal than max length
+    String validLength = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH);
+    data.getQuickstarters().stream().findFirst().get().put("component_id", validLength);
+    data.quickstarters.forEach(validator);
+  }
+
+  @Test
+  public void validComponentIdNotEqualComponentType() {
+
+    Consumer<Map<String, String>> validator =
+        ProjectApiController.createComponentIdNotEqualComponentTypeValidator();
+
+    // case component type is null
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_type", null);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("null"));
+      Assert.assertTrue(e.getMessage().contains("component_type"));
+    }
+
+    // case component id is null
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_type", "value1");
+      data.getQuickstarters().stream().findFirst().get().put("component_id", null);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("null"));
+      Assert.assertTrue(e.getMessage().contains("component_id"));
+    }
+
+    // case component type equals component id
+    String same = "same";
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", same);
+      data.getQuickstarters().stream().findFirst().get().put("component_type", same);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("is equal"));
+    }
+
+    // case component type not equals component id
+    data.getQuickstarters().stream().findFirst().get().put("component_id", "value1");
+    data.getQuickstarters().stream().findFirst().get().put("component_type", "value2");
+    data.quickstarters.forEach(validator);
   }
 }
