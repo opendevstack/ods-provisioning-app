@@ -17,7 +17,7 @@ jobs:
       run: ./gradlew clean spotlessCheck test
     - uses: actions/cache@v1
       with:
-      path: ~/.gradle/caches
-      key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-      restore-keys: |
-        ${{ runner.os }}-gradle-
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
