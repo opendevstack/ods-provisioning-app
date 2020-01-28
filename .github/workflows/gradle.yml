@@ -1,4 +1,4 @@
-name: Provisioning App Gradle CI
+name: Provisioning App Build
 
 on: [push]
 
