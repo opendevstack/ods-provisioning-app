@@ -397,7 +397,7 @@ $(document).ready(function(){
 
 });
 
-//proof if name is equal quickstarter id
+// check if name is equal quickstarter id
 function isNameEqualsQuickstarterId(value, index, elements) {
   for (var el in elements) {
     var elName = elements[el].name;

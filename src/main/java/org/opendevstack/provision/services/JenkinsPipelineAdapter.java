@@ -181,8 +181,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                     () ->
                         new RuntimeException(
                             String.format("Cannot find quickstarter with id=%s!", jobId)));
-        ExecutionsData executionsData = prepareAndExecuteJob(job, options, triggerSecret);
-        executionList.add(executionsData);
+        executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
       }
     }
     return executionList;
@@ -380,7 +379,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
 
       execution.url =
-          JenkinsPipelineAdapter.buildExecutionUrl(
+          JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
               job, componentId, webhookProxySecret, webhookProxyHost);
       execution.branch = job.branch;
       execution.repository = job.gitRepoName;
@@ -420,7 +419,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         + (deleteComponentJob ? componentId : projID);
   }
 
-  public static String buildExecutionUrl(
+  public static String buildExecutionUrlQuickstarterJob(
       Job job, String component_id, String webhookProxySecret, String webhookProxyHost) {
     String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
     return baseUrl + "&component=" + EXECUTION_URL_COMP_PREFIX + "-" + component_id;

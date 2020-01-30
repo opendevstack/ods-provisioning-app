@@ -170,13 +170,12 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + webhookProxySecret
             + "&jenkinsfile_path="
             + job.jenkinsfilePath
-            + "&component="
-            + JenkinsPipelineAdapter.EXECUTION_URL_COMP_PREFIX
-            + "-"
+            + "&component=ods-qs-"
             + componentId;
 
     String actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrl(job, componentId, webhookProxySecret, webhookHost);
+        JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
+            job, componentId, webhookProxySecret, webhookHost);
 
     assertEquals(expectedUrl, actualUrl);
   }
@@ -204,9 +203,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + webhookProxySecret
             + "&jenkinsfile_path="
             + job.jenkinsfilePath
-            + "&component="
-            + JenkinsPipelineAdapter.EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
-            + "-"
+            + "&component=ods-corejob-"
             + componentId;
 
     String actualUrl =
@@ -216,16 +213,13 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Case: do not delete component job
     expectedUrl =
-        "https://"
-            + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
-            + job.jenkinsfilePath
-            + "&component="
-            + JenkinsPipelineAdapter.EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
-            + "-"
-            + job.getId();
+            "https://"
+                    + webhookHost
+                    + "/build?trigger_secret="
+                    + webhookProxySecret
+                    + "&jenkinsfile_path="
+                    + job.jenkinsfilePath
+                    + "&component=ods-corejob-" + job.getId();
 
     actualUrl =
         JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
