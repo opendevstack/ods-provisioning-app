@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Run `webhook-proxy` under `jenkins` serviceaccount ([#341](https://github.com/opendevstack/ods-provisioning-app/pull/341))
 - Use image tag `latest` for prov-app DC ([#332](https://github.com/opendevstack/ods-provisioning-app/pull/332))
 
 ## [2.0] - 2019-12-13
