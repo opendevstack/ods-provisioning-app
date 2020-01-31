@@ -213,13 +213,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Case: do not delete component job
     expectedUrl =
-            "https://"
-                    + webhookHost
-                    + "/build?trigger_secret="
-                    + webhookProxySecret
-                    + "&jenkinsfile_path="
-                    + job.jenkinsfilePath
-                    + "&component=ods-corejob-" + job.getId();
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component=ods-corejob-"
+            + job.getId();
 
     actualUrl =
         JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
