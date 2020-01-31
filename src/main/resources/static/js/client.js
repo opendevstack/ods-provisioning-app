@@ -33,13 +33,13 @@ var validatorOptions = {
     equalsqsid: function (el) {
       var index = el.attr("name").replace("quickstart-comp-id-","")
       var value = el.val().trim();
-      var elements = el[0].parentElement.parentElement.querySelectorAll(".checkbox")[0].children;
-      return isNameEqualsQuickstarterId(value, index, elements); // true = error
+      var elements = el[0].parentElement.parentElement.querySelector(".checkbox").children;
+      return nameEqualsQuickstarterId(value, index, elements); // true = error
     }
   },
   errors: {
-    unique: "This component already exist",
-    notqskey: "Component id must be different than quickstarter id!"
+    unique: "This component already exists!",
+    notqskey: "Component id must be different than quickstarter type!"
   }
 };
 
@@ -181,10 +181,7 @@ $(document).ready(function(){
           var str = quickStarters[obj].name;
           $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', false);
           $(currentform).find("[name='quickstart-checked-"+id+"']").prop('checked', true);
-          var compId = "";
-          if ($(currentform).find("[name='quickstart-comp-id-"+id+"']")[0].value != null) {
-            compId = $(currentform).find("[name='quickstart-comp-id-"+id+"']")[0].value;
-          }
+          var compId = $(currentform).find("[name='quickstart-comp-id-"+id+"']")[0].value || "";
           $(currentform).find("[name='quickstart-comp-id-"+id+"']").val(compId).prop("required", true).attr("data-unique", "unique");
           $(currentform).find("[name='quickstart-comp-id-"+id+"']").val(compId).prop("required", true).attr("data-equalsqsid", "equalsqsid");
           nameCompare['quickstart-comp-id-'+id] = compId;
@@ -192,10 +189,8 @@ $(document).ready(function(){
         }
       }
     } else {
-      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', true);
-      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('checked', false);
-      $(currentform).find("[name='quickstart-comp-id-"+id+"']").prop("required", false).removeAttr("data-unique");
-      $(currentform).find("[name='quickstart-comp-id-"+id+"']").prop("required", false).removeAttr("data-equalsqsid");
+      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', true).prop('checked', false);
+      $(currentform).find("[name='quickstart-comp-id-"+id+"']").prop("required", false).removeAttr("data-unique").removeAttr("data-equalsqsid");
       delete nameCompare['quickstart-comp-id-'+id];
       $(currentform).validator('update');
     }
@@ -398,17 +393,16 @@ $(document).ready(function(){
 });
 
 // check if name is equal quickstarter id
-function isNameEqualsQuickstarterId(value, index, elements) {
+function nameEqualsQuickstarterId(name, qsTypeId, elements) {
+  var qsTypeName = "quickstart-type-" + qsTypeId;
   for (var el in elements) {
-    var elName = elements[el].name;
-    var elValue = elements[el].value;
-    var qsName = "quickstart-type-" + index;
-    if (elName === qsName) {
-      return elValue === value;
+    var elQsTypeName = elements[el].name;
+    var elName = elements[el].value;
+    if (elQsTypeName === qsTypeName) {
+      return elName === name;
     }
   }
   return false;
-
 }
 
 //proof if name is unique
