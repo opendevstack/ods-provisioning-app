@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -50,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,6 +71,9 @@ public class ProjectApiController {
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
+
+  public static final int COMPONENT_ID_MIN_LENGTH = 3;
+  public static final int COMPONENT_ID_MAX_LENGTH = 40;
 
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
@@ -246,6 +251,11 @@ public class ProjectApiController {
         updatedProject.platformRuntime = true;
       }
 
+      validateQuickstarters(
+          updatedProject,
+          Arrays.asList(
+              createComponentIdValidator(), createComponentIdNotEqualComponentTypeValidator()));
+
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
       updatedProject.projectName = storedExistingProject.projectName;
@@ -291,7 +301,7 @@ public class ProjectApiController {
         }
       }
 
-      if ((storedExistingProject.repositories != null) && (updatedProject.repositories != null)) {
+      if (storedExistingProject.repositories != null && updatedProject.repositories != null) {
         storedExistingProject.repositories.putAll(updatedProject.repositories);
       } else if (updatedProject.repositories != null) {
         storedExistingProject.repositories = storedExistingProject.repositories;
@@ -309,6 +319,8 @@ public class ProjectApiController {
       mailAdapter.notifyUsersAboutProject(storedExistingProject);
 
       return ResponseEntity.ok().body(storedExistingProject);
+    } catch (IllegalArgumentException iae) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
     } catch (MissingCredentialsInfoException ex) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     } catch (Exception exProvision) {
@@ -331,6 +343,67 @@ public class ProjectApiController {
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
     }
+  }
+
+  /**
+   * @param updatedProject
+   * @param validators
+   * @throws IllegalArgumentException if any validator rule do not accept any quickstarters
+   */
+  public static void validateQuickstarters(
+      @RequestBody OpenProjectData updatedProject, List<Consumer<Map<String, String>>> validators) {
+    Assert.notNull(updatedProject, "Parameter updatedProject must not be null!");
+    Assert.notEmpty(validators, "Parameter validators must not be null!");
+    validators.forEach(
+        validator -> {
+          updatedProject.getQuickstarters().stream().forEach(validator);
+        });
+  }
+
+  public static Consumer<Map<String, String>> createComponentIdValidator() {
+
+    return quickstarter -> {
+      String componentId = quickstarter.get("component_id");
+      if (componentId == null) {
+        throw new IllegalArgumentException("component_id is null!");
+      } else if (componentId.trim().length() == 0) {
+        throw new IllegalArgumentException("component_id '" + componentId + "' is empty!");
+      } else if (componentId.length() < COMPONENT_ID_MIN_LENGTH) {
+        throw new IllegalArgumentException(
+            "component_id '"
+                + componentId
+                + "' is shorter than "
+                + COMPONENT_ID_MIN_LENGTH
+                + " chars!");
+      } else if (componentId.length() > COMPONENT_ID_MAX_LENGTH) {
+        throw new IllegalArgumentException(
+            "component_id '"
+                + componentId
+                + "' is longer than "
+                + COMPONENT_ID_MAX_LENGTH
+                + " chars!");
+      }
+    };
+  }
+
+  public static Consumer<Map<String, String>> createComponentIdNotEqualComponentTypeValidator() {
+
+    return quickstarter -> {
+      String componentType = quickstarter.get("component_type");
+      String componentId = quickstarter.get("component_id");
+      if (componentType == null) {
+        throw new IllegalArgumentException("component_type is null!");
+      } else if (componentId == null) {
+        throw new IllegalArgumentException("component_id is null!");
+      } else if (componentId.trim().equals(componentType)) {
+        throw new IllegalArgumentException(
+            "component_id '"
+                + componentId
+                + "' is equals as component_type '"
+                + componentType
+                + "'!");
+      }
+    };
   }
 
   /**
