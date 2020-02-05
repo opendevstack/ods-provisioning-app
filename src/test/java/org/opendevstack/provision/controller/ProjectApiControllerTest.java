@@ -226,10 +226,20 @@ public class ProjectApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(
             MockMvcResultMatchers.content()
-                .string(CoreMatchers.containsString(data.projectKey + ") already exists")))
-        .andDo(MockMvcResultHandlers.print());
+                .string(
+                    CoreMatchers.containsString(
+                        "("
+                            + data.projectKey
+                            + ") or name "
+                            + "("
+                            + data.projectName
+                            + ") already exists")));
+
+    // ensure that cleanup was NOT called
+    Mockito.verify(jiraAdapter, times(0)).cleanup(isNotNull(), isNotNull());
   }
 
   @Test

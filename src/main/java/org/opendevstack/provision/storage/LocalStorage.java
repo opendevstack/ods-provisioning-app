@@ -146,6 +146,22 @@ public class LocalStorage implements IStorage {
     return null;
   }
 
+  public OpenProjectData getProjectByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    Collection<OpenProjectData> allProjects = listProjectHistory().values();
+
+    for (OpenProjectData project : allProjects) {
+      if (project.projectName.equalsIgnoreCase(name)) {
+        logger.debug("found project with name {} - returning", project.projectName);
+        return project;
+      }
+    }
+    logger.debug("Could not find project with name {}", name);
+    return null;
+  }
+
   @Override
   public boolean updateStoredProject(OpenProjectData projectNew) throws IOException {
     if (projectNew == null
