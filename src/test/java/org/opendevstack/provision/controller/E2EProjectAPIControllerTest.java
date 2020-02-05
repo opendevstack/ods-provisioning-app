@@ -15,20 +15,18 @@
 package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +39,6 @@ import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,6 +47,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
@@ -104,18 +102,25 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 public class E2EProjectAPIControllerTest {
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
+  @Mock private IODSAuthnzAdapter mockAuthnzAdapter;
+
   @InjectMocks @Autowired private JiraAdapter realJiraAdapter;
 
   @InjectMocks @Autowired private ConfluenceAdapter realConfluenceAdapter;
 
   @InjectMocks @Autowired private BitbucketAdapter realBitbucketAdapter;
 
-  @InjectMocks @Autowired private JenkinsPipelineAdapter realRundeckAdapter;
+  @SuppressWarnings("unused")
+  @InjectMocks
+  @Autowired
+  private JenkinsPipelineAdapter realRundeckAdapter;
 
   @Mock RestClient restClient;
   RestClientMockHelper mockHelper;
 
-  @Mock CrowdProjectIdentityMgmtAdapter idmgtAdapter;
+  @SuppressWarnings("unused")
+  @Mock
+  CrowdProjectIdentityMgmtAdapter idmgtAdapter;
 
   @InjectMocks @Autowired private ProjectApiController apiController;
 
@@ -154,6 +159,11 @@ public class E2EProjectAPIControllerTest {
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
+    // override configuration in application.properties, some tests depends on cleanupAllowed
+    apiController.cleanupAllowed = true;
+
+    when(mockAuthnzAdapter.getUserName()).thenReturn("testUserName");
+    when(mockAuthnzAdapter.getUserPassword()).thenReturn("testUserPassword");
   }
 
   @AfterClass
@@ -314,29 +324,21 @@ public class E2EProjectAPIControllerTest {
     CreateProjectResponse configuredResponse =
         CreateProjectResponseUtil.buildDummyCreateProjectResponse("demo-cd", "build-config", 1);
     // will cause cleanup
+    OngoingStubbing<Object> stub =
+        mockHelper.mockExecute(
+            matchesClientCall()
+                .url(
+                    containsString(
+                        createJenkinsJobPath(
+                            "prov",
+                            "create-projects/Jenkinsfile",
+                            "ods-corejob-" + data.projectKey.toLowerCase())))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST));
     if (fail) {
-      mockHelper
-          .mockExecute(
-              matchesClientCall()
-                  .url(
-                      containsString(
-                          createJenkinsJobPath(
-                              "create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
-                  // .url(containsString("/run"))
-                  .bodyMatches(instanceOf(Execution.class))
-                  .method(HttpMethod.POST))
-          .thenThrow(new IOException("Rundeck TestFail"));
+      stub.thenThrow(new IOException("Rundeck TestFail"));
     } else {
-      mockHelper
-          .mockExecute(
-              matchesClientCall()
-                  .url(
-                      containsString(
-                          createJenkinsJobPath(
-                              "create-projects/Jenkinsfile", "ods-corejob-create-projects-testp")))
-                  .bodyMatches(instanceOf(Execution.class))
-                  .method(HttpMethod.POST))
-          .thenReturn(configuredResponse);
+      stub.thenReturn(configuredResponse);
     }
 
     // create the ODS project
@@ -489,17 +491,7 @@ public class E2EProjectAPIControllerTest {
     toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
-    CreateProjectResponse configuredResponse =
-        CreateProjectResponseUtil.buildDummyCreateProjectResponse("testp", "build-config", 1);
-    String jenkinsJobPath =
-        createJenkinsJobPath("delete-projects/Jenkinsfile", "ods-corejob-delete-projects-testp");
-    mockHelper
-        .mockExecute(
-            matchesClientCall()
-                .url(containsString(jenkinsJobPath))
-                .bodyMatches(instanceOf(Execution.class))
-                .method(HttpMethod.POST))
-        .thenReturn(configuredResponse);
+    mockExecuteAdminJob("prov", "delete-projects", "testp");
     // delete whole projects (-cd, -dev and -test), calls
     // org.opendevstack.provision.controller.ProjectApiController.deleteProject
 
@@ -515,7 +507,6 @@ public class E2EProjectAPIControllerTest {
 
   /** Test positive new quickstarter and delete single component afterwards */
   @Test
-  @Ignore("TODO via #296")
   public void testQuickstarterProvisionOnNewOpenProjectInclDeleteSingleComponent()
       throws Exception {
     OpenProjectData createdProjectIncludingQuickstarters =
@@ -530,17 +521,9 @@ public class E2EProjectAPIControllerTest {
     toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
-    CreateProjectResponse configuredResponse =
-        CreateProjectResponseUtil.buildDummyCreateProjectResponse("testp", "build-config", 1);
-    String jenkinsJobPath =
-        createJenkinsJobPath("delete-projects/Jenkinsfile", "ods-corejob-delete-projects-testp");
-    mockHelper
-        .mockExecute(
-            matchesClientCall()
-                .url(containsString(jenkinsJobPath))
-                .bodyMatches(instanceOf(Execution.class))
-                .method(HttpMethod.POST))
-        .thenReturn(configuredResponse);
+    String prefix = createdProjectIncludingQuickstarters.quickstarters.get(0).get("component_id");
+    mockExecuteAdminJob("testp", "delete-components", prefix);
+
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
     mockMvc
@@ -552,6 +535,22 @@ public class E2EProjectAPIControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
+  }
+
+  private void mockExecuteAdminJob(String namespace, String jobName, String prefix)
+      throws IOException {
+    CreateProjectResponse configuredResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse(namespace, "build-config", 1);
+
+    String jenkinsJobPath =
+        createJenkinsJobPath(namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix);
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(jenkinsJobPath))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST))
+        .thenReturn(configuredResponse);
   }
 
   /** Test NEGATIVE new quickstarter - rollback ONE created repo */
@@ -572,7 +571,7 @@ public class E2EProjectAPIControllerTest {
 
     OpenProjectData currentlyStoredProject = realStorageAdapter.getProject(dataUpdate.projectKey);
 
-    assertNull(currentlyStoredProject.quickstarters);
+    Assertions.assertThat(currentlyStoredProject.getQuickstarters()).isEmpty();
 
     // bitbucket repo creation for new quickstarter
     RepositoryData bitbucketRepositoryDataQSRepo =
@@ -601,7 +600,7 @@ public class E2EProjectAPIControllerTest {
                         "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
                 .url(
                     containsString(
-                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-quickstarter-bePythonFlask-be-python-flask"))
+                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
@@ -714,6 +713,24 @@ public class E2EProjectAPIControllerTest {
     assertEquals(2, resultLegacyProject.quickstarters.size());
   }
 
+  @Test
+  public void getProjectQuickStarterDescription() throws Exception {
+    mockMvc
+        .perform(get("/api/v2/project/LEGPROJ").accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(
+            jsonPath(
+                "$.quickstarters[0].component_type", is("9992a587-959c-4ceb-8e3f-c1390e40c582")))
+        .andExpect(jsonPath("$.quickstarters[0].component_id", is("be-python-flask")))
+        .andExpect(
+            jsonPath("$.quickstarters[0].component_description", is("Backend - Python/Flask")))
+        .andExpect(jsonPath("$.quickstarters[1].component_type", is("be-python-flask")))
+        .andExpect(jsonPath("$.quickstarters[1].component_id", is("logviewer")))
+        .andExpect(
+            jsonPath("$.quickstarters[1].component_description", is("Backend - Python/Flask")))
+        .andDo(MockMvcResultHandlers.print());
+  }
+
   /*
    * internal test helpers
    */
@@ -738,8 +755,10 @@ public class E2EProjectAPIControllerTest {
     return dataFile;
   }
 
-  private String createJenkinsJobPath(String jenkinsfilePath, String component) {
-    return "https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+  private String createJenkinsJobPath(String namespace, String jenkinsfilePath, String component) {
+    return "https://webhook-proxy-"
+        + namespace
+        + "-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;

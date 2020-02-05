@@ -16,6 +16,7 @@ package org.opendevstack.provision.adapter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
@@ -33,7 +34,7 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @return the list of quickstarters, never null but can be empty
    */
-  public List<Job> getComponentQuickstarters();
+  List<Job> getQuickstarterJobs();
 
   /**
    * Create platform projects, e.g. openshift projects to house later components created thru {@link
@@ -41,13 +42,14 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *
    * @param project the project including the project's name and key {@link
    *     OpenProjectData#projectKey} and {@link OpenProjectData#projectName}
-   * @return the project with filled {@link OpenProjectData#platformDevEnvironmentUrl}, {@link
-   *     OpenProjectData#platformTestEnvironmentUrl}, {{@link
-   *     OpenProjectData#platformBuildEngineUrl} and {@link OpenProjectData#lastExecutionJobs} which
-   *     contains the link the jobs that were kicked off
+   * @return the project with filled {@link OpenProjectData#platformCdEnvironmentUrl}, {@link
+   *     OpenProjectData#platformDevEnvironmentUrl}, {@link
+   *     OpenProjectData#platformTestEnvironmentUrl}, {@link OpenProjectData#platformBuildEngineUrl}
+   *     and {@link OpenProjectData#lastExecutionJobs} which contains the link the jobs that were
+   *     kicked off
    * @throws IOException in case the projects cannot be created
    */
-  public OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException;
+  OpenProjectData createPlatformProjects(OpenProjectData project) throws IOException;
 
   /**
    * Create platform components based on passed {@link OpenProjectData#quickstarters}
@@ -57,6 +59,14 @@ public interface IJobExecutionAdapter extends IServiceAdapter {
    *     URLs to the jobs kicked off.
    * @throws IOException in case the platform components could NOT be provisioned
    */
-  public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
+  List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
       throws IOException;
+
+  /**
+   * Returns the quickstarter for this component type a.k.a. name
+   *
+   * @param componentType type of the component a.k.a name
+   * @return Some job if a matching one was found
+   */
+  Optional<Job> getComponentByType(String componentType);
 }

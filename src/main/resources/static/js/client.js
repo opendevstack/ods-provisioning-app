@@ -29,12 +29,25 @@ var validatorOptions = {
       var newCompId = el.val().trim();
       var name = el.attr("name");
       return !isUniqueComponentId(newCompId, name)
+    },
+    equalsqsid: function (el) {
+      var index = el.attr("name").replace("quickstart-comp-id-","")
+      var value = el.val().trim();
+      var elements = el[0].parentElement.parentElement.querySelector(".checkbox").children;
+      return nameEqualsQuickstarterId(value, index, elements); // true = error
     }
   },
   errors: {
-    unique: "This component already exist"
+    unique: "This component already exists!",
+    notqskey: "Component id must be different than quickstarter type!"
   }
 };
+
+$(document).ajaxError(function( event, jqxhr, settings, thrownError ) {
+  if (jqxhr.status == 401) {
+    window.location.href = '/login';
+  }
+});
 
 $(document).ready(function(){
    $('form#createProject').validator(validatorOptions);
@@ -133,9 +146,27 @@ $(document).ready(function(){
         $( "#auserdiv" ).addClass("hidden");    	
     }
     nameCompare = {};
-  });  
+  });
 
-  
+  $("#projectSpecificCdUser").change(function() {
+    if ( $( "#projectSpecificCdUser" )[0] .checked)
+    {
+      $( "#cduserdiv" ).removeClass("hidden");
+      $( "#cduserinfodiv" ).removeClass("hidden");
+
+      $( "#cdUser" ).prop("required", true);
+
+      $( "#cdUser" ).focus();
+    } else {
+      $( "#cduserdiv" ).addClass("hidden");
+      $( "#cduserinfodiv" ).addClass("hidden");
+
+      $( "#cdUser" ).prop("required", false);
+      $( "#cdUser" ).val('');
+    }
+    nameCompare = {};
+  });
+
   /**
    * This is the event handler for the quickstarter select box
    */
@@ -150,16 +181,16 @@ $(document).ready(function(){
           var str = quickStarters[obj].name;
           $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', false);
           $(currentform).find("[name='quickstart-checked-"+id+"']").prop('checked', true);
-          var compId = str.replace(new RegExp("_", 'g'), "-");
+          var compId = $(currentform).find("[name='quickstart-comp-id-"+id+"']")[0].value || "";
           $(currentform).find("[name='quickstart-comp-id-"+id+"']").val(compId).prop("required", true).attr("data-unique", "unique");
+          $(currentform).find("[name='quickstart-comp-id-"+id+"']").val(compId).prop("required", true).attr("data-equalsqsid", "equalsqsid");
           nameCompare['quickstart-comp-id-'+id] = compId;
           $(currentform).validator('update');
         }
       }
     } else {
-      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', true);
-      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('checked', false);
-      $(currentform).find("[name='quickstart-comp-id-"+id+"']").prop("required", false).removeAttr("data-unique");
+      $(currentform).find("[name='quickstart-checked-"+id+"']").prop('disabled', true).prop('checked', false);
+      $(currentform).find("[name='quickstart-comp-id-"+id+"']").prop("required", false).removeAttr("data-unique").removeAttr("data-equalsqsid");
       delete nameCompare['quickstart-comp-id-'+id];
       $(currentform).validator('update');
     }
@@ -246,7 +277,7 @@ $(document).ready(function(){
         timeout: 480000,
         success: function(data, status, xhr){
 
-          summarize(data);
+          summarize(data, "created");
 
           $("#resProject")
           .addClass("alert-success")
@@ -260,14 +291,16 @@ $(document).ready(function(){
           $("#createProject").trigger("reset");
           $("#createProject").show();
         },
-        error:  function(data, status, xhr){
+        error:  function(xhr, status, data){
+          if (xhr.status != 401) {
             console.log("fail");
-            console.log( data );
+            console.log(xhr);
           $("#resProject")
           .addClass("alert-danger")
-          .text("Could not create project: " + data.responseText);
+          .text("Could not create project: " + xhr.responseText);
           $("#resButton").button("reset");
           $("#createProject").show();
+          }
         }
       });
     }
@@ -303,7 +336,7 @@ $(document).ready(function(){
         contentType:"application/json; charset=utf-8",
         dataType:"json",
         success: function(data, status, xhr){
-          summarize(data);
+          summarize(data, "updated");
           $("#resProject")
           .addClass("alert-success")
           .text("Project successfully updated.");
@@ -313,14 +346,16 @@ $(document).ready(function(){
           $("#modifyProject").show();
           //startProvision(data);
         },
-        error:  function(data, status, xhr){
+        error:  function(xhr, status, data){
+          if (xhr.status !== 401) {
             console.log("fail");
-            console.log( data );
-          $("#resProject")
-          .addClass("alert-danger")
-          .text("Can not update project, error " + data.responseText);
-          $("#resButton").button("reset");
-          $("#modifyProject").show();
+            console.log(xhr);
+            $("#resProject")
+                .addClass("alert-danger")
+                .text("Can not update project, error " + xhr.responseText);
+            $("#resButton").button("reset");
+            $("#modifyProject").show();
+          }
         }
       });
 
@@ -357,6 +392,19 @@ $(document).ready(function(){
 
 });
 
+// check if name is equal quickstarter id
+function nameEqualsQuickstarterId(name, qsTypeId, elements) {
+  var qsTypeName = "quickstart-type-" + qsTypeId;
+  for (var el in elements) {
+    var elQsTypeName = elements[el].name;
+    var elName = elements[el].value;
+    if (elQsTypeName === qsTypeName) {
+      return elName === name;
+    }
+  }
+  return false;
+}
+
 //proof if name is unique
 function isUniqueComponentId(newCompId,elName) {
   var retValue = true;
@@ -372,21 +420,23 @@ function isUniqueComponentId(newCompId,elName) {
 }
 
 //add summarization to modal html
-function summarize(data) {
+function summarize(data, actionType) {
   $("#dataProjectName").html(data.projectName);
   $("#dataProjectKey").html(data.projectKey);
-  
-  $("#dataJiraConfluenceCreated").text(data.bugtrackerSpace);
+
+  if (data.bugtrackerSpace) {
+    $("#dataJiraConfluenceCreated").text("Created");
+  } else {
+    $("#dataJiraConfluenceCreated").text("Not created");
+  }
   
   // this is for the default case where spaces should be created.
-  if (data.bugtrackerSpace) 
-  {
-	  $("#dataJiraUrl").html("<a href='" + data.bugtrackerUrl+"' target='_blank'>" + data.bugtrackerUrl +"</a>");
-	  $("#dataConfluenceUrl").html("<a href='" + data.collaborationSpaceUrl+"' target='_blank'>" + data.collaborationSpaceUrl +"</a>");
-  } else 
-  {
-  	  $("#dataJiraUrlDiv").hide();
-  	  $("#dataConfluenceUrlDiv").hide();
+  if (data.bugtrackerSpace) {
+    $("#dataJiraUrl").html('<a href="' + data.bugtrackerUrl + '" target="_blank">' + data.bugtrackerUrl + '</a>');
+    $("#dataConfluenceUrl").html('<a href="' + data.collaborationSpaceUrl + '" target="_blank">' + data.collaborationSpaceUrl + '</a>');
+  } else {
+      $("#dataJiraUrlDiv").hide();
+      $("#dataConfluenceUrlDiv").hide();
   }
 
   if (data.lastExecutionJobs != null) {
@@ -415,7 +465,17 @@ function summarize(data) {
   {
   	  $("#dataJenkinsUrlDiv").hide();
   	  $("#dataBitbucketUrlDiv").hide();
-  }  
+  }
+
+  if (data.cdUser != null && data.cdUser.length > 0) {
+    var cdUserHtml = 'Project specific CD user';
+    if (actionType != 'updated') {
+      cdUserHtml += '<br/>After project creation is complete, you will have to set the <a href="' + data.platformCdEnvironmentUrl + '/browse/secrets/cd-user-with-password" target="_blank">cd-user-with-password secret</a> in the OpenShift webconsole. The actual password can be set in base64 encoding via "Actions > Edit YAML".';
+    }
+    $("#dataCdUser").html(cdUserHtml);
+  } else {
+    $("#dataCdUser").html('Global CD user');
+  }
   
   $("#projectData").removeClass("hide");
 

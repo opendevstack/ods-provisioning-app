@@ -15,8 +15,7 @@
 package org.opendevstack.provision.model.jenkins;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 import javax.annotation.Generated;
 import org.opendevstack.provision.config.Quickstarter;
 
@@ -29,7 +28,6 @@ public class Job {
   public String name;
   public String description;
 
-  public String gitParentProject;
   public String gitRepoName;
   public String jenkinsfilePath;
   public String branch;
@@ -49,32 +47,30 @@ public class Job {
     this.enabled = enabled;
     this.name = name;
     this.description = description;
-    this.gitParentProject = gitParentProject;
     this.gitRepoName = gitRepoName;
     this.jenkinsfilePath = jenkinsfilePath;
     this.branch = branch;
   }
 
-  public Job(Quickstarter quickstarter) {
-    this(quickstarter.getName(), quickstarter.getUrl());
-    description = quickstarter.getDesc();
+  public Job(Quickstarter qs, String odsGitRef) {
+    this(qs.getName(), qs.getRepo(), qs.getBranch(), qs.getJenkinsfile(), odsGitRef);
+    description = qs.getDesc();
   }
 
-  public Job(String jobname, String url) {
-    String gitURL = url.split("\\.git")[0];
-    gitParentProject = gitURL.split("/")[0];
-    gitRepoName = gitURL.split("/")[1];
-    jenkinsfilePath = url.split("\\.git")[1];
-    branch = "master";
-    if (jenkinsfilePath.startsWith("#")) {
-      Pattern pattern = Pattern.compile("#([a-zA-Z]*)\\/(.*)");
-      Matcher matcher = pattern.matcher(jenkinsfilePath);
-      matcher.find();
-      branch = matcher.group(1);
-      jenkinsfilePath = matcher.group(2);
+  public Job(
+      String jobname,
+      String repo,
+      Optional<String> branch,
+      Optional<String> jenkinsfile,
+      String odsGitRef) {
+    int gitExtenstionIndex = repo.lastIndexOf(".git");
+    if (gitExtenstionIndex == -1) {
+      gitRepoName = repo;
     } else {
-      jenkinsfilePath = jenkinsfilePath.substring(1);
+      gitRepoName = repo.substring(0, gitExtenstionIndex);
     }
+    jenkinsfilePath = jenkinsfile.orElse(jobname + "/Jenkinsfile");
+    this.branch = branch.orElse(odsGitRef);
     enabled = true;
     id = jobname;
     name = jobname;
@@ -116,10 +112,6 @@ public class Job {
     return String.format("Job id: %s, name: %s", id, name);
   }
 
-  public String getGitParentProject() {
-    return gitParentProject;
-  }
-
   public String getGitRepoName() {
     return gitRepoName;
   }
@@ -143,8 +135,6 @@ public class Job {
         + name
         + ", description="
         + description
-        + ", gitParentProject="
-        + gitParentProject
         + ", gitRepoName="
         + gitRepoName
         + ", jenkinsfilePath="

@@ -114,7 +114,7 @@ public class DefaultControllerTest {
   @WithMockUser(username = "test")
   public void provisionWithAuth() throws Exception {
     Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
-    Mockito.when(rundeckAdapter.getComponentQuickstarters()).thenReturn(new ArrayList<>());
+    Mockito.when(rundeckAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
     defaultController.setRundeckAdapter(rundeckAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
@@ -126,7 +126,7 @@ public class DefaultControllerTest {
 
   @Test
   public void provisionWithoutAuth() throws Exception {
-    Mockito.when(rundeckAdapter.getComponentQuickstarters()).thenReturn(new ArrayList<>());
+    Mockito.when(rundeckAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
     Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
     defaultController.setRundeckAdapter(rundeckAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);

@@ -2,8 +2,8 @@
 	"projectKey": "TestP",
 	"quickstarters": [
 		{
-			"component_type": "bePythonFlask",
-			"component_id": "be-python-flask"
+			"component_type": "be-python-flask",
+			"component_id": "be-python"
 		}
 	]
 }

@@ -23,12 +23,19 @@ objects:
     strategy:
       jenkinsPipelineStrategy:
         jenkinsfilePath: Jenkinsfile
+        env:
+          - name: ODS_IMAGE_TAG
+            value: ${ODS_IMAGE_TAG}
+          - name: ODS_GIT_REF
+            value: ${ODS_GIT_REF}
       type: JenkinsPipeline
     triggers:
     - generic:
         secret: ${PIPELINE_TRIGGER_SECRET}
       type: Generic
 parameters:
+- name: ODS_IMAGE_TAG
+  required: true
 - name: ODS_GIT_REF
   required: true
 - name: REPO_BASE

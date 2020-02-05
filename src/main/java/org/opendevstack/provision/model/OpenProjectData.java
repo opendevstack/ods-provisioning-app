@@ -14,6 +14,7 @@
 package org.opendevstack.provision.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
@@ -40,9 +41,10 @@ public class OpenProjectData {
   public String description = null;
   /** The unique key of the project, must not be null */
   public String projectKey = null;
-
   /** The secret to call webhook_proxy within the new env. Needed 2 create quickstarters */
   public String webhookProxySecret = null;
+  /** The project specific cd-user */
+  public String cdUser = null;
   /**
    * Map of quickstarters used, to get the chosen name of the quickstarter picked, use {@link
    * #COMPONENT_ID_KEY} against the map contained. To get the quickstarter's type use {@link
@@ -66,6 +68,8 @@ public class OpenProjectData {
   public Map<String, Map<URL_TYPE, String>> repositories = null;
   /** The url of the jenkins / build engine */
   public String platformBuildEngineUrl = null;
+  /** The url of the cd environment */
+  public String platformCdEnvironmentUrl = null;
   /** The url of the dev environment */
   public String platformDevEnvironmentUrl = null;
   /** The url of the test environment */
@@ -105,6 +109,10 @@ public class OpenProjectData {
     result = prime * result + ((projectKey == null) ? 0 : projectKey.hashCode());
     result = prime * result + ((projectName == null) ? 0 : projectName.hashCode());
     return result;
+  }
+
+  public List<Map<String, String>> getQuickstarters() {
+    return quickstarters == null ? Collections.emptyList() : quickstarters;
   }
 
   @Override

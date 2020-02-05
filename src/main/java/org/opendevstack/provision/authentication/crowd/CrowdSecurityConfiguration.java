@@ -38,10 +38,14 @@ import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -64,6 +68,22 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 @EnableEncryptableProperties
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  private static final Logger logger = LoggerFactory.getLogger(CrowdSecurityConfiguration.class);
+
+  @Value("${crowd.application.name}")
+  String crowdApplicationName;
+
+  @Value("${crowd.application.password}")
+  String crowdApplicationPassword;
+
+  @Value("${crowd.server.url}")
+  String crowdServerUrl;
+
+  @Value("${crowd.cookie.domain}")
+  String cookieDomain;
+
+  @Autowired private ApplicationContext context;
 
   /**
    * Configure the security for the spring application
@@ -100,18 +120,6 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .permitAll();
   }
 
-  @Value("${crowd.application.name}")
-  String crowdApplicationName;
-
-  @Value("${crowd.application.password}")
-  String crowdApplicationPassword;
-
-  @Value("${crowd.server.url}")
-  String crowdServerUrl;
-
-  @Value("${crowd.cookie.domain}")
-  String cookieDomain;
-
   /**
    * Get the properties used for crowd authentication
    *
@@ -139,6 +147,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
    * @throws IOException
    */
   @Bean
+  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
   public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
     CrowdLogoutHandler clh = new CrowdLogoutHandler();
     clh.setHttpAuthenticator(httpAuthenticator());
