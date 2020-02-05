@@ -44,6 +44,7 @@ import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
+import org.opendevstack.provision.util.exception.ProjectAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -149,13 +150,13 @@ public class ProjectApiController {
       }
 
       // verify the project does NOT exist
-      OpenProjectData projectLoad = directStorage.getProject(newProject.projectKey);
-      if (projectLoad != null) {
+      if (directStorage.getProject(newProject.projectKey) != null
+          || directStorage.getProjectByName(newProject.projectName) != null) {
         {
-          throw new IOException(
+          throw new ProjectAlreadyExistsException(
               format(
-                  "Project with key (%s) already exists: (%s)",
-                  newProject.projectKey, projectLoad.projectKey));
+                  "Project with key (%s) or name (%s) already exists",
+                  newProject.projectKey, newProject.projectName));
         }
       }
 
@@ -195,6 +196,8 @@ public class ProjectApiController {
       mailAdapter.notifyUsersAboutProject(newProject);
 
       return ResponseEntity.ok().body(newProject);
+    } catch (ProjectAlreadyExistsException exAlreadyExists) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exAlreadyExists.getMessage());
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
