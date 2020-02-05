@@ -197,7 +197,8 @@ public class ProjectApiController {
 
       return ResponseEntity.ok().body(newProject);
     } catch (ProjectAlreadyExistsException exAlreadyExists) {
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exAlreadyExists.getMessage());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(exAlreadyExists.getMessage());
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
