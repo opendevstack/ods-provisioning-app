@@ -45,6 +45,14 @@ public interface IStorage {
   OpenProjectData getProject(String key);
 
   /**
+   * get a project by its name
+   *
+   * @param name the project's key
+   * @return the project by its name, or null in case not found
+   */
+  OpenProjectData getProjectByName(String name);
+
+  /**
    * Update an already existing project
    *
    * @param project the project to update (based on the {@link OpenProjectData#projectKey})
