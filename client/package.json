@@ -5,7 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "test": "ng test",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
@@ -19,6 +20,7 @@
     "@angular/platform-browser": "~9.0.0",
     "@angular/platform-browser-dynamic": "~9.0.0",
     "@angular/router": "~9.0.0",
+    "@briebug/jest-schematic": "^2.1.1",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
@@ -30,18 +32,24 @@
     "@angular/language-service": "~9.0.0",
     "@types/jasmine": "~3.5.0",
     "@types/jasminewd2": "~2.0.3",
+    "@types/jest": "25.1.2",
     "@types/node": "^12.11.1",
     "codelyzer": "^5.1.2",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~4.2.1",
-    "karma": "~4.3.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~2.1.0",
-    "karma-jasmine": "~2.0.1",
-    "karma-jasmine-html-reporter": "^1.4.2",
+    "jest": "25.1.0",
+    "jest-preset-angular": "8.0.0",
     "protractor": "~5.4.3",
     "ts-node": "~8.3.0",
     "tslint": "~5.18.0",
     "typescript": "~3.7.5"
+  },
+  "jest": {
+      "preset": "jest-preset-angular",
+      "roots": ["src"],
+      "transform": {"^.+\\.(ts|js|html)$":"ts-jest"},
+      "setupFilesAfterEnv": ["<rootDir>/src/setup-jest.ts"],
+      "moduleNameMapper": {"@app/(.*)":"<rootDir>/src/app/$1","@assets/(.*)":"<rootDir>/src/assets/$1","@core/(.*)":"<rootDir>/src/app/core/$1","@env":"<rootDir>/src/environments/environment","@src/(.*)":"<rootDir>/src/src/$1","@state/(.*)":"<rootDir>/src/app/state/$1"},
+      "globals": {"ts-jest":{"tsConfig":"<rootDir>/tsconfig.spec.json","stringifyContentPathRegex":"\\.html$","astTransformers":["jest-preset-angular/build/InlineFilesTransformer","jest-preset-angular/build/StripStylesTransformer"]}}
+    }
   }
-}
