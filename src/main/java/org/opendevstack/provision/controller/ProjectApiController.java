@@ -40,6 +40,7 @@ import org.opendevstack.provision.authentication.MissingCredentialsInfoException
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -69,12 +70,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "api/v2/project")
 public class ProjectApiController {
+
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
-
-  public static final int COMPONENT_ID_MIN_LENGTH = 3;
-  public static final int COMPONENT_ID_MAX_LENGTH = 40;
 
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
@@ -256,9 +255,7 @@ public class ProjectApiController {
       }
 
       validateQuickstarters(
-          updatedProject,
-          Arrays.asList(
-              createComponentIdValidator(), createComponentIdNotEqualComponentTypeValidator()));
+          updatedProject, OpenProjectDataValidator.API_COMPONENT_ID_VALIDATOR_LIST);
 
       // add the baseline, to return a full project later
       updatedProject.description = storedExistingProject.description;
@@ -362,52 +359,6 @@ public class ProjectApiController {
         validator -> {
           updatedProject.getQuickstarters().stream().forEach(validator);
         });
-  }
-
-  public static Consumer<Map<String, String>> createComponentIdValidator() {
-
-    return quickstarter -> {
-      String componentId = quickstarter.get("component_id");
-      if (componentId == null) {
-        throw new IllegalArgumentException("component_id is null!");
-      } else if (componentId.trim().length() == 0) {
-        throw new IllegalArgumentException("component_id '" + componentId + "' is empty!");
-      } else if (componentId.length() < COMPONENT_ID_MIN_LENGTH) {
-        throw new IllegalArgumentException(
-            "component_id '"
-                + componentId
-                + "' is shorter than "
-                + COMPONENT_ID_MIN_LENGTH
-                + " chars!");
-      } else if (componentId.length() > COMPONENT_ID_MAX_LENGTH) {
-        throw new IllegalArgumentException(
-            "component_id '"
-                + componentId
-                + "' is longer than "
-                + COMPONENT_ID_MAX_LENGTH
-                + " chars!");
-      }
-    };
-  }
-
-  public static Consumer<Map<String, String>> createComponentIdNotEqualComponentTypeValidator() {
-
-    return quickstarter -> {
-      String componentType = quickstarter.get("component_type");
-      String componentId = quickstarter.get("component_id");
-      if (componentType == null) {
-        throw new IllegalArgumentException("component_type is null!");
-      } else if (componentId == null) {
-        throw new IllegalArgumentException("component_id is null!");
-      } else if (componentId.trim().equals(componentType)) {
-        throw new IllegalArgumentException(
-            "component_id '"
-                + componentId
-                + "' is equals as component_type '"
-                + componentType
-                + "'!");
-      }
-    };
   }
 
   /**
