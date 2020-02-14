@@ -18,12 +18,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -46,12 +42,9 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.StorageAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -705,7 +698,7 @@ public class ProjectApiControllerTest {
   @Test
   public void validComponentIdLength() {
 
-    Consumer<Map<String, String>> validator = ProjectApiController.createComponentIdValidator();
+    Consumer<Map<String, String>> validator = createComponentIdValidator();
 
     // case component id is null
     try {
@@ -725,7 +718,8 @@ public class ProjectApiControllerTest {
     }
 
     // case component id longer than max length
-    String tooLong = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH + 1);
+    String tooLong =
+        Strings.repeat("=", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH + 1);
     try {
       data.getQuickstarters().stream().findFirst().get().put("component_id", tooLong);
       data.quickstarters.forEach(validator);
@@ -734,7 +728,8 @@ public class ProjectApiControllerTest {
     }
 
     // case component id longer than max length
-    String tooShort = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MIN_LENGTH - 1);
+    String tooShort =
+        Strings.repeat("=", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MIN_LENGTH - 1);
     try {
       data.getQuickstarters().stream().findFirst().get().put("component_id", tooShort);
       data.quickstarters.forEach(validator);
@@ -743,7 +738,8 @@ public class ProjectApiControllerTest {
     }
 
     // case component id is longer or equal than max length
-    String validLength = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH);
+    String validLength =
+        Strings.repeat("n", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH);
     data.getQuickstarters().stream().findFirst().get().put("component_id", validLength);
     data.quickstarters.forEach(validator);
   }
@@ -752,7 +748,7 @@ public class ProjectApiControllerTest {
   public void validComponentIdNotEqualComponentType() {
 
     Consumer<Map<String, String>> validator =
-        ProjectApiController.createComponentIdNotEqualComponentTypeValidator();
+        OpenProjectDataValidator.createComponentIdNotEqualComponentTypeValidator();
 
     // case component type is null
     try {
@@ -787,5 +783,44 @@ public class ProjectApiControllerTest {
     data.getQuickstarters().stream().findFirst().get().put("component_id", "value1");
     data.getQuickstarters().stream().findFirst().get().put("component_type", "value2");
     data.quickstarters.forEach(validator);
+  }
+
+  /**
+   * Valid name starts with Alphanumeric and dashes, with dashes (-), underscores (_), dots (.), and
+   * alphanumerics between
+   */
+  @Test
+  public void validComponentIdName() {
+
+    Consumer<Map<String, String>> validator = createComponentIdValidator();
+
+    // case component id name cannot start with dash, dot or underscore
+    String notValidName = "_.doNotStartsWithAlphanumericChar";
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", notValidName);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("not valid name"));
+    }
+
+    // case component id name cannot end with dash, dot or underscore
+    notValidName = "doNotEndsWithWithAlphanumericChar_.";
+    try {
+      data.getQuickstarters().stream().findFirst().get().put("component_id", notValidName);
+      data.quickstarters.forEach(validator);
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("not valid name"));
+    }
+
+    // case component valid name
+    String validName = "starts.WithAlphChar_With-_And.Dots";
+    data.getQuickstarters().stream().findFirst().get().put("component_id", validName);
+    data.quickstarters.forEach(validator);
+  }
+
+  public Consumer<Map<String, String>> createComponentIdValidator() {
+    return OpenProjectDataValidator.createComponentIdValidator(
+        OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MIN_LENGTH,
+        OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH);
   }
 }
