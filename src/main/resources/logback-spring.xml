@@ -2,7 +2,7 @@
 <configuration>
 
 	<!-- home of the logs -->
-	<property name="PROV_HIST_HOME" value="/opt/provision/history/logs" />
+	<property name="PROV_HIST_HOME" value="${LOG_PATH}" />
 
 	<!-- custom file appender -->"
 	<appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
