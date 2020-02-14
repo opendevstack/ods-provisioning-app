@@ -16,8 +16,7 @@ package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.opendevstack.provision.config.Quickstarter.adminjobQuickstarter;
 import static org.opendevstack.provision.config.Quickstarter.componentQuickstarter;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
@@ -26,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import org.apache.commons.lang.NotImplementedException;
 import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -235,19 +235,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void createOpenshiftProjects() throws Exception {
 
-    OpenProjectData projectData = new OpenProjectData();
-    projectData.projectKey = "key";
-
-    Job job1 = new Job();
-    job1.setName("create-projects");
-    Job job2 = new Job();
-    job2.setName("name2");
-
-    List<Job> jobs = new ArrayList<>();
-    jobs.add(job1);
-    jobs.add(job2);
-
-    mockJobsInServer(jobs);
+    OpenProjectData projectData = createOpenProjectData("key");
 
     ValueCaptor<Execution> bodyCaptor = new ValueCaptor<>();
     mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(bodyCaptor))
@@ -281,6 +269,36 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(
         expectedOpenProjectData.platformBuildEngineUrl,
         createdOpenProjectData.platformBuildEngineUrl);
+  }
+
+  @Test
+  public void createOpenshiftProjectsFailWhenInvalidName() throws Exception {
+
+    OpenProjectData projectData = createOpenProjectData("this.is.a.invalid.name-.");
+
+    try {
+      jenkinsPipelineAdapter.createPlatformProjects(projectData);
+      fail();
+    } catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().contains("is not valid name"));
+    }
+  }
+
+  public OpenProjectData createOpenProjectData(String projectKey) throws IOException {
+    OpenProjectData projectData = new OpenProjectData();
+    projectData.projectKey = projectKey;
+
+    Job job1 = new Job();
+    job1.setName("create-projects");
+    Job job2 = new Job();
+    job2.setName("name2");
+
+    List<Job> jobs = new ArrayList<>();
+    jobs.add(job1);
+    jobs.add(job2);
+
+    mockJobsInServer(jobs);
+    return projectData;
   }
 
   public void mockJobsInServer(List<Job> jobs) throws IOException {
