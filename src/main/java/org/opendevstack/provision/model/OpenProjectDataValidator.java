@@ -26,14 +26,18 @@ import java.util.regex.Pattern;
  */
 public class OpenProjectDataValidator {
   /**
-   * This regex matches kubernates label naming definition Valid name starts with Alphanumeric and
-   * dashes, with dashes (-), underscores (_), dots (.), and alphanumerics between
+   * This regex matches kubernetes label naming definition.
+   *
+   * <p>Valid name starts with Alphanumeric and dashes, with dashes (-), underscores (_), dots (.),
+   * and alphanumerics between
+   *
+   * @see <a href="kubernetes label syntax and character
+   *     set">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set</a>
    */
   public static final String COMPONENT_NAME_VALIDATOR_REGEX =
       "^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$";
 
-  private static final Pattern componentNameRegex =
-      Pattern.compile(OpenProjectDataValidator.COMPONENT_NAME_VALIDATOR_REGEX);
+  private static final Pattern componentNameRegex = Pattern.compile(COMPONENT_NAME_VALIDATOR_REGEX);
 
   public static final int COMPONENT_ID_MIN_LENGTH = 3;
   public static final int COMPONENT_ID_MAX_LENGTH = 63;
