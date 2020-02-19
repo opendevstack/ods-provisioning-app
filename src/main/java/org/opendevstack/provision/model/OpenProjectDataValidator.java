@@ -13,6 +13,7 @@
  */
 package org.opendevstack.provision.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * Provides validators method
  *
- * @author: stitakis
+ * @author: Sebastian Titakis
  */
 public class OpenProjectDataValidator {
   /**
@@ -36,6 +37,8 @@ public class OpenProjectDataValidator {
    */
   public static final String COMPONENT_NAME_VALIDATOR_REGEX =
       "^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$";
+
+  public static final String VALIDATION_ERROR_MESSAGE_SEPARATOR = "//";
 
   private static final Pattern componentNameRegex = Pattern.compile(COMPONENT_NAME_VALIDATOR_REGEX);
 
@@ -64,19 +67,31 @@ public class OpenProjectDataValidator {
         throw new IllegalArgumentException(COMPONENT_ID_KEY + " is null!");
       } else if (componentId.trim().length() == 0) {
         throw new IllegalArgumentException(COMPONENT_ID_KEY + " '" + componentId + "' is empty!");
-      } else if (componentId.length() < minLength) {
-        throw new IllegalArgumentException(
+      }
+
+      List<String> errors = new ArrayList<>();
+      if (componentId.length() < minLength) {
+        errors.add(
             COMPONENT_ID_KEY + " '" + componentId + "' is shorter than " + minLength + " chars!");
-      } else if (componentId.length() > maxLength) {
-        throw new IllegalArgumentException(
+      }
+
+      if (componentId.length() > maxLength) {
+        errors.add(
             COMPONENT_ID_KEY + " '" + componentId + "' is longer than " + maxLength + " chars!");
-      } else if (!componentNameRegex.matcher(componentId).find()) {
-        throw new IllegalArgumentException(
+      }
+
+      if (!componentNameRegex.matcher(componentId).find()) {
+        errors.add(
             COMPONENT_ID_KEY
                 + " '"
                 + componentId
                 + "' is not valid name (only alphanumeric chars are allowed with with dashes (-), "
                 + "underscores (_), dots (.), and alphanumerics between)");
+      }
+
+      if (!errors.isEmpty()) {
+        String message = String.join(VALIDATION_ERROR_MESSAGE_SEPARATOR, errors);
+        throw new IllegalArgumentException(message);
       }
     };
   }
