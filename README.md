@@ -1,6 +1,6 @@
 # OpenDevStack Provisioning Application
 
-[![Build Status](https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master)](https://travis-ci.com/opendevstack/ods-provisioning-app)
+![](https://github.com/opendevstack/ods-provisioning-app/workflows/Provisioning%20App%20Build/badge.svg?branch=master)
 
 ## Introduction
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on [quickstarters](https://github.com/opendevstack/ods-project-quickstarters).
