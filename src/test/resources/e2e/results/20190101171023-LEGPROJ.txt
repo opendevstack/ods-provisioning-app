@@ -13,7 +13,7 @@
     "group_id" : "com.bix-digital.legproj",
     "project_id" : "legproj",
     "package_name" : "com.bix_digital.legproj.be_python_flask",
-    "joblink" : "http://rundeck.ods.bb/project/Quickstarters/execution/show/745"
+    "joblink" : "http://jenkins.ods.bb/project/Quickstarters/execution/show/745"
   }, {
     "component_type" : "be-python-flask",
     "component_id" : "logviewer",
@@ -22,7 +22,7 @@
     "group_id" : "com.bix-digital.legproj",
     "project_id" : "legproj",
     "package_name" : "com.bix_digital.legproj.firewall_logviewer",
-    "joblink" : "http://rundeck.ods.bb/project/Quickstarters/execution/show/761"
+    "joblink" : "http://jenkins.ods.bb/project/Quickstarters/execution/show/761"
   } ],
   "jiraconfluencespace" : true,
   "openshiftproject" : true,
@@ -91,6 +91,6 @@
   "admin" : "clemens",
   "readonlyGroup" : "BI-AS-ATLASSIAN-P-legproj-STAKEHOLDER",
   "createpermissionset" : false,
-  "lastJobs" : [ "http://rundeck.ods.bb/project/Quickstarters/execution/show/723" ],
+  "lastJobs" : [ "http://jenkins.ods.bb/project/Quickstarters/execution/show/723" ],
   "projectType" : "default"
 }

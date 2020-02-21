@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Restcontroller to communicate with the Rundeck API and handle the quickstarters and related jobs
+ * Restcontroller to communicate with the Job API and handle the quickstarters and related jobs
  *
  * @author Torsten Jaeschke
  */

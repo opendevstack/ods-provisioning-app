@@ -343,9 +343,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       executionsData.setJobName(jobName);
       executionsData.setPermalink(href);
       return executionsData;
-    } catch (IOException rundeckException) {
-      logger.error("Error starting job {} - details:", jobNameOrId, rundeckException);
-      throw rundeckException;
+    } catch (IOException ex) {
+      logger.error("Error starting job {} - details:", jobNameOrId, ex);
+      throw ex;
     }
   }
 

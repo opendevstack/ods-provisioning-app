@@ -57,7 +57,7 @@ public class DefaultControllerTest {
 
   @Autowired DefaultController defaultController;
 
-  @Mock IJobExecutionAdapter rundeckAdapter;
+  @Mock IJobExecutionAdapter jobExecutionAdapter;
 
   @Mock CrowdAuthenticationManager crowdAuthenticationManager;
 
@@ -114,8 +114,8 @@ public class DefaultControllerTest {
   @WithMockUser(username = "test")
   public void provisionWithAuth() throws Exception {
     Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
-    Mockito.when(rundeckAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
-    defaultController.setRundeckAdapter(rundeckAdapter);
+    Mockito.when(jobExecutionAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
+    defaultController.setJobExecutionAdapter(jobExecutionAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
     mockMvc
@@ -126,9 +126,9 @@ public class DefaultControllerTest {
 
   @Test
   public void provisionWithoutAuth() throws Exception {
-    Mockito.when(rundeckAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
+    Mockito.when(jobExecutionAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
     Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
-    defaultController.setRundeckAdapter(rundeckAdapter);
+    defaultController.setJobExecutionAdapter(jobExecutionAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     mockMvc
         .perform(get("/provision"))
@@ -176,7 +176,6 @@ public class DefaultControllerTest {
     defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
 
     // set the real thing
-    //    defaultController.setRundeckAdapter(realRundeckAdapter);
     defaultController.setSCMAdapter(realBitbucketAdapter);
 
     mockMvc

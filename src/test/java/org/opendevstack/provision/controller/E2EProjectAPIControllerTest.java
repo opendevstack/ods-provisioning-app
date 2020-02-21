@@ -113,7 +113,7 @@ public class E2EProjectAPIControllerTest {
   @SuppressWarnings("unused")
   @InjectMocks
   @Autowired
-  private JenkinsPipelineAdapter realRundeckAdapter;
+  private JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
   @Mock RestClient restClient;
   RestClientMockHelper mockHelper;
@@ -336,7 +336,7 @@ public class E2EProjectAPIControllerTest {
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
-      stub.thenThrow(new IOException("Rundeck TestFail"));
+      stub.thenThrow(new IOException("Jenkins TestFail"));
     } else {
       stub.thenReturn(configuredResponse);
     }
@@ -366,7 +366,7 @@ public class E2EProjectAPIControllerTest {
               .getResponse()
               .getContentAsString()
               .contains(
-                  "An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!"));
+                  "An error occured while creating project [TESTP], reason [Jenkins TestFail] - but all cleaned up!"));
 
       // no cleanup happening - so no delete calls
       if (!apiController.cleanupAllowed) {

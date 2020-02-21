@@ -1,7 +1,7 @@
 {
 	"id": 745,
-	"href": "http://rundeck.ods.bb/api/24/execution/745",
-	"permalink": "http://rundeck.ods.bb/project/Quickstarters/execution/show/745",
+	"href": "http://jenkins.ods.bb/api/24/execution/745",
+	"permalink": "http://jenkins.ods.bb/project/Quickstarters/execution/show/745",
 	"status": "running",
 	"project": "Quickstarters"
 }

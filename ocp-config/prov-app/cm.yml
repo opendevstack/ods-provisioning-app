@@ -14,9 +14,6 @@ parameters:
 - name: PROV_APP_BITBUCKET_URI
   required: true
   description: the URI of bitbucket used to create new project and repositories
-- name: PROV_APP_RUNDECK_URI
-  required: true
-  description: the URI of rundeck used to kickstart provisioning projects and components
 - name: PROV_APP_CROWD_URI
   required: true
   description: the URI of crowd used to authenticate users from the app against

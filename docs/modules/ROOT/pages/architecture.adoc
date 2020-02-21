@@ -7,7 +7,7 @@ toc::[]
 The Project is based on Spring Boot, using several technologies which can be seen in the https://github.com/opendevstack/ods-provisioning-app/blob/master/build.gradle[build.gradle].
 
 The provision app is merely an orchestrator that does HTTP REST calls to Atlassian Crowd, Jira, Confluence, Bitbucket and
-Rundeck (for openshift interaction).
+Jenkins (for openshift interaction).
 
 The APIs exposed for direct usage, and also for the UI are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/controller[controller package].
 The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
@@ -157,4 +157,3 @@ The process for new operations to be called is:
 * https://docs.atlassian.com/ConfluenceServer/rest/6.12.1/[Confluence API]
 * https://developer.atlassian.com/server/bitbucket/reference/rest-api/[Bitbucket API]
 * https://developer.atlassian.com/server/crowd/crowd-rest-apis/[Crowd API]
-* https://rundeck.org/docs/api/[Rundeck API]

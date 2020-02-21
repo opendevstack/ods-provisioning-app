@@ -6,17 +6,17 @@ image::https://travis-ci.com/opendevstack/ods-provisioning-app.svg?branch=master
 toc::[]
 
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on https://github.com/opendevstack/ods-project-quickstarters[quickstarters].
-It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck.
+It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and jenkins.
 
 == Basic idea & usage
 
 . An admin (user in a group defined in property `idmanager.group.opendevstack-administrators`) creates new ODS project. This in turn creates
  ** a Jira Project (name based on project `key` & `name`)
  ** a Confluence Space (name based on project's `key`)
- ** the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `openshiftproject == true`. Internally this is done thru a rest call to rundeck triggering the https://github.com/opendevstack/ods-project-quickstarters/blob/master/rundeck-jobs/openshift/create-projects.yaml[create-projects rundeck job]
+ ** the required Openshift projects named `key`-dev, `key`-test and `key`-cd - in case `openshiftproject == true`. Internally this is done thru a Jenkins Pipeline defined in https://github.com/opendevstack/ods-core/tree/master/create-projects[ods-core]
  ** a Bitbucket Project (name based on project `key`) - in case `openshiftproject == true`. Within this project two default repositories are created `key`-oc-config-artifacts for all `yaml` resources as well as `key`-design for any design artifacts (e.g. sketches)
 . A normal user (user in a group defined in property `idmanager.group.opendevstack-users`) creates all resources required for a working component -
-this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter. Internally this is done thru a rest call to rundeck - with the picked job as parameter - https://github.com/opendevstack/ods-project-quickstarters/tree/master/rundeck-jobs/quickstarts[here]
+this happens thru the user interface - in going to modify project / picking your project and then the wanted quickstarter.
  ** Bitbucket repository within the chosen project named `key`-`boilerplate name`
  ** Openshift components based on the chosen boilerplate, coming from https://github.com/opendevstack/ods-project-quickstarters[ods-quickstarters]
 . The involved people receive an email with the setup, URLs to components etc. - in case `mail.enabled == true`
