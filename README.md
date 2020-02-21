@@ -4,7 +4,7 @@
 
 ## Introduction
 This application creates new OpenDevStack digital projects. It is the central entrypoint to get started with a new project / or provision new components based on [quickstarters](https://github.com/opendevstack/ods-project-quickstarters).
-It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and rundeck - which are the default implementations
+It delegates the tasks to create / update resources to several services such as jira, confluence, bitbucket and jenkins - which are the default implementations
 
 ## Documentation
 

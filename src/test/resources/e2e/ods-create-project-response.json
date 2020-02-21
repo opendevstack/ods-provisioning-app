@@ -60,7 +60,7 @@
 	"readonlyGroup": "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
 	"createpermissionset": true,
 	"lastJobs": [
-		"http://rundeck.ods.bb/project/Quickstarters/execution/show/723"
+		"http://jenkins.ods.bb/project/Quickstarters/execution/show/723"
 	],
 	"projectType": "default"
 }

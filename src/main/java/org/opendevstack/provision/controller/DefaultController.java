@@ -139,7 +139,6 @@ public class DefaultController {
     Map<String, String> endpoints = new HashMap<>();
     endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
     endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
-    //    endpoints.put("RUNDECK", jenkinspipelineAdapter.getAdapterApiUri());
     endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
 
     model.addAttribute("endpointMap", endpoints);
@@ -185,7 +184,7 @@ public class DefaultController {
   }
 
   @Autowired
-  public void setRundeckAdapter(IJobExecutionAdapter jenkinspipelineAdapter) {
+  public void setJobExecutionAdapter(IJobExecutionAdapter jenkinspipelineAdapter) {
     this.jenkinspipelineAdapter = jenkinspipelineAdapter;
   }
 

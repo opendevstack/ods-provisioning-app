@@ -16,7 +16,7 @@ There are to separate authentication options to authenticated a user for the pro
 :tip-caption: pass:[&#128161;]
 [TIP]
 Note that the current OAUTH2 implementation is only used for authentication the user to the provisioning app.
-To authentication that is used for the REST - API calls of Atlassian Crowd, Jira, Confluence, Bitbucket and Rundeck is done eighter via the logged in uses credentials (user name and password) or via the technical users, that are configured in the used spring boot profile.
+To authentication that is used for the REST - API calls of Atlassian Crowd, Jira, Confluence and Bitbucket is done eighter via the logged in uses credentials (user name and password) or via the technical users, that are configured in the used spring boot profile.
 
 
 === Authentication Crowd Configuration
@@ -70,15 +70,11 @@ https://github.com/opendevstack/ods-provisioning-app/blob/master/https://docs.sp
 <6> Defines the OAUTH2 _client.provider_ properties. These properties correspond to the _well-known_ OAUTH2-URIs. In case of keycloak, this URIs can be read out using the  https://github.com/opendevstack/ods-provisioning-app/blob/master/http://192.168.56.32:8080/auth/realms/provisioning-app/.well-known/openid-configuration[.well-known/openid-configuration-link]
 
 === Authentication to third party apps via technical users
-The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence, Bitbucket and Rundeck. The used credentials are read from a pair of properties. For Example, _rundeck.admin_password_ and _rundeck.admin_user_ properties are used for Rundeck, _confluence.admin_user_ and _confluence.admin_password_ are used for confluence, etc.
+The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence and Bitbucket. The used credentials are read from a pair of properties. For Example, _bitbucket.admin_password_ and _bitbucket.admin_user_ properties are used for Bitbucket, _confluence.admin_user_ and _confluence.admin_password_ are used for Confluence, etc.
 
 [source%nowrap,bash]
 .application-oauth2.properties
 ----
-# configure technical user for rundeck. Do not authenticate via oauth2, since not implemented.
-rundeck.admin_password=rundeck_admin
-rundeck.admin_user=rundeck_admin
-
 # configure technical user for bitbucket. Do not authenticate via oauth2, since not implemented.
 bitbucket.admin_password=bitbucket_admin
 bitbucket.admin_user=bitbucket_admin

@@ -503,7 +503,7 @@ public class ProjectApiController {
     }
     List<ExecutionsData> jobs =
         jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project);
-    logger.debug("New quickstarter rundeck executions: {}", jobs.size());
+    logger.debug("New quickstarter job executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
       project.lastExecutionJobs.add(
