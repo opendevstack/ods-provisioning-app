@@ -24,7 +24,7 @@ import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matc
 
 import java.io.IOException;
 import java.util.*;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -345,7 +345,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void getEndpointAPIPath() {
     Assertions.assertThatThrownBy(() -> jenkinsPipelineAdapter.getAdapterApiUri())
         .isInstanceOf(NotImplementedException.class)
-        .hasMessageContaining("Code is not implemented");
+        .hasMessageContaining("JenkinsPipelineAdapter#getAdapterApiUri");
   }
 
   private OpenProjectData generateDefaultOpenProjectData() {
