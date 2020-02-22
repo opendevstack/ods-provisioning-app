@@ -22,7 +22,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -258,7 +258,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   }
 
   public Map<String, String> getProjects(String filter) {
-    throw new NotImplementedException();
+    throw new NotImplementedException("ConfluenceAdapter#getProjects");
   }
 
   @Override

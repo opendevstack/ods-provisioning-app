@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -417,7 +417,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Override
   public Map<String, String> getProjects(String filter) {
-    throw new NotImplementedException();
+    throw new NotImplementedException("BitbucketAdapter#getProjects");
   }
 
   @Override

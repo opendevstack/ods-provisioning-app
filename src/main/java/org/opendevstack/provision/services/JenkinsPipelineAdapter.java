@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.config.Quickstarter;
@@ -306,12 +306,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   @Override
   public Map<String, String> getProjects(String filter) {
-    throw new NotImplementedException();
+    throw new NotImplementedException("JenkinsPipelineAdapter#getProjects");
   }
 
   @Override
   public String getAdapterApiUri() {
-    throw new NotImplementedException();
+    throw new NotImplementedException("JenkinsPipelineAdapter#getAdapterApiUri");
   }
 
   private ExecutionsData prepareAndExecuteJob(

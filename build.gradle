@@ -1,7 +1,7 @@
 buildscript {
 
     ext {
-        springBootVersion = '2.2.2.RELEASE'
+        springBootVersion = '2.2.4.RELEASE'
         // fix for not set system variable
         nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
         nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
@@ -46,18 +46,18 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7.1")
+        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.8")
     }
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.2.2.RELEASE'
+    id 'org.springframework.boot' version '2.2.4.RELEASE'
     id 'java'
     id 'eclipse'
     id 'maven-publish'
     id 'jacoco'
-    id 'org.sonarqube' version "2.7.1"
-    id "com.diffplug.gradle.spotless" version "3.24.3"
+    id 'org.sonarqube' version "2.8"
+    id "com.diffplug.gradle.spotless" version "3.27.1"
 }
 
 apply plugin: 'org.springframework.boot'
@@ -104,13 +104,6 @@ configurations {
 
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-actuator')
-    //bunch of prod tools
-    implementation('org.springframework.boot:spring-boot-starter-aop')
-    implementation('org.springframework.boot:spring-boot-starter-data-rest')
-    //data rest exposed
-    implementation('org.springframework.boot:spring-boot-starter-hateoas')
-    implementation('org.springframework.boot:spring-boot-starter-integration')
-    implementation('org.springframework.boot:spring-boot-starter-jersey')
     implementation('org.springframework.boot:spring-boot-starter-mail')
     implementation('org.springframework.boot:spring-boot-starter-security')
     //security frameowork
@@ -131,9 +124,8 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-core'
     implementation 'org.springframework.security:spring-security-oauth2-client'
     implementation 'org.springframework.security:spring-security-oauth2-jose'
-    implementation 'org.springframework.security:spring-security-jwt:1.0.10.RELEASE'
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE'
-
+    implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
+    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
 
     //frontend webjars
     implementation 'org.webjars:webjars-locator:0.37'
@@ -143,19 +135,11 @@ dependencies {
     implementation 'org.webjars.bower:font-awesome:4.7.0'
     implementation 'org.webjars.bower:lodash:4.17.10'
 
-    //jira api dependencies
-    implementation group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.4'
-
     //encryption library for properties
-    implementation group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.1.1'
+    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.1'
 
     //easy http calls to atlassian JSON APIs
-    implementation "com.squareup.okhttp3:okhttp:4.1.0"
-
-    //jsonschema2pojo-grade-plugin
-    // Required if generating equals, hashCode, or toString methods
-    implementation 'commons-lang:commons-lang:2.6'
-
+    implementation "com.squareup.okhttp3:okhttp:4.4.0"
 
     implementation group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.10.0.pr3'
