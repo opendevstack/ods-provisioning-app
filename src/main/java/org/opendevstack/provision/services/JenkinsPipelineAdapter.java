@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.NotImplementedException;
@@ -28,6 +29,7 @@ import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.jenkins.Execution;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
@@ -50,6 +52,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   public static final String EXECUTION_URL_COMP_PREFIX = "ods-qs";
   public static final String EXECUTION_URL_ADMIN_JOB_COMP_PREFIX = "ods-corejob";
+
+  public static final List<Consumer<Map<String, String>>> COMPONENT_ID_VALIDATOR_LIST =
+      Arrays.asList(
+          OpenProjectDataValidator.createComponentIdValidator(
+              OpenProjectDataValidator.COMPONENT_ID_MIN_LENGTH,
+              OpenProjectDataValidator.COMPONENT_ID_MAX_LENGTH));
+
+  public static final String PROJECT_ID_KEY = "PROJECT_ID";
 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
@@ -163,7 +173,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                 options.get(OpenProjectData.COMPONENT_ID_KEY).replace('-', '_'));
 
         options.put("GROUP_ID", groupId);
-        options.put("PROJECT_ID", project.projectKey.toLowerCase());
+        options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
         options.put("ODS_IMAGE_TAG", odsImageTag);
         options.put("ODS_GIT_REF", odsGitRef);
@@ -208,6 +218,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     Map<String, String> options = new HashMap<>();
     Preconditions.checkNotNull(project, "Cannot create null project");
+    validateQuickstarters(
+        OpenProjectDataValidator.API_COMPONENT_ID_VALIDATOR_LIST, project.getQuickstarters());
 
     //    init webhook secret
     project.webhookProxySecret = UUID.randomUUID().toString();
@@ -226,7 +238,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put("CD_USER_ID_B64", Base64.getEncoder().encodeToString(projectCdUser.getBytes()));
 
     try {
-      options.put("PROJECT_ID", project.projectKey.toLowerCase());
+      options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
       if (project.specialPermissionSet) {
         String entitlementGroups =
             "ADMINGROUP="
@@ -352,10 +364,10 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private Execution buildExecutionObject(
       Job job, Map<String, String> options, String webhookProxySecret) {
 
-    String projID = Objects.toString(options.get("PROJECT_ID"));
+    String projID = Objects.toString(options.get(PROJECT_ID_KEY));
     Execution execution = new Execution();
 
-    String componentId = Objects.toString(options.get("component_id"));
+    String componentId = Objects.toString(options.get(OpenProjectData.COMPONENT_ID_KEY));
 
     if (jenkinsPipelineProperties.isAdminjob(job.getId())) {
 
@@ -412,17 +424,38 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       String webhookProxyHost,
       boolean deleteComponentJob) {
     String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
-    return baseUrl
-        + "&component="
-        + EXECUTION_URL_ADMIN_JOB_COMP_PREFIX
-        + "-"
-        + (deleteComponentJob ? componentId : projID);
+    String componentName =
+        EXECUTION_URL_ADMIN_JOB_COMP_PREFIX + "-" + (deleteComponentJob ? componentId : projID);
+    // yes, validating component name before calling jenkins
+    validateComponentName(COMPONENT_ID_VALIDATOR_LIST, componentName);
+    return baseUrl + "&component=" + componentName;
   }
 
   public static String buildExecutionUrlQuickstarterJob(
-      Job job, String component_id, String webhookProxySecret, String webhookProxyHost) {
+      Job job, String componentId, String webhookProxySecret, String webhookProxyHost) {
     String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
-    return baseUrl + "&component=" + EXECUTION_URL_COMP_PREFIX + "-" + component_id;
+    String componentName = EXECUTION_URL_COMP_PREFIX + "-" + componentId;
+    // yes, validating component name before calling jenkins
+    validateComponentName(COMPONENT_ID_VALIDATOR_LIST, componentName);
+    return baseUrl + "&component=" + componentName;
+  }
+
+  private static void validateQuickstarters(
+      List<Consumer<Map<String, String>>> validators, List<Map<String, String>> quickstarters) {
+
+    validators.forEach(
+        validator -> {
+          quickstarters.stream().forEach(validator);
+        });
+  }
+
+  private static void validateComponentName(
+      List<Consumer<Map<String, String>>> validators, String componentName) {
+
+    HashMap<String, String> quickstarters = new HashMap();
+    quickstarters.put(OpenProjectData.COMPONENT_ID_KEY, componentName);
+
+    validateQuickstarters(validators, Arrays.asList(quickstarters));
   }
 
   @Override
@@ -511,8 +544,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private Map<String, String> buildAdminJobOptions(String projectId, String componentId) {
     Map<String, String> options = new HashMap<>();
 
-    options.put("PROJECT_ID", projectId);
-    options.put("component_id", componentId);
+    options.put(PROJECT_ID_KEY, projectId);
+    options.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;
