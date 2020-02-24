@@ -18,17 +18,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -47,11 +43,7 @@ import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
-import org.opendevstack.provision.services.StorageAdapter;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -587,6 +579,56 @@ public class ProjectApiControllerTest {
   }
 
   @Test
+  public void updateProjectWithValidAndInvalidComponentId() throws Exception {
+
+    // allow upgrade
+    apiController.ocUpgradeAllowed = true;
+
+    data.platformRuntime = false;
+    data.quickstarters = null;
+
+    // existing - store prior
+    when(storage.getProject(anyString())).thenReturn(data);
+
+    // upgrade to OC - based on a quickstarter
+    OpenProjectData upgrade = new OpenProjectData();
+    upgrade.projectKey = data.projectKey;
+    upgrade.platformRuntime = false;
+
+    BiConsumer<String, Boolean> request =
+        (componentId, successful) -> {
+          Map<String, String> newQS = new HashMap<>();
+          newQS.put("component_type", "someComponentType");
+          newQS.put("component_id", componentId);
+
+          upgrade.quickstarters = new ArrayList<>();
+          upgrade.quickstarters.add(newQS);
+
+          // this will error out - because of the test mock, but the key is scm project creation
+          try {
+            mockMvc
+                .perform(
+                    put("/api/v2/project")
+                        .content(asJsonString(upgrade))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    successful.equals(Boolean.FALSE)
+                        ? MockMvcResultMatchers.status().isBadRequest()
+                        : MockMvcResultMatchers.status().is2xxSuccessful());
+          } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+          }
+        };
+
+    String tooShort = "ad";
+    String tooLong = "1234567890123456789012345678901234567890addd";
+    Arrays.asList(".-adfasfdasdfasdfsad", tooShort, tooLong, "", null).stream()
+        .forEach(s -> request.accept(s, false));
+  }
+
+  @Test
   public void testProjectDescLengh() throws Exception {
     data.description =
         "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
@@ -710,92 +752,5 @@ public class ProjectApiControllerTest {
           return;
         };
     ProjectApiController.validateQuickstarters(data, Arrays.asList(acceptAllValidator));
-  }
-
-  @Test
-  public void validComponentIdLength() {
-
-    Consumer<Map<String, String>> validator = ProjectApiController.createComponentIdValidator();
-
-    // case component id is null
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_id", null);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
-    }
-
-    // case component id is empty
-    String empty = "";
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_id", empty);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("empty"));
-    }
-
-    // case component id longer than max length
-    String tooLong = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH + 1);
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_id", tooLong);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains(tooLong));
-    }
-
-    // case component id longer than max length
-    String tooShort = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MIN_LENGTH - 1);
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_id", tooShort);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains(tooShort));
-    }
-
-    // case component id is longer or equal than max length
-    String validLength = Strings.repeat("=", ProjectApiController.COMPONENT_ID_MAX_LENGTH);
-    data.getQuickstarters().stream().findFirst().get().put("component_id", validLength);
-    data.quickstarters.forEach(validator);
-  }
-
-  @Test
-  public void validComponentIdNotEqualComponentType() {
-
-    Consumer<Map<String, String>> validator =
-        ProjectApiController.createComponentIdNotEqualComponentTypeValidator();
-
-    // case component type is null
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_type", null);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
-      Assert.assertTrue(e.getMessage().contains("component_type"));
-    }
-
-    // case component id is null
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_type", "value1");
-      data.getQuickstarters().stream().findFirst().get().put("component_id", null);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
-      Assert.assertTrue(e.getMessage().contains("component_id"));
-    }
-
-    // case component type equals component id
-    String same = "same";
-    try {
-      data.getQuickstarters().stream().findFirst().get().put("component_id", same);
-      data.getQuickstarters().stream().findFirst().get().put("component_type", same);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("is equal"));
-    }
-
-    // case component type not equals component id
-    data.getQuickstarters().stream().findFirst().get().put("component_id", "value1");
-    data.getQuickstarters().stream().findFirst().get().put("component_type", "value2");
-    data.quickstarters.forEach(validator);
   }
 }
