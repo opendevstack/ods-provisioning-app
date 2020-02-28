@@ -1,0 +1,94 @@
+<ng-container [formGroup]="form">
+  <ng-container formArrayName="newComponent" *ngFor="let control of newComponentArray.controls; let i = index">
+    <hr *ngIf="i > 0" />
+    <div class="row" >
+      <ng-container formGroupName="{{ i }}">
+        <div class="col-12 col-lg">
+          <div class="qs-id">
+            <mat-form-field class="formfield__input">
+              <mat-label>Quickstarter</mat-label>
+              <select matNativeControl required formControlName="quickstarterType">
+                <option value="">Select quickstarter</option>
+                <option
+                  [value]="quickstarter.id"
+                  *ngFor="let quickstarter of allQuickstarters">{{ quickstarter.description }}</option>
+              </select>
+            </mat-form-field>
+            <mat-error
+              class="formfield__error"
+              *ngIf="controlHasErrorByType(i, 'quickstarterType', 'required')">
+              Select a quickstarter
+            </mat-error>
+          </div>
+        </div>
+        <div class="col-12 col-lg">
+          <div class="qs-component">
+            <mat-form-field class="formfield__input">
+              <mat-label>New component ID</mat-label>
+              <input
+                matInput
+                placeholder="Component ID for additional quickstarter"
+                name="componentName"
+                required
+                formControlName="componentName"
+                removeWhitespaces/>
+            </mat-form-field>
+            <mat-error
+              class="formfield__error"
+              *ngIf="controlHasErrorByType(i, 'componentName', 'required')">
+              Please enter a component ID
+            </mat-error>
+            <mat-error
+              class="formfield__error"
+              *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')">
+              <ul>
+                <li *ngFor="let message of componentNameCustomValidation.errorMessages">{{ message }}</li>
+              </ul>
+            </mat-error>
+            <mat-error
+              class="formfield__error"
+              *ngIf="controlHasErrorByType(
+                  i,
+                  'componentName',
+                  'nameExistsInAllQuickstarters'); else nextValidationError">
+              This ID is reserved for a quickstarter
+            </mat-error>
+            <ng-template #nextValidationError>
+              <mat-error
+                class="formfield__error"
+                *ngIf="
+                    controlHasErrorByType(
+                      i,
+                      'componentName',
+                      'nameExistsInNewProjectQuickstarterComponents'
+                    )">
+                This ID is already used in another component
+              </mat-error>
+            </ng-template>
+          </div>
+        </div>
+        <div class="col-12 col-lg flex-lg-grow-0">
+          <div class="qs-action">
+            <a
+              mat-icon-button
+              color="accent"
+              title="Add quickstarter"
+              (click)="removeInput(i)"
+              [disabled]="!removeAllowed()">
+              <mat-icon svgIcon="minus" aria-hidden="false" aria-label="Add quickstarter"></mat-icon>
+            </a>
+            <a
+              mat-icon-button
+              color="accent"
+              title="Remove quickstarter"
+              [disabled]="!newComponentArray.valid"
+              (click)="addInput()">
+              <mat-icon svgIcon="plus" aria-hidden="false" aria-label="Remove quickstarter"></mat-icon>
+            </a>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </ng-container>
+</ng-container>

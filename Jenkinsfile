@@ -1,35 +1,25 @@
-def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
-def final projectId = 'prov'
-def final componentId = 'prov-app'
-def final credentialsId = "${projectId}-cd-cd-user-with-password"
-def sharedLibraryRepository
-def dockerRegistry
+def odsNamespace
+def odsGitRef
+def odsImageTag
 node {
-  sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
-  dockerRegistry = env.DOCKER_REGISTRY
+  odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+  odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
+  odsGitRef = env.ODS_GIT_REF ?: 'master'
 }
 
-library identifier: "ods-library@${odsGitRef}", retriever: modernSCM(
-  [$class: 'GitSCMSource',
-   remote: sharedLibraryRepository,
-   credentialsId: credentialsId])
+library("ods-jenkins-shared-library@${odsGitRef}")
 
-// See readme of shared library for usage and customization.
-odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven:${odsImageTag}",
-  projectId: projectId,
-  componentId: componentId,
+odsComponentPipeline(
+  imageStreamTag: "${odsNamespace}/jenkins-slave-maven:${odsImageTag}",
   branchToEnvironmentMapping: [
-    'production': 'test',
+    "${odsGitRef}": 'test',
     '*': 'dev'
-  ],
-  sonarQubeBranch: '*'
+  ]
 ) { context ->
   stageBuild(context)
-  stageScanForSonarqube(context)
-  stageStartOpenshiftBuild(context)
-  stageDeployToOpenshift(context)
+  odsComponentStageScanWithSonar(context, [branch: '*'])
+  odsComponentStageBuildOpenShiftImage(context, [resourceName: 'prov-app'])
+  odsComponentStageRolloutOpenShiftDeployment(context, [resourceName: 'prov-app'])
 }
 
 def stageBuild(def context) {
@@ -40,11 +30,8 @@ def stageBuild(def context) {
     springBootEnv = 'dev'
   }
   stage('Build') {
-    sh 'echo ${APP_DNS}'
-    sh 'openssl s_client -showcerts -connect ${APP_DNS}:443 < /dev/null | openssl x509 -outform DER > docker/derp.der'
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
-      junit 'build/test-results/test/*.xml'
       if (status != 0) {
         error "Build failed!"
       }

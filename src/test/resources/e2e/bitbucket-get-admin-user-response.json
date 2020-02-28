@@ -1,0 +1,50 @@
+{
+  "size": 2,
+  "limit": 25,
+  "isLastPage": true,
+  "values": [
+    {
+      "name": "CD_user",
+      "emailAddress": "CD_user@domain.com",
+      "id": 152,
+      "displayName": "Test User",
+      "active": true,
+      "slug": "CD_user",
+      "type": "NORMAL",
+      "directoryName": "Domain directory",
+      "deletable": false,
+      "lastAuthenticationTimestamp": 1582629227417,
+      "mutableDetails": false,
+      "mutableGroups": false,
+      "links": {
+        "self": [
+          {
+            "href": "https://domain.com/users/CD_user"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cd_user_test2",
+      "emailAddress": "cd_user_test2@example.com",
+      "id": 11703,
+      "displayName": "cd_user_test2",
+      "active": true,
+      "slug": "cd_user_test2",
+      "type": "NORMAL",
+      "directoryName": "Domain Directory",
+      "deletable": false,
+      "lastAuthenticationTimestamp": 1580121199712,
+      "mutableDetails": false,
+      "mutableGroups": false,
+      "links": {
+        "self": [
+          {
+            "href": "https://domain.com/users/cd_user_test2"
+          }
+        ]
+      }
+    }
+  ],
+  "start": 0
+}

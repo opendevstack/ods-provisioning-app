@@ -1,0 +1,76 @@
+<div class="row">
+  <div class="col-10">
+    <div class="project__name">
+      <h1 class="mat-h1">{{ project.projectName }}</h1>
+      <div class="project__key">{{ project.projectKey }}</div>
+    </div>
+  </div>
+  <div class="col-2">
+    <div class="editmode-button">
+      <ng-container *ngIf="editMode; else showEditButton">
+        <a
+          mat-icon-button
+          color="accent"
+          title="Close editing"
+          (click)="emitActivateEditMode(false)"
+          data-test-close-edit-project-btn>
+          <mat-icon svgIcon="close" aria-hidden="false" aria-label="'Close editing'"></mat-icon>
+        </a>
+      </ng-container>
+      <ng-template #showEditButton>
+        <a
+          mat-icon-button
+          color="accent"
+          title="Start editing"
+          (click)="emitActivateEditMode(true)"
+          [disabled]="isQuickstartersError"
+          data-test-start-edit-project-btn>
+          <mat-icon svgIcon="edit" aria-hidden="false" aria-label="'Start editing'"></mat-icon>
+        </a>
+      </ng-template>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12 col-lg">
+    <div class="project__description" matTooltip="{{ project.description }}">
+      {{ project.description }}
+    </div>
+  </div>
+  <div class="col-12 col-lg">
+    <div class="project__links">
+      <ul>
+        <li
+          *ngFor="let projectLink of projectLinks"
+          class="quicklink__item"
+          [ngClass]="!projectLink.url ? 'disabled' : ''"
+          matTooltip="{{ projectLink.iconLabel }}">
+          <ng-container *ngIf="projectLink.url; else iconOnly">
+            <a href="{{ projectLink.url }}" target="_blank" data-test-project-link-url>
+              <mat-icon
+                svgIcon="{{ projectLink.iconName }}"
+                aria-hidden="false"
+                aria-label="projectLink.iconLabel"></mat-icon>
+            </a>
+          </ng-container>
+          <ng-template #iconOnly>
+            <mat-icon
+              svgIcon="{{ projectLink.iconName }}"
+              aria-hidden="false"
+              aria-label="projectLink.iconLabel"></mat-icon>
+          </ng-template>
+        </li>
+      </ul>
+      <a
+        mat-icon-button
+        color="accent"
+        title="Copy URLs to clipboard"
+        data-test-copy-to-clipboard-btn
+        [cdkCopyToClipboard]="this.aggregatedProjectLinks"
+        (cdkCopyToClipboardCopied)="emitOpenNotification('Success, URLs copied to clipboard!')"
+        *ngIf="this.aggregatedProjectLinks">
+        <mat-icon svgIcon="copy" aria-hidden="false" aria-label="Copy URLs to clipboard"></mat-icon>
+      </a>
+    </div>
+  </div>
+</div>

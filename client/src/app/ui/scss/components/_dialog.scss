@@ -1,0 +1,16 @@
+.custom-dialog-panel {
+  background: var(--dialog-background-color);
+
+  .mat-dialog-container {
+    padding: 0;
+  }
+}
+
+.dialog {
+  padding: 40px;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+}

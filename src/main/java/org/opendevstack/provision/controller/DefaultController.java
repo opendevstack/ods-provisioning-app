@@ -14,18 +14,13 @@
 
 package org.opendevstack.provision.controller;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.adapter.ICollaborationAdapter;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.adapter.ISCMAdapter;
+import java.util.*;
+import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.services.StorageAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -42,9 +37,31 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DefaultController {
-  StorageAdapter storageAdapter;
 
-  IODSAuthnzAdapter manager;
+  private static final Logger logger = LoggerFactory.getLogger(DefaultController.class);
+
+  public static final String REDIRECT_TO_ROOT_CONTEXT = "redirect:/";
+  public static final String REDIRECT_TO_HOME = "redirect:/home";
+  public static final String REDIRECT_TO_SPA_FRONTEND_INDEX_HTML = "redirect:/nfe/index.html";
+  public static final String REDIRECT_TO_LOGIN = "redirect:/login";
+  public static final String REDIRECT_TO_LOGIN_WITH_LOGOUT = "redirect:/login?logout";
+
+  public static final String ROUTE_ROOT = "/";
+  public static final String ROUTE_HOME = "/home";
+  public static final String ROUTE_NEWFRONTEND = "/newfrontend";
+  public static final String ROUTE_PROVISION = "/provision";
+  public static final String ROUTE_LOGIN = "/login";
+  public static final String ROUTE_LOGIN_WITH_LOGOUT_OPTION = "/login?logout";
+  public static final String ROUTE_HISTORY = "/history";
+  public static final String ROUTE_ABOUT = "/about";
+  public static final String ROUTE_LOGOUT = "/logout";
+  public static final String ROUTE_NFE_AND_ALL_RESOURCES_IN_PATH = "/nfe/{path:[^\\.]*}";
+  public static final String ROUTE_ROOT_AND_ALL_RESOURCES_IN_PATH = "/{path:[^\\.]*}";
+  public static final String FORWARD_TO_ROOT = "forward:/";
+
+  private StorageAdapter storageAdapter;
+
+  private IODSAuthnzAdapter manager;
 
   private IJobExecutionAdapter jenkinspipelineAdapter;
 
@@ -52,9 +69,8 @@ public class DefaultController {
 
   private ISCMAdapter bitbucketAdapter;
 
-  @Autowired private ICollaborationAdapter confluenceAdapter;
-
-  private static final String LOGIN_REDIRECT = "redirect:/login";
+  @Autowired(required = false)
+  private ICollaborationAdapter confluenceAdapter;
 
   private static final String ACTIVE = "active";
 
@@ -67,32 +83,80 @@ public class DefaultController {
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
 
-  @Autowired List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
 
   @Value("${provision.auth.provider}")
   private String authProvider;
 
-  @RequestMapping("/")
-  public String rootRedirect() {
-    if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
-    }
-    return "redirect:/home";
+  @Value("${adapters.confluence.enabled:true}")
+  private boolean confluenceAdapterEnable;
+
+  @Value("${frontend.spa.enabled:false}")
+  private boolean spafrontendEnabled;
+
+  @RequestMapping(value = ROUTE_ROOT_AND_ALL_RESOURCES_IN_PATH)
+  public String redirect() {
+    return FORWARD_TO_ROOT;
   }
 
-  @RequestMapping("/home")
-  String home(Model model) {
+  @RequestMapping(ROUTE_ROOT)
+  public String rootRedirect() {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_SPA_FRONTEND_INDEX_HTML;
+    }
+
     if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+      return REDIRECT_TO_LOGIN;
+    }
+    return REDIRECT_TO_HOME;
+  }
+
+  @RequestMapping(ROUTE_HOME)
+  String home(Model model) {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
+    if (!isAuthenticated()) {
+      return REDIRECT_TO_LOGIN;
     }
     model.addAttribute("classActiveHome", ACTIVE);
     return "home";
   }
 
-  @RequestMapping("/provision")
-  String provisionProject(Model model) {
+  @RequestMapping(ROUTE_NFE_AND_ALL_RESOURCES_IN_PATH)
+  String nfe(Model model) {
+    return newfrontend(model);
+  }
+
+  // Support launch SPA new frontend from template based frontend
+  @RequestMapping(ROUTE_NEWFRONTEND)
+  String newfrontend(Model model) {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
     if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+      return REDIRECT_TO_LOGIN;
+    }
+    model.addAttribute("classActiveHome", ACTIVE);
+    return REDIRECT_TO_SPA_FRONTEND_INDEX_HTML;
+  }
+
+  @RequestMapping(ROUTE_PROVISION)
+  String provisionProject(Model model) {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
+    if (!isAuthenticated()) {
+      return REDIRECT_TO_LOGIN;
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
       model.addAttribute("quickStarter", jenkinspipelineAdapter.getQuickstarterJobs());
@@ -107,30 +171,44 @@ public class DefaultController {
     return "provision";
   }
 
-  @RequestMapping("/login")
+  @RequestMapping(ROUTE_LOGIN)
   public String login(Model model) {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
     if (isAuthProviderOauth2()) {
       return "oauth2Login";
     }
     return "crowdLogin";
   }
 
-  @RequestMapping("/history")
+  @RequestMapping(ROUTE_HISTORY)
   String history(Model model) {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
     if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+      return REDIRECT_TO_LOGIN;
     }
     model.addAttribute("classActiveHistory", ACTIVE);
     model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
     return "history";
   }
 
-  @RequestMapping("/about")
+  @RequestMapping(ROUTE_ABOUT)
   String about(Model model) {
-    if (!isAuthenticated()) {
-      return LOGIN_REDIRECT;
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
     }
-    final Set<String> userRoles = getUserRoles();
+
+    if (!isAuthenticated()) {
+      return REDIRECT_TO_LOGIN;
+    }
 
     model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
@@ -139,13 +217,19 @@ public class DefaultController {
     Map<String, String> endpoints = new HashMap<>();
     endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
     endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
-    endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
+
+    if (confluenceAdapterEnable) {
+      endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
+    } else {
+      endpoints.put("CONFLUENCE", "no project created (confluence is disabled by configuration!)");
+    }
 
     model.addAttribute("endpointMap", endpoints);
 
     model.addAttribute("idmanagerUserGroup", idmanagerUserGroup.toLowerCase());
     model.addAttribute("idmanagerAdminGroup", idmanagerAdminGroup.toLowerCase());
     model.addAttribute("email", manager.getUserEmail());
+    model.addAttribute("username", manager.getUserName());
     return "about";
   }
 
@@ -160,13 +244,19 @@ public class DefaultController {
     return roles;
   }
 
-  @RequestMapping(value = "/logout", method = RequestMethod.GET)
+  @RequestMapping(value = ROUTE_LOGOUT, method = RequestMethod.GET)
   public String logoutPage() {
+
+    if (isSpafrontendEnabled()) {
+      return REDIRECT_TO_ROOT_CONTEXT;
+    }
+
     try {
       manager.invalidateIdentity();
     } catch (Exception eAllLogout) {
+      logger.warn("Exception thrown on logout request!", eAllLogout);
     }
-    return "redirect:/login?logout";
+    return REDIRECT_TO_LOGIN_WITH_LOGOUT;
   }
 
   private boolean isAuthenticated() {
@@ -205,5 +295,13 @@ public class DefaultController {
 
   private boolean isAuthProviderOauth2() {
     return authProvider.equals("oauth2");
+  }
+
+  public boolean isSpafrontendEnabled() {
+    return spafrontendEnabled;
+  }
+
+  public void setSpafrontendEnabled(boolean spafrontendEnabled) {
+    this.spafrontendEnabled = spafrontendEnabled;
   }
 }

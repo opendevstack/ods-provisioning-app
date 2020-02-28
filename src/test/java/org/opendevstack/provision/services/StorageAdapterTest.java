@@ -15,6 +15,7 @@
 package org.opendevstack.provision.services;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -42,6 +44,7 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
+@ActiveProfiles("utest")
 public class StorageAdapterTest {
 
   @Mock LocalStorage storage;
@@ -112,5 +115,27 @@ public class StorageAdapterTest {
     } finally {
       SecurityContextHolder.clearContext();
     }
+  }
+
+  @Test
+  public void getProjects() {
+
+    adapter.setStorage(storage);
+
+    Map<String, OpenProjectData> projects = new HashMap<>();
+
+    OpenProjectData data = new OpenProjectData();
+    data.projectName = "testproject";
+    data.projectKey = "Z_KEY";
+    data.projectAdminGroup = "testgroup";
+
+    projects.put(data.projectKey, data);
+
+    when(storage.listProjectHistory()).thenReturn(projects);
+
+    Map<String, OpenProjectData> result = adapter.getProjects();
+
+    assertEquals(projects.size(), result.size());
+    assertEquals(data, result.get(data.projectKey));
   }
 }

@@ -37,6 +37,8 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
 
   private HttpAuthenticator httpAuthenticator;
 
+  private SSOAuthProcessingFilterBasicAuthStrategy basicAuthHandlerStrategy;
+
   /**
    * Method to handle a successful authentication
    *
@@ -94,5 +96,23 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
 
   public HttpAuthenticator getAuthenticator() {
     return httpAuthenticator;
+  }
+
+  public void setBasicAuthHandlerStrategy(
+      SSOAuthProcessingFilterBasicAuthStrategy ssoFilterBasicAuthHandlerStrategy) {
+    this.basicAuthHandlerStrategy = ssoFilterBasicAuthHandlerStrategy;
+  }
+
+  @Override
+  protected boolean requiresAuthentication(
+      HttpServletRequest request, HttpServletResponse response) {
+
+    // For basic auth requires authentication should be skipped
+    // if security context already has an authentication object
+    if (!basicAuthHandlerStrategy.requiresAuthentication(request, response)) {
+      return false;
+    }
+
+    return super.requiresAuthentication(request, response);
   }
 }

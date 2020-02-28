@@ -1,0 +1,73 @@
+// Prepare overlay pseudo element to be activated when 'status-editmode-active' class is present in <body>
+// (toggled by EditModeService)
+
+@mixin overlay() {
+  opacity: 1;
+  transition: opacity 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:after {
+    content: '';
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  .status-editmode-active & {
+    pointer-events: none;
+    opacity: 0.25;
+  }
+}
+
+// Truncates one- or multi-line texts
+//
+// By default the text-truncate() mixin of Bootstrap is used
+// When multiple lines should be truncated:
+// - A fallback for old browsers displays a gradient instead an ellipsis
+// - For modern browsers the line clamp property is used
+//
+// Ressources:
+// - https://caniuse.com/#search=line-clamp
+// - https://stackoverflow.com/questions/3922739/limit-text-length-to-n-lines-using-css
+// - https://medium.com/@elad/trimming-multi-lines-in-css-5ae59d5e6d84
+// - https://stackoverflow.com/questions/20594995/why-webkit-line-clamping-does-not-work-in-firefox
+@mixin truncate($lines: null, $lineHeight: null) {
+  @if ($lines == null and $lineHeight == null) {
+    @include text-truncate();
+  } @else {
+    position: relative;
+    max-height: $lineHeight * $lines;
+    overflow: hidden;
+
+    &:after {
+      content: '';
+      text-align: right;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 70%;
+      height: $lineHeight;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 1) 50%
+      );
+    }
+
+    @supports (-webkit-line-clamp: $lines) {
+      display: -webkit-box;
+      -webkit-line-clamp: $lines;
+      -webkit-box-orient: vertical;
+      max-height: $lineHeight * $lines;
+      height: auto;
+
+      &:after {
+        display: none;
+      }
+    }
+  }
+}

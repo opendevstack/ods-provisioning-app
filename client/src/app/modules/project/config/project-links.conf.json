@@ -1,0 +1,27 @@
+[
+  {
+    "urlKey": "collaborationSpaceUrl",
+    "iconName": "jira",
+    "iconLabel": "Jira / Confluence"
+  },
+  {
+    "urlKey": "scmvcsUrl",
+    "iconName": "bitbucket",
+    "iconLabel": "Bitbucket"
+  },
+  {
+    "urlKey": "platformBuildEngineUrl",
+    "iconName": "jenkins",
+    "iconLabel": "Jenkins"
+  },
+  {
+    "urlKey": "platformDevEnvironmentUrl",
+    "iconName": "openshift",
+    "iconLabel": "Openshift DEV"
+  },
+  {
+    "urlKey": "platformTestEnvironmentUrl",
+    "iconName": "openshift",
+    "iconLabel": "Openshift TEST"
+  }
+]

@@ -14,9 +14,7 @@
 
 package org.opendevstack.provision.adapter;
 
-import java.util.Collection;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Interface to wrap all (current) user based identity calls
@@ -44,13 +42,6 @@ public interface IODSAuthnzAdapter {
    * @return the user's session token
    */
   public String getToken();
-
-  /**
-   * Get all granted authorities of the current user
-   *
-   * @return granted authorities, never null
-   */
-  public Collection<? extends GrantedAuthority> getAuthorities();
 
   /** Get the currently logged' in user's email */
   public String getUserEmail();

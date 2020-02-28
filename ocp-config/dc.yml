@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Template
+parameters:
+- name: TAILOR_NAMESPACE
+  required: true
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: prov-app
+    name: prov-app
+  spec:
+    replicas: 1
+    selector:
+      app: prov-app
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: prov-app
+      spec:
+        containers:
+        - image: ${TAILOR_NAMESPACE}/prov-app:latest
+          imagePullPolicy: IfNotPresent
+          name: prov-app
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /opt/provision/history
+            name: volume-history
+          - mountPath: /config
+            name: volume-ikfik
+          - mountPath: /quickstarters
+            name: volume-qs
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: volume-history
+          persistentVolumeClaim:
+            claimName: prov-history
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: application.properties
+            name: application.properties
+          name: volume-ikfik
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: properties
+              path: quickstarters.properties
+            name: quickstarters.properties
+          name: volume-qs
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - prov-app
+        from:
+          kind: ImageStreamTag
+          name: prov-app:latest
+          namespace: ${TAILOR_NAMESPACE}
+      type: ImageChange
+    - type: ConfigChange

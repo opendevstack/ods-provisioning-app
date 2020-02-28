@@ -1,0 +1,276 @@
+:toc: macro
+
+= Provisioning App: Internal architecture / Development
+
+toc::[]
+
+The Project is based on Spring Boot, using several technologies which can be seen in the https://github.com/opendevstack/ods-provisioning-app/blob/master/build.gradle[build.gradle].
+
+The provision app is merely an orchestrator that does HTTP REST calls to Atlassian Crowd, Jira, Confluence, Bitbucket and
+Jenkins (for openshift interaction).
+
+The APIs exposed for direct usage, and also for the UI are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/controller[controller package].
+The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
+
+== How to develop locally
+. Make sure that you have installed GIT and JAVA ( >= 11 ).
+. Clone the project out of Github
+
+```
+$ git clone https://github.com/opendevstack/ods-provisioning-app.git
+```
+
+[arabic, start=3]
+. Change directory into ods-provisioning-app
+
+```
+$ cd ods-provisioning-app
+```
+
+[arabic, start=4]
+. If you want to build / run locally - create `gradle.properties` in the project's root to configure connectivity to OpenDevStack NEXUS
+
+[source,properties]
+----
+nexus_url=<NEXUS HOST>
+nexus_user=<NEXUS USER>
+nexus_pw=<NEXUS_PW>
+----
+
+If you want to build / run locally without NEXUS, you can disable NEXUS by adding the following property to `gradle.properties`:
+
+[source,properties]
+----
+no_nexus=true
+----
+
+Alternatively, you can also configure the build using environment variables:
+
+|===
+| Gradle property | Environment variable
+
+| nexus_url
+| NEXUS_HOST
+
+| nexus_user
+| NEXUS_USERNAME
+
+| nexus_pw
+| NEXUS_PASSWORD
+
+| no_nexus
+| NO_NEXUS
+|===
+
+[arabic, start=5]
+. You can start the application with the following command:
+
+[source,bash]
+----
+# to run the server execute
+./gradlew bootRun
+----
+
+To overwrite the provided https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties] a configmap is created out of them and injected into /config/application.properties within the container.
+The base configuration map as well as the deployment yamls can be found in https://github.com/opendevstack/ods-provisioning-app/blob/master/ocp-config/prov-app/cm.yml[ocp-config], and overwrite parameters from application.
+
+[arabic, start=6]
+. After started the server it can be reached in the browser under
+
+```
+http://localhost:8080
+```
+
+== How to deploy to OpenShift
+
+In order to test your changes in a real environment, you should deploy the provisioning app in OpenShift. To do so, you need to have an existing OpeDevStack project (consisting of `-dev`, `-test` and `-cd` namespaces). If you don't have one yet, you can xref:provisioning-app:index.adoc#_basic_idea_usage[create one via the provisioning app in the central namespace].
+
+Now you can make use of the https://github.com/opendevstack/ods-quickstarters/tree/master/ods-provisioning-app[ods-provisioning-app quickstarter] in order to set up the Bitbucket repository in your Bitbucket space. The easiest way to provision that quickstarter is via https://github.com/BIX-Digital/ods-contrib/tree/master/quickstart-with-jenkins. Once you have provisioned the quickstarter, the first deployment of the prov app will run, but fail since you need to create the OpenShift resources manually. This step cannot be automated during the quickstart process at the moment as you need to supply configuration manually. Once the resources have been created, subsequent runs of the Jenkins pipeline should succeed and deploy the prov app in your own ODS project.
+
+== Frontend Code
+
+The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
+
+== Backend Code
+
+The backend is based on Spring Boot, authenticates against Atlassian Crowd (Using property `provision.auth.provider=crowd`) or OAUTH2/OpenID Connect provider (Using property `provision.auth.provider=oauth2`) and exposes consumable APIs (`api/v2/project`).
+Storage of created projects happens on the filesystem thru the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/storage/LocalStorage.java[StorageAdapter].
+Both frontend (html) and backend are tested thru Junit & Mockito
+
+== Authentication Implementation
+By using the property `provision.auth.provider=crowd` or `provision.auth.provider=oauth2`, the application uses eigher CROWD or OAUTH2 authentication. Dependent of the property used, different spring beans are used for configuration.
+The switch between the two options is implemented via Spring's _ConditionalOnProperty_ annotation.
+
+CROWD - specific configuration classes are located in the java package _org.opendevstack.provision.authentication.crowd_.
+
+Example:
+[source%nowrap,java]
+.org.opendevstack.provision.authentication.crowd.CrowdSecurityConfiguration.java
+----
+@Configuration
+@EnableWebSecurity
+@EnableCaching
+@EnableEncryptableProperties
+@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
+public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
+//...
+}
+----
+
+OAUTH2 - specific configuration classes are located in the java package _org.opendevstack.provision.authentication.oauth2_.
+
+Example:
+[source%nowrap,java]
+.org.opendevstack.provision.authentication.oauth2.Oauth2SecurityConfiguration.java
+----
+@Configuration
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
+@EnableWebSecurity
+@EnableOAuth2Client
+public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
+//...
+}
+----
+
+== Consuming REST APIs in Java
+
+Generally this is a pain. To ease development, a few tools are in use:
+
+* Jackson (see link below)
+* OKTTP3 Client (see link below)
+* jsonschema2pojo generator (see link below)
+
+The process for new operations to be called is:
+
+. Look up the API call that you intend to make
+. see if there is a JSON Schema available
+. Generate (a) Pojo('s) for the Endpoint
+. Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
+
+== Consuming REST APIs via curl
+
+Basic Auth authentication is the recommended way to consume REST API. How to enable Basic Auth authentication is explained xref:provisioning-app:configuration.adoc:Authentication Crowd Configuration[here].
+
+Following a sample script that uses Basic Auth to send a request to provision a new project.
+It return an error code or the response body in json format.
+[source,bash]
+----
+#!/usr/bin/env bash
+
+set -eu
+
+# Setup this variables
+# PROVISION_API_HOST=<protocol>://<hostname>:<port>
+# BASIC_AUTH_CREDENTIAL=<USERNAME>:<PASSWORD>
+# PROVISION_FILE=provision-new-project-payload.json
+
+echo
+echo "Started provision new project script!"
+echo
+echo "... encoding basic auth credentials in base64 format"
+BASE64_CREDENTIALS=$(echo -n $BASIC_AUTH_CREDENTIAL | base64)
+echo
+echo "... new project request payload loaded from '"$PROVISION_FILE"'"
+echo
+echo "... displaying payload file content:"
+cat $PROVISION_FILE
+echo
+echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in file './response.txt' and headers in file './headers.txt')"
+echo
+http_resp_code=$(curl --fail --silent --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
+--header "Authorization: Basic ${BASE64_CREDENTIALS}" \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data @"$PROVISION_FILE" \
+--dump-header headers.txt -o response.txt -w "%{http_code}" )
+exit_status=$?
+if [ $exit_status != 0 ]
+  then
+    echo "something went wrong... curl request failed [status="$exit_status"]!!!"
+    exit $exit_status
+fi
+
+echo "curl request successful..."
+echo
+echo "... displaying HTTP response body (content from './response.txt'):"
+cat response.txt
+echo
+echo "... displaying HTTP response code"
+echo "http_resp_code=${http_resp_code}"
+echo
+if [ $http_resp_code != 200 ]
+  then
+    echo "something went wrong... endpoint responded with error code [HTTP CODE="$http_resp_code"] (expected was 200)"
+    exit 1
+fi
+echo "provision new project request completed successfully!!!"
+
+cat response.txt
+----
+
+=== Pre Flight Checks
+
+The provisioning of new project requires the creation of project in different servers (jira, bitbucket, confluence, openshift, etc...)
+In case of an exception happens this process will be interrupted.
+This will leave the provision of a new project as incomplete.
+To avoid this situation a series of checks called "Pre Flight Checks" were implemented.
+These checks verify that all required conditions are given in the target system (jira, bitbucket, confluence) before provision a new project.
+
+==== Response examples:
+Following some samples of response of the provision new project endpoint `POST api/v2/project`
+
+Pre Flight Check failed:
+----
+HTTP CODE: 503 Service Unavailable
+{"endpoint":"ADD_PROJECT","stage":"CHECK_PRECONDITIONS","status":"FAILED","errors":[{"error-code":"UNEXISTANT_USER","error-message":"user 'cd_user_wrong_cd_user' does not exists in bitbucket!"}]}
+----
+
+Pre Flight Check due an exception:
+----
+HTTP CODE: 503 Service Unavailable
+{"endpoint":"ADD_PROJECT","stage":"CHECK_PRECONDITIONS","status":"FAILED","errors":[{"error-code":"EXCEPTION","error-message":"Unexpected error when checking precondition for creation of project 'PROJECTNAME'"}]}
+----
+
+Pre Flight Check successfully passed and project was created:
+----
+HTTP CODE: 200 OK
+{
+    "projectName": "MYPROJECT",
+    "description": "My new project",
+    "projectKey": "MYPROJECT",
+    ...
+}
+----
+
+Failed Response due to exception after Pre Flight Checks succesfully passed:
+----
+HTTP CODE: 500 Internal Server Error
+
+An error occured while creating project [PROJECTNAME
+], reason [component_id 'ods-myproject-component106' is not valid name (only alpha chars are allowed with dashes (-) allowed in between.
+] - but all cleaned up!
+----
+
+==== Option "onlyCheckPreconditions=TRUE":
+
+The provision new project endpoint `POST api/v2/project` accepts a url parameter called `onlyCheckPreconditions`.
+By setting this parameter to true (`POST api/v2/project?onlyCheckPreconditions=TRUE`) only the Pre Flight Checks will be executed.
+This could be usefull for the development of new Pre Flight Checks or for integration scenarios.
+In this later case one could imagine to set this parameter to TRUE to verify all preconditions before creating a project.
+
+== Link collection
+
+* http://www.mkyong.com/spring-boot/spring-boot-spring-security-thymeleaf-example/[Mkyong spring boot + security + thymeleaf example]
+* http://www.webjars.org/[Getting more Webjars]
+* http://www.jsonschema2pojo.org/[Generating POJOs from JSON Schemas] very helpful for the Atlassian API Docs
+* https://square.github.io/okhttp[OKHttp3]
+* https://site.mockito.org[Mockito]
+* https://github.com/FasterXML/jackson[Jackson]
+
+*Atlassian API's*
+
+* https://docs.atlassian.com/jira/REST/server/#api/2/fullJiraProject-createProject[Jira API]
+* https://docs.atlassian.com/ConfluenceServer/rest/6.12.1/[Confluence API]
+* https://developer.atlassian.com/server/bitbucket/reference/rest-api/[Bitbucket API]
+* https://developer.atlassian.com/server/crowd/crowd-rest-apis/[Crowd API]

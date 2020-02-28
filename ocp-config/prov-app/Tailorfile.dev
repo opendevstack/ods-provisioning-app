@@ -1,9 +1,0 @@
-namespace prov-dev
-selector app=prov-app
-param-file ../../../ods-configuration/ods-core.env
-param-file ../../../ods-configuration/ods-provisioning-app-dev.env
-ignore-path bc:/spec/output/to/name
-ignore-path bc:/spec/output/imageLabels
-ignore-unknown-parameters true
-
-bc,cm,dc,is,pvc,route,secret,svc

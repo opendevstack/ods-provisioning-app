@@ -1,0 +1,73 @@
+body.dark {
+  --primary-color: #63b4d4;
+  --primary-lighter-color: #d0e9f2;
+  --primary-darker-color: #479cc3;
+  --text-color: #ffffff;
+  --text-lighter-color: #aaaaaa;
+
+  --body-background-color: #191f24;
+  --app-container-background-color: #191f24;
+  --header-gradient-start-color: #27323a;
+  --header-gradient-end-color: #334253;
+  --header-text-color: #ffffff;
+  --box-background-color: #27323a;
+  --dialog-background-color: #27323a;
+  --box-shadow-color: #1c2227;
+  --quickstarter-table-header-color: #aaaaaa;
+}
+
+$mat-dark-primary: (
+  main: #63b4d4,
+  lighter: #d0e9f2,
+  darker: #479cc3,
+  contrast: (
+    main: #888888,
+    lighter: #888888,
+    darker: #888888
+  )
+);
+$dark-theme-primary: mat-palette($mat-dark-primary, main, lighter, darker);
+
+
+body.dark {
+  --accent-color: #bdd5ea;
+  --accent-lighter-color: #ebf2f9;
+  --accent-darker-color: #a6c4e1;
+}
+
+$mat-dark-accent: (
+  main: #bdd5ea,
+  lighter: #ebf2f9,
+  darker: #a6c4e1,
+  contrast: (
+    main: #111111,
+    lighter: #111111,
+    darker: #111111
+  )
+);
+$dark-theme-accent: mat-palette($mat-dark-accent, main, lighter, darker);
+
+body.dark {
+  --warn-color: #d46479;
+  --warn-lighter-color: #f2d1d7;
+  --warn-darker-color: #c3485c;
+}
+
+$mat-dark-warn: (
+  main: #d46479,
+  lighter: #f2d1d7,
+  darker: #c3485c,
+  contrast: (
+    main: #ffffff,
+    lighter: #ffffff,
+    darker: #ffffff
+  )
+);
+$dark-theme-warn: mat-palette($mat-dark-warn, main, lighter, darker);
+
+
+$dark-theme: mat-dark-theme($dark-theme-primary, $dark-theme-accent, $dark-theme-warn);
+
+body.dark {
+  @include angular-material-theme($dark-theme);
+}

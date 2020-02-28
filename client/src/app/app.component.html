@@ -1,0 +1,53 @@
+<div class="header-wrapper">
+  <div class="container">
+    <header>
+      <div class="logo">
+        <h1>ODS Provisioning</h1>
+      </div>
+      <div class="user-area" [hidden]="router.url.indexOf('/logout') !== -1">
+        <div class="user-area__logout">
+          <a
+            mat-mini-fab
+            class="logout-btn"
+            title="Logout"
+            [routerLink]="'logout'"
+            data-test-logout-btn>
+            <mat-icon svgIcon="power" aria-hidden="false" aria-label="'Logout'"></mat-icon>
+          </a>
+        </div>
+      </div>
+    </header>
+  </div>
+</div>
+
+<div class="main-wrapper">
+  <div class="container">
+
+    <div class="sidebar">
+      <app-sidebar
+        [projects]="projects"
+        [isLoading]="isLoading"
+        [isError]="isError"
+        [isNewProjectFormActive]="isNewProjectFormActive"
+      ></app-sidebar>
+    </div>
+
+    <div class="content">
+      <router-outlet (activate)="getEditModeStatus()"></router-outlet>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer-wrapper">
+  <div class="container">
+    <footer>
+      © 2020 <a href="https://opendevstack.org" target="_blank">opendevstack.org</a>
+    </footer>
+  </div>
+</div>
+
+
+
+
+

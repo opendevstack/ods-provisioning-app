@@ -46,12 +46,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
+@ActiveProfiles("utest")
 public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private static final String PROJECT_KEY = "123key";
@@ -69,7 +71,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.jenkinsPipelineProperties = buildJenkinsPipelineProperties();
 
     jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
-    jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
+    jenkinsPipelineAdapter.adminWebhookProxyHost = "webhook-proxy-ods";
+    jenkinsPipelineAdapter.projectWebhookProxyHostPattern = "webhook-proxy-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
     jenkinsPipelineAdapter.projectOpenshiftCdProjectPattern = "%s/project/%s-cd";
@@ -80,6 +83,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.useTechnicalUser = true;
     jenkinsPipelineAdapter.userName = "maier";
     jenkinsPipelineAdapter.generalCdUser = "cd_user";
+    jenkinsPipelineAdapter.odsNamespace = "ods";
+    jenkinsPipelineAdapter.odsImageTag = "latest";
+    jenkinsPipelineAdapter.odsGitRef = "master";
     jenkinsPipelineAdapter.init();
     super.beforeTest();
   }
@@ -88,14 +94,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     JenkinsPipelineProperties jenkinsPipelineProperties = new JenkinsPipelineProperties();
     jenkinsPipelineProperties.addQuickstarter(
         adminjobQuickstarter(
-            "create-projects",
+            JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID,
             "ods-core.git",
             "internal quickstarter for creating new initiatives",
             Optional.of("production"),
-            Optional.of("create-projects/Jenkinsfile")));
+            Optional.of(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID + "/Jenkinsfile")));
     jenkinsPipelineProperties.addQuickstarter(
         componentQuickstarter(
-            JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty()));
+            JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty(), true));
     return jenkinsPipelineProperties;
   }
 
@@ -181,18 +187,62 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
-  public void testBuildExecutionUrlAdminJob() {
+  public void testBuildExecutionUrlAdminCreateProjectJob() {
 
     String webhookProxySecret = "secret101";
     String webhookHost = "localhost";
 
     String odsGitRef = "production";
-    Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
+    Job job =
+        new Job(
+            JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID,
+            JOB_1_REPO,
+            Optional.empty(),
+            Optional.empty(),
+            odsGitRef);
 
-    String componentId = "be-acc-service";
+    String componentId = "be-project-name-with-numbers-123";
 
     Map<String, String> testjob = new HashMap<>();
     testjob.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
+    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
+
+    // Case: do not delete component job
+    String expectedUrl =
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component=ods-corejob-"
+            + job.getId();
+
+    String actualUrl =
+        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
+            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+    assertEquals(expectedUrl, actualUrl);
+  }
+
+  @Test
+  public void testBuildExecutionUrlAdminDeleteProjectJob() {
+
+    String webhookProxySecret = "secret101";
+    String webhookHost = "localhost";
+
+    String odsGitRef = "production";
+    Job job =
+        new Job(
+            JenkinsPipelineAdapter.DELETE_PROJECTS_JOB_ID,
+            JOB_1_REPO,
+            Optional.empty(),
+            Optional.empty(),
+            odsGitRef);
+
+    String projectId = "be-acc-service-with-123-numbers";
+
+    Map<String, String> testjob = new HashMap<>();
+    testjob.put(OpenProjectData.COMPONENT_ID_KEY, projectId);
     testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
 
     // Case: delete component job
@@ -204,27 +254,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "&jenkinsfile_path="
             + job.jenkinsfilePath
             + "&component=ods-corejob-"
-            + componentId;
+            + projectId;
 
     String actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
-            job, componentId, job.getId(), webhookProxySecret, webhookHost, true);
-    assertEquals(expectedUrl, actualUrl);
-
-    // Case: do not delete component job
-    expectedUrl =
-        "https://"
-            + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
-            + job.jenkinsfilePath
-            + "&component=ods-corejob-"
-            + job.getId();
-
-    actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
-            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
+            job, projectId, job.getId(), webhookProxySecret, webhookHost, true);
     assertEquals(expectedUrl, actualUrl);
   }
 
@@ -253,7 +287,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     Assertions.assertThat(env)
         .contains(
             new Option("PROJECT_ID", projectData.projectKey),
-            new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName));
+            new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
+            new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.odsNamespace),
+            new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.odsImageTag),
+            new Option("ODS_GIT_REF", jenkinsPipelineAdapter.odsGitRef));
+
+    Assertions.assertThat(
+            capturedBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
 
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
@@ -289,7 +330,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.projectKey = projectKey;
 
     Job job1 = new Job();
-    job1.setName("create-projects");
+    job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
     Job job2 = new Job();
     job2.setName("name2");
 
@@ -315,7 +356,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
 
     Job job1 = new Job();
-    job1.setName("create-projects");
+    job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
     Job job2 = new Job();
     job2.setName("name2");
 
@@ -346,6 +387,15 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         .isEqualTo(projectData.projectAdminUser);
     Assertions.assertThat(actualBody.getOptionValue("PROJECT_ID"))
         .isEqualTo(projectData.projectKey);
+    Assertions.assertThat(
+            actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
+    Assertions.assertThat(actualBody.getOptionValue("ODS_NAMESPACE"))
+        .isEqualTo(jenkinsPipelineAdapter.odsNamespace);
+    Assertions.assertThat(actualBody.getOptionValue("ODS_IMAGE_TAG"))
+        .isEqualTo(jenkinsPipelineAdapter.odsImageTag);
+    Assertions.assertThat(actualBody.getOptionValue("ODS_GIT_REF"))
+        .isEqualTo(jenkinsPipelineAdapter.odsGitRef);
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);

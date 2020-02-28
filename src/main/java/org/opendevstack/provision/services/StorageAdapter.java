@@ -15,19 +15,19 @@
 package org.opendevstack.provision.services;
 
 import com.google.common.base.Preconditions;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import java.util.*;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.IStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,16 +40,11 @@ public class StorageAdapter implements IServiceAdapter {
 
   @Autowired IStorage storage;
 
-  @Autowired IODSAuthnzAdapter authManager;
-
   private static final Logger logger = LoggerFactory.getLogger(StorageAdapter.class);
 
   public Map<String, OpenProjectData> listProjectHistory() {
     Map<String, OpenProjectData> allProjects = storage.listProjectHistory();
     Map<String, OpenProjectData> filteredAndOrderedProjects = new TreeMap<>();
-
-    Collection<? extends GrantedAuthority> authorities = authManager.getAuthorities();
-    logger.debug("User: {} Authorities: {}", authManager.getUserName(), authorities);
 
     for (Map.Entry<String, OpenProjectData> project : allProjects.entrySet()) {
       OpenProjectData projectData = project.getValue();
@@ -63,7 +58,9 @@ public class StorageAdapter implements IServiceAdapter {
       if (!projectData.specialPermissionSet) {
         filteredAndOrderedProjects.put(projectData.projectKey, projectData);
       } else {
-        for (GrantedAuthority authority : authorities) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
           if (authority.getAuthority().equalsIgnoreCase(projectData.projectAdminGroup)
               || authority.getAuthority().equalsIgnoreCase(projectData.projectUserGroup)) {
             filteredAndOrderedProjects.put(projectData.projectKey, projectData);
@@ -84,18 +81,30 @@ public class StorageAdapter implements IServiceAdapter {
     this.storage = storage;
   }
 
+  public Map<String, OpenProjectData> getProjects() {
+    Collection<OpenProjectData> projects = listProjectHistory().values();
+
+    Map<String, OpenProjectData> map = new HashMap<>();
+
+    for (OpenProjectData fProject : projects) {
+      map.put(fProject.projectKey, fProject);
+    }
+
+    return map;
+  }
+
   @Override
   public Map<String, String> getProjects(String filter) {
-    Collection<OpenProjectData> filteredProjects = listProjectHistory().values();
+    Collection<OpenProjectData> projectList = listProjectHistory().values();
 
-    Map<String, String> filteredKeys = new HashMap<>();
+    Map<String, String> result = new HashMap<>();
 
-    for (OpenProjectData fProject : filteredProjects) {
+    for (OpenProjectData fProject : projectList) {
       if (filter.equalsIgnoreCase(fProject.projectKey)) {
-        filteredKeys.put(fProject.projectKey, fProject.description);
+        result.put(fProject.projectKey, fProject.description);
       }
     }
-    return filteredKeys;
+    return result;
   }
 
   @Override
@@ -149,5 +158,11 @@ public class StorageAdapter implements IServiceAdapter {
       }
     }
     return null;
+  }
+
+  @Override
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
   }
 }

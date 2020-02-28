@@ -127,6 +127,9 @@ dependencies {
     implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
     implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
 
+    // azure ad
+    implementation('com.microsoft.azure:azure-active-directory-spring-boot-starter:2.2.2')
+
     //frontend webjars
     implementation 'org.webjars:webjars-locator:0.37'
     implementation 'org.webjars.bower:jquery:3.4.1'
@@ -169,13 +172,43 @@ dependencies {
 }
 
 bootJar {
+    doFirst {
+        copy {
+            println 'bootJar: copy new frond end artifacts to resources folder!'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
+        }
+    }
     launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
 }
 
+test {
+    finalizedBy jacocoTestReport
+}
+
+bootRun {
+    doFirst {
+        copy {
+            println 'bootRun: Copy New Front End files!!!'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
+        }
+    }
+    args = [
+            '--spring.config.location=file:./build/resources/main/application-local.properties'
+    ]
+}
+
 jacoco {
     toolVersion = "0.8.3"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
 
 spotless {
@@ -184,3 +217,16 @@ spotless {
         indentWithSpaces(2)
     }
 }
+
+task yarnBuild(type:Exec) {
+
+    workingDir 'client'
+
+    //on windows:
+    commandLine 'cmd', '/c', 'yarn', 'build'
+
+    //on linux
+    commandLine 'yarn', 'build'
+}
+
+bootRun.dependsOn yarnBuild

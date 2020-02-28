@@ -15,7 +15,7 @@
 package org.opendevstack.provision.util.rest;
 
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -34,8 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -44,11 +43,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
-@DirtiesContext
-@WithMockUser(
-    username = "testUser",
-    roles = {"ADMIN"},
-    password = "testUser")
+@ActiveProfiles("crowd")
 public class RestClientTest {
 
   @Value("${local.server.port}")
@@ -56,16 +51,13 @@ public class RestClientTest {
 
   private RestClient client;
 
-  @Value("${crowd.sso.cookie.name}")
-  private String crowdSSOCookieName;
-
   @Autowired CrowdAuthenticationManager manager;
 
   @Before
   public void setUp() {
     client = new RestClient();
-    client.setConnectTimeout(1);
-    client.setReadTimeout(1);
+    client.setConnectTimeout(5);
+    client.setReadTimeout(5);
     client.afterPropertiesSet();
   }
 
@@ -75,21 +67,20 @@ public class RestClientTest {
   }
 
   @Test
-  public void callHttpGreen() throws Exception {
-    RestClientCall call = validGetCall();
-    String response = client.execute(call);
-
-    assertNotNull(response);
+  public void callHttpNotAuthorized() {
+    try {
+      RestClientCall call = validGetCall();
+      call.basicAuthenticated(new CredentialsInfo("unknow_user", "secret"));
+      client.execute(call);
+      fail();
+    } catch (IOException e) {
+      assertTrue(e.getMessage().contains("Errorcode: 401"));
+    }
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void callHttpMissingUrl() throws Exception {
     client.execute(validGetCall().url(null));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void callAuthWithoutCredentials() throws Exception {
-    client.execute(validGetCall().credentials(null));
   }
 
   @Test
@@ -107,7 +98,6 @@ public class RestClientTest {
 
   public RestClientCall validGetCall() {
     return RestClientCall.get()
-        .basicAuthenticated(new CredentialsInfo("testUser", "testUser"))
         .url(String.format("http://localhost:%d", randomServerPort))
         .mediaType(MediaType.parse("application/xhtml+xml"))
         .returnType(String.class);
