@@ -1,0 +1,1627 @@
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@59654e7
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@488bd7d9
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Webhook proxy returned CreateProjectResponse[kind=<null>,apiVersion=<null>,metadata=org.opendevstack.provision.model.webhookproxy.Metadata@29487325,status=<null>]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project creation job: ExecutionJob[url=https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1,name=demo-cd-build-config] 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Project TESTP - new quickstarters: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarters 0, prior existing repos: 2, now project repos: 2
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-design https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-design because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-occonfig-artifacts https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-occonfig-artifacts because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarter rundeck executions: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 1 for: Confluence: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 2 for: GIT: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 3 for: Jenkins
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 4 for: OC Dev TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 5 for: OC Test TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Successfully copied project TESTP to src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - JSON Object: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : "1c3c2bf1-a4fd-4a7c-8081-561d38d3bbc9",
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : "https://bitbucket.ods.bb/projects/TestP",
+  "repositories" : {
+    "testp-design" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-design.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+    },
+    "testp-occonfig-artifacts" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+    }
+  },
+  "platformBuildEngineUrl" : "https://jenkins-testp-cd.192.168.56.101.nip.io",
+  "platformCdEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-cd",
+  "platformDevEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-dev",
+  "platformTestEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-test",
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : [ {
+    "name" : "demo-cd-build-config",
+    "url" : "https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1"
+  } ],
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project TESTP successfully stored: /home/stitakis/dev/bix2/opendevstack/ods-provisioning-app/src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.MailAdapter - Do not send email, because property mail.enabled is set to false.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@3545b6c9
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@15d813da
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Error starting job create-projects - details:
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFail(E2EProjectAPIControllerTest.java:192)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Cannot execute job for project TESTP, error: Rundeck TestFail
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFail(E2EProjectAPIControllerTest.java:192)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.p.c.ProjectApiController - Starting cleanup of project TESTP in phase INITIAL_CREATION
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project TESTP not affected from cleanup
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Cleanup of [testp-design, testp-occonfig-artifacts] scm repositories
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Removed scm repo testp-design
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Removed scm repo testp-occonfig-artifacts
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Starting scm project cleanup with url https://bitbucket.ods.bb/projects/TestP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Cleaning up collaboration space: TESTP with url https://confluence.ods.bb/display/TestP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Cleaning up bugtracker space: TESTP with url http://192.168.56.31:8080/browse/TestP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.StorageAdapter - Project TESTP not affected from cleanup, as it was never stored
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Overall cleanup status of project: 0 components left
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.p.c.ProjectApiController - An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFail(E2EProjectAPIControllerTest.java:192)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@21e46723
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@5274182e
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Webhook proxy returned CreateProjectResponse[kind=<null>,apiVersion=<null>,metadata=org.opendevstack.provision.model.webhookproxy.Metadata@f8bdc6,status=<null>]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project creation job: ExecutionJob[url=https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1,name=demo-cd-build-config] 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Project TESTP - new quickstarters: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarters 0, prior existing repos: 2, now project repos: 2
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-design https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-design because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-occonfig-artifacts https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-occonfig-artifacts because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarter rundeck executions: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 1 for: Confluence: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 2 for: GIT: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 3 for: Jenkins
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 4 for: OC Dev TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 5 for: OC Test TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Successfully copied project TESTP to src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - JSON Object: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : "4cfd0e7a-9586-473f-9bc7-c6a96283d7d6",
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : "https://bitbucket.ods.bb/projects/TestP",
+  "repositories" : {
+    "testp-design" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-design.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+    },
+    "testp-occonfig-artifacts" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+    }
+  },
+  "platformBuildEngineUrl" : "https://jenkins-testp-cd.192.168.56.101.nip.io",
+  "platformCdEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-cd",
+  "platformDevEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-dev",
+  "platformTestEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-test",
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : [ {
+    "name" : "demo-cd-build-config",
+    "url" : "https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1"
+  } ],
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project TESTP successfully stored: /home/stitakis/dev/bix2/opendevstack/ods-provisioning-app/src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.MailAdapter - Do not send email, because property mail.enabled is set to false.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@694582b
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@3052ab7d
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Webhook proxy returned CreateProjectResponse[kind=<null>,apiVersion=<null>,metadata=org.opendevstack.provision.model.webhookproxy.Metadata@1a2ff358,status=<null>]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project creation job: ExecutionJob[url=https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1,name=demo-cd-build-config] 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Project TESTP - new quickstarters: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarters 0, prior existing repos: 2, now project repos: 2
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-design https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-design because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-occonfig-artifacts https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-occonfig-artifacts because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarter rundeck executions: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 1 for: Confluence: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 2 for: GIT: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 3 for: Jenkins
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 4 for: OC Dev TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 5 for: OC Test TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Successfully copied project TESTP to src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - JSON Object: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : "e736da3a-f334-465d-a0e5-b80b1e5b71b0",
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : "https://bitbucket.ods.bb/projects/TestP",
+  "repositories" : {
+    "testp-design" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-design.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+    },
+    "testp-occonfig-artifacts" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+    }
+  },
+  "platformBuildEngineUrl" : "https://jenkins-testp-cd.192.168.56.101.nip.io",
+  "platformCdEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-cd",
+  "platformDevEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-dev",
+  "platformTestEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-test",
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : [ {
+    "name" : "demo-cd-build-config",
+    "url" : "https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1"
+  } ],
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project TESTP successfully stored: /home/stitakis/dev/bix2/opendevstack/ods-provisioning-app/src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.MailAdapter - Do not send email, because property mail.enabled is set to false.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@2b622bbc
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@1e95e5b
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Webhook proxy returned CreateProjectResponse[kind=<null>,apiVersion=<null>,metadata=org.opendevstack.provision.model.webhookproxy.Metadata@a8b30be,status=<null>]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project creation job: ExecutionJob[url=https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1,name=demo-cd-build-config] 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Project TESTP - new quickstarters: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarters 0, prior existing repos: 2, now project repos: 2
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-design https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-design because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-occonfig-artifacts https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse for project TESTP 
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-occonfig-artifacts because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarter rundeck executions: 0
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 1 for: Confluence: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 2 for: GIT: TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 3 for: Jenkins
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 4 for: OC Dev TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 5 for: OC Test TESTP
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Successfully copied project TESTP to src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - JSON Object: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : "53728de8-471e-4d81-ab5e-85792d2b6e71",
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : "https://bitbucket.ods.bb/projects/TestP",
+  "repositories" : {
+    "testp-design" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-design.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+    },
+    "testp-occonfig-artifacts" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+    }
+  },
+  "platformBuildEngineUrl" : "https://jenkins-testp-cd.192.168.56.101.nip.io",
+  "platformCdEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-cd",
+  "platformDevEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-dev",
+  "platformTestEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-test",
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : [ {
+    "name" : "demo-cd-build-config",
+    "url" : "https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1"
+  } ],
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project TESTP successfully stored: /home/stitakis/dev/bix2/opendevstack/ods-provisioning-app/src/test/resources/e2e/results/20200213184354-TESTP.txt
+2020-02-13 18:43:54 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.MailAdapter - Do not send email, because property mail.enabled is set to false.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@3d15ad13
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@3db07489
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Webhook proxy returned CreateProjectResponse[kind=<null>,apiVersion=<null>,metadata=org.opendevstack.provision.model.webhookproxy.Metadata@293fea96,status=<null>]
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project creation job: ExecutionJob[url=https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1,name=demo-cd-build-config] 
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Project TESTP - new quickstarters: 0
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarters 0, prior existing repos: 2, now project repos: 2
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-design https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse for project TESTP 
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-design because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found repo testp-occonfig-artifacts https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse for project TESTP 
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Not creating jira component for repo: testp-occonfig-artifacts because of exclusionList [testp-occonfig-artifacts, testp-design]
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - New quickstarter rundeck executions: 0
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 1 for: Confluence: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 2 for: GIT: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 3 for: Jenkins
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 4 for: OC Dev TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Attempting to create shortcut 5 for: OC Test TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Successfully copied project TESTP to src/test/resources/e2e/results/20200213184355-TESTP.txt
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - JSON Object: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : "87f656dc-7c32-4ecb-bc19-cb269cd2f301",
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : "https://bitbucket.ods.bb/projects/TestP",
+  "repositories" : {
+    "testp-design" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-design.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-design.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-design/browse"
+    },
+    "testp-occonfig-artifacts" : {
+      "URL_CLONE_HTTP" : "https://bitbucket.ods.bb/scm/testp/testp-occonfig-artifacts.git",
+      "URL_CLONE_SSH" : "ssh://git@bitbucket.ods.bb:7999/testp/testp-occonfig-artifacts.git",
+      "URL_BROWSE_HTTP" : "https://bitbucket.ods.bb/projects/TestP/repos/testp-occonfig-artifacts/browse"
+    }
+  },
+  "platformBuildEngineUrl" : "https://jenkins-testp-cd.192.168.56.101.nip.io",
+  "platformCdEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-cd",
+  "platformDevEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-dev",
+  "platformTestEnvironmentUrl" : "https://192.168.56.101:8443/console/project/testp-test",
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : [ {
+    "name" : "demo-cd-build-config",
+    "url" : "https://jenkins-demo-cd.192.168.56.101.nip.io/job/demo-cd/job/demo-cd-build-config/1"
+  } ],
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project TESTP successfully stored: /home/stitakis/dev/bix2/opendevstack/ods-provisioning-app/src/test/resources/e2e/results/20200213184355-TESTP.txt
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.MailAdapter - Do not send email, because property mail.enabled is set to false.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@60d6194b
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@68e763ea
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "testUserName",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : false,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP admin: testUserName
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Error starting job create-projects - details:
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFailCleanupNotAllowed(E2EProjectAPIControllerTest.java:210)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Cannot execute job for project TESTP, error: Rundeck TestFail
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFailCleanupNotAllowed(E2EProjectAPIControllerTest.java:210)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.c.ProjectApiController - An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectE2EFailCleanupNotAllowed(E2EProjectAPIControllerTest.java:210)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Project to be created: {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : null,
+  "collaborationSpaceUrl" : null,
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : true,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating new jira project
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Creating project of type: com.pyxis.greenhopper.jira:gh-scrum-template for project: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Created project: org.opendevstack.provision.model.jira.LeanJiraProject@6ca50bee
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Found permissionsets: 1
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Update permissionScheme TESTP PERMISSION SCHEME location: jira.permission.all.txt
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-blank-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-create-content-plugin:create-personal-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Blueprint: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint searchKey: com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Server: org.opendevstack.provision.model.confluence.JiraServer@6b0a245d
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Found permission sets: 3
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Updated project with collaboration information:
+ {
+  "projectName" : "TestProject",
+  "description" : "Environment to learn Openshift and Bitbucket.",
+  "projectKey" : "TESTP",
+  "webhookProxySecret" : null,
+  "cdUser" : null,
+  "quickstarters" : [ ],
+  "bugtrackerSpace" : true,
+  "platformRuntime" : true,
+  "bugtrackerUrl" : "http://192.168.56.31:8080/browse/TestP",
+  "collaborationSpaceUrl" : "https://confluence.ods.bb/display/TestP",
+  "scmvcsUrl" : null,
+  "repositories" : null,
+  "platformBuildEngineUrl" : null,
+  "platformCdEnvironmentUrl" : null,
+  "platformDevEnvironmentUrl" : null,
+  "platformTestEnvironmentUrl" : null,
+  "projectAdminGroup" : "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup" : "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser" : "clemens",
+  "projectReadonlyGroup" : "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet" : true,
+  "lastExecutionJobs" : null,
+  "projectType" : "default",
+  "physicalLocation" : null
+}
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Create delivery chain for: TESTP, platform? true, create scm: true
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - project id: TESTP passed project owner: clemens passed groups: ADMINGROUP=BI-AS-ATLASSIAN-P-TestP-MANAGER,USERGROUP=BI-AS-ATLASSIAN-P-TestP-TEAM,READONLYGROUP=BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] INFO o.o.p.s.JenkinsPipelineAdapter - Execution url=https://webhook-proxy-prov-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path=create-projects/Jenkinsfile&component=ods-corejob-testp
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Error starting job create-projects - details:
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimplePermsetProjectE2EFail(E2EProjectAPIControllerTest.java:202)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.s.JenkinsPipelineAdapter - Cannot execute job for project TESTP, error: Rundeck TestFail
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimplePermsetProjectE2EFail(E2EProjectAPIControllerTest.java:202)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.c.ProjectApiController - Starting cleanup of project TESTP in phase INITIAL_CREATION
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Project TESTP not affected from cleanup
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.s.JenkinsPipelineAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Cleanup of [testp-design, testp-occonfig-artifacts] scm repositories
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Removed scm repo testp-design
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Removed scm repo testp-occonfig-artifacts
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Starting scm project cleanup with url https://bitbucket.ods.bb/projects/TestP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.BitbucketAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Cleaning up collaboration space: TESTP with url https://confluence.ods.bb/display/TestP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.ConfluenceAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Cleaning up bugtracker space: TESTP with url http://192.168.56.31:8080/browse/TestP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Cleaning up permissionset 10911 TESTP PERMISSION SCHEME - for project: TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.services.JiraAdapter - Cleanup done - status: 0 components are left ..
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171024-CRACKED.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.provision.storage.LocalStorage - Project 20190101171024-CRACKED.txt is CRACKED - skipping
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - File src/test/resources/e2e/results/20190101171023-LEGPROJ.txt:
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Project legproj is in legacy format, upgrading.
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.provision.storage.LocalStorage - Could not find project with id TESTP
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.services.StorageAdapter - Project TESTP not affected from cleanup, as it was never stored
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] DEBUG o.o.p.c.ProjectApiController - Overall cleanup status of project: 0 components left
+2020-02-13 18:43:55 loggerFileName=TESTP [Test worker] ERROR o.o.p.c.ProjectApiController - An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!
+java.io.IOException: Rundeck TestFail
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.prepareAndExecuteJob(JenkinsPipelineAdapter.java:326)
+	at org.opendevstack.provision.services.JenkinsPipelineAdapter.createPlatformProjects(JenkinsPipelineAdapter.java:258)
+	at org.opendevstack.provision.controller.ProjectApiController.createDeliveryChain(ProjectApiController.java:443)
+	at org.opendevstack.provision.controller.ProjectApiController.addProject(ProjectApiController.java:183)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:190)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:138)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:888)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:793)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1040)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:943)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:665)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:750)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:167)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:134)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:183)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimpleProjectInternal(E2EProjectAPIControllerTest.java:347)
+	at org.opendevstack.provision.controller.E2EProjectAPIControllerTest.testProvisionNewSimplePermsetProjectE2EFail(E2EProjectAPIControllerTest.java:202)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestExecutionCallbacks.evaluate(RunBeforeTestExecutionCallbacks.java:74)
+	at org.springframework.test.context.junit4.statements.RunAfterTestExecutionCallbacks.evaluate(RunAfterTestExecutionCallbacks.java:84)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestMethodCallbacks.evaluate(RunBeforeTestMethodCallbacks.java:75)
+	at org.springframework.test.context.junit4.statements.RunAfterTestMethodCallbacks.evaluate(RunAfterTestMethodCallbacks.java:86)
+	at org.springframework.test.context.junit4.statements.SpringRepeat.evaluate(SpringRepeat.java:84)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:251)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.runChild(SpringJUnit4ClassRunner.java:97)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.springframework.test.context.junit4.statements.RunBeforeTestClassCallbacks.evaluate(RunBeforeTestClassCallbacks.java:61)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.springframework.test.context.junit4.statements.RunAfterTestClassCallbacks.evaluate(RunAfterTestClassCallbacks.java:70)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:190)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
+	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
+	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
+	at jdk.internal.reflect.GeneratedMethodAccessor233.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at com.sun.proxy.$Proxy5.processTestClass(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
+	at jdk.internal.reflect.GeneratedMethodAccessor232.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
+	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
+	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
+	at java.base/java.lang.Thread.run(Thread.java:834)
