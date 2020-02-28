@@ -19,7 +19,7 @@ odsPipeline(
   componentId: componentId,
   branchToEnvironmentMapping: [
     'production': 'test',
-    'newfrontend': 'nfe'
+    'newfrontend': 'nfe',
     '*': 'dev'
   ],
   sonarQubeBranch: '*'
