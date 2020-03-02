@@ -7,8 +7,7 @@
     "build": "ng build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
