@@ -15,12 +15,12 @@
 package org.opendevstack.provision.services;
 
 import com.google.common.base.Preconditions;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+
+import java.util.*;
+
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.IStorage;
@@ -149,5 +149,11 @@ public class StorageAdapter implements IServiceAdapter {
       }
     }
     return null;
+  }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+          throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
   }
 }

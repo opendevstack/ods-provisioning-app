@@ -19,11 +19,7 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -42,6 +38,7 @@ import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.jenkins.Job;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
@@ -107,7 +104,9 @@ public class ProjectApiController {
    *     happens, the error
    */
   @RequestMapping(method = RequestMethod.POST)
-  public ResponseEntity<Object> addProject(@RequestBody OpenProjectData newProject) {
+  public ResponseEntity<Object> addProject(
+      @RequestBody OpenProjectData newProject,
+      @RequestParam Optional<Boolean> onlyCheckPreConditions) {
 
     if (newProject == null
         || newProject.projectKey == null
@@ -159,6 +158,23 @@ public class ProjectApiController {
         }
       }
 
+      // If preconditions check fails an exception is thrown and cough below in try/catch block
+      List<String> preconditionsFailures = checkPreconditions(newProject);
+
+      // if list is not empty the precondition check failed
+      if (!preconditionsFailures.isEmpty()) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("PRECONDITION_CHECK=" + "FAILED").append(System.lineSeparator());
+        sb.append("ERRORS=").append(String.join(",", preconditionsFailures)).append(System.lineSeparator());
+        return ResponseEntity.status(HttpStatus.OK).body(sb.toString());
+      }
+
+      if (onlyCheckPreConditions.orElse(Boolean.FALSE)) {
+        StringBuffer sb = new StringBuffer();
+        sb.append("PRECONDITION_CHECK=" + "OK");
+        return ResponseEntity.status(HttpStatus.OK).body(sb.toString());
+      }
+
       if (newProject.bugtrackerSpace) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
@@ -198,6 +214,9 @@ public class ProjectApiController {
     } catch (ProjectAlreadyExistsException exAlreadyExists) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(exAlreadyExists.getMessage());
+    } catch (CreateProjectPreconditionException cppe) {
+      // TODO: decide to just return json or text with a list of errors!
+      return ResponseEntity.status(HttpStatus.OK).body(cppe.getMessage());
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
@@ -217,6 +236,24 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
+    }
+  }
+
+  /**
+   * @param newProject
+   * @return list of precondition check failure messages
+   * @throws CreateProjectPreconditionException if an exception was captured while checking the preconditions
+   */
+  private List<String> checkPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+
+    try {
+
+      return bitbucketAdapter.checkCreateProjectPreconditions(newProject);
+
+    } catch (CreateProjectPreconditionException cppe) {
+      logger.error("check preconditions for project '{}' failed", newProject.projectKey, cppe);
+      throw cppe;
     }
   }
 

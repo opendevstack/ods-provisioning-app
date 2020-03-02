@@ -22,9 +22,11 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Context;
@@ -303,4 +305,11 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
     return leftovers;
   }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+          throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
+  }
+
 }

@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
@@ -602,4 +603,11 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public boolean isSpecialPermissionSchemeEnabled() {
     return specialPermissionSchemeEnabled;
   }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+          throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
+  }
+
 }
