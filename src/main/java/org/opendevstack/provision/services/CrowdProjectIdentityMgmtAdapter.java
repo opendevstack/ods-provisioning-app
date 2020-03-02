@@ -14,9 +14,11 @@
 package org.opendevstack.provision.services;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
@@ -140,5 +142,11 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
   public Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
       LIFECYCLE_STAGE stage, OpenProjectData project) {
     return new HashMap<>();
+  }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
   }
 }

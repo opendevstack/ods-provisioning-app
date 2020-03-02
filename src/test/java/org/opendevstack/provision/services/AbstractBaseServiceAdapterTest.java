@@ -18,7 +18,7 @@ public abstract class AbstractBaseServiceAdapterTest {
 
   @Mock RestClient restClient;
 
-  RestClientMockHelper mockHelper;
+  private RestClientMockHelper mockHelper;
 
   @Before
   public void beforeTest() {
