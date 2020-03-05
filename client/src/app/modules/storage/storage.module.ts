@@ -1,0 +1,35 @@
+import { NgModule, ModuleWithProviders } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { STORAGE_PREFIX } from './tokens';
+import {BrowserModule} from "../browser/browser.module";
+
+@NgModule({
+  imports: [
+    CommonModule,
+    BrowserModule
+  ],
+  declarations: []
+})
+export class StorageModule {
+
+  constructor() { }
+
+  // TODO later usage in app.module.ts import:
+  //  StorageModule.withOptions({
+  //    storagePrefix: 'provapp_'
+  //  })
+  static withOptions(options: {
+    storagePrefix: string;
+  }): ModuleWithProviders {
+    return {
+      ngModule: StorageModule,
+      providers: [
+        {
+          provide: STORAGE_PREFIX,
+          useValue: options.storagePrefix
+        }
+      ]
+    };
+  }
+
+}
