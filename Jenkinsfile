@@ -3,7 +3,7 @@ def final projectId = 'prov'
 def final componentId = 'prov-app'
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
 def dockerRegistry
-def odsGitRef 
+def odsGitRef
 node {
   dockerRegistry = env.DOCKER_REGISTRY
   odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
@@ -14,7 +14,24 @@ library("ods-jenkins-shared-library@${odsGitRef}")
 
 // See readme of shared library for usage and customization.
 odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven:${odsImageTag}",
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp',
+      image: "${dockerRegistry}/cd/jenkins-slave-maven:${odsImageTag}",
+      workingDir: '/tmp',
+      alwaysPullImage: true,
+      args: '${computer.jnlpmac} ${computer.name}',
+      serviceAccount: 'jenkins'
+    ),
+    containerTemplate(
+      name: 'nodejs10',
+      image: "${dockerRegistry}/cd/jenkins-slave-nodejs10-angular:${odsImageTag}",
+      workingDir: '/tmp',
+      alwaysPullImage: true,
+      ttyEnabled: true,
+      command: 'cat',
+    )
+  ],
   projectId: projectId,
   componentId: componentId,
   branchToEnvironmentMapping: [
@@ -24,13 +41,19 @@ odsPipeline(
   ],
   sonarQubeBranch: '*'
 ) { context ->
-  stageBuild(context)
+  container('nodejs10') {
+    dir('client') {
+      stageInstallFrontend(context)
+      stageBuildFrontend(context)
+    }
+  }
+  stageBuildBackend(context)
   stageScanForSonarqube(context)
   stageStartOpenshiftBuild(context)
   stageDeployToOpenshift(context)
 }
 
-def stageBuild(def context) {
+def stageBuildBackend(def context) {
   def javaOpts = "-Xmx512m"
   def gradleTestOpts = "-Xmx128m"
   def springBootEnv = context.environment
@@ -43,6 +66,38 @@ def stageBuild(def context) {
       if (status != 0) {
         error "Build failed!"
       }
+    }
+  }
+}
+
+def stageInstallFrontend(def context) {
+  stage('Install Frontend') {
+    withEnv(["NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}"]) {
+      def status = sh(
+        label: "Install Angular Frontend client dependencies",
+        script: "yarn",
+        returnStatus: true
+      )
+      if (status != 0) {
+        error "Install failed!"
+      }
+    }
+  }
+}
+
+def stageBuildFrontend(def context) {
+  stage('Build Frontend') {
+    withEnv(["NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}"]) {
+      def status = sh(
+        label: "Building Angular Frontend client",
+        script: "yarn build",
+        returnStatus: true
+      )
+      // junit 'build/test-results/test/*.xml'
+      if (status != 0) {
+        error "Build failed!"
+      }
+      sh "cp -rv dist/client/* ../src/main/resources/static/"
     }
   }
 }
