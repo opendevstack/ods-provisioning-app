@@ -24,7 +24,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableOAuth2Client
 public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-  private static final String LOGIN_URI = "/login";
+  public static final String LOGIN_PATH = "/login";
 
   @Autowired private RoleAwareOAuth2UserService roleAwareOAuth2UserService;
   @Autowired private Oauth2LogoutHandler oauth2LogoutHandler;
@@ -56,7 +56,7 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/js/**",
                 "/json/**",
                 "/favicon.ico",
-                LOGIN_URI)
+                LOGIN_PATH)
             .permitAll()
             .anyRequest()
             .authenticated()
@@ -72,7 +72,7 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
     http.logout()
         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
         .addLogoutHandler(oauth2LogoutHandler)
-        .logoutSuccessUrl(LOGIN_URI)
+        .logoutSuccessUrl(LOGIN_PATH)
         .invalidateHttpSession(true)
         .deleteCookies("JSESSIONID")
         .permitAll();
