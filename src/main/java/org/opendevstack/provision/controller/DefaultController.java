@@ -72,6 +72,11 @@ public class DefaultController {
   @Value("${provision.auth.provider}")
   private String authProvider;
 
+  @RequestMapping(value = "/{path:[^\\.]*}")
+  public String redirect() {
+    return "forward:/";
+  }
+
   @RequestMapping("/")
   public String rootRedirect() {
     if (!isAuthenticated()) {
