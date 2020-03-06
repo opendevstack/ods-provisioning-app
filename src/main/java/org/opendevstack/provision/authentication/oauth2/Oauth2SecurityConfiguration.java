@@ -56,7 +56,7 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/js/**",
                 "/json/**",
                 "/favicon.ico",
-                    LOGIN_PATH)
+                LOGIN_PATH)
             .permitAll()
             .anyRequest()
             .authenticated()

@@ -1,5 +1,11 @@
 package org.opendevstack.provision.authentication.oauth2;
 
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,55 +17,44 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.*;
-
 @RunWith(SpringRunner.class)
 @DirtiesContext
 @ContextConfiguration(classes = Oauth2LogoutHandler.class)
-@TestPropertySource(properties = {
-        "provision.auth.provider=oauth2",
-        "idmanager.url=url",
-        "idmanager.realm=realm",
-        "idmanager.disable-logout-from-idm=false"})
+@TestPropertySource(
+    properties = {
+      "provision.auth.provider=oauth2",
+      "idmanager.url=url",
+      "idmanager.realm=realm",
+      "idmanager.disable-logout-from-idm=false"
+    })
 public class Oauth2LogoutHandlerLogoutFromIDMTest {
 
-    @Autowired
-    Oauth2LogoutHandler logoutHandler;
+  @Autowired Oauth2LogoutHandler logoutHandler;
 
-    @MockBean
-    private HttpServletRequest request;
+  @MockBean private HttpServletRequest request;
 
-    @MockBean
-    private HttpServletResponse response;
+  @MockBean private HttpServletResponse response;
 
-    @MockBean
-    private Authentication authentication;
+  @MockBean private Authentication authentication;
 
-    @Value("${idmanager.url}")
-    private String idManagerUrl;
+  @Value("${idmanager.url}")
+  private String idManagerUrl;
 
-    @Value("${idmanager.realm}")
-    private String idManagerRealm;
+  @Value("${idmanager.realm}")
+  private String idManagerRealm;
 
-    @Test
-    public void whenLogoutFromIDMIsDisableThenRedirectToLogoutPath() throws IOException {
+  @Test
+  public void whenLogoutFromIDMIsDisableThenRedirectToLogoutPath() throws IOException {
 
-        when(request.getScheme()).thenReturn("scheme");
-        when(request.getServerName()).thenReturn("name");
-        when(request.getServerPort()).thenReturn(8000);
-        when(request.getContextPath()).thenReturn("context");
-        when(response.encodeRedirectURL(anyString())).thenReturn("encoded");
+    when(request.getScheme()).thenReturn("scheme");
+    when(request.getServerName()).thenReturn("name");
+    when(request.getServerPort()).thenReturn(8000);
+    when(request.getContextPath()).thenReturn("context");
+    when(response.encodeRedirectURL(anyString())).thenReturn("encoded");
 
-        logoutHandler.logout(request, response, authentication);
+    logoutHandler.logout(request, response, authentication);
 
-        verify(response, times(1)).sendRedirect(contains(idManagerUrl));
-        verify(response, times(1)).sendRedirect(contains(idManagerRealm));
-
-    }
-
+    verify(response, times(1)).sendRedirect(contains(idManagerUrl));
+    verify(response, times(1)).sendRedirect(contains(idManagerRealm));
+  }
 }

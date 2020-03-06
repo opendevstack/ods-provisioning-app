@@ -33,7 +33,9 @@ public class Oauth2LogoutHandler implements LogoutHandler {
   private boolean disableRedirectLogoutToIdentityManager;
 
   public Oauth2LogoutHandler() {
-    LOG.info("Logout from identity manager is {}!", disableRedirectLogoutToIdentityManager ? "enabled" : "disabled");
+    LOG.info(
+        "Logout from identity manager is {}!",
+        disableRedirectLogoutToIdentityManager ? "enabled" : "disabled");
   }
 
   @Override
@@ -63,7 +65,6 @@ public class Oauth2LogoutHandler implements LogoutHandler {
     } catch (IOException e) {
       LOG.warn("Cannot send redirect", e);
     }
-
   }
 
   /**
