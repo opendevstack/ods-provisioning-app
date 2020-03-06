@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {AppRoutingModule} from "./modules/app-routing/app-routing.module";
+import {MatListModule} from "@angular/material/list";
 
 @NgModule({
   declarations: [
@@ -12,7 +13,8 @@ import {AppRoutingModule} from "./modules/app-routing/app-routing.module";
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    MatListModule
   ],
   providers: [],
   bootstrap: [AppComponent]
