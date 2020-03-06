@@ -1,2 +1,23 @@
-<h1>{{ title }} works</h1>
-<router-outlet></router-outlet>
+<div class="container">
+  <header><h1>{{ title }}</h1></header>
+  <div class="main">
+
+    <div class="sidebar">
+      <div class="searchbar">Searchbar</div>
+      <div class="nav">
+        <mat-nav-list>
+          <a mat-list-item routerLink="." *ngFor="let navContent of fakeNavContent">{{ navContent }} <span class="project-key">ASAP</span></a>
+        </mat-nav-list>
+      </div>
+    </div>
+
+    <div class="content">
+      <router-outlet></router-outlet>
+      <div *ngFor="let mainContent of fakeMainContent"><p>{{ mainContent }}</p></div>
+    </div>
+  </div>
+
+  <footer>
+    © 2020 <a href="https://opendevstack.org" target="_blank">opendevstack.org</a>
+  </footer>
+</div>

@@ -7,8 +7,8 @@ const routes: Routes = [
     loadChildren: () => import('../provision-page/provision-page.module').then(m => m.ProvisionPageModule)
   },
   {
-    path: 'projects',
-    loadChildren: () => import('../projects-page/projects-page.module').then(m => m.ProjectsPageModule)
+    path: 'project',
+    loadChildren: () => import('../project-page/project-page.module').then(m => m.ProjectPageModule)
   },
   {
     path: 'about',
@@ -16,12 +16,12 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/projects',
+    redirectTo: '/project',
     pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: '/projects'
+    redirectTo: '/project'
   }
 ];
 
