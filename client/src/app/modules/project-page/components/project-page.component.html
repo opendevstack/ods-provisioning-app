@@ -1,1 +1,101 @@
-<p>project-page works!</p>
+<mat-card>
+  <ng-container *ngIf="isLoading; else showProject">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
+
+  <ng-template #showProject>
+    <div class="row project__header">
+      <div class="col-10">
+        <div class="project__name"><h1 class="mat-h1">{{ project.projectName }}</h1></div>
+      </div>
+      <div class="col-2">
+        <div class="project__action"><a mat-fab color="primary" (click)="toggleEditMode()" [disabled]="editMode"><mat-icon svgIcon="edit" aria-hidden="false" aria-label="Edit Project"></mat-icon></a></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+
+          <div class="project__links">
+            <ul>
+              <li *ngFor="let projectLink of projectLinksConfig"
+                  class="quicklink__item"
+                  [ngClass]="!projectLink.url ? 'disabled': ''"
+                  matTooltip="{{ projectLink.iconLabel }}"
+                  aria-label="{{ projectLink.iconLabel }}">
+                <ng-container *ngIf="projectLink.url; else iconOnly">
+                  <a href="{{ projectLink.url }}" target="_blank">
+                    <mat-icon svgIcon="{{ projectLink.iconName }}" aria-hidden="false" aria-label="{{ projectLink.iconLabel }}"></mat-icon>
+                  </a>
+                </ng-container>
+                <ng-template #iconOnly>
+                  <mat-icon svgIcon="{{ projectLink.iconName }}" aria-hidden="false" aria-label="{{ projectLink.iconLabel }}"></mat-icon>
+                </ng-template>
+              </li>
+            </ul>
+            <a mat-fab color="primary"
+               [cdkCopyToClipboard]="this.aggregatedProjectLinks"
+               (cdkCopyToClipboardCopied)="openDialog('Success!')"
+               *ngIf="this.aggregatedProjectLinks">
+              <mat-icon svgIcon="copy" aria-hidden="false" aria-label="Copy URLs to clipboard"></mat-icon>
+            </a>
+          </div>
+
+        <h3 class="mat-h3">{{ project.description }}</h3>
+      </div>
+    </div>
+
+    <section class="quickstarter-list">
+      <table mat-table [dataSource]="quickstarterTableSource" matSort>
+
+        <ng-container matColumnDef="component_description">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Quickstarter </th>
+          <td mat-cell *matCellDef="let element"> {{element.component_description}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="component_id">
+          <th mat-header-cell *matHeaderCellDef> IDs </th>
+          <td mat-cell *matCellDef="let element"> {{element.component_id}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      </table>
+
+    </section>
+
+    <section class="quickstarter-add" *ngIf="editMode">
+
+      <div class="quickstarter-row mt-4">
+        <div class="col-5">
+          <mat-form-field>
+            <mat-label>Quickstarter</mat-label>
+            <select matNativeControl required>
+              <option value="be-golang-plain">Backend - Golang</option>
+              <option value="be-typescript-express">Backend - NodeJS/Express</option>
+              <option value="be-python-flask">Backend - Python/Flask</option>
+            </select>
+          </mat-form-field>
+        </div>
+        <div class="col-5">
+          <mat-form-field>
+            <mat-label>Name</mat-label>
+            <input matInput placeholder="Name">
+          </mat-form-field>
+        </div>
+        <div class="col-2">
+          <button mat-raised-button color="primary"><mat-icon svgIcon="plus" aria-hidden="false" aria-label="Add quickstarter"></mat-icon> </button>
+        </div>
+      </div>
+
+    </section>
+
+  </ng-template>
+
+  <mat-card-actions class="d-flex justify-content-end mt-4" *ngIf="editMode">
+    <button mat-raised-button (click)="editMode = !editMode">CANCEL</button>
+    <button mat-raised-button color="primary" disabled>START</button>
+  </mat-card-actions>
+
+</mat-card>

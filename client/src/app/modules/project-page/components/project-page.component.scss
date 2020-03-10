@@ -1,0 +1,55 @@
+@import '../../../ui/scss/variables';
+@import '~bootstrap/scss/bootstrap-grid';
+
+:host {
+  display: block;
+  @include make-container();
+}
+
+.project__links {
+  float: right;
+  margin-top: 5px;
+
+  ul {
+    display: inline-flex;
+    margin-right: 20px;
+  }
+}
+
+.project__action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quicklink__item {
+  margin-left: 10px;
+
+  &.disabled {
+    opacity: 0.5;
+
+    .mat-icon {
+      filter: grayscale(1);
+    }
+  }
+
+  .mat-icon {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 5px;
+    display: block;
+    background: lightgray;
+    padding: 5px;
+  }
+
+}
+
+.quickstarter-list {
+  margin-top: $space;
+}
+
+.quickstarter-row {
+  @include make-row();
+  border-top: 1px solid lightgray;
+  padding: 10px 0;
+}

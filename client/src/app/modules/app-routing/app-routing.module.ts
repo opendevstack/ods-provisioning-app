@@ -1,5 +1,9 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from "@angular/router";
+import {BrowserModule} from "../browser/browser.module";
+import {environment} from "../../../environments/environment";
+import {ProjectPageModule} from "../project-page/project-page.module";
+import {StorageModule} from "../storage/storage.module";
 
 const routes: Routes = [
   {
@@ -7,7 +11,7 @@ const routes: Routes = [
     loadChildren: () => import('../provision-page/provision-page.module').then(m => m.ProvisionPageModule)
   },
   {
-    path: 'project',
+    path: 'project/:key',
     loadChildren: () => import('../project-page/project-page.module').then(m => m.ProjectPageModule)
   },
   {
@@ -26,7 +30,17 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  imports: [
+    RouterModule.forRoot(routes),
+    BrowserModule,
+    StorageModule.withOptions({
+      storagePrefix: 'provapp_'
+    }),
+    ProjectPageModule.withOptions({
+      apiProjectUrl: environment.apiProjectUrl
+    })
+  ],
+  exports: [RouterModule],
+  providers: []
 })
 export class AppRoutingModule { }
