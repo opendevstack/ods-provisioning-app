@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
@@ -20,9 +19,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 public class Oauth2LogoutHandler implements LogoutHandler {
 
-  @Autowired private Oauth2AuthenticationManager oauth2AuthenticationManager;
-
   private static final Logger LOG = LoggerFactory.getLogger(Oauth2LogoutHandler.class);
+
+  public static final String LOGOUT_PATH = Oauth2SecurityConfiguration.LOGIN_PATH + "?logout";
 
   @Value("${idmanager.url}")
   private String idManagerUrl;
@@ -30,21 +29,39 @@ public class Oauth2LogoutHandler implements LogoutHandler {
   @Value("${idmanager.realm}")
   private String idManagerRealm;
 
+  @Value("${idmanager.disable-logout-from-idm:false}")
+  private boolean disableRedirectLogoutToIdentityManager;
+
+  public Oauth2LogoutHandler() {
+    LOG.info(
+        "Logout from identity manager is {}!",
+        disableRedirectLogoutToIdentityManager ? "enabled" : "disabled");
+  }
+
   @Override
   public void logout(
       HttpServletRequest httpServletRequest,
       HttpServletResponse httpServletResponse,
       Authentication authentication) {
     try {
-      String redirectUri = buildRedirectUri(httpServletRequest, httpServletResponse);
 
-      String logoutUrl =
-          idManagerUrl
-              + "/auth/realms/"
-              + idManagerRealm
-              + "/protocol/openid-connect/logout?redirect_uri="
-              + redirectUri;
-      httpServletResponse.sendRedirect(logoutUrl);
+      if (disableRedirectLogoutToIdentityManager) {
+
+        httpServletResponse.sendRedirect(LOGOUT_PATH);
+
+      } else {
+
+        String redirectUri = buildRedirectUri(httpServletRequest, httpServletResponse);
+
+        String logoutUrl =
+            idManagerUrl
+                + "/auth/realms/"
+                + idManagerRealm
+                + "/protocol/openid-connect/logout?redirect_uri="
+                + redirectUri;
+        httpServletResponse.sendRedirect(logoutUrl);
+      }
+
     } catch (IOException e) {
       LOG.warn("Cannot send redirect", e);
     }
