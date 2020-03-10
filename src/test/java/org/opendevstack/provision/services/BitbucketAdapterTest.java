@@ -509,24 +509,4 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     }
   }
 
-  //  @Test
-  //  public void createCheckGroupsExist() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void createUserHaveProjectCreateGlobalPermissionCheck() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void containsUser() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void containsGroup() {
-  //    fail();
-  //  }
-
 }
