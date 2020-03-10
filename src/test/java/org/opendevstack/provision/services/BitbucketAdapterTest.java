@@ -508,5 +508,4 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       assertTrue(e.getMessage().contains(project.projectKey));
     }
   }
-
 }
