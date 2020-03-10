@@ -1,4 +1,11 @@
-@import '~bootstrap/scss/mixins/breakpoints';
-@import '~bootstrap/scss/bootstrap-grid';
-@import '~bootstrap/scss/bootstrap-reboot';
-@import '~bootstrap/scss/utilities';
+table {
+  width: 100%;
+}
+
+ul {
+  padding-left: 0;
+  margin-bottom: 0;
+  li {
+    list-style-type: none;
+  }
+}
