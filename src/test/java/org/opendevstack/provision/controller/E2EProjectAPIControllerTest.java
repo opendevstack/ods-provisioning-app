@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
@@ -62,6 +63,7 @@ import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
+import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
@@ -231,6 +233,58 @@ public class E2EProjectAPIControllerTest {
                 .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
                 .method(HttpMethod.POST))
         .thenReturn(jiraProject);
+
+    // jira server pre conditions
+    String getUserResponse = fileReader.readFileContent("jira-get-user-template");
+    if (data.specialPermissionSet && data.projectAdminUser != null) {
+      getUserResponse = getUserResponse.replace("<%USERNAME%>", data.projectAdminUser);
+    } else {
+      getUserResponse = getUserResponse.replace("<%USERNAME%>", TEST_USER_NAME);
+    }
+
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(JiraAdapter.JIRA_API_USERS))
+                .method(HttpMethod.GET))
+        .thenReturn(getUserResponse);
+
+    String getUserMyPermissionsResponse =
+        fileReader
+            .readFileContent(JiraAdapterTests.TEST_DATA_FILE_JIRA_GET_MYPERMISSIONS_TEMPLATE)
+            .replace("<%HAVE_PERMISSION%>", "true");
+
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(JiraAdapter.JIRA_API_MYPERMISSIONS))
+                .method(HttpMethod.GET))
+        .thenReturn(getUserMyPermissionsResponse);
+
+    String getGroup = fileReader.readFileContent("jira-get-group-template");
+    HashSet<String> groups = new HashSet<>();
+    if (data.specialPermissionSet && data.projectAdminUser != null) {
+      groups.addAll(data.specialPermissionSetGroups());
+    }
+
+    groups.add(adminGroup);
+    groups.add(userGroup);
+
+    groups.forEach(
+        group -> {
+          try {
+            mockHelper
+                .mockExecute(
+                    matchesClientCall()
+                        .url(containsString(JiraAdapter.JIRA_API_GROUPS_PICKER))
+                        .queryParam("query", group)
+                        .method(HttpMethod.GET))
+                .thenReturn(getGroup.replace("<%GROUP%>", group));
+
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
 
     // jira server find & create permission scheme
     PermissionSchemeResponse jiraProjectPermSet =

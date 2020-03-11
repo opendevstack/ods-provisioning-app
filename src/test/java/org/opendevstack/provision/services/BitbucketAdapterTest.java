@@ -47,6 +47,8 @@ import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.util.TestDataFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -63,6 +65,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @ActiveProfiles("utest")
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
+
+  private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapterTest.class);
 
   public static final String TEST_USER_NAME = "testUserName";
   public static final String TEST_USER_PASSWORD = "testUserPassword";
@@ -143,6 +147,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
     SecurityContextHolder.setContext(securityContext);
 
+    Repository repo = new Repository();
     OpenProjectData projectData = getReturnOpenProjectData();
     Map<String, Map<URL_TYPE, String>> repos = new HashMap();
     projectData.repositories = repos;
@@ -216,7 +221,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     data.specialPermissionSet = true;
     data.projectAdminUser = "someadmin";
 
-    spyAdapter.restClient = restClient;
+    spyAdapter.setRestClient(restClient);
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -256,7 +261,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateProjectApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.restClient = restClient;
+    spyAdapter.setRestClient(restClient);
 
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
@@ -302,7 +307,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateRepoApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.restClient = restClient;
+    spyAdapter.setRestClient(restClient);
 
     Repository repo = new Repository();
     repo.setName("testrepo");
@@ -437,7 +442,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   public void testWhenCheckUser() throws IOException {
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.restClient = restClient;
+    spyAdapter.setRestClient(restClient);
 
     String response = fileReader.readFileContent("bitbucket-get-admin-user-response");
 
@@ -484,7 +489,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   public void whenHandleExceptionWithinCheckCreateProjectPreconditionsThenException()
       throws IOException {
 
-    bitbucketAdapter.restClient = restClient;
+    bitbucketAdapter.setRestClient(restClient);
     bitbucketAdapter.useTechnicalUser = true;
     bitbucketAdapter.userName = TEST_USER_NAME;
     bitbucketAdapter.userPassword = TEST_USER_PASSWORD;
