@@ -30,20 +30,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
@@ -66,12 +65,12 @@ import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.services.BitbucketAdapter;
 import org.opendevstack.provision.services.ConfluenceAdapter;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
+import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientMockHelper;
 import org.slf4j.Logger;
@@ -79,11 +78,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -97,34 +97,39 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author utschig
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = SpringBoot.class)
-@DirtiesContext
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringBoot.class)
+@ActiveProfiles("utest")
 public class E2EProjectAPIControllerTest {
+
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
-  @Mock private IODSAuthnzAdapter mockAuthnzAdapter;
+  public static final String BITBUCKET_PARAM_FILTER = "filter";
+  public static final String BITBUCKET_PARAM_PERMISSION = "permission";
 
-  @InjectMocks @Autowired private JiraAdapter realJiraAdapter;
+  public static final String TEST_USER_NAME = "testUserName";
+  public static final String TEST_USER_PASSWORD = "testUserPassword";
 
-  @InjectMocks @Autowired private ConfluenceAdapter realConfluenceAdapter;
+  private RestClientMockHelper mockHelper;
 
-  @InjectMocks @Autowired private BitbucketAdapter realBitbucketAdapter;
+  private MockMvc mockMvc;
 
-  @SuppressWarnings("unused")
-  @InjectMocks
-  @Autowired
-  private JenkinsPipelineAdapter realRundeckAdapter;
+  private MockHttpSession mocksession;
 
-  @Mock RestClient restClient;
-  RestClientMockHelper mockHelper;
+  @MockBean private IODSAuthnzAdapter mockAuthnzAdapter;
 
-  @SuppressWarnings("unused")
-  @Mock
-  CrowdProjectIdentityMgmtAdapter idmgtAdapter;
+  @MockBean private RestClient restClient;
 
-  @InjectMocks @Autowired private ProjectApiController apiController;
+  @MockBean private CrowdProjectIdentityMgmtAdapter crowdProjectIdentityMgmtAdapter;
 
-  @Autowired private LocalStorage realStorageAdapter;
+  @Autowired private JiraAdapter realJiraAdapter;
+
+  @Autowired private ConfluenceAdapter realConfluenceAdapter;
+
+  @Autowired private BitbucketAdapter realBitbucketAdapter;
+
+  @Autowired private ProjectApiController apiController;
+
+  @Autowired private LocalStorage realLocalStorageAdapter;
 
   @Autowired private MailAdapter realMailAdapter;
 
@@ -134,46 +139,48 @@ public class E2EProjectAPIControllerTest {
   @Value("${idmanager.group.opendevstack-administrators}")
   private String adminGroup;
 
-  private MockMvc mockMvc;
+  private static TestDataFileReader fileReader =
+      new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
 
-  // directory containing all the e2e test data
-  private static File testDataDir = new File("src/test/resources/e2e/");
+  private static File testProjectDataDir =
+      new File(TestDataFileReader.TEST_DATA_FILE_DIR, "results");
 
-  // results directory
-  private static File resultsDir = new File(testDataDir, "results");
-
-  // do NOT delete on cleanup
-  private static List<String> excludeFromCleanup =
-      Arrays.asList("20190101171023-LEGPROJ.txt", "20190101171024-CRACKED.txt");
-  private MockHttpSession mocksession;
+  private static File buildDir = new File("./build");
 
   @Before
-  public void setUp() throws Exception {
-    cleanUp();
+  public void setUp() {
+    E2EProjectAPIControllerTest.initLocalStorage(
+        realLocalStorageAdapter, E2EProjectAPIControllerTest.createTempDir(buildDir));
+
+    apiController.setDirectStorage(realLocalStorageAdapter);
+
     mocksession = new MockHttpSession();
-    MockitoAnnotations.initMocks(this);
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     mockHelper = new RestClientMockHelper(restClient);
-    // setup storage against test directory
-    realStorageAdapter.setLocalStoragePath(resultsDir.getPath());
 
     // disable mail magic
     realMailAdapter.isMailEnabled = false;
-    // override configuration in application.properties, some tests depends on cleanupAllowed
-    apiController.cleanupAllowed = true;
 
-    when(mockAuthnzAdapter.getUserName()).thenReturn("testUserName");
-    when(mockAuthnzAdapter.getUserPassword()).thenReturn("testUserPassword");
+    // override configuration in application.properties, some tests depends on cleanupAllowed
+    apiController.setCleanupAllowed(true);
+
+    when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
+    when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
   }
 
-  @AfterClass
-  public static void cleanUp() throws Exception {
-    for (File fresult : resultsDir.listFiles()) {
-      if (fresult.isDirectory() || excludeFromCleanup.contains(fresult.getName())) {
-        continue;
-      }
-      e2eLogger.debug("Deleting file {} result: {}", fresult.getName(), fresult.delete());
-    }
+  public static void initLocalStorage(LocalStorage realStorageAdapter, File resultsDir) {
+    Assert.assertNotNull(realStorageAdapter.getLocalStoragePath());
+    Assert.assertTrue(resultsDir.exists());
+    Assert.assertTrue(resultsDir.isDirectory());
+    realStorageAdapter.setLocalStoragePath(resultsDir.getPath());
+    Assert.assertNotNull(realStorageAdapter.getLocalStoragePath());
+    e2eLogger.info(
+        "Local storage initialized. LocalStoragePath={}", realStorageAdapter.getStoragePath());
+  }
+
+  @After
+  public void cleanUpTempDir() {
+    new File(realLocalStorageAdapter.getLocalStoragePath()).deleteOnExit();
   }
 
   /** Test positive - e2e new project - no quickstarters */
@@ -188,7 +195,6 @@ public class E2EProjectAPIControllerTest {
    */
   @Test
   public void testProvisionNewSimpleProjectE2EFail() throws Exception {
-    cleanUp();
     testProvisionNewSimpleProjectInternal(true, false);
   }
 
@@ -198,15 +204,13 @@ public class E2EProjectAPIControllerTest {
    */
   @Test
   public void testProvisionNewSimplePermsetProjectE2EFail() throws Exception {
-    cleanUp();
     testProvisionNewSimpleProjectInternal(true, true);
   }
 
   /** Test negative - e2e new project - no quickstarters, but NO cleanup allowed :) */
   @Test
   public void testProvisionNewSimpleProjectE2EFailCleanupNotAllowed() throws Exception {
-    cleanUp();
-    apiController.cleanupAllowed = false;
+    apiController.setCleanupAllowed(false);
     testProvisionNewSimpleProjectInternal(true, false);
   }
 
@@ -277,6 +281,61 @@ public class E2EProjectAPIControllerTest {
                 .method(HttpMethod.POST))
         .thenReturn(confluenceSpace);
 
+    // bitbucket pre conditions checks
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(
+                    containsString(
+                        realBitbucketAdapter.getAdapterRootApiUri()
+                            + "/"
+                            + BitbucketAdapter.BITBUCKET_API_USERS))
+                .queryParam(BITBUCKET_PARAM_FILTER, TEST_USER_NAME)
+                .queryParam(
+                    BITBUCKET_PARAM_PERMISSION, BitbucketAdapter.GLOBAL_PERMISSION_PROJECT_CREATE)
+                .method(HttpMethod.GET))
+        .thenReturn(
+            fileReader.readFileContent("bitbucket-get-user-permission-project-create-response"));
+
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(
+                    containsString(
+                        realBitbucketAdapter.getAdapterRootApiUri()
+                            + "/"
+                            + BitbucketAdapter.BITBUCKET_API_ADMIN_USERS))
+                .queryParam(BITBUCKET_PARAM_FILTER, "cd_user")
+                .method(HttpMethod.GET))
+        .thenReturn(fileReader.readFileContent("bitbucket-get-admin-user-response"));
+
+    List.of(
+            "opendevstack-administrators",
+            "opendevstack-users",
+            "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+            "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+            "BI-AS-ATLASSIAN-P-TestP-TEAM")
+        .forEach(
+            groupName -> {
+              try {
+                String template =
+                    fileReader.readFileContent("bitbucket-get-group-response-template");
+                mockHelper
+                    .mockExecute(
+                        matchesClientCall()
+                            .url(
+                                containsString(
+                                    realBitbucketAdapter.getAdapterRootApiUri()
+                                        + "/"
+                                        + BitbucketAdapter.BITBUCKET_API_GROUPS))
+                            .queryParam(BITBUCKET_PARAM_FILTER, groupName)
+                            .method(HttpMethod.GET))
+                    .thenReturn(template.replace("%GROUP_NAME%", groupName));
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+            });
+
     // bitbucket main project creation
     BitbucketProjectData bitbucketProjectData =
         readTestData("bitbucket-create-project-response", BitbucketProjectData.class);
@@ -336,7 +395,7 @@ public class E2EProjectAPIControllerTest {
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
-      stub.thenThrow(new IOException("Rundeck TestFail"));
+      stub.thenThrow(new IOException("Jenkins TestFail"));
     } else {
       stub.thenReturn(configuredResponse);
     }
@@ -366,10 +425,10 @@ public class E2EProjectAPIControllerTest {
               .getResponse()
               .getContentAsString()
               .contains(
-                  "An error occured while creating project [TESTP], reason [Rundeck TestFail] - but all cleaned up!"));
+                  "An error occured while creating project [TESTP], reason [Jenkins TestFail] - but all cleaned up!"));
 
       // no cleanup happening - so no delete calls
-      if (!apiController.cleanupAllowed) {
+      if (!apiController.isCleanupAllowed()) {
         // 5 delete calls, jira / confluence / bitbucket project and two repos
         //        Mockito.verify(mockOldRestClient, times(0))
         //            .callHttp(anyString(), eq(null), anyBoolean(), eq(HttpVerb.DELETE), eq(null));
@@ -382,7 +441,7 @@ public class E2EProjectAPIControllerTest {
       mockHelper.verifyExecute(
           matchesClientCall().method(HttpMethod.DELETE), times(overallDeleteCalls));
 
-      // delete jira project (and protentially permission set)
+      // delete jira project (and potentially permission set)
       int jiraDeleteCalls = specialPermissionSet ? 2 : 1;
       mockHelper.verifyExecute(
           matchesClientCall()
@@ -565,11 +624,12 @@ public class E2EProjectAPIControllerTest {
         readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
 
     // if project does not exist, create it thru the test
-    if (realStorageAdapter.getProject(dataUpdate.projectKey) == null) {
+    if (realLocalStorageAdapter.getProject(dataUpdate.projectKey) == null) {
       testProvisionNewSimpleProjectE2E();
     }
 
-    OpenProjectData currentlyStoredProject = realStorageAdapter.getProject(dataUpdate.projectKey);
+    OpenProjectData currentlyStoredProject =
+        realLocalStorageAdapter.getProject(dataUpdate.projectKey);
 
     Assertions.assertThat(currentlyStoredProject.getQuickstarters()).isEmpty();
 
@@ -690,6 +750,12 @@ public class E2EProjectAPIControllerTest {
   /** Test legacy upgrade e2e */
   @Test
   public void testLegacyProjectUpgradeOnGet() throws Exception {
+
+    copyTestFileToLocalStorageFolder(
+        testProjectDataDir.toPath(),
+        new File(realLocalStorageAdapter.getLocalStoragePath()).toPath(),
+        "20190101171023-LEGPROJ.txt");
+
     MvcResult resultLegacyProjectGetResponse =
         mockMvc
             .perform(
@@ -715,6 +781,12 @@ public class E2EProjectAPIControllerTest {
 
   @Test
   public void getProjectQuickStarterDescription() throws Exception {
+
+    copyTestFileToLocalStorageFolder(
+        testProjectDataDir.toPath(),
+        new File(realLocalStorageAdapter.getLocalStoragePath()).toPath(),
+        "20190101171023-LEGPROJ.txt");
+
     mockMvc
         .perform(get("/api/v2/project/LEGPROJ").accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -731,28 +803,22 @@ public class E2EProjectAPIControllerTest {
         .andDo(MockMvcResultHandlers.print());
   }
 
+  public static void copyTestFileToLocalStorageFolder(
+      Path sourceDir, Path targetDir, String filename) throws IOException {
+    Path source = new File(sourceDir.toFile(), filename).toPath();
+    Path target = new File(targetDir.toFile(), filename).toPath();
+    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+  }
+
   /*
    * internal test helpers
    */
-
   private <T> T readTestData(String name, Class<T> returnType) throws Exception {
-    return new ObjectMapper().readValue(findTestFile(name), returnType);
+    return new ObjectMapper().readValue(fileReader.findTestFile(name), returnType);
   }
 
   private <T> T readTestDataTypeRef(String name, TypeReference<T> returnType) throws Exception {
-    return new ObjectMapper().readValue(findTestFile(name), returnType);
-  }
-
-  private File findTestFile(String fileName) throws IOException {
-    Preconditions.checkNotNull(fileName, "File cannot be null");
-    if (!fileName.endsWith(".json")) {
-      fileName = fileName + ".json";
-    }
-    File dataFile = new File(testDataDir, fileName);
-    if (!dataFile.exists()) {
-      throw new IOException("Cannot find testfile with name:" + dataFile.getName());
-    }
-    return dataFile;
+    return new ObjectMapper().readValue(fileReader.findTestFile(name), returnType);
   }
 
   private String createJenkinsJobPath(String namespace, String jenkinsfilePath, String component) {
@@ -762,5 +828,13 @@ public class E2EProjectAPIControllerTest {
         + jenkinsfilePath
         + "&component="
         + component;
+  }
+
+  public static File createTempDir(File tempDir) {
+    try {
+      return Files.createTempDirectory(tempDir.toPath(), "e2e-test-temp-files").toFile();
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to create temp directory in " + tempDir, e);
+    }
   }
 }

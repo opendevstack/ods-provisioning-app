@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,9 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang.NotImplementedException;
+import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
+import org.opendevstack.provision.adapter.exception.AdapterException;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
@@ -38,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
@@ -48,9 +56,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter {
 
-  public BitbucketAdapter() {
-    super("bitbucket");
-  }
+  public static final String GLOBAL_PERMISSION_PROJECT_CREATE = "PROJECT_CREATE";
+
+  public static final String ADAPTER_NAME = "bitbucket";
+
+  public static final String ADAPTER_CONFIGURATION_PREFIX = ADAPTER_NAME;
+
+  public static final String FILTER_PARAM = "filter";
 
   private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapter.class);
 
@@ -91,7 +103,17 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Autowired IODSAuthnzAdapter manager;
 
-  private static final String PROJECT_PATTERN = "%s%s/projects";
+  public static final String BITBUCKET_API_PROJECTS = "projects";
+  public static final String BITBUCKET_API_GROUPS = "groups";
+  public static final String BITBUCKET_API_USERS = "users";
+  public static final String BITBUCKET_API_ADMIN_USERS = "admin/users";
+
+  public static final String BASE_PATTERN = "%s%s/";
+  public static final String BITBUCKET_API_PROJECTS_PATTERN = BASE_PATTERN + BITBUCKET_API_PROJECTS;
+  public static final String BITBUCKET_API_GROUPS_PATTERN = BASE_PATTERN + BITBUCKET_API_GROUPS;
+  public static final String BITBUCKET_API_USERS_PATTERN = BASE_PATTERN + BITBUCKET_API_USERS;
+  public static final String BITBUCKET_API_ADMIN_USERS_PATTERN =
+      BASE_PATTERN + BITBUCKET_API_ADMIN_USERS;
 
   private static final String ID_GROUPS = "groups";
   private static final String ID_USERS = "users";
@@ -108,11 +130,206 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     REPO_READ
   }
 
+  public BitbucketAdapter() {
+    super(ADAPTER_CONFIGURATION_PREFIX);
+  }
+
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
     BitbucketProjectData data = callCreateProjectApi(project);
 
     project.scmvcsUrl = data.getLinks().get("self").get(0).getHref();
     return project.scmvcsUrl;
+  }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+
+    try {
+      Assert.notNull(newProject, "Parameter 'newProject' is null!");
+      Assert.notNull(
+          newProject.projectKey, "Properties 'projectKey' of parameter 'newProject' is null!");
+
+      logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
+
+      List<String> preconditionFailures =
+          createUserHaveProjectCreateGlobalPermissionCheck(getUserName())
+              .andThen(createCheckGroupsExist(newProject))
+              .andThen(createCheckUser(newProject))
+              .apply(new ArrayList<>());
+
+      logger.info(
+          "done with check create project preconditions for project '{}'!", newProject.projectKey);
+
+      return preconditionFailures;
+
+    } catch (Exception e) {
+      logger.error(
+          "Unexpected error when checking precondition for creation of project '{}'",
+          newProject.projectKey,
+          e);
+      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, e);
+    }
+  }
+
+  public Function<List<String>, List<String>> createCheckUser(OpenProjectData project) {
+    return preconditionFailures -> {
+
+      // define cd user
+      String user = technicalUser;
+      // proof if CD user is project specific, if so, set read permissions to global read repos
+      if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
+        user = project.cdUser;
+      }
+
+      logger.info("checking if user '{}' exists!", user);
+
+      if (!checkUserExists(user)) {
+        preconditionFailures.add(String.format("user '%s' does not exists!", user));
+      }
+
+      return preconditionFailures;
+    };
+  }
+
+  public Function<List<String>, List<String>> createCheckGroupsExist(OpenProjectData project) {
+    return preconditionFailures -> {
+
+      // check if groups exist
+      // https://127.0.0.1/rest/api/1.0/groups?filter=EU-dBIX-administrators
+      List<String> requiredGroups = new ArrayList<>();
+      if (project.specialPermissionSet) {
+        requiredGroups.add(globalKeyuserRoleName);
+        requiredGroups.add(project.projectAdminGroup);
+        requiredGroups.add(project.projectUserGroup);
+        requiredGroups.add(project.projectReadonlyGroup);
+      } else {
+        requiredGroups.add(defaultUserGroup);
+        requiredGroups.add(openDevStackUsersGroupName);
+      }
+
+      logger.info("checking if groups exists");
+
+      requiredGroups.stream()
+          .forEach(
+              group -> {
+                logger.debug("checking if group '{}' exists", group);
+                try {
+                  if (!checkGroupExists(group)) {
+                    preconditionFailures.add(String.format("group '%s' does not exists!", group));
+                  }
+                } catch (IOException e) {
+                  throw new AdapterException(e);
+                }
+              });
+
+      return preconditionFailures;
+    };
+  }
+
+  /** https://127.0.0.1/rest/api/1.0/admin/users?filter={{user}} */
+  private boolean checkUserExists(String username) {
+
+    Map<String, String> params = new HashMap<>();
+    params.put(FILTER_PARAM, username);
+
+    String url = String.format(BITBUCKET_API_ADMIN_USERS_PATTERN, bitbucketUri, bitbucketApiPath);
+    try {
+      String response =
+          restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+      Assert.notNull(response, "Response is null for '" + username + "'");
+      JsonNode json = new ObjectMapper().readTree(response);
+
+      return containsUser(json, username);
+
+    } catch (Exception e) {
+      throw new AdapterException(e);
+    }
+  }
+
+  /**
+   * https://127.0.0.1/rest/api/1.0/groups?filter=EU-dBIX-administrators
+   *
+   * @param groupName
+   * @return
+   * @throws IOException
+   */
+  private boolean checkGroupExists(String groupName) throws IOException {
+
+    Map<String, String> params = new HashMap<>();
+    params.put(FILTER_PARAM, groupName);
+
+    String url = String.format(BITBUCKET_API_GROUPS_PATTERN, bitbucketUri, bitbucketApiPath);
+
+    String response =
+        restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+    Assert.notNull(response, "Response is null for '" + groupName + "'");
+    JsonNode json = new ObjectMapper().readTree(response);
+
+    return containsGroup(json, groupName);
+  }
+
+  /** https://127.0.0.1/rest/api/1.0/users?filter={{user}}&permission=PROJECT_CREATE */
+  public Function<List<String>, List<String>> createUserHaveProjectCreateGlobalPermissionCheck(
+      final String username) {
+    return preconditionFailures -> {
+      try {
+        logger.info("checking user '{}' have project create global permission", username);
+
+        Map<String, String> params = new HashMap<>();
+        params.put(FILTER_PARAM, username);
+        params.put("permission", GLOBAL_PERMISSION_PROJECT_CREATE);
+
+        String url = String.format(BITBUCKET_API_USERS_PATTERN, bitbucketUri, bitbucketApiPath);
+        String response =
+            restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+        Assert.notNull(response, "Response is null for '" + username + "'");
+        JsonNode json = new ObjectMapper().readTree(response);
+
+        if (!containsUser(json, username)) {
+          preconditionFailures.add(
+              String.format(
+                  "user '%s' does not have create project global permissions!", username));
+        }
+
+        return preconditionFailures;
+
+      } catch (Exception e) {
+        logger.error(
+            "failed to check if user '{}' have project create global permission", username, e);
+        throw new AdapterException(e);
+      }
+    };
+  }
+
+  public boolean containsUser(JsonNode json, String username) {
+
+    JsonNode values = json.get("values");
+    if (json.get("size").asInt() < 1 || !values.isArray()) {
+      return false;
+    }
+
+    List<String> users =
+        json.get("values").findValues("name").stream()
+            .map(jsonNode -> jsonNode.asText())
+            .filter(value -> username.equals(value))
+            .collect(Collectors.toList());
+
+    if (users.isEmpty() || users.size() > 1 || !users.contains(username)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  public static boolean containsGroup(JsonNode json, String group) {
+
+    JsonNode values = json.get("values");
+    if (json.get("size").asInt() < 1 || !values.isArray()) {
+      return false;
+    }
+
+    return group.equals(json.get("values").get(0).asText());
   }
 
   @SuppressWarnings("squid:S3776")
@@ -412,12 +629,17 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
    */
   @Override
   public String getAdapterApiUri() {
-    return String.format(PROJECT_PATTERN, bitbucketUri, bitbucketApiPath);
+    return String.format(BITBUCKET_API_PROJECTS_PATTERN, bitbucketUri, bitbucketApiPath);
+  }
+
+  /** @return */
+  public String getAdapterRootApiUri() {
+    return String.format("%s%s", bitbucketUri, bitbucketApiPath);
   }
 
   @Override
   public Map<String, String> getProjects(String filter) {
-    throw new NotImplementedException();
+    throw new NotImplementedException("BitbucketAdapter#getProjects");
   }
 
   @Override
@@ -490,5 +712,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
 
     return leftovers;
+  }
+
+  public String getTechnicalUser() {
+    return technicalUser;
   }
 }
