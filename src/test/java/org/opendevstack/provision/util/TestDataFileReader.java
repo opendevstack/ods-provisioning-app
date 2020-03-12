@@ -18,7 +18,7 @@ public class TestDataFileReader {
 
   public String readFileContent(String name) throws IOException {
     File testFile = findTestFile(name);
-    return Files.readString(testFile.toPath());
+    return new String(Files.readAllBytes(testFile.toPath()));
   }
 
   public File findTestFile(String fileName) throws IOException {

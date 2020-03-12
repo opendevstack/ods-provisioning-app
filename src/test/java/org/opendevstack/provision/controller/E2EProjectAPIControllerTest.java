@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
@@ -309,12 +310,15 @@ public class E2EProjectAPIControllerTest {
                 .method(HttpMethod.GET))
         .thenReturn(fileReader.readFileContent("bitbucket-get-admin-user-response"));
 
-    List.of(
-            "opendevstack-administrators",
-            "opendevstack-users",
-            "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
-            "BI-AS-ATLASSIAN-P-TestP-MANAGER",
-            "BI-AS-ATLASSIAN-P-TestP-TEAM")
+    String[] groups = {
+      "opendevstack-administrators",
+      "opendevstack-users",
+      "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+      "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+      "BI-AS-ATLASSIAN-P-TestP-TEAM"
+    };
+
+    Arrays.asList(groups)
         .forEach(
             groupName -> {
               try {
