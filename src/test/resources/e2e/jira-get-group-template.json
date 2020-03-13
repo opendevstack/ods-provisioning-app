@@ -1,0 +1,11 @@
+{
+	"header": "Showing 1 of 1 matching groups",
+	"total": 1,
+	"groups": [
+		{
+			"name": "<%GROUP%>",
+			"html": "<b><%GROUP%></b>",
+			"labels": []
+		}
+	]
+}

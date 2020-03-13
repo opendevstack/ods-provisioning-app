@@ -13,17 +13,12 @@
  */
 package org.opendevstack.provision.adapter.exception;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /** @author Sebastian Titakis */
 public class CreateProjectPreconditionException extends Exception {
 
   private final String adapterName;
 
   private final String projectKey;
-
-  private List failures = new ArrayList();
 
   public CreateProjectPreconditionException(
       String adapterName, String projectKey, Exception cause) {

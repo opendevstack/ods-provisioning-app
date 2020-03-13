@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.NotImplementedException;
@@ -101,7 +100,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Autowired private ScmGlobalProperties scmGlobalProperties;
 
-  @Autowired IODSAuthnzAdapter manager;
+  @Autowired private IODSAuthnzAdapter manager;
 
   public static final String BITBUCKET_API_PROJECTS = "projects";
   public static final String BITBUCKET_API_GROUPS = "groups";
@@ -236,7 +235,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String url = String.format(BITBUCKET_API_ADMIN_USERS_PATTERN, bitbucketUri, bitbucketApiPath);
     try {
       String response =
-          restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+          getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
       Assert.notNull(response, "Response is null for '" + username + "'");
       JsonNode json = new ObjectMapper().readTree(response);
 
@@ -262,7 +261,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String url = String.format(BITBUCKET_API_GROUPS_PATTERN, bitbucketUri, bitbucketApiPath);
 
     String response =
-        restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+        getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
     Assert.notNull(response, "Response is null for '" + groupName + "'");
     JsonNode json = new ObjectMapper().readTree(response);
 
@@ -282,7 +281,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
         String url = String.format(BITBUCKET_API_USERS_PATTERN, bitbucketUri, bitbucketApiPath);
         String response =
-            restClient.execute(httpGet().url(url).queryParams(params).returnType(String.class));
+            getRestClient()
+                .execute(httpGet().url(url).queryParams(params).returnType(String.class));
         Assert.notNull(response, "Response is null for '" + username + "'");
         JsonNode json = new ObjectMapper().readTree(response);
 
@@ -432,8 +432,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   // Create webhook for CI (using webhook proxy)
   protected void createWebHooksForRepository(RepositoryData repo, OpenProjectData project) {
 
-    // projectOpenshiftJenkinsWebhookProxyNamePattern is e.g.
-    // "webhook-proxy-%s-cd%s"
     String webhookProxyHost =
         String.format(
             projectOpenshiftJenkinsWebhookProxyNamePattern,
@@ -460,9 +458,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             "%s/%s/repos/%s/webhooks", getAdapterApiUri(), project.projectKey, repo.getSlug());
 
     try {
-      // restClient.callHttp(url, webhook, false, RestClient.HTTP_VERB.POST, Webhook.class);
       RestClientCall call = httpPost().url(url).body(webhook).returnType(Webhook.class);
-      restClient.execute(call);
+      getRestClient().execute(call);
       logger.info("created hook: {}", webhook.getUrl());
     } catch (IOException ex) {
       logger.error("Error in webhook call", ex);
@@ -472,12 +469,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   protected BitbucketProjectData callCreateProjectApi(OpenProjectData project) throws IOException {
     BitbucketProject bbProject = createBitbucketProject(project);
 
-    // BitbucketProjectData projectData =
-    //        restClient.callHttp(getAdapterApiUri(), bbProject, false, RestClient.HTTP_VERB.POST,
-    // BitbucketProjectData.class);
     RestClientCall call =
         httpPost().url(getAdapterApiUri()).body(bbProject).returnType(BitbucketProjectData.class);
-    BitbucketProjectData projectData = restClient.execute(call);
+    BitbucketProjectData projectData = getRestClient().execute(call);
     if (project.specialPermissionSet) {
       setProjectPermissions(
           projectData, ID_GROUPS, globalKeyuserRoleName, PROJECT_PERMISSIONS.PROJECT_ADMIN);
@@ -533,10 +527,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       throws IOException {
     String path = String.format("%s/%s/repos", getAdapterApiUri(), projectKey);
 
-    // RepositoryData data = restClient.callHttp(path, repo, false, RestClient.HTTP_VERB.POST,
-    // RepositoryData.class);
     RepositoryData data =
-        restClient.execute(httpPost().url(path).body(repo).returnType(RepositoryData.class));
+        getRestClient().execute(httpPost().url(path).body(repo).returnType(RepositoryData.class));
     if (data == null) {
       throw new IOException(
           String.format(
@@ -570,15 +562,15 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String basePath = getAdapterApiUri();
     String url = String.format("%s/%s/permissions/%s", basePath, data.getKey(), pathFragment);
 
-    // restClient.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
     Map<String, String> header = new HashMap<>();
     header.put("Content-Type", "application/json");
-    restClient.execute(
-        httpPut()
-            .url(url)
-            .body("")
-            .queryParams(buildPermissionQueryParams(rights.toString(), groupOrUser))
-            .returnType(String.class));
+    getRestClient()
+        .execute(
+            httpPut()
+                .url(url)
+                .body("")
+                .queryParams(buildPermissionQueryParams(rights.toString(), groupOrUser))
+                .returnType(String.class));
   }
 
   protected void setRepositoryAdminPermissions(
@@ -598,13 +590,13 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String basePath = getAdapterApiUri();
     String url = String.format("%s/%s/repos/%s/permissions/%s", basePath, key, repo, userOrGroup);
 
-    // restClient.callHttp(url, permissions, true, RestClient.HTTP_VERB.PUT, String.class);
-    restClient.execute(
-        httpPut()
-            .url(url)
-            .body("")
-            .queryParams(buildPermissionQueryParams(permission.toString(), userOrGroupName))
-            .returnType(String.class));
+    getRestClient()
+        .execute(
+            httpPut()
+                .url(url)
+                .body("")
+                .queryParams(buildPermissionQueryParams(permission.toString(), userOrGroupName))
+                .returnType(String.class));
   }
 
   private Map<String, String> buildPermissionQueryParams(String permission, String groupOrUser) {
@@ -674,8 +666,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       try {
         String repoPath =
             String.format("%s/%s/repos/%s", getAdapterApiUri(), project.projectKey, repoName);
-        // restClient.callHttp(repoPath, null, false, RestClient.HTTP_VERB.DELETE, null);
-        restClient.execute(httpDelete().url(repoPath).returnType(null));
+        getRestClient().execute(httpDelete().url(repoPath).returnType(null));
         logger.debug("Removed scm repo {}", repoName);
       } catch (Exception eCreateRepo) {
         logger.debug("Could not remove repo {}, error {}", repoName, eCreateRepo.getMessage());
@@ -698,8 +689,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String projectPath = String.format("%s/%s", getAdapterApiUri(), project.projectKey);
 
     try {
-      // restClient.callHttp(projectPath, null, false, RestClient.HTTP_VERB.DELETE, null);
-      restClient.execute(httpDelete().url(projectPath).returnType(null));
+      getRestClient().execute(httpDelete().url(projectPath).returnType(null));
     } catch (Exception eProjectDelete) {
       logger.debug(
           "Could not remove project {}, error {}", project.projectKey, eProjectDelete.getMessage());
