@@ -14,9 +14,7 @@
 package org.opendevstack.provision.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
@@ -145,5 +143,29 @@ public class OpenProjectData {
     }
 
     return true;
+  }
+
+  /** @return empty list if property specialPermissionSet is equal false. */
+  public Set<String> specialPermissionSetGroups() {
+
+    if (Boolean.FALSE.equals(specialPermissionSet)) {
+      return Collections.EMPTY_SET;
+    }
+
+    Set<String> groups = new HashSet<>();
+
+    if (projectAdminGroup != null && !projectAdminGroup.isEmpty()) {
+      groups.add(projectAdminGroup);
+    }
+
+    if (projectUserGroup != null && !projectUserGroup.isEmpty()) {
+      groups.add(projectUserGroup);
+    }
+
+    if (projectReadonlyGroup != null && !projectReadonlyGroup.isEmpty()) {
+      groups.add(projectReadonlyGroup);
+    }
+
+    return Collections.unmodifiableSet(groups);
   }
 }
