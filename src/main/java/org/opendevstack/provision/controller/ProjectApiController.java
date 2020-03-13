@@ -15,6 +15,7 @@
 package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
+import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -27,7 +28,9 @@ import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPO
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
+import org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -45,12 +48,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -65,13 +63,6 @@ public class ProjectApiController {
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
-
-  public static final String CHECK_PRECONDITIONS_KEY = "CHECK_PRECONDITIONS";
-  public static final String CHECK_PRECONDITIONS_STATUS_OK = "OK";
-  public static final String CHECK_PRECONDITIONS_STATUS_FAILED = "FAILED";
-  public static final String CHECK_PRECONDITIONS_ERRORS_KEY = "ERRORS";
-  public static final String CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR = "=";
-  public static final String CHECK_PRECONDITIONS_ERRORS_DELIMITER = ",";
 
   public static final String ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS =
       "onlyCheckPreconditions";
@@ -114,7 +105,8 @@ public class ProjectApiController {
   public ResponseEntity<Object> addProject(
       @RequestBody OpenProjectData newProject,
       @RequestParam(ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS)
-          Optional<Boolean> onlyCheckPreconditions) {
+          Optional<Boolean> onlyCheckPreconditions,
+      @RequestHeader(value = "Content-Type", required = false) String contentType) {
 
     if (newProject == null
         || newProject.projectKey == null
@@ -145,17 +137,6 @@ public class ProjectApiController {
           "Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
 
-      if (newProject.specialPermissionSet) {
-        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
-          logger.info(
-              "Do not validate special bugtracker permission set, "
-                  + "because special permission sets are disabled in configuration");
-        } else {
-          // TODO this is a precondition check!
-          projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
-        }
-      }
-
       // verify the project does NOT exist
       if (directStorage.getProject(newProject.projectKey) != null
           || directStorage.getProjectByName(newProject.projectName) != null) {
@@ -167,30 +148,41 @@ public class ProjectApiController {
         }
       }
 
+      List<String> preconditionsFailures = new ArrayList<>();
+
+      if (newProject.specialPermissionSet) {
+        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+          logger.info(
+              "Do not validate special bugtracker permission set, "
+                  + "because special permission sets are disabled in configuration");
+        } else {
+          try {
+            projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+          } catch (IdMgmtException e) {
+            preconditionsFailures.add(e.getMessage());
+          }
+        }
+      }
+
       // If preconditions check fails an exception is thrown and cough below in try/catch block
-      List<String> preconditionsFailures = checkPreconditions(newProject);
+      preconditionsFailures.addAll(checkPreconditions(newProject));
 
       // if list is not empty the precondition check failed
       if (!preconditionsFailures.isEmpty()) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(
-                CHECK_PRECONDITIONS_KEY
-                    + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                    + CHECK_PRECONDITIONS_STATUS_FAILED)
-            .append(System.lineSeparator());
-        sb.append(CHECK_PRECONDITIONS_ERRORS_KEY + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR)
-            .append(String.join(CHECK_PRECONDITIONS_ERRORS_DELIMITER, preconditionsFailures))
-            .append(System.lineSeparator());
-        return ResponseEntity.badRequest().body(sb.toString());
+
+        String body =
+            CheckPreconditionsResponse.failed(
+                contentType, CHECK_PRECONDITIONS, preconditionsFailures);
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .header(RETRY_AFTER_HEADER, RETRY_AFTER_INTERVAL_IN_SECONDS)
+            .body(body);
       }
 
       if (onlyCheckPreconditions.orElse(Boolean.FALSE)) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(
-            CHECK_PRECONDITIONS_KEY
-                + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + CHECK_PRECONDITIONS_STATUS_OK);
-        return ResponseEntity.ok(sb.toString());
+
+        return ResponseEntity.ok(
+            CheckPreconditionsResponse.successful(contentType, CHECK_PRECONDITIONS));
       }
 
       if (newProject.bugtrackerSpace) {
@@ -235,7 +227,7 @@ public class ProjectApiController {
     } catch (CreateProjectPreconditionException cppe) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
           .header(RETRY_AFTER_HEADER, RETRY_AFTER_INTERVAL_IN_SECONDS)
-          .body(cppe.getMessage());
+          .body(formatError(contentType, CHECK_PRECONDITIONS, cppe.getMessage()));
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
@@ -256,6 +248,19 @@ public class ProjectApiController {
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
     }
+  }
+
+  /**
+   * @param contentType
+   * @param jobStage
+   * @param error
+   * @return a json string if the content type is json, otherwise it returns the error parameter
+   */
+  public static String formatError(String contentType, JobStage jobStage, String error) {
+    if (CheckPreconditionsResponse.isJsonContentType(contentType)) {
+      error = CheckPreconditionsResponse.failedAsJson(jobStage, error);
+    }
+    return error;
   }
 
   /**
