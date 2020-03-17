@@ -215,6 +215,9 @@ objects:
       jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
       jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
 
+      jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
+      jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
+
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
       openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
