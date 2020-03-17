@@ -27,7 +27,7 @@ public class BaseServiceAdapter {
 
   @Autowired private Environment environment;
 
-  @Autowired private RestClient restClient;
+  @Autowired protected RestClient restClient;
 
   public BaseServiceAdapter(String configurationPrefix) {
     this.configurationPrefix = configurationPrefix;
@@ -106,9 +106,5 @@ public class BaseServiceAdapter {
 
   public void setRestClient(RestClient restClient) {
     this.restClient = restClient;
-  }
-
-  public RestClient getRestClient() {
-    return restClient;
   }
 }

@@ -21,7 +21,12 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
-import org.opendevstack.provision.adapter.*;
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
+import org.opendevstack.provision.adapter.ICollaborationAdapter;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
+import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
@@ -151,7 +156,6 @@ public class ProjectApiController {
               "Do not validate special bugtracker permission set, "
                   + "because special permission sets are disabled in configuration");
         } else {
-          // TODO this is a precondition check!
           projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
         }
       }
@@ -268,16 +272,7 @@ public class ProjectApiController {
       throws CreateProjectPreconditionException {
 
     if (newProject.platformRuntime) {
-
-      IServiceAdapter[] adapters = {bitbucketAdapter, jiraAdapter};
-
-      List<String> results = new ArrayList<>();
-
-      for (IServiceAdapter adapter : adapters) {
-        results.addAll(adapter.checkCreateProjectPreconditions(newProject));
-      }
-
-      return results;
+      return bitbucketAdapter.checkCreateProjectPreconditions(newProject);
     }
 
     return Collections.EMPTY_LIST;

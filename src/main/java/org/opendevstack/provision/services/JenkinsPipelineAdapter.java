@@ -336,12 +336,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     try {
       CreateProjectResponse data =
-          getRestClient()
-              .execute(
-                  notAuthenticatedCall(HttpVerb.POST)
-                      .url(execution.url)
-                      .body(execution)
-                      .returnType(CreateProjectResponse.class));
+          restClient.execute(
+              notAuthenticatedCall(HttpVerb.POST)
+                  .url(execution.url)
+                  .body(execution)
+                  .returnType(CreateProjectResponse.class));
       logger.info("Webhook proxy returned " + data.toString());
       ExecutionsData executionsData = new ExecutionsData();
       executionsData.setMessage(data.toString());

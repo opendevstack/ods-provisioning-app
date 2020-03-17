@@ -5,7 +5,7 @@
 	"values": [
 		{
 			"name": "testUserName",
-			"emailAddress": "testUserName@domain.com",
+			"emailAddress": "testUserName@domain.com.com",
 			"id": 152,
 			"displayName": "Test User",
 			"active": true,
