@@ -35,14 +35,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.*;
@@ -50,7 +48,6 @@ import org.opendevstack.provision.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -146,7 +143,6 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
 
     Mockito.verify(jenkinsPipelineAdapter, never()).createPlatformProjects(isNotNull());
-    Mockito.verify(bitbucketAdapter, never()).checkCreateProjectPreconditions(isNotNull());
     Mockito.verify(bitbucketAdapter, never()).createSCMProjectForODSProject(isNotNull());
 
     // try with failing storage
@@ -201,141 +197,13 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andDo(MockMvcResultHandlers.print());
 
-    verifyAddProjectAdapterCalls(times(1));
-  }
-
-  @Test
-  public void whenOnyCheckPreconditionsThenDoNotCreateProject() throws Exception {
-    data.platformRuntime = true;
-
-    // Only check preconditions
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .param(ProjectApiController.ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS, "true")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(
-            MockMvcResultMatchers.content()
-                .string(
-                    ProjectApiController.CHECK_PRECONDITIONS_KEY
-                        + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                        + ProjectApiController.CHECK_PRECONDITIONS_STATUS_OK))
-        .andDo(MockMvcResultHandlers.print());
-
-    verifyAddProjectAdapterCalls(times(0));
-  }
-
-  public void verifyAddProjectAdapterCalls(VerificationMode times)
-      throws IOException, CreateProjectPreconditionException {
-    Mockito.verify(jenkinsPipelineAdapter, times).createPlatformProjects(isNotNull());
-    // check preconditions should be always called
-    Mockito.verify(bitbucketAdapter, times(1)).checkCreateProjectPreconditions(isNotNull());
-    Mockito.verify(bitbucketAdapter, times).createSCMProjectForODSProject(isNotNull());
-    Mockito.verify(bitbucketAdapter, times).createComponentRepositoriesForODSProject(isNotNull());
+    Mockito.verify(jenkinsPipelineAdapter, times(1)).createPlatformProjects(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1)).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1))
+        .createComponentRepositoriesForODSProject(isNotNull());
     // jira components
-    Mockito.verify(jiraAdapter, times)
+    Mockito.verify(jiraAdapter, times(1))
         .createComponentsForProjectRepositories(isNotNull(), isNotNull());
-  }
-
-  @Test
-  public void whenCheckPreconditionsBadParamThenBadRequest() throws Exception {
-
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .param(
-                    ProjectApiController.ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS,
-                    "wrong-value")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isBadRequest())
-        .andDo(MockMvcResultHandlers.print());
-
-    // ensure that cleanup was NOT called
-    Mockito.verify(jiraAdapter, times(0)).cleanup(isNotNull(), isNotNull());
-  }
-
-  @Test
-  public void whenCheckPreconditionsFailThenReturnErrorInResponseBody() throws Exception {
-
-    data.platformRuntime = true;
-
-    List<String> preconditionFailures = new ArrayList<>();
-    preconditionFailures.add("failure1");
-    preconditionFailures.add("failure2");
-
-    StringBuffer expectedBody = new StringBuffer();
-    expectedBody
-        .append(
-            ProjectApiController.CHECK_PRECONDITIONS_KEY
-                + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + ProjectApiController.CHECK_PRECONDITIONS_STATUS_FAILED)
-        .append(System.lineSeparator());
-    expectedBody
-        .append(
-            ProjectApiController.CHECK_PRECONDITIONS_ERRORS_KEY
-                + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + String.join(
-                    ProjectApiController.CHECK_PRECONDITIONS_ERRORS_DELIMITER,
-                    preconditionFailures))
-        .append(System.lineSeparator());
-
-    when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
-        .thenReturn(preconditionFailures);
-
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isBadRequest())
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.content().string(expectedBody.toString()));
-
-    verifyAddProjectAdapterCalls(times(0));
-
-    // ensure that cleanup was NOT called
-    Mockito.verify(jiraAdapter, times(0)).cleanup(isNotNull(), isNotNull());
-  }
-
-  @Test
-  public void whenCheckPreconditionsThrowsExceptionThenReturnServerError() throws Exception {
-
-    data.platformRuntime = true;
-
-    RuntimeException thrownInTest = new RuntimeException("thrown in unit test");
-    when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
-        .thenThrow(
-            new CreateProjectPreconditionException("bitbucket", data.projectKey, thrownInTest));
-
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().is(HttpStatus.SERVICE_UNAVAILABLE.value()))
-        .andExpect(
-            MockMvcResultMatchers.header()
-                .string(
-                    ProjectApiController.RETRY_AFTER_HEADER,
-                    ProjectApiController.RETRY_AFTER_INTERVAL_IN_SECONDS))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(
-            MockMvcResultMatchers.content()
-                .string(
-                    CreateProjectPreconditionException.buildMessage(
-                        BitbucketAdapter.ADAPTER_NAME, data.projectKey, thrownInTest)));
-
-    verifyAddProjectAdapterCalls(times(0));
-
-    // ensure that cleanup was NOT called
-    Mockito.verify(jiraAdapter, times(0)).cleanup(isNotNull(), isNotNull());
   }
 
   @Test
@@ -817,7 +685,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void testProjectDeleteForbidden() {
-    apiController.setCleanupAllowed(false);
+    apiController.cleanupAllowed = false;
     IOException testExForbidden = null;
     try {
       this.apiController.deleteProject("1245");
@@ -831,7 +699,7 @@ public class ProjectApiControllerTest {
   @Test
   public void testProjectComponentDeleteForbidden() {
     IOException testExForbidden = null;
-    apiController.setCleanupAllowed(false);
+    apiController.cleanupAllowed = false;
     try {
       this.apiController.deleteComponents(new OpenProjectData());
     } catch (IOException mustbeThrown) {

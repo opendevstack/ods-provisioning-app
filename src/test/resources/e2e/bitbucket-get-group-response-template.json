@@ -1,9 +1,0 @@
-{
-	"size": 1,
-	"limit": 25,
-	"isLastPage": true,
-	"values": [
-		"%GROUP_NAME%"
-	],
-	"start": 0
-}

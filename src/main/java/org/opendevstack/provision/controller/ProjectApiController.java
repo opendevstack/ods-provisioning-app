@@ -19,7 +19,11 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -28,10 +32,10 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
@@ -71,19 +75,6 @@ public class ProjectApiController {
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
 
-  public static final String CHECK_PRECONDITIONS_KEY = "CHECK_PRECONDITIONS";
-  public static final String CHECK_PRECONDITIONS_STATUS_OK = "OK";
-  public static final String CHECK_PRECONDITIONS_STATUS_FAILED = "FAILED";
-  public static final String CHECK_PRECONDITIONS_ERRORS_KEY = "ERRORS";
-  public static final String CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR = "=";
-  public static final String CHECK_PRECONDITIONS_ERRORS_DELIMITER = ",";
-
-  public static final String ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS =
-      "onlyCheckPreconditions";
-
-  public static final String RETRY_AFTER_INTERVAL_IN_SECONDS = "180";
-  public static final String RETRY_AFTER_HEADER = "Retry-After";
-
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
   @Autowired private ISCMAdapter bitbucketAdapter;
@@ -105,7 +96,7 @@ public class ProjectApiController {
   boolean ocUpgradeAllowed;
 
   @Value("${provision.cleanup.incomplete.projects:true}")
-  private boolean cleanupAllowed;
+  boolean cleanupAllowed;
 
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
@@ -116,10 +107,7 @@ public class ProjectApiController {
    *     happens, the error
    */
   @RequestMapping(method = RequestMethod.POST)
-  public ResponseEntity<Object> addProject(
-      @RequestBody OpenProjectData newProject,
-      @RequestParam(ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS)
-          Optional<Boolean> onlyCheckPreconditions) {
+  public ResponseEntity<Object> addProject(@RequestBody OpenProjectData newProject) {
 
     if (newProject == null
         || newProject.projectKey == null
@@ -171,32 +159,6 @@ public class ProjectApiController {
         }
       }
 
-      // If preconditions check fails an exception is thrown and cough below in try/catch block
-      List<String> preconditionsFailures = checkPreconditions(newProject);
-
-      // if list is not empty the precondition check failed
-      if (!preconditionsFailures.isEmpty()) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(
-                CHECK_PRECONDITIONS_KEY
-                    + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                    + CHECK_PRECONDITIONS_STATUS_FAILED)
-            .append(System.lineSeparator());
-        sb.append(CHECK_PRECONDITIONS_ERRORS_KEY + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR)
-            .append(String.join(CHECK_PRECONDITIONS_ERRORS_DELIMITER, preconditionsFailures))
-            .append(System.lineSeparator());
-        return ResponseEntity.badRequest().body(sb.toString());
-      }
-
-      if (onlyCheckPreconditions.orElse(Boolean.FALSE)) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(
-            CHECK_PRECONDITIONS_KEY
-                + CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + CHECK_PRECONDITIONS_STATUS_OK);
-        return ResponseEntity.ok(sb.toString());
-      }
-
       if (newProject.bugtrackerSpace) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
@@ -236,10 +198,6 @@ public class ProjectApiController {
     } catch (ProjectAlreadyExistsException exAlreadyExists) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(exAlreadyExists.getMessage());
-    } catch (CreateProjectPreconditionException cppe) {
-      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .header(RETRY_AFTER_HEADER, RETRY_AFTER_INTERVAL_IN_SECONDS)
-          .body(cppe.getMessage());
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
@@ -260,22 +218,6 @@ public class ProjectApiController {
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
     }
-  }
-
-  /**
-   * @param newProject
-   * @return list of precondition check failure messages
-   * @throws CreateProjectPreconditionException if an exception was captured while checking the
-   *     preconditions
-   */
-  private List<String> checkPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
-
-    if (newProject.platformRuntime) {
-      return bitbucketAdapter.checkCreateProjectPreconditions(newProject);
-    }
-
-    return Collections.EMPTY_LIST;
   }
 
   /**
@@ -608,15 +550,15 @@ public class ProjectApiController {
 
     templatesForKey.put(
         "bugTrackerTemplate",
-        templates.get(PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY)
+        templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY)
             + "#"
-            + templates.get(PROJECT_TEMPLATE.TEMPLATE_KEY));
+            + templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     templatesForKey.put(
         "collabSpaceTemplate",
         confluenceAdapter
             .retrieveInternalProjectTypeAndTemplateFromProjectType(project)
-            .get(PROJECT_TEMPLATE.TEMPLATE_KEY));
+            .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     return ResponseEntity.ok(templatesForKey);
   }
@@ -691,7 +633,7 @@ public class ProjectApiController {
   public ResponseEntity<Object> deleteProject(@PathVariable String id) throws IOException {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
 
-    if (!isCleanupAllowed()) {
+    if (!cleanupAllowed) {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
@@ -716,7 +658,7 @@ public class ProjectApiController {
   @RequestMapping(method = RequestMethod.DELETE)
   public ResponseEntity<Object> deleteComponents(@RequestBody OpenProjectData deletableComponents)
       throws IOException {
-    if (!isCleanupAllowed()) {
+    if (!cleanupAllowed) {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
@@ -754,7 +696,7 @@ public class ProjectApiController {
   Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
       LIFECYCLE_STAGE stage, OpenProjectData project) {
 
-    if (!isCleanupAllowed()) {
+    if (!cleanupAllowed) {
       return new HashMap<>();
     }
 
@@ -777,21 +719,5 @@ public class ProjectApiController {
         notCleanedUpComponents.size() == 0 ? 0 : notCleanedUpComponents);
 
     return notCleanedUpComponents;
-  }
-
-  public void setCleanupAllowed(boolean cleanupAllowed) {
-    this.cleanupAllowed = cleanupAllowed;
-  }
-
-  public boolean isCleanupAllowed() {
-    return cleanupAllowed;
-  }
-
-  public void setDirectStorage(IStorage storage) {
-    this.directStorage = storage;
-  }
-
-  public IStorage getDirectStorage() {
-    return directStorage;
   }
 }

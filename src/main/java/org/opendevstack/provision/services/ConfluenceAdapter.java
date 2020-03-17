@@ -25,7 +25,6 @@ import java.util.Map;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Context;
@@ -303,11 +302,5 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
 
     return leftovers;
-  }
-
-  @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
-    throw new UnsupportedOperationException("not implemented yet!");
   }
 }
