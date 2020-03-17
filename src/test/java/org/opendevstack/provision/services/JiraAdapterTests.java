@@ -19,8 +19,8 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
@@ -36,11 +36,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -50,8 +54,6 @@ import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
-import org.opendevstack.provision.adapter.exception.AdapterException;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
@@ -59,61 +61,49 @@ import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
-import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Brokmeier, Pascal */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-@ActiveProfiles("utest")
+@DirtiesContext
 public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(JiraAdapterTests.class);
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
 
-  public static final String TEST_USER_NAME = "testUserName";
-  public static final String TEST_USER_PASSWORD = "testUserPassword";
-  public static final String TEST_DATA_FILE_JIRA_GET_MYPERMISSIONS_TEMPLATE =
-      "jira-get-mypermissions-template";
+  @Mock CrowdUserDetailsService service;
 
-  private ObjectMapper objectMapper;
-
-  private static TestDataFileReader fileReader =
-      new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
-
-  @MockBean private IODSAuthnzAdapter authnzAdapter;
-
-  @Mock private CrowdUserDetailsService service;
+  List<LeanJiraProject> projects = new ArrayList<>();
 
   @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+  @Autowired @InjectMocks JiraAdapter jiraAdapter;
+
+  @Autowired Environment env;
 
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  @Autowired @InjectMocks private JiraAdapter jiraAdapter;
-
-  @Autowired private Environment env;
-
-  @Autowired private List<String> projectTemplateKeyNames;
+  @Autowired List<String> projectTemplateKeyNames;
+  private ObjectMapper objectMapper;
 
   @Before
   public void initTests() {
+    projects = new ArrayList<>();
     objectMapper = new ObjectMapper();
 
-    when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
-    when(authnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
   }
 
   @Test
@@ -121,7 +111,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
 
-    assertEquals("10000", spyAdapter.getJiraNotificationSchemeId());
+    assertEquals("10000", spyAdapter.jiraNotificationSchemeId);
 
     // delete in case it already exists
     String name = "TestProject";
@@ -160,11 +150,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     projectTemplateKeyNames.add("newTemplate");
     spyAdapter
-        .getEnvironment()
+        .environment
         .getSystemProperties()
         .put("jira.project.template.key.newTemplate", "templateKey");
     spyAdapter
-        .getEnvironment()
+        .environment
         .getSystemProperties()
         .put("jira.project.template.type.newTemplate", "templateType");
 
@@ -258,11 +248,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     projectTemplateKeyNames.add("newTemplate");
 
     jiraAdapter
-        .getEnvironment()
+        .environment
         .getSystemProperties()
         .put("jira.project.template.key.newTemplate", "template");
     jiraAdapter
-        .getEnvironment()
+        .environment
         .getSystemProperties()
         .put("jira.project.template.type.newTemplate", "templateType");
     fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
@@ -414,7 +404,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     assertEquals("Technology-fe-angular", entry.getKey());
 
     // test with component creation == false
-    mocked.setCreateJiraComponents(false);
+    mocked.createJiraComponents = false;
     created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
     assertEquals(0, created.size());
   }
@@ -422,202 +412,5 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   private LeanJiraProject getReturnProject() {
     return new LeanJiraProject(
         URI.create("http://localhost"), "TESTP", null, null, null, null, null);
-  }
-
-  @Test
-  public void whenHandleExceptionWithinCheckCreateProjectPreconditionsThenException()
-      throws IOException {
-
-    jiraAdapter.setRestClient(restClient);
-    jiraAdapter.useTechnicalUser = true;
-    jiraAdapter.userName = TEST_USER_NAME;
-    jiraAdapter.userPassword = TEST_USER_PASSWORD;
-
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-
-    OpenProjectData project = new OpenProjectData();
-    project.projectKey = "PKEY";
-
-    IOException ioException = new IOException("throw in unit test");
-
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-
-      spyAdapter.checkCreateProjectPreconditions(project);
-      fail();
-
-    } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
-      Assert.assertTrue(e.getMessage().contains(JiraAdapter.ADAPTER_NAME));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
-    }
-  }
-
-  @Test
-  public void testProjectAdminUserExistsCheck() throws IOException {
-
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    spyAdapter.setRestClient(restClient);
-
-    OpenProjectData project = new OpenProjectData();
-
-    String user = jiraAdapter.resolveProjectAdminUser(project);
-
-    String response =
-        fileReader.readFileContent("jira-get-user-template").replace("<%USERNAME%>", user);
-
-    Function<List<String>, List<String>> checkUser =
-        spyAdapter.createProjectAdminUserExistsCheck(user);
-    assertNotNull(checkUser);
-
-    List<String> result = new ArrayList<>();
-
-    // Case one, an exception happens
-    try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
-      checkUser.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
-    }
-
-    // Case IOException throw from rest client!
-    IOException ioException = new IOException();
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-      checkUser.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
-    }
-
-    // Case no error, user exists!
-    when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkUser.apply(result);
-    Assert.assertEquals(0, newResult.size());
-
-    // Case error, user does not exists!
-    String thisUserDoesNotExists = "this_cd_user_not_exist";
-    checkUser = spyAdapter.createProjectAdminUserExistsCheck(thisUserDoesNotExists);
-    newResult = checkUser.apply(result);
-    Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).contains(thisUserDoesNotExists));
-  }
-
-  @Test
-  public void testRequireGroupExistsCheck() throws IOException {
-
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    spyAdapter.setRestClient(restClient);
-
-    OpenProjectData project = new OpenProjectData();
-
-    Function<List<String>, List<String>> checkGroupExists =
-        spyAdapter.createRequiredGroupExistsCheck(project);
-    assertNotNull(checkGroupExists);
-
-    List<String> result = new ArrayList<>();
-
-    // Case one, an exception happens
-    try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
-      checkGroupExists.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
-    }
-
-    // Case IOException throw from rest client!
-    IOException ioException = new IOException();
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-      checkGroupExists.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
-    }
-
-    // Case no error, group exists!
-    String group = jiraAdapter.getGlobalKeyuserRoleName();
-    String response =
-        fileReader.readFileContent("jira-get-group-template").replace("<%GROUP%>", group);
-
-    when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkGroupExists.apply(result);
-    Assert.assertEquals(0, newResult.size());
-
-    // Case error, user does not exists!
-    String thisGroupDoesNotExists = "this_group_does_not_exists";
-    checkGroupExists = spyAdapter.createProjectAdminUserExistsCheck(thisGroupDoesNotExists);
-    newResult = checkGroupExists.apply(result);
-    Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).contains(thisGroupDoesNotExists));
-  }
-
-  @Test
-  public void testUserCanCreateProjectCheck() throws IOException {
-
-    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
-    spyAdapter.setRestClient(restClient);
-
-    //    OpenProjectData project = new OpenProjectData();
-
-    Function<List<String>, List<String>> check =
-        spyAdapter.createUserCanCreateProjectCheck(jiraAdapter.getUserName());
-    assertNotNull(check);
-
-    List<String> result = new ArrayList<>();
-
-    // Case one, an exception happens
-    try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
-      check.apply(new ArrayList<>());
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
-    }
-
-    // Case IOException throw from rest client!
-    IOException ioException = new IOException("throws in jira unit test!");
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-      check.apply(new ArrayList<>());
-      fail();
-    } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
-    }
-
-    // Case have and not permission!
-    String group = jiraAdapter.getGlobalKeyuserRoleName();
-    String[] values = {"true", "false"};
-    Arrays.asList(values)
-        .forEach(
-            expected -> {
-              try {
-                String response =
-                    fileReader
-                        .readFileContent(TEST_DATA_FILE_JIRA_GET_MYPERMISSIONS_TEMPLATE)
-                        .replace("<%HAVE_PERMISSION%>", expected);
-
-                when(restClient.execute(isNotNull())).thenReturn(response);
-                List<String> newResult = check.apply(new ArrayList<>());
-
-                Assert.assertEquals("true".equals(expected) ? 0 : 1, newResult.size());
-
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            });
-
-    // Case empty json returned!
-    String response =
-        fileReader
-            .readFileContent(TEST_DATA_FILE_JIRA_GET_MYPERMISSIONS_TEMPLATE)
-            .replace("ADMINISTER", "NOTAPERMISSION")
-            .replace("<%HAVE_PERMISSION%>", "false");
-
-    when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = check.apply(new ArrayList<>());
-    Assert.assertEquals(1, newResult.size());
   }
 }

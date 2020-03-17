@@ -14,21 +14,22 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,54 +39,39 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
-import org.opendevstack.provision.adapter.exception.AdapterException;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
-import org.opendevstack.provision.util.TestDataFileReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-@ActiveProfiles("utest")
+@DirtiesContext
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapterTest.class);
-
-  public static final String TEST_USER_NAME = "testUserName";
-  public static final String TEST_USER_PASSWORD = "testUserPassword";
-  private static final int ONE_SEC_IN_MILLIS = 1000;
-
-  @MockBean private IODSAuthnzAdapter authnzAdapter;
+  @Autowired private IODSAuthnzAdapter authnzAdapter;
 
   @Mock BitbucketProjectData bitbucketData;
   @Mock BitbucketProject project;
   @InjectMocks @Autowired BitbucketAdapter bitbucketAdapter;
   @Mock Repository repo;
 
-  private static TestDataFileReader fileReader =
-      new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
-
   @Before
   public void initTests() {
-    when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
-    when(authnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
+    authnzAdapter.setUserName("testUserName");
+    authnzAdapter.setUserPassword("testUserPassword");
   }
 
   @Test
@@ -221,7 +207,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     data.specialPermissionSet = true;
     data.projectAdminUser = "someadmin";
 
-    spyAdapter.setRestClient(restClient);
+    spyAdapter.restClient = restClient;
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -261,7 +247,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateProjectApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.setRestClient(restClient);
+    spyAdapter.restClient = restClient;
 
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
@@ -270,6 +256,10 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     data.projectName = "testproject";
     data.description = "this is a discription";
     data.specialPermissionSet = false;
+
+    BitbucketProject project = BitbucketAdapter.createBitbucketProject(data);
+
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -307,7 +297,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void callCreateRepoApiTest() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.setRestClient(restClient);
+    spyAdapter.restClient = restClient;
 
     Repository repo = new Repository();
     repo.setName("testrepo");
@@ -437,101 +427,4 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     links.put("clone", linkList);
     return links;
   }
-
-  @Test
-  public void testWhenCheckUser() throws IOException {
-
-    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    spyAdapter.setRestClient(restClient);
-
-    String response = fileReader.readFileContent("bitbucket-get-admin-user-response");
-
-    OpenProjectData project = new OpenProjectData();
-
-    Function<List<String>, List<String>> checkUser = spyAdapter.createCheckUser(project);
-    assertNotNull(checkUser);
-
-    List<String> result = new ArrayList<>();
-
-    // Case one, an exception happens
-    try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
-      checkUser.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
-    }
-
-    // Case IOException throw from rest client!
-    IOException ioException = new IOException();
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-      checkUser.apply(result);
-      fail();
-    } catch (AdapterException e) {
-      assertEquals(ioException, e.getCause());
-    }
-
-    // Case no error, user exists!
-    when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkUser.apply(result);
-    assertEquals(0, newResult.size());
-
-    // Case error, user does not exists!
-    project.cdUser = "this_cd_user_not_exist";
-    checkUser = spyAdapter.createCheckUser(project);
-    newResult = checkUser.apply(result);
-    assertEquals(1, newResult.size());
-    assertTrue(newResult.get(0).contains(project.cdUser));
-  }
-
-  @Test
-  public void whenHandleExceptionWithinCheckCreateProjectPreconditionsThenException()
-      throws IOException {
-
-    bitbucketAdapter.setRestClient(restClient);
-    bitbucketAdapter.useTechnicalUser = true;
-    bitbucketAdapter.userName = TEST_USER_NAME;
-    bitbucketAdapter.userPassword = TEST_USER_PASSWORD;
-
-    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-
-    OpenProjectData project = new OpenProjectData();
-    project.projectKey = "PKEY";
-
-    IOException ioException = new IOException("throw in unit test");
-
-    try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
-
-      spyAdapter.checkCreateProjectPreconditions(project);
-      fail();
-
-    } catch (CreateProjectPreconditionException e) {
-      assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
-      assertTrue(e.getMessage().contains(BitbucketAdapter.ADAPTER_NAME));
-      assertTrue(e.getMessage().contains(project.projectKey));
-    }
-  }
-
-  //  @Test
-  //  public void createCheckGroupsExist() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void createUserHaveProjectCreateGlobalPermissionCheck() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void containsUser() {
-  //    fail();
-  //  }
-  //
-  //  @Test
-  //  public void containsGroup() {
-  //    fail();
-  //  }
-
 }

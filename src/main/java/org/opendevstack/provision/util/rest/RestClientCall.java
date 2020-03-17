@@ -57,7 +57,7 @@ public class RestClientCall {
   private Class returnType = null;
   private TypeReference returnTypeReference = null;
 
-  private RestClientCall() { // prevent direct instantiation
+  protected RestClientCall() { // prevent direct instantiation
   }
 
   public static RestClientCall get() {

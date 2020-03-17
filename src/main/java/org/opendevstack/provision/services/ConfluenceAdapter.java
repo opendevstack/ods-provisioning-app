@@ -25,7 +25,6 @@ import java.util.Map;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Context;
@@ -112,12 +111,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   protected SpaceData callCreateSpaceApi(Space space) throws IOException {
     String path = String.format(SPACE_PATTERN, confluenceUri, confluenceApiPath);
-    return getRestClient()
-        .execute(
-            httpPost()
-                .url(path)
-                .body(space)
-                .returnTypeReference(new TypeReference<SpaceData>() {}));
+    return restClient.execute(
+        httpPost().url(path).body(space).returnTypeReference(new TypeReference<SpaceData>() {}));
   }
 
   Space createSpaceData(OpenProjectData project) throws IOException {
@@ -186,8 +181,10 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   List<Object> getSpaceTemplateList(String url, TypeReference reference) throws IOException {
 
-    return (List<Object>)
-        getRestClient().execute(httpGet().url(url).returnTypeReference(reference));
+    //    return (List<Object>) restClient.callHttpTypeRef(url, null, false,
+    // RestClient.HTTP_VERB.GET,
+    //        reference);
+    return (List<Object>) restClient.execute(httpGet().url(url).returnTypeReference(reference));
   }
 
   int updateSpacePermissions(OpenProjectData data) throws IOException {
@@ -224,7 +221,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         String path =
             String.format("%s%s/addPermissionsToSpace", confluenceUri, confluenceLegacyApiPath);
 
-        getRestClient().execute(httpPost().url(path).body(permissionset).returnType(String.class));
+        // restClient.callHttp(path, permissionset, false, RestClient.HTTP_VERB.POST, String.class);
+        restClient.execute(httpPost().url(path).body(permissionset).returnType(String.class));
 
         updatedPermissions++;
       }
@@ -291,7 +289,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         String.format("%s/api/space/%s", getAdapterApiUri(), project.projectKey);
 
     try {
-      getRestClient().execute(httpDelete().body("").url(confluenceProjectPath));
+      // restClient.callHttp(confluenceProjectPath, null, true, HTTP_VERB.DELETE, null);
+      restClient.execute(httpDelete().body("").url(confluenceProjectPath));
 
       project.collaborationSpaceUrl = null;
     } catch (Exception cex) {
@@ -303,11 +302,5 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         "Cleanup done - status: {} components are left ..", leftovers.size() == 0 ? 0 : leftovers);
 
     return leftovers;
-  }
-
-  @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
-    throw new UnsupportedOperationException("not implemented yet!");
   }
 }

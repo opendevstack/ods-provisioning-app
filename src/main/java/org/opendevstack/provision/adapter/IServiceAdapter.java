@@ -14,9 +14,7 @@
 
 package org.opendevstack.provision.adapter;
 
-import java.util.List;
 import java.util.Map;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
@@ -26,7 +24,6 @@ import org.opendevstack.provision.model.OpenProjectData;
  * @author utschig
  */
 public interface IServiceAdapter {
-
   /** Stage the adapters are in during project creation & update */
   enum LIFECYCLE_STAGE {
     INITIAL_CREATION,
@@ -73,11 +70,4 @@ public interface IServiceAdapter {
    * @return a map with component amounts that could not be cleaned up
    */
   Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(LIFECYCLE_STAGE stage, OpenProjectData project);
-
-  /**
-   * @param newProject
-   * @return
-   */
-  List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException;
 }
