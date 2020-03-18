@@ -220,9 +220,7 @@ public class ProjectApiControllerTest {
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(
-                    ProjectApiController.CHECK_PRECONDITIONS_KEY
-                        + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                        + ProjectApiController.CHECK_PRECONDITIONS_STATUS_OK))
+                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"COMPLETED_SUCCESSFULLY\"}"))
         .andDo(MockMvcResultHandlers.print());
 
     verifyAddProjectAdapterCalls(times(0));
@@ -271,17 +269,15 @@ public class ProjectApiControllerTest {
     StringBuffer expectedBody = new StringBuffer();
     expectedBody
         .append(
-            ProjectApiController.CHECK_PRECONDITIONS_KEY
-                + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + ProjectApiController.CHECK_PRECONDITIONS_STATUS_FAILED)
+            CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS
+                + CheckPreconditionsResponse.KEY_VALUE_SEPARATOR
+                + CheckPreconditionsResponse.JobStatus.FAILED)
         .append(System.lineSeparator());
     expectedBody
         .append(
-            ProjectApiController.CHECK_PRECONDITIONS_ERRORS_KEY
-                + ProjectApiController.CHECK_PRECONDITIONS_KEY_VALUE_SEPARATOR
-                + String.join(
-                    ProjectApiController.CHECK_PRECONDITIONS_ERRORS_DELIMITER,
-                    preconditionFailures))
+            CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS
+                + CheckPreconditionsResponse.KEY_VALUE_SEPARATOR
+                + String.join(CheckPreconditionsResponse.ERRORS_DELIMITER, preconditionFailures))
         .append(System.lineSeparator());
 
     when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
@@ -293,9 +289,12 @@ public class ProjectApiControllerTest {
                 .content(asJsonString(data))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(MockMvcResultMatchers.status().is(HttpStatus.SERVICE_UNAVAILABLE.value()))
         .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.content().string(expectedBody.toString()));
+        .andExpect(
+            MockMvcResultMatchers.content()
+                .string(
+                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"failure1\",\"failure2\"]}"));
 
     verifyAddProjectAdapterCalls(times(0));
 
@@ -329,8 +328,7 @@ public class ProjectApiControllerTest {
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(
-                    CreateProjectPreconditionException.buildMessage(
-                        BitbucketAdapter.ADAPTER_NAME, data.projectKey, thrownInTest)));
+                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"class java.lang.RuntimeException was thrown in adapter 'bitbucket' while executing check preconditions for project 'KEY'. [message=thrown in unit test]\"]}"));
 
     verifyAddProjectAdapterCalls(times(0));
 
@@ -884,5 +882,26 @@ public class ProjectApiControllerTest {
           return;
         };
     ProjectApiController.validateQuickstarters(data, Arrays.asList(acceptAllValidator));
+  }
+
+  @Test
+  public void testFormatError() {
+
+    String error = "error";
+
+    Assert.assertEquals(
+        error,
+        ProjectApiController.formatError(
+            null, CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS, error));
+
+    String expectedJson =
+        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"error\"]}";
+
+    Assert.assertEquals(
+        expectedJson,
+        ProjectApiController.formatError(
+            MediaType.APPLICATION_JSON_VALUE,
+            CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS,
+            error));
   }
 }
