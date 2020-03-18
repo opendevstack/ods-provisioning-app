@@ -2,7 +2,7 @@
 <configuration>
 
 	<!-- home of the logs -->
-	<property name="PROV_HIST_HOME" value="${LOG_PATH}" />
+	<springProperty scope="context" name="PROV_HIST_HOME" source="logging.file.path" defaultValue="/opt/provision/history/logs"/>
 
 	<!-- custom file appender -->"
 	<appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
