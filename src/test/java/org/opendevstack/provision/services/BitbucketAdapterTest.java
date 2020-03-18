@@ -20,6 +20,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_ID_KEY;
+import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_TYPE_KEY;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -108,14 +110,14 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData projectData = getReturnOpenProjectData();
     RepositoryData repoData = getReturnRepoData();
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any());
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any());
 
     doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> result =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
 
-    verify(spyAdapter).createWebHooksForRepository(repoData, projectData);
+    verify(spyAdapter).createWebHooksForRepository(repoData, projectData, "testComponent");
     for (Entry<String, Map<URL_TYPE, String>> entry : result.entrySet()) {
       Map<URL_TYPE, String> resultLinkMap = entry.getValue();
       assertEquals(repoData.convertRepoToOpenDataProjectRepo(), resultLinkMap);
@@ -149,7 +151,9 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData.setName("testRepoName");
     projectData.projectKey = "testkey";
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(repoData, projectData);
+    Mockito.doNothing()
+        .when(spyAdapter)
+        .createWebHooksForRepository(repoData, projectData, "testComponent");
     doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> result =
@@ -185,7 +189,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     links.put("clone", linkList);
     repoData.setLinks(links);
 
-    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any());
+    Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any());
     doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
 
     Map<String, Map<URL_TYPE, String>> actual =
@@ -370,7 +374,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(repoData1);
-    spyAdapter.createWebHooksForRepository(repoData1, projectData);
+    spyAdapter.createWebHooksForRepository(repoData1, projectData, "testComponent");
   }
 
   private Map<String, List<Link>> generateRepoLinks(String[] linknames) {
@@ -394,7 +398,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private List<Map<String, String>> getReturnQuickstarters() {
     Map<String, String> quickstart = new HashMap<>();
-    quickstart.put("component_id", "testid");
+    quickstart.put(COMPONENT_ID_KEY, "testid");
+    quickstart.put(COMPONENT_TYPE_KEY, "testComponent");
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(quickstart);
     return quickstarters;

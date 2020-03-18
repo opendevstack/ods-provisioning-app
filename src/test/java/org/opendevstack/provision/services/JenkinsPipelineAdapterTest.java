@@ -95,7 +95,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             Optional.of("create-projects/Jenkinsfile")));
     jenkinsPipelineProperties.addQuickstarter(
         componentQuickstarter(
-            JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty()));
+            JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty(), true));
     return jenkinsPipelineProperties;
   }
 

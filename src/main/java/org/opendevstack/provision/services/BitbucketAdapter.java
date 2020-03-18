@@ -21,9 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import org.apache.commons.lang.NotImplementedException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
+import org.opendevstack.provision.config.JenkinsPipelineProperties;
+import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
@@ -91,6 +95,10 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Autowired IODSAuthnzAdapter manager;
 
+  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
+
+  private Set<String> noWebhookComponents;
+
   private static final String PROJECT_PATTERN = "%s%s/projects";
 
   private static final String ID_GROUPS = "groups";
@@ -106,6 +114,17 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     REPO_ADMIN,
     REPO_WRITE,
     REPO_READ
+  }
+
+  @PostConstruct
+  public void setupNoWebhookComponents() {
+    Map<String, Quickstarter> quickstarters = jenkinsPipelineProperties.getQuickstarter();
+    noWebhookComponents =
+        quickstarters.values().stream()
+            .filter(qs -> !qs.isCreateWebhook())
+            .map(qs -> qs.getName())
+            .collect(Collectors.toSet());
+    logger.info("noWebhookComponents={}", noWebhookComponents);
   }
 
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
@@ -151,7 +170,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
         try {
           RepositoryData result = callCreateRepoApi(project.projectKey, repo);
-          createWebHooksForRepository(result, project);
+          createWebHooksForRepository(
+              result, project, option.get(OpenProjectData.COMPONENT_TYPE_KEY));
 
           componentRepository = result.convertRepoToOpenDataProjectRepo();
 
@@ -213,7 +233,17 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   }
 
   // Create webhook for CI (using webhook proxy)
-  protected void createWebHooksForRepository(RepositoryData repo, OpenProjectData project) {
+  protected void createWebHooksForRepository(
+      RepositoryData repo, OpenProjectData project, String componentType) {
+
+    if (noWebhookComponents.contains(componentType)) {
+      logger.info(
+          "won't create a webhook for repo '{}' as its component type is '{}' which is contained in the webhook proxy blacklist '{}'",
+          repo.getName(),
+          componentType,
+          noWebhookComponents);
+      return;
+    }
 
     // projectOpenshiftJenkinsWebhookProxyNamePattern is e.g.
     // "webhook-proxy-%s-cd%s"
