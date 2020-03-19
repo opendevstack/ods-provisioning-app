@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add configuration for webhook creation per quickstarter ([#395](https://github.com/opendevstack/ods-provisioning-app/pull/395))
+
 ### Fixed
 - Enables e2e spock quickstarter ([#388](https://github.com/opendevstack/ods-provisioning-app/pull/388))
 - Adds default value for logback file path ([#385](https://github.com/opendevstack/ods-provisioning-app/pull/385))
