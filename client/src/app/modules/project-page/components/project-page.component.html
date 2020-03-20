@@ -21,8 +21,7 @@
               <li *ngFor="let projectLink of projectLinksConfig"
                   class="quicklink__item"
                   [ngClass]="!projectLink.url ? 'disabled': ''"
-                  matTooltip="{{ projectLink.iconLabel }}"
-                  aria-label="{{ projectLink.iconLabel }}">
+                  matTooltip="{{ projectLink.iconLabel }}">
                 <ng-container *ngIf="projectLink.url; else iconOnly">
                   <a href="{{ projectLink.url }}" target="_blank">
                     <mat-icon svgIcon="{{ projectLink.iconName }}" aria-hidden="false" aria-label="{{ projectLink.iconLabel }}"></mat-icon>

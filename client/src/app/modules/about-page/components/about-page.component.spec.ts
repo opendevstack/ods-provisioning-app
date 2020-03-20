@@ -1,22 +1,22 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AboutPageComponent } from './about-page.component';
+import {createComponentFactory, Spectator} from "@ngneat/spectator/jest";
+import {RouterTestingModule} from "@angular/router/testing";
+import {MatListModule} from "@angular/material/list";
 
 describe('AboutPageComponent', () => {
-  let component: AboutPageComponent;
-  let fixture: ComponentFixture<AboutPageComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ AboutPageComponent ]
-    })
-    .compileComponents();
-  }));
-
+  const createComponent = createComponentFactory({
+    component: AboutPageComponent,
+    imports: [
+      RouterTestingModule,
+      MatListModule
+    ],
+  });
+  let component: any;
+  let spectator: Spectator<AboutPageComponent>;
   beforeEach(() => {
-    fixture = TestBed.createComponent(AboutPageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

@@ -4,7 +4,6 @@ import {
   HttpInterceptor,
   HttpHandler,
   HttpRequest,
-  HttpResponse,
   HttpErrorResponse
 } from '@angular/common/http';
 
