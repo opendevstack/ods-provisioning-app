@@ -1,33 +1,32 @@
-import { TestBed, async } from '@angular/core/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { MatListModule } from '@angular/material/list';
 import {LoadingIndicatorModule} from "./modules/loading-indicator/loading-indicator.module";
-import {MatListModule} from "@angular/material/list";
+import {MatCardModule} from "@angular/material/card";
+import {MatDialog} from "@angular/material/dialog";
 
 describe('AppComponent', () => {
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        MatListModule,
-        LoadingIndicatorModule
-      ],
-      declarations: [
-        AppComponent
-      ],
-    }).compileComponents();
-  }));
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  const createComponent = createComponentFactory({
+    component: AppComponent,
+    imports: [
+      RouterTestingModule,
+      MatListModule,
+      MatCardModule,
+      LoadingIndicatorModule
+    ],
+    providers: [MatDialog]
+  });
+  let component: any;
+  let spectator: Spectator<AppComponent>;
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it(`should have as title 'Prov-App'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('Prov-App');
+  it('should create the app', () => {
+    expect(component).toBeTruthy();
   });
 
 });

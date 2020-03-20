@@ -8,6 +8,9 @@
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
+        },
+        "@ngneat/spectator:spectator-component": {
+          "jest": true
         }
       },
       "root": "",
