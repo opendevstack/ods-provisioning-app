@@ -15,14 +15,16 @@
           <a
             mat-fab
             color="primary"
-            (click)="toggleEditMode()"
+            (click)="activateEditMode()"
             [disabled]="editMode"
-            ><mat-icon
+            data-test-edit-btn
+          >
+            <mat-icon
               svgIcon="edit"
               aria-hidden="false"
-              aria-label="Edit Project"
-            ></mat-icon
-          ></a>
+              [attr.aria-label]="'Edit Project'"
+            ></mat-icon>
+          </a>
         </div>
       </div>
     </div>
@@ -42,7 +44,7 @@
                   <mat-icon
                     svgIcon="{{ projectLink.iconName }}"
                     aria-hidden="false"
-                    aria-label="{{ projectLink.iconLabel }}"
+                    [attr.aria-label]="projectLink.iconLabel"
                   ></mat-icon>
                 </a>
               </ng-container>
@@ -50,7 +52,7 @@
                 <mat-icon
                   svgIcon="{{ projectLink.iconName }}"
                   aria-hidden="false"
-                  aria-label="{{ projectLink.iconLabel }}"
+                  [attr.aria-label]="projectLink.iconLabel"
                 ></mat-icon>
               </ng-template>
             </li>
@@ -98,41 +100,43 @@
       </table>
     </section>
 
-    <section class="quickstarter-add" *ngIf="editMode">
-      <div class="quickstarter-row mt-4">
-        <div class="col-5">
-          <mat-form-field>
-            <mat-label>Quickstarter</mat-label>
-            <select matNativeControl required>
-              <option value="be-golang-plain">Backend - Golang</option>
-              <option value="be-typescript-express"
-                >Backend - NodeJS/Express</option
-              >
-              <option value="be-python-flask">Backend - Python/Flask</option>
-            </select>
-          </mat-form-field>
-        </div>
-        <div class="col-5">
-          <mat-form-field>
-            <mat-label>Name</mat-label>
-            <input matInput placeholder="Name" />
-          </mat-form-field>
-        </div>
-        <div class="col-2">
-          <button mat-raised-button color="primary">
-            <mat-icon
-              svgIcon="plus"
-              aria-hidden="false"
-              aria-label="Add quickstarter"
-            ></mat-icon>
-          </button>
+    <section id="new">
+      <div class="quickstarter-add" *ngIf="editMode">
+        <div class="quickstarter-row mt-4">
+          <div class="col-5">
+            <mat-form-field>
+              <mat-label>Quickstarter</mat-label>
+              <select matNativeControl required>
+                <option value="be-golang-plain">Backend - Golang</option>
+                <option value="be-typescript-express"
+                  >Backend - NodeJS/Express</option
+                >
+                <option value="be-python-flask">Backend - Python/Flask</option>
+              </select>
+            </mat-form-field>
+          </div>
+          <div class="col-5">
+            <mat-form-field>
+              <mat-label>Name</mat-label>
+              <input matInput placeholder="Name" />
+            </mat-form-field>
+          </div>
+          <div class="col-2">
+            <a mat-raised-button color="primary">
+              <mat-icon
+                svgIcon="plus"
+                aria-hidden="false"
+                aria-label="Add quickstarter"
+              ></mat-icon>
+            </a>
+          </div>
         </div>
       </div>
     </section>
   </ng-template>
 
   <mat-card-actions class="d-flex justify-content-end mt-4" *ngIf="editMode">
-    <button mat-raised-button (click)="editMode = !editMode">CANCEL</button>
+    <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
     <button mat-raised-button color="primary" disabled>START</button>
   </mat-card-actions>
 </mat-card>

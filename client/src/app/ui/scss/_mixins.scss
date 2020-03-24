@@ -1,0 +1,24 @@
+// Prepare overlay pseudo element to be activated when 'status-editmode-active' class is present in <body>
+// (toggled by EditModeService)
+
+@mixin overlay() {
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:after {
+    content: '';
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  .status-editmode-active & {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
