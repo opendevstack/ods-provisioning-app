@@ -55,4 +55,11 @@ export class BrowserService {
 
     return cookies;
   }
+
+  scrollIntoViewById(elementName: string): void {
+    const element = this.document.getElementById(elementName);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
 }
