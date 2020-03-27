@@ -65,6 +65,38 @@ objects:
     - generic:
         secret: ${PIPELINE_TRIGGER_SECRET}
       type: Generic
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: ods-document-generation-svc
+    name: ods-document-generation-svc-${ODS_GIT_REF}
+  spec:
+    nodeSelector: {}
+    output: {}
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${ODS_GIT_REF}
+        uri: ${REPO_BASE}/opendevstack/ods-document-generation-svc.git
+      sourceSecret:
+        name: cd-user-with-password
+      type: Git
+    strategy:
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: Jenkinsfile
+        env:
+          - name: ODS_IMAGE_TAG
+            value: ${ODS_IMAGE_TAG}
+          - name: ODS_GIT_REF
+            value: ${ODS_GIT_REF}
+      type: JenkinsPipeline
+    triggers:
+    - generic:
+        secret: ${PIPELINE_TRIGGER_SECRET}
+      type: Generic
 parameters:
 - name: ODS_IMAGE_TAG
   required: true
