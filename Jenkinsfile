@@ -3,17 +3,12 @@ def odsGitRef = env.ODS_GIT_REF ?: 'production'
 def final projectId = 'prov'
 def final componentId = 'prov-app'
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
-def sharedLibraryRepository
 def dockerRegistry
 node {
-  sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
   dockerRegistry = env.DOCKER_REGISTRY
 }
 
-library identifier: "ods-library@${odsGitRef}", retriever: modernSCM(
-  [$class: 'GitSCMSource',
-   remote: sharedLibraryRepository,
-   credentialsId: credentialsId])
+@Library('ods-jenkins-shared-library@${odsGitRef}') _
 
 // See readme of shared library for usage and customization.
 odsPipeline(

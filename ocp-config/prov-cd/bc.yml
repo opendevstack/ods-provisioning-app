@@ -5,7 +5,7 @@ objects:
   kind: BuildConfig
   metadata:
     labels:
-      app: jenkins
+      app: jenkins-ods-provisioning-app
     name: ods-provisioning-app-${ODS_GIT_REF}
   spec:
     nodeSelector: {}
@@ -17,6 +17,38 @@ objects:
       git:
         ref: ${ODS_GIT_REF}
         uri: ${REPO_BASE}/opendevstack/ods-provisioning-app.git
+      sourceSecret:
+        name: cd-user-with-password
+      type: Git
+    strategy:
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: Jenkinsfile
+        env:
+          - name: ODS_IMAGE_TAG
+            value: ${ODS_IMAGE_TAG}
+          - name: ODS_GIT_REF
+            value: ${ODS_GIT_REF}
+      type: JenkinsPipeline
+    triggers:
+    - generic:
+        secret: ${PIPELINE_TRIGGER_SECRET}
+      type: Generic
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: jenkins-ods-mro-jenkins-shared-library
+    name: ods-mro-jenkins-shared-library-${ODS_GIT_REF}
+  spec:
+    nodeSelector: {}
+    output: {}
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        ref: ${ODS_GIT_REF}
+        uri: ${REPO_BASE}/opendevstack/ods-mro-jenkins-shared-library.git
       sourceSecret:
         name: cd-user-with-password
       type: Git
