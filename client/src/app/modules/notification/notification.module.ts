@@ -1,15 +1,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {NotificationComponent} from "./components/notification.component";
-import {MatDialogModule} from "@angular/material/dialog";
-
-
+import { NotificationComponent } from './components/notification.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [NotificationComponent],
-  imports: [
-    CommonModule,
-    MatDialogModule
-  ],
+  imports: [CommonModule, MatDialogModule]
 })
-export class NotificationModule { }
+export class NotificationModule {}

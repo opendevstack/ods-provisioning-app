@@ -1,7 +1,6 @@
 import { CookieBuilder } from './cookie-builder';
 
 describe('CookieBuilder', () => {
-
   beforeEach(() => {
     jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime());
   });
@@ -21,7 +20,6 @@ describe('CookieBuilder', () => {
   });
 
   describe('building cookie from object', () => {
-
     it('should build insecure cookie without expiration date', () => {
       /* when */
       const cookie = new CookieBuilder('foocookie')
@@ -52,6 +50,4 @@ describe('CookieBuilder', () => {
       expect(cookie.path).toEqual('/');
     });
   });
-
-
 });

@@ -1,4 +1,4 @@
-import {Quickstarter} from "./quickstarter";
+import { Quickstarter } from './quickstarter';
 
 export interface Project {
   projectName: string;

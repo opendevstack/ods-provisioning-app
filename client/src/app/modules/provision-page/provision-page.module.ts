@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {ProvisionPageComponent} from "./components/provision-page.component";
-import {RouterModule} from "@angular/router";
+import { ProvisionPageComponent } from './components/provision-page.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   imports: [
@@ -9,4 +9,4 @@ import {RouterModule} from "@angular/router";
     RouterModule.forChild([{ path: '', component: ProvisionPageComponent }])
   ]
 })
-export class ProvisionPageModule { }
+export class ProvisionPageModule {}

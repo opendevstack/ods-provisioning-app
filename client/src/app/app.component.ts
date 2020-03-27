@@ -1,6 +1,6 @@
-import {Component, OnInit} from '@angular/core';
-import {MatIconRegistry} from "@angular/material/icon";
-import {DomSanitizer} from "@angular/platform-browser";
+import { Component, OnInit } from '@angular/core';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +17,8 @@ export class AppComponent implements OnInit {
       key: 'AIRF'
     },
     {
-      name: 'ASAP - Augmented Synthesis and Analytical data-based Process development',
+      name:
+        'ASAP - Augmented Synthesis and Analytical data-based Process development',
       key: 'ASAP'
     },
     {
@@ -34,13 +35,17 @@ export class AppComponent implements OnInit {
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer
   ) {
-    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/mdi-custom-icons.svg"));
-    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/bi-stack.svg"));
+    this.matIconRegistry.addSvgIconSet(
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        '../assets/icons/mdi-custom-icons.svg'
+      )
+    );
+    this.matIconRegistry.addSvgIconSet(
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        '../assets/icons/bi-stack.svg'
+      )
+    );
   }
 
-  ngOnInit(): void {
-
-  }
-
-
+  ngOnInit(): void {}
 }

@@ -4,7 +4,7 @@ body {
   grid-template-columns: auto;
   grid-template-rows: auto 1fr auto;
   overflow: hidden;
-  background: rgb(221,224,227); /* $midGrey from bix ukit TODO put to theme */
+  background: rgb(221, 224, 227); /* $midGrey from bix ukit TODO put to theme */
 }
 
 header,
@@ -46,7 +46,6 @@ app-root {
       position: absolute;
       right: 20px;
     }
-
   }
 
   .content {
@@ -59,9 +58,7 @@ app-root {
     @include media-breakpoint-up(md) {
       @include make-col(8);
     }
-
   }
-
 }
 
 footer {

@@ -3,12 +3,8 @@ import { CommonModule } from '@angular/common';
 import { BrowserService } from './services/browser.service';
 
 @NgModule({
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule],
   declarations: [],
-  providers: [
-    BrowserService
-  ]
+  providers: [BrowserService]
 })
-export class BrowserModule { }
+export class BrowserModule {}

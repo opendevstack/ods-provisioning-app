@@ -13,7 +13,7 @@ export const configureTests = (
 ) => {
   const compilerConfig: CompilerOptions = {
     preserveWhitespaces: false,
-    ...compilerOptions,
+    ...compilerOptions
   };
 
   const configuredTestBed = TestBed.configureCompiler(compilerConfig);

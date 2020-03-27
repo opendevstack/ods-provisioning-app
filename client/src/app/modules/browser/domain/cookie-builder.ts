@@ -1,13 +1,12 @@
 import { Cookie } from './cookie';
 
 export class CookieBuilder {
-
   protected settings: {
-    name: string,
-    value: string,
-    secure: boolean,
-    maxAge: number,
-    path: string
+    name: string;
+    value: string;
+    secure: boolean;
+    maxAge: number;
+    path: string;
   };
 
   constructor(cookieName: string) {
@@ -26,7 +25,8 @@ export class CookieBuilder {
       this.settings.value,
       this.settings.secure,
       this.settings.maxAge,
-      this.settings.path);
+      this.settings.path
+    );
   }
 
   withStringValue(value: string): this {

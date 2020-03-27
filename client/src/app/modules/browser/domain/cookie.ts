@@ -35,5 +35,4 @@ export class Cookie {
     }
     return cookieString;
   }
-
 }
