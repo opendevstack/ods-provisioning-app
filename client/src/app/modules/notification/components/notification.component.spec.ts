@@ -1,7 +1,11 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NotificationComponent } from './notification.component';
-import {MatDialog, MatDialogModule, MatDialogRef} from "@angular/material/dialog";
+import {
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef
+} from '@angular/material/dialog';
 
 // TODO fixme
 xdescribe('NotificationComponent', () => {
@@ -10,10 +14,9 @@ xdescribe('NotificationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NotificationComponent ],
+      declarations: [NotificationComponent],
       providers: [MatDialog]
-    })
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {

@@ -1,10 +1,9 @@
-import { createServiceFactory, SpectatorService} from "@ngneat/spectator/jest";
+import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { STORAGE_PREFIX } from '../tokens';
 import { StorageService } from './storage.service';
-import {BrowserService} from "../../browser/services/browser.service";
+import { BrowserService } from '../../browser/services/browser.service';
 
 describe('StorageService in default mode', () => {
-
   const mockStoragePrefix = 'provapp_';
 
   const mockSessionStorage = {
@@ -29,14 +28,15 @@ describe('StorageService in default mode', () => {
   const createService = createServiceFactory({
     service: StorageService,
     providers: [
-    {
-      provide: STORAGE_PREFIX,
-      useValue: mockStoragePrefix
-    },
-    {
-      provide: BrowserService,
-      useValue: mockBrowserService
-    }]
+      {
+        provide: STORAGE_PREFIX,
+        useValue: mockStoragePrefix
+      },
+      {
+        provide: BrowserService,
+        useValue: mockBrowserService
+      }
+    ]
   });
 
   beforeEach(() => {
@@ -59,15 +59,14 @@ describe('StorageService in default mode', () => {
     expect(spectator.service.getItem('test')).toBeNull();
   });
 
-  it('should remove all previously stored items from session storage',() => {
+  it('should remove all previously stored items from session storage', () => {
     /* given */
     spectator.service.saveItem('x', { hello: 'world' });
-    spectator.service.saveItem('y', { test: 'example'});
+    spectator.service.saveItem('y', { test: 'example' });
     /* when */
     spectator.service.removeAll();
     /* then */
     expect(spectator.service.getItem('x')).toBeNull();
     expect(spectator.service.getItem('y')).toBeNull();
   });
-
 });
