@@ -5,7 +5,7 @@ objects:
   kind: BuildConfig
   metadata:
     labels:
-      app: jenkins-ods-provisioning-app
+      app: jenkins
     name: ods-provisioning-app-${ODS_GIT_REF}
   spec:
     nodeSelector: {}
