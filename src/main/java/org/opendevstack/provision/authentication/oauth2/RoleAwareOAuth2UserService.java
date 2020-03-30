@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * Using Delegation-based strategy for reading OidcUser from {@link OidcUserService}, extracting
@@ -45,6 +46,9 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
 
   private final Oauth2AuthenticationManager authenticationManager;
 
+  @Value("${oauth2.user.use-email-claim-as-username:false}")
+  private boolean useEmailClaimAsUserName;
+
   @Autowired
   public RoleAwareOAuth2UserService(
       ObjectMapper objectMapper,
@@ -64,12 +68,18 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     Collection<GrantedAuthority> mappedAuthorities = extractAuthorities(userRequest);
     mappedAuthorities.addAll(oidcUser.getAuthorities());
 
-    authenticationManager.setUserName(oidcUser.getName());
-    // authenticationManager.setEmail(oidcUser.getEmail());
+    String username = RoleAwareOAuth2UserService.resolveUsername(oidcUser, useEmailClaimAsUserName);
+    authenticationManager.setUserName(username);
+
     // Create a copy of oidcUser but use the mappedAuthorities instead
     DefaultOidcUser oidcUserWithAuthorities =
         new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
     return oidcUserWithAuthorities;
+  }
+
+  public static String resolveUsername(OidcUser oidcUser, boolean useEmailClaimAsUserName) {
+    Assert.notNull(oidcUser, "Parameter 'oidcUser' is null!");
+    return useEmailClaimAsUserName ? oidcUser.getEmail() : oidcUser.getName();
   }
 
   private Collection<GrantedAuthority> extractAuthorities(OidcUserRequest userRequest) {
