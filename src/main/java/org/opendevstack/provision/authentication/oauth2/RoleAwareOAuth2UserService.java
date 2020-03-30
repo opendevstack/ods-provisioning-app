@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,9 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
 
   private final Oauth2AuthenticationManager authenticationManager;
 
+  @Value("${oauth2.user.use-email-claim-as-username:false}")
+  private boolean useEmailClaimAsUserName;
+
   @Value("${oauth2.user.roles.convert-to-lower-case:true}")
   private boolean convertRolesToLowerCase;
 
@@ -69,8 +71,9 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     Collection<GrantedAuthority> mappedAuthorities = extractAuthorities(userRequest);
     mappedAuthorities.addAll(oidcUser.getAuthorities());
 
-    authenticationManager.setUserName(oidcUser.getName());
-    // authenticationManager.setEmail(oidcUser.getEmail());
+    String username = RoleAwareOAuth2UserService.resolveUsername(oidcUser, useEmailClaimAsUserName);
+    authenticationManager.setUserName(username);
+
     // Create a copy of oidcUser but use the mappedAuthorities instead
     DefaultOidcUser oidcUserWithAuthorities =
         new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
@@ -98,7 +101,6 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     }
   }
 
-  @NotNull
   public static List<String> extractRoles(
       JsonNode token, String userRolesExpression, boolean convertRolesToLowerCase) {
     Assert.notNull(token, "Parameter 'token' is null!");
@@ -109,5 +111,10 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
             .map(JsonNode::asText)
             .map(roleName -> convertRolesToLowerCase ? roleName.toLowerCase() : roleName)
             .collect(Collectors.toList()));
+  }
+
+  public static String resolveUsername(OidcUser oidcUser, boolean useEmailClaimAsUserName) {
+    Assert.notNull(oidcUser, "Parameter 'oidcUser' is null!");
+    return useEmailClaimAsUserName ? oidcUser.getEmail() : oidcUser.getName();
   }
 }
