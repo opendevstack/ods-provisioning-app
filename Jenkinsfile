@@ -1,14 +1,14 @@
-def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsImageTag
 def final projectId = 'prov'
 def final componentId = 'prov-app'
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
 def dockerRegistry
 node {
+  odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
   dockerRegistry = env.DOCKER_REGISTRY
 }
 
-@Library('ods-jenkins-shared-library@${odsGitRef}') _
+@Library('ods-jenkins-shared-library@2.x') _
 
 // See readme of shared library for usage and customization.
 odsPipeline(
