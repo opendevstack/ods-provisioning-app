@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed
+- Enables e2e spock quickstarter ([#388](https://github.com/opendevstack/ods-provisioning-app/pull/388))
+- Adds default value for logback file path ([#385](https://github.com/opendevstack/ods-provisioning-app/pull/385))
+- Adds option to disable logout from identity manager ([#372](https://github.com/opendevstack/ods-provisioning-app/pull/372))
+- Fixes hardcoded logback file path and failed test when running locally ([#361](https://github.com/opendevstack/ods-provisioning-app/pull/361))
+- Provisioning of quickstarters fails if `pod name` label is longer than 63 characters ([#335](https://github.com/opendevstack/ods-provisioning-app/pull/335))
+- Bug existing project cleanup ([#347](https://github.com/opendevstack/ods-provisioning-app/pull/347))
+- Adds component id and component type validation rules and shortens pipeline execution url length ([#344](https://github.com/opendevstack/ods-provisioning-app/pull/344))
+- Run `webhook-proxy` under `jenkins` serviceaccount ([#341](https://github.com/opendevstack/ods-provisioning-app/pull/341))
+- Use image tag `latest` for prov-app DC ([#332](https://github.com/opendevstack/ods-provisioning-app/pull/332))
+
 ## [2.0] - 2019-12-13
 
 ### Added
