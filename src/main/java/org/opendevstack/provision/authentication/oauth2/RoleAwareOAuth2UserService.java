@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * Using Delegation-based strategy for reading OidcUser from {@link OidcUserService}, extracting
@@ -44,6 +46,9 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
   private final String userRolesExpression;
 
   private final Oauth2AuthenticationManager authenticationManager;
+
+  @Value("${oauth2.user.roles.convert-to-lower-case:true}")
+  private boolean convertRolesToLowerCase;
 
   @Autowired
   public RoleAwareOAuth2UserService(
@@ -77,16 +82,32 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     LOG.debug("Begin extractRoles at path '{}' from idToken jwt = {}", userRolesExpression, token);
 
     try {
-      List<String> roles =
-          StreamSupport.stream(token.at(userRolesExpression).spliterator(), false)
-              .map(JsonNode::asText)
-              .collect(Collectors.toList());
+      List<String> roles = extractRoles(token, userRolesExpression, convertRolesToLowerCase);
       LOG.debug("End extractRoles: roles = {}", roles);
+
+      if (roles.isEmpty()) {
+        LOG.warn(
+            "Role extraction with expression '{}' was not successful. It returned an empty list!",
+            userRolesExpression);
+      }
 
       return AuthorityUtils.createAuthorityList(roles.toArray(new String[0]));
     } catch (IllegalArgumentException e) {
       LOG.warn("Cannot extract roles from id token:", e);
       return Collections.emptyList();
     }
+  }
+
+  @NotNull
+  public static List<String> extractRoles(
+      JsonNode token, String userRolesExpression, boolean convertRolesToLowerCase) {
+    Assert.notNull(token, "Parameter 'token' is null!");
+    Assert.notNull(userRolesExpression, "Parameter 'userRolesExpression' is null!");
+
+    return Collections.unmodifiableList(
+        StreamSupport.stream(token.at(userRolesExpression).spliterator(), false)
+            .map(JsonNode::asText)
+            .map(roleName -> convertRolesToLowerCase ? roleName.toLowerCase() : roleName)
+            .collect(Collectors.toList()));
   }
 }
