@@ -1,26 +1,20 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { STORAGE_PREFIX } from './tokens';
-import {BrowserModule} from "../browser/browser.module";
+import { BrowserModule } from '../browser/browser.module';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    BrowserModule
-  ],
+  imports: [CommonModule, BrowserModule],
   declarations: []
 })
 export class StorageModule {
-
-  constructor() { }
+  constructor() {}
 
   // TODO later usage in app.module.ts import:
   //  StorageModule.withOptions({
   //    storagePrefix: 'provapp_'
   //  })
-  static withOptions(options: {
-    storagePrefix: string;
-  }): ModuleWithProviders {
+  static withOptions(options: { storagePrefix: string }): ModuleWithProviders {
     return {
       ngModule: StorageModule,
       providers: [
@@ -31,5 +25,4 @@ export class StorageModule {
       ]
     };
   }
-
 }

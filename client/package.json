@@ -3,12 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prettier": "prettier --write \"**/*.{js,json,css,scss,less,md,ts,html,component.html}\"",
+    "prettier:check": "prettier --check \"**/*.{js,json,css,scss,less,md,ts,html,component.html}\"",
     "start:dev": "ng serve --proxy-config proxy.conf.json",
     "start": "ng serve",
     "build": "ng build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "ng lint && sass-lint --verbose --no-exit"
+    "lint": "ng lint && sass-lint --verbose --no-exit",
+    "format:fix:staged": "pretty-quick --staged --verbose"
   },
   "private": true,
   "dependencies": {
@@ -23,6 +26,7 @@
     "@angular/platform-browser-dynamic": "~9.0.0",
     "@angular/router": "~9.0.0",
     "@briebug/jest-schematic": "^2.1.1",
+    "@schuchard/prettier": "^3.1.0",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
@@ -37,12 +41,17 @@
     "@types/node": "^12.11.1",
     "bootstrap": "^4.4.1",
     "codelyzer": "^5.1.2",
+    "husky": "4.2.3",
     "jest": "^24.9.0",
     "jest-preset-angular": "8.0.0",
+    "lint-staged": "10.0.9",
+    "prettier": "2.0.2",
+    "pretty-quick": "^2.0.1",
     "protractor": "~5.4.3",
     "sass-lint": "^1.13.1",
     "ts-node": "~8.3.0",
     "tslint": "~5.18.0",
+    "tslint-config-prettier": "1.18.0",
     "typescript": "~3.7.5"
   },
   "jest": {
@@ -79,6 +88,11 @@
           "jest-preset-angular/build/StripStylesTransformer"
         ]
       }
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn format:fix:staged"
     }
   }
 }

@@ -2,7 +2,6 @@ import { CookieBuilder } from '../domain/cookie-builder';
 import { BrowserService } from './browser.service';
 
 describe('BrowserService:', () => {
-
   it('should provide session storage', () => {
     /* given */
     const mockDocument = {
@@ -19,7 +18,6 @@ describe('BrowserService:', () => {
   });
 
   describe('handling cookies', () => {
-
     beforeEach(() => {
       /* when */
       jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime());
@@ -33,10 +31,9 @@ describe('BrowserService:', () => {
       };
       const service = new BrowserService(mockDocument);
       /* when */
-      service.setCookie(new CookieBuilder('hello')
-        .withStringValue('world')
-        .asSecure()
-        .build());
+      service.setCookie(
+        new CookieBuilder('hello').withStringValue('world').asSecure().build()
+      );
       /* then */
       expect(mockDocument.cookie).toEqual('hello=world;path=/;secure');
     });
@@ -49,9 +46,9 @@ describe('BrowserService:', () => {
       };
       const service = new BrowserService(mockDocument);
       /* when */
-      service.setCookie(new CookieBuilder('hello')
-        .withStringValue('world')
-        .build());
+      service.setCookie(
+        new CookieBuilder('hello').withStringValue('world').build()
+      );
       /* then */
       expect(mockDocument.cookie).toEqual('hello=world;path=/');
     });
@@ -65,13 +62,17 @@ describe('BrowserService:', () => {
       const service = new BrowserService(mockDocument);
 
       /* when */
-      service.setCookie(new CookieBuilder('hello')
-        .withStringValue('world')
-        .asSecure()
-        .withExpiringInDays(30)
-        .build());
+      service.setCookie(
+        new CookieBuilder('hello')
+          .withStringValue('world')
+          .asSecure()
+          .withExpiringInDays(30)
+          .build()
+      );
       /* then */
-      expect(mockDocument.cookie).toEqual('hello=world;path=/;secure;max-age=2592000');
+      expect(mockDocument.cookie).toEqual(
+        'hello=world;path=/;secure;max-age=2592000'
+      );
     });
 
     it('should return an empty string when no cookie is set', () => {
@@ -113,7 +114,5 @@ describe('BrowserService:', () => {
       const deletedCookie = service.getCookie('hello');
       expect(deletedCookie.value).toEqual('');
     });
-
   });
-
 });

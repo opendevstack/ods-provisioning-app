@@ -8,7 +8,7 @@ Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app w
 
 ## Proxy to the API
 
-In order to get real data from the API: Copy the content from `proxy.conf.template.json` into a new `proxy.conf.json` file and adapt it to your needs. With `yarn start:dev` you then can use it for local development.  
+In order to get real data from the API: Copy the content from `proxy.conf.template.json` into a new `proxy.conf.json` file and adapt it to your needs. With `yarn start:dev` you then can use it for local development.
 
 ## Code scaffolding
 
