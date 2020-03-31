@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.*;
@@ -55,6 +56,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -493,6 +495,50 @@ public class ProjectApiControllerTest {
                 .param("name", "project")
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
+        .andDo(MockMvcResultHandlers.print());
+  }
+
+  @Test
+  public void givenGetAllProjects_whenProjectFound_thenOK() throws Exception {
+
+    Map<String, OpenProjectData> projects = new HashMap<>();
+
+    projects.put(data.projectKey, data);
+
+    OpenProjectData copy = copyFromProject(data);
+    copy.projectKey = copy.projectKey + 2;
+    projects.put(copy.projectKey, copy);
+
+    when(filteredStorage.getProjects()).thenReturn(projects);
+
+    ResultActions resultActions =
+        mockMvc
+            .perform(get("/api/v2/project").accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(MockMvcResultHandlers.print());
+
+    String content = resultActions.andReturn().getResponse().getContentAsString();
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    JsonNode jsonNode = mapper.readTree(content);
+
+    assertEquals(2, jsonNode.size());
+
+    JsonNode node = jsonNode.findValue(copy.projectKey);
+
+    assertEquals(copy.projectKey, node.get("projectKey").asText());
+  }
+
+  @Test
+  public void givenGetAllProjects_whenException_thenInternalServerErrorResponse() throws Exception {
+
+    when(filteredStorage.getProjects()).thenReturn(null);
+
+    mockMvc
+        .perform(get("/api/v2/project").accept(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+        .andExpect(MockMvcResultMatchers.content().string(""))
         .andDo(MockMvcResultHandlers.print());
   }
 

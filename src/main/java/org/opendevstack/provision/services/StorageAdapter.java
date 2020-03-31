@@ -82,18 +82,30 @@ public class StorageAdapter implements IServiceAdapter {
     this.storage = storage;
   }
 
+  public Map<String, OpenProjectData> getProjects() {
+    Collection<OpenProjectData> projects = listProjectHistory().values();
+
+    Map<String, OpenProjectData> map = new HashMap<>();
+
+    for (OpenProjectData fProject : projects) {
+      map.put(fProject.projectKey, fProject);
+    }
+
+    return map;
+  }
+
   @Override
   public Map<String, String> getProjects(String filter) {
-    Collection<OpenProjectData> filteredProjects = listProjectHistory().values();
+    Collection<OpenProjectData> projectList = listProjectHistory().values();
 
-    Map<String, String> filteredKeys = new HashMap<>();
+    Map<String, String> result = new HashMap<>();
 
-    for (OpenProjectData fProject : filteredProjects) {
+    for (OpenProjectData fProject : projectList) {
       if (filter.equalsIgnoreCase(fProject.projectKey)) {
-        filteredKeys.put(fProject.projectKey, fProject.description);
+        result.put(fProject.projectKey, fProject.description);
       }
     }
-    return filteredKeys;
+    return result;
   }
 
   @Override

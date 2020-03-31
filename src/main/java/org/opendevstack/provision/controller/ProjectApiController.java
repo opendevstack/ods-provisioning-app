@@ -31,10 +31,7 @@ import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionExc
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
 import org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage;
-import org.opendevstack.provision.model.ExecutionJob;
-import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.OpenProjectDataValidator;
+import org.opendevstack.provision.model.*;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -530,6 +527,29 @@ public class ProjectApiController {
     }
 
     return project;
+  }
+
+  /**
+   * Get a list with all projects in the ODS prov system. In this case the quickstarters {@link
+   * OpenProjectData#quickstarters} contain also the description of the quickstarter that was used
+   */
+  @GetMapping
+  public ResponseEntity<Map<String, OpenProjectInfo>> getAllProjects() {
+
+    try {
+      Map<String, OpenProjectData> projectsData = filteredStorage.getProjects();
+      Map<String, OpenProjectInfo> projects = new HashMap<>();
+
+      for (Map.Entry<String, OpenProjectData> entry : projectsData.entrySet()) {
+        projects.put(entry.getKey(), new OpenProjectInfo(entry.getValue()));
+      }
+
+      return ResponseEntity.ok(projects);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
   }
 
   /**
