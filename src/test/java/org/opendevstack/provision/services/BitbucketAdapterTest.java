@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +50,7 @@ import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.Repository;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.util.TestDataFileReader;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -481,21 +483,28 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull())).thenReturn(null);
       checkUser.apply(result);
       fail();
-    } catch (AdapterException e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
+    } catch (Exception e) {
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
-    // Case IOException throw from rest client!
-    IOException ioException = new IOException();
+    // Rest API return http error 404
+    HttpException notFound = new HttpException(404, "not found");
+    when(restClient.execute(isNotNull())).thenThrow(notFound);
+    List<String> failures = checkUser.apply(result);
+    assertTrue(failures.get(0).contains(spyAdapter.getTechnicalUser()));
+
+    // Rest API return other http error than 404
     try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      when(restClient.execute(isNotNull()))
+          .thenThrow(new HttpException(500, "internal server error"));
       checkUser.apply(result);
       fail();
     } catch (AdapterException e) {
-      assertEquals(ioException, e.getCause());
+      assertTrue(e.getCause() instanceof HttpException);
     }
 
     // Case no error, user exists!
+    result = new ArrayList<>();
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<String> newResult = checkUser.apply(result);
     assertEquals(0, newResult.size());
@@ -534,6 +543,18 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
       assertTrue(e.getMessage().contains(BitbucketAdapter.ADAPTER_NAME));
       assertTrue(e.getMessage().contains(project.projectKey));
+    }
+
+    NullPointerException npe = new NullPointerException("npe throw in unit test");
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(npe);
+
+      spyAdapter.checkCreateProjectPreconditions(project);
+      fail();
+
+    } catch (CreateProjectPreconditionException e) {
+      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
+      Assert.assertTrue(e.getMessage().contains(project.projectKey));
     }
   }
 }

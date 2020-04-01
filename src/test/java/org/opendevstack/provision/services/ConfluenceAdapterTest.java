@@ -18,15 +18,18 @@ import static junit.framework.TestCase.assertEquals;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasToString;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,39 +38,55 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
+import org.opendevstack.provision.util.TestDataFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@ActiveProfiles("utest")
 @DirtiesContext
 public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  @Autowired private IODSAuthnzAdapter authnzAdapter;
+  private static final Logger logger = LoggerFactory.getLogger(ConfluenceAdapterTest.class);
+
+  public static final String TEST_USER_NAME = "testUserName";
+  public static final String TEST_USER_PASSWORD = "testUserPassword";
+
+  private ObjectMapper objectMapper;
+
+  private static TestDataFileReader fileReader =
+      new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
+
+  @MockBean private IODSAuthnzAdapter authnzAdapter;
 
   @Autowired @InjectMocks ConfluenceAdapter confluenceAdapter;
 
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
 
-  // RestClient restClient;
   @Autowired ConfigurableEnvironment environment;
 
   @Before
   public void initTests() {
-    authnzAdapter.setUserName("testUserName");
-    authnzAdapter.setUserPassword("testUserPassword");
+    when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
+    when(authnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
   }
 
   @Test
@@ -194,5 +213,45 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void testAdapterURI() {
     assertEquals("http://192.168.56.31:8090/rest", confluenceAdapter.getAdapterApiUri());
+  }
+
+  @Test
+  public void whenHandleExceptionWithinCheckCreateProjectPreconditionsThenException()
+      throws IOException {
+
+    confluenceAdapter.setRestClient(restClient);
+    confluenceAdapter.useTechnicalUser = true;
+    confluenceAdapter.userName = TEST_USER_NAME;
+    confluenceAdapter.userPassword = TEST_USER_PASSWORD;
+
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+
+    OpenProjectData project = new OpenProjectData();
+    project.projectKey = "PKEY";
+
+    IOException ioException = new IOException("throw in unit test");
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(ioException);
+
+      spyAdapter.checkCreateProjectPreconditions(project);
+      fail();
+
+    } catch (CreateProjectPreconditionException e) {
+      Assert.assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
+      Assert.assertTrue(e.getMessage().contains(ConfluenceAdapter.ADAPTER_NAME));
+      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+    }
+
+    NullPointerException npe = new NullPointerException("npe throw in unit test");
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(npe);
+
+      spyAdapter.checkCreateProjectPreconditions(project);
+      fail();
+
+    } catch (CreateProjectPreconditionException e) {
+      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
+      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+    }
   }
 }

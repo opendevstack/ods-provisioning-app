@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -105,14 +106,17 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${global.keyuser.role.name}")
   private String globalKeyuserRoleName;
 
+  @Value("${project.template.default.key}")
+  private String defaultProjectKey;
+
+  //  @Value("${jira.technical.user}")
+  //  private String technicalUser;
+
   @Autowired private IODSAuthnzAdapter manager;
 
   @Autowired private ConfigurableEnvironment environment;
 
   @Autowired private List<String> projectTemplateKeyNames;
-
-  @Value("${project.template.default.key}")
-  private String defaultProjectKey;
 
   public JiraAdapter() {
     super(ADAPTER_NAME);
@@ -650,12 +654,15 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       return Collections.unmodifiableList(preconditionFailures);
 
-    } catch (Exception e) {
-      logger.error(
-          "Unexpected error when checking precondition for creation of project '{}'",
-          newProject.projectKey,
-          e);
+    } catch (AdapterException e) {
       throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, e);
+    } catch (Exception e) {
+      String message =
+          String.format(
+              "Unexpected error when checking precondition for creation of project '%s'",
+              newProject.projectKey);
+      logger.error(message, e);
+      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, message);
     }
   }
 
@@ -690,9 +697,23 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     String url = String.format(JIRA_API_GROUPS_PICKER_PATTERN, jiraUri, jiraApiPath);
     try {
-      String response =
-          getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
-      Assert.notNull(response, "Response is null for '" + group + "'");
+
+      String response = null;
+
+      try {
+        response =
+            getRestClient()
+                .execute(httpGet().url(url).queryParams(params).returnType(String.class));
+        Assert.notNull(response, "Response is null for '" + group + "'");
+      } catch (HttpException e) {
+        if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+          logger.debug("Group '{}' was not found!", group, e);
+          return false;
+        } else {
+          logger.warn("Unexpected method trying to get group '{}'!", group, e);
+          throw e;
+        }
+      }
 
       JsonNode json = new ObjectMapper().readTree(response);
 
@@ -705,7 +726,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       return group.equals(haveGroup.asText());
 
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new AdapterException(e);
     }
   }
@@ -715,7 +736,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       logger.info("checking if user '{}' exists!", user);
 
       if (!checkUserExists(user)) {
-        preconditionFailures.add(String.format("user '%s' does not exists!", user));
+        preconditionFailures.add(
+            String.format("User '%s' does not exists in {}!", user, ADAPTER_NAME));
       }
 
       return preconditionFailures;
@@ -753,7 +775,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
         return preconditionFailures;
 
-      } catch (Exception e) {
+      } catch (IOException e) {
         throw new AdapterException(e);
       }
     };
@@ -766,14 +788,28 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     String url = String.format(JIRA_API_USER_PATTERN, jiraUri, jiraApiPath);
     try {
-      String response =
-          getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
-      Assert.notNull(response, "Response is null for '" + username + "'");
+      String response = null;
+
+      try {
+        response =
+            getRestClient()
+                .execute(httpGet().url(url).queryParams(params).returnType(String.class));
+        Assert.notNull(response, "Response is null for '" + username + "'");
+      } catch (HttpException e) {
+        if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+          logger.debug("User '{}' was not found!", username, e);
+          return false;
+        } else {
+          logger.warn("Unexpected method trying to get user '{}'!", username, e);
+          throw e;
+        }
+      }
+
       JsonNode json = new ObjectMapper().readTree(response);
 
       return containsUser(json, username);
 
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new AdapterException(e);
     }
   }
