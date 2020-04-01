@@ -454,6 +454,18 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       Assert.assertTrue(e.getMessage().contains(JiraAdapter.ADAPTER_NAME));
       Assert.assertTrue(e.getMessage().contains(project.projectKey));
     }
+
+    NullPointerException npe = new NullPointerException("npe throw in unit test");
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(npe);
+
+      spyAdapter.checkCreateProjectPreconditions(project);
+      fail();
+
+    } catch (CreateProjectPreconditionException e) {
+      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
+      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+    }
   }
 
   @Test
@@ -480,8 +492,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull())).thenReturn(null);
       checkUser.apply(result);
       fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -526,8 +538,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull())).thenReturn(null);
       checkGroupExists.apply(result);
       fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -576,8 +588,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull())).thenReturn(null);
       check.apply(new ArrayList<>());
       fail();
-    } catch (AdapterException e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e.getCause()));
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!

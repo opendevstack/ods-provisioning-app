@@ -313,6 +313,57 @@ public class E2EProjectAPIControllerTest {
             matchesClientCall().url(containsString("dialog/web-items")).method(HttpMethod.GET))
         .thenReturn(blList);
 
+    String confluenceUserTemplate = fileReader.readFileContent("confluence-get-user-template");
+    HashSet<String> confluenceUsers = new HashSet<>();
+    confluenceUsers.add(data.projectAdminUser);
+    confluenceUsers.add(TEST_USER_NAME);
+    confluenceUsers.forEach(
+        username -> {
+          try {
+            mockHelper
+                .mockExecute(
+                    matchesClientCall()
+                        .url(
+                            containsString(
+                                realConfluenceAdapter.getAdapterApiUri()
+                                    + "/"
+                                    + ConfluenceAdapter.CONFLUENCE_API_USER))
+                        .queryParam(ConfluenceAdapter.USERNAME_PARAM, username)
+                        .method(HttpMethod.GET))
+                .thenReturn(confluenceUserTemplate.replace("<%USERNAME%>", username));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+
+    String confluenceGroupTemplate = fileReader.readFileContent("confluence-get-group-template");
+    HashSet<String> confluenceGroups = new HashSet<>();
+    confluenceGroups.add(data.projectAdminGroup);
+    confluenceGroups.add(data.projectReadonlyGroup);
+    confluenceGroups.add(data.projectUserGroup);
+    confluenceGroups.add(adminGroup);
+    confluenceGroups.add(userGroup);
+
+    confluenceGroups.forEach(
+        group -> {
+          try {
+            mockHelper
+                .mockExecute(
+                    matchesClientCall()
+                        .url(
+                            containsString(
+                                realConfluenceAdapter.getAdapterApiUri()
+                                    + "/"
+                                    + ConfluenceAdapter.CONFLUENCE_API_GROUP
+                                    + "/"
+                                    + group))
+                        .method(HttpMethod.GET))
+                .thenReturn(confluenceGroupTemplate.replace("<%GROUP%>", group));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+
     // get jira servers for confluence space
     List<JiraServer> jiraservers =
         readTestDataTypeRef(
