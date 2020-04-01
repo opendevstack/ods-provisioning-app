@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Maps jwt roles to lowercase by default ([#400](https://github.com/opendevstack/ods-provisioning-app/pull/400))
 - Enables e2e spock quickstarter ([#388](https://github.com/opendevstack/ods-provisioning-app/pull/388))
 - Adds default value for logback file path ([#385](https://github.com/opendevstack/ods-provisioning-app/pull/385))
 - Adds option to disable logout from identity manager ([#372](https://github.com/opendevstack/ods-provisioning-app/pull/372))
