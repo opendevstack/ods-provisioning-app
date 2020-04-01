@@ -67,6 +67,9 @@ public class ProjectApiController {
   public static final String RETRY_AFTER_INTERVAL_IN_SECONDS = "180";
   public static final String RETRY_AFTER_HEADER = "Retry-After";
 
+  public static final String CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS =
+      "provision.add-project.check-preconditions";
+
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
   @Autowired private ISCMAdapter bitbucketAdapter;
@@ -89,6 +92,17 @@ public class ProjectApiController {
 
   @Value("${provision.cleanup.incomplete.projects:true}")
   private boolean cleanupAllowed;
+
+  @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
+  private boolean checkPreconditionsEnabled;
+
+  public ProjectApiController() {
+    logger.info(
+        "Enable check preconditions = {} [{}={}]",
+        checkPreconditionsEnabled,
+        CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS,
+        checkPreconditionsEnabled);
+  }
 
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
@@ -147,6 +161,7 @@ public class ProjectApiController {
 
       List<String> preconditionsFailures = new ArrayList<>();
 
+      // TODO: move this block to check preconditions in projectIdentityMgmtAdapter
       if (newProject.specialPermissionSet) {
         if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
           logger.info(
@@ -269,20 +284,30 @@ public class ProjectApiController {
   private List<String> checkPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
-    if (newProject.platformRuntime) {
+    if (!checkPreconditionsEnabled) {
+      logger.info(
+          "Skipping check preconditions! Check preconditions is disabled [{}={}]",
+          CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS,
+          checkPreconditionsEnabled);
+    }
 
-      IServiceAdapter[] adapters = {bitbucketAdapter, jiraAdapter};
+    List<String> results = new ArrayList<>();
 
-      List<String> results = new ArrayList<>();
+    if (newProject.bugtrackerSpace) {
+
+      IServiceAdapter[] adapters = {confluenceAdapter, jiraAdapter};
 
       for (IServiceAdapter adapter : adapters) {
         results.addAll(adapter.checkCreateProjectPreconditions(newProject));
       }
-
-      return results;
     }
 
-    return Collections.EMPTY_LIST;
+    if (newProject.platformRuntime) {
+
+      results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
+    }
+
+    return Collections.unmodifiableList(results);
   }
 
   /**
