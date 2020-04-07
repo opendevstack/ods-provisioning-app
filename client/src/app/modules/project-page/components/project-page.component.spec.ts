@@ -8,21 +8,44 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { API_PROJECT_URL } from '../tokens';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { NotificationModule } from '../../notification/notification.module';
+import { BrowserService } from '../../browser/services/browser.service';
+import { ProjectService } from '../services/project.service';
 
-// TODO fixme
-xdescribe('ProjectPageComponent', () => {
+describe('ProjectPageComponent', () => {
   const createComponent = createComponentFactory({
     component: ProjectPageComponent,
     imports: [
+      CommonModule,
       RouterTestingModule,
       HttpClientTestingModule,
       LoadingIndicatorModule,
       MatIconModule,
       MatFormFieldModule,
       MatInputModule,
-      MatTooltipModule
+      MatCardModule,
+      MatTooltipModule,
+      MatButtonModule,
+      MatTableModule,
+      MatSortModule,
+      ClipboardModule,
+      NotificationModule
     ],
-    providers: [{ provide: API_PROJECT_URL, useValue: '/api/mock' }]
+    providers: [
+      { provide: API_PROJECT_URL, useValue: '/api/mock' },
+      {
+        provide: BrowserService,
+        useValue: {
+          scrollIntoViewById: jest.fn()
+        }
+      }
+    ]
   });
   let component: any;
   let spectator: Spectator<ProjectPageComponent>;
@@ -33,5 +56,14 @@ xdescribe('ProjectPageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  xit('should show section to add new quickstarters when edit-button is clicked', () => {
+    /* TODO given */
+    /* when */
+    spectator.click('[data-test-edit-btn]');
+    spectator.detectComponentChanges();
+    /* then */
+    expect(spectator.query('#new')).toBeVisible();
   });
 });

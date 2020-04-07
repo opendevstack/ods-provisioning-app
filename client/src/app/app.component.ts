@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
+import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
 
 @Component({
   selector: 'app-root',
@@ -33,7 +34,9 @@ export class AppComponent implements OnInit {
 
   constructor(
     private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer
+    private domSanitizer: DomSanitizer,
+    private renderer: Renderer2,
+    private editModeService: EditModeService
   ) {
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
@@ -48,4 +51,14 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  getEditModeStatus(instance: any): void {
+    this.editModeService.onGetEditModeFlag.subscribe(editModeActive => {
+      if (editModeActive) {
+        this.renderer.addClass(document.body, 'status-editmode-active');
+      } else {
+        this.renderer.removeClass(document.body, 'status-editmode-active');
+      }
+    });
+  }
 }

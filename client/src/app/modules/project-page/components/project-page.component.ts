@@ -1,9 +1,11 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
+  EventEmitter,
   OnDestroy,
   OnInit,
   Output,
-  EventEmitter,
   ViewChild
 } from '@angular/core';
 import { Subject } from 'rxjs';
@@ -15,6 +17,8 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { BrowserService } from '../../browser/services/browser.service';
+import { EditModeService } from '../../edit-mode/services/edit-mode.service';
 
 export enum ProjectLinkTypes {
   COLLABORATION_SPACE,
@@ -27,7 +31,8 @@ export enum ProjectLinkTypes {
 @Component({
   selector: 'app-project-page',
   templateUrl: './project-page.component.html',
-  styleUrls: ['./project-page.component.scss']
+  styleUrls: ['./project-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectPageComponent implements OnInit, OnDestroy {
   destroy$: Subject<boolean> = new Subject<boolean>();
@@ -38,11 +43,19 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
   editMode = false;
   quickstarterTableSource: any;
   displayedColumns: string[] = ['component_description', 'component_id'];
+
+  @Output() onGetEditModeFlag: EventEmitter<boolean> = new EventEmitter<
+    boolean
+  >();
+
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   constructor(
     private route: ActivatedRoute,
     private projectService: ProjectService,
+    private browserService: BrowserService,
+    private editModeService: EditModeService,
+    private cdr: ChangeDetectorRef,
     private dialog: MatDialog
   ) {}
 
@@ -96,11 +109,12 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
 
           this.aggregatedProjectLinks = this.getAggregateProjectLinks();
           this.isLoading = false;
-
           const dataSource = new MatTableDataSource(this.project.quickstarters);
-          dataSource.sort = this.sort;
 
+          dataSource.sort = this.sort;
           this.quickstarterTableSource = this.project.quickstarters;
+
+          this.cdr.detectChanges();
         },
         err => {
           console.log('fehler', err.message);
@@ -108,7 +122,7 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
       );
   }
 
-  getAggregateProjectLinks(): string | null {
+  private getAggregateProjectLinks(): string | null {
     let aggregatedProjectLinks = '';
     if (!this.projectLinksConfig) {
       return null;
@@ -127,9 +141,19 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     this.dialog.open(NotificationComponent, dialogConfig);
   }
 
-  toggleEditMode(): void {
-    this.editMode = !this.editMode;
-    // this.onEditModeChange.emit(this.editMode);
+  activateEditMode(): void {
+    if (!this.editMode) {
+      this.editMode = true;
+      this.editModeService.emitEditModeFlag(this.editMode);
+      this.browserService.scrollIntoViewById('new');
+    }
+  }
+
+  deactivateEditMode(): void {
+    if (this.editMode) {
+      this.editMode = false;
+      this.editModeService.emitEditModeFlag(this.editMode);
+    }
   }
 
   ngOnDestroy(): void {
