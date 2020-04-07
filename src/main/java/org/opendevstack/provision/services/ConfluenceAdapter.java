@@ -112,9 +112,6 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  //  @Value("${confluence.technical.user}")
-  //  private String technicalUser;
-
   @Autowired ConfigurableEnvironment environment;
 
   @Autowired List<String> projectTemplateKeyNames;
@@ -183,12 +180,11 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     String jiraServerId = null;
     String url =
         String.format(CONFLUENCE_API_JIRA_SERVER_PATTERN, confluenceUri, confluenceApiPath);
-    List<Object> server = getSpaceTemplateList(url, new TypeReference<List<JiraServer>>() {});
-    for (Object obj : server) {
-      logger.debug("Server: {}", obj);
-      JiraServer jiraServer = (JiraServer) obj;
-      if (jiraServer.getUrl().equals(jiraUri)) {
-        jiraServerId = jiraServer.getId();
+    List<JiraServer> servers = getSpaceTemplateList(url, new TypeReference<>() {});
+    for (var server : servers) {
+      logger.debug("Server: {}", server);
+      if (server.getUrl().equals(jiraUri)) {
+        jiraServerId = server.getId();
       }
     }
     return jiraServerId;
@@ -197,15 +193,14 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   private String getBluePrintId(String projectTypeKey) throws IOException {
     String bluePrintId = null;
     String url = String.format(CONFLUENCE_API_BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
-    List<Object> blueprints = getSpaceTemplateList(url, new TypeReference<List<Blueprint>>() {});
+    List<Blueprint> blueprints = getSpaceTemplateList(url, new TypeReference<>() {});
     OpenProjectData project = new OpenProjectData();
     project.projectType = projectTypeKey;
     String template =
         retrieveInternalProjectTypeAndTemplateFromProjectType(project)
             .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY);
 
-    for (Object obj : blueprints) {
-      Blueprint blueprint = (Blueprint) obj;
+    for (var blueprint : blueprints) {
       logger.debug(
           "Blueprint: {} searchKey: {}", blueprint.getBlueprintModuleCompleteKey(), template);
       if (blueprint.getBlueprintModuleCompleteKey().equals(template)) {
@@ -220,10 +215,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     return bluePrintId;
   }
 
-  public List<Object> getSpaceTemplateList(String url, TypeReference reference) throws IOException {
-
-    return (List<Object>)
-        getRestClient().execute(httpGet().url(url).returnTypeReference(reference));
+  public <T> T getSpaceTemplateList(String url, TypeReference<T> reference) throws IOException {
+    return getRestClient().execute(httpGet().url(url).returnTypeReference(reference));
   }
 
   public int updateSpacePermissions(OpenProjectData data) throws IOException {

@@ -109,9 +109,6 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  //  @Value("${jira.technical.user}")
-  //  private String technicalUser;
-
   @Autowired private IODSAuthnzAdapter manager;
 
   @Autowired private ConfigurableEnvironment environment;
