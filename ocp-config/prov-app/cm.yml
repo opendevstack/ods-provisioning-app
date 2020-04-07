@@ -17,9 +17,6 @@ parameters:
 - name: PROV_APP_CROWD_URI
   required: true
   description: the URI of crowd used to authenticate users from the app against
-- name: OPENSHIFT_API_HOST
-  required: true
-  description: the API host of the OCP cluster
 - name: OPENSHIFT_CONSOLE_HOST
   required: true
   description: the console host of the OCP cluster
