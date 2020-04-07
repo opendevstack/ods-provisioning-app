@@ -61,6 +61,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   public static final String PROJECT_ID_KEY = "PROJECT_ID";
 
+  public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
+
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
@@ -112,6 +114,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private Map<String, Job> nameToJobMappings;
+
   private Map<String, String> legacyComponentTypeToNameMappings;
 
   @PostConstruct
@@ -266,6 +269,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
+      options.put(OPTION_KEY_GIT_SERVER_URL, bitbucketUri);
+
       ExecutionsData data =
           prepareAndExecuteJob(
               new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),

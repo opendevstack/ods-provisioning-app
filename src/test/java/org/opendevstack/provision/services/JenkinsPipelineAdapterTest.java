@@ -346,6 +346,9 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         .isEqualTo(projectData.projectAdminUser);
     Assertions.assertThat(actualBody.getOptionValue("PROJECT_ID"))
         .isEqualTo(projectData.projectKey);
+    Assertions.assertThat(
+            actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
