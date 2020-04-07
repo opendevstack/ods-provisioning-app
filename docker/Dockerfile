@@ -7,8 +7,7 @@ EXPOSE 8080
 
 ENV CA_CERT none
 
-RUN chgrp -R 0 /opt/java/openjdk/lib/security && \
-    chmod -R g+rwX /opt/java/openjdk/lib/security
+RUN chmod g+w /opt/java/openjdk/lib/security/cacerts
 
 VOLUME /opt/provision/history
 VOLUME /config
