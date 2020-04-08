@@ -1,0 +1,20 @@
+{
+	"type": "known",
+	"username": "<%USERNAME%>",
+	"userKey": "8a8094536fc08fd8806fc386f3781234",
+	"profilePicture": {
+		"path": "/images/icons/profilepics/default.svg",
+		"width": 48,
+		"height": 48,
+		"isDefault": true
+	},
+	"displayName": "Username",
+	"_links": {
+		"base": "https://example.com",
+		"context": "",
+		"self": "https://example.com/rest/api/user?key=8a8094536fc08fd8806fc386f3781234"
+	},
+	"_expandable": {
+		"status": ""
+	}
+}

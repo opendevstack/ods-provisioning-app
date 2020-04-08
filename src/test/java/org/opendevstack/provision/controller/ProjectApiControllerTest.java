@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.hamcrest.CoreMatchers;
@@ -43,6 +44,7 @@ import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
@@ -208,24 +210,64 @@ public class ProjectApiControllerTest {
 
   @Test
   public void whenOnyCheckPreconditionsThenDoNotCreateProject() throws Exception {
-    data.platformRuntime = true;
 
-    // Only check preconditions
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .param(ProjectApiController.ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS, "true")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(
-            MockMvcResultMatchers.content()
-                .string(
-                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"COMPLETED_SUCCESSFULLY\"}"))
-        .andDo(MockMvcResultHandlers.print());
+    final AtomicBoolean initial = new AtomicBoolean(Boolean.TRUE);
 
-    verifyAddProjectAdapterCalls(times(0));
+    List.of(Boolean.TRUE, Boolean.FALSE, Boolean.FALSE)
+        .forEach(
+            value -> {
+
+              // Only check preconditions
+              try {
+                OpenProjectData projectData = copyFromProject(data);
+
+                // First run platformRuntime and bugtrackerSpace are equal true
+                // 2 and 3 run, either one is true the other is false
+                projectData.platformRuntime = initial.get() || value;
+                projectData.bugtrackerSpace = !projectData.platformRuntime || value;
+                initial.set(projectData.bugtrackerSpace);
+
+                mockMvc
+                    .perform(
+                        post("/api/v2/project")
+                            .content(asJsonString(projectData))
+                            .param(
+                                ProjectApiController
+                                    .ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS,
+                                "true")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(
+                        MockMvcResultMatchers.content()
+                            .string(
+                                "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"COMPLETED_SUCCESSFULLY\"}"))
+                    .andDo(MockMvcResultHandlers.print());
+
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            });
+
+    // each adapter should be called 2 times
+    verifyCheckPreconditionsCalls(times(2), times(2));
+  }
+
+  public void verifyCheckPreconditionsCalls(VerificationMode platform, VerificationMode bugtracker)
+      throws CreateProjectPreconditionException, IOException {
+
+    //    VerificationMode platform = platformProject ? times(1) : times(0);
+    //    VerificationMode bugtracker = bugtrackerProject ? times(1) : times(0);
+
+    Mockito.verify(bitbucketAdapter, platform).checkCreateProjectPreconditions(isNotNull());
+    // jira components
+    Mockito.verify(jiraAdapter, bugtracker).checkCreateProjectPreconditions(isNotNull());
+    Mockito.verify(confluenceAdapter, bugtracker).checkCreateProjectPreconditions(isNotNull());
+
+    Mockito.verify(jenkinsPipelineAdapter, never()).createPlatformProjects(isNotNull());
+    Mockito.verify(bitbucketAdapter, never()).createSCMProjectForODSProject(isNotNull());
+
+    //    reset(bitbucketAdapter, jiraAdapter, confluenceAdapter);
   }
 
   public void verifyAddProjectAdapterCalls(VerificationMode times)
@@ -309,7 +351,8 @@ public class ProjectApiControllerTest {
 
     data.platformRuntime = true;
 
-    RuntimeException thrownInTest = new RuntimeException("thrown in unit test");
+    String errorMessage = "thrown in unit test";
+    AdapterException thrownInTest = new AdapterException(new RuntimeException(errorMessage));
     when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
         .thenThrow(
             new CreateProjectPreconditionException("bitbucket", data.projectKey, thrownInTest));
@@ -330,7 +373,12 @@ public class ProjectApiControllerTest {
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(
-                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"class java.lang.RuntimeException was thrown in adapter 'bitbucket' while executing check preconditions for project 'KEY'. [message=thrown in unit test]\"]}"));
+                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":"
+                        + "[\"class org.opendevstack.provision.adapter.exception.AdapterException was thrown in "
+                        + "adapter 'bitbucket' while executing check preconditions for project 'KEY'. "
+                        + "[message=java.lang.RuntimeException: "
+                        + errorMessage
+                        + "]\"]}"));
 
     verifyAddProjectAdapterCalls(times(0));
 
@@ -928,26 +976,5 @@ public class ProjectApiControllerTest {
           return;
         };
     ProjectApiController.validateQuickstarters(data, Arrays.asList(acceptAllValidator));
-  }
-
-  @Test
-  public void testFormatError() {
-
-    String error = "error";
-
-    Assert.assertEquals(
-        error,
-        ProjectApiController.formatError(
-            null, CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS, error));
-
-    String expectedJson =
-        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"error\"]}";
-
-    Assert.assertEquals(
-        expectedJson,
-        ProjectApiController.formatError(
-            MediaType.APPLICATION_JSON_VALUE,
-            CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS,
-            error));
   }
 }
