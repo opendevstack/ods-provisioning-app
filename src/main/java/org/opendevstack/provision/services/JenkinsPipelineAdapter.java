@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -269,7 +270,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
-      options.put(OPTION_KEY_GIT_SERVER_URL, bitbucketUri);
+      options.put(
+          OPTION_KEY_GIT_SERVER_URL,
+          JenkinsPipelineAdapter.extractHostAndPortFromURL(new URL(bitbucketUri)));
 
       ExecutionsData data =
           prepareAndExecuteJob(
@@ -554,5 +557,15 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;
+  }
+
+  public static String extractHostAndPortFromURL(URL url) {
+    String host = url.getHost();
+    int port = url.getPort();
+    if (port != -1) {
+      return String.format("%s:%s", host, port);
+    } else {
+      return host;
+    }
   }
 }
