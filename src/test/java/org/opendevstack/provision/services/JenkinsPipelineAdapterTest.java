@@ -22,6 +22,8 @@ import static org.opendevstack.provision.config.Quickstarter.componentQuickstart
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import org.apache.commons.lang.NotImplementedException;
 import org.assertj.core.api.Assertions;
@@ -346,6 +348,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         .isEqualTo(projectData.projectAdminUser);
     Assertions.assertThat(actualBody.getOptionValue("PROJECT_ID"))
         .isEqualTo(projectData.projectKey);
+    Assertions.assertThat(
+            actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
+        .isEqualTo(
+            JenkinsPipelineAdapter.extractHostAndPortFromURL(
+                new URL(jenkinsPipelineAdapter.bitbucketUri)));
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
@@ -388,5 +395,19 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void getComponentByNameComponentType() {
     Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_NAME);
     assertTrue(foundByLegacyType.isPresent());
+  }
+
+  @Test
+  public void extractHostAndPortFromURI() throws MalformedURLException {
+
+    String host = "some.domain.com";
+    int port = 8080;
+    String hostWithoutPort = "https://" + host + "/path/context/page.html?test=hello";
+    URL url = new URL(hostWithoutPort);
+    assertEquals(host, JenkinsPipelineAdapter.extractHostAndPortFromURL(url));
+
+    String hostWithPort = "https://" + host + ":" + port + "/path/context/page.html?test=hello";
+    URL url2 = new URL(hostWithPort);
+    assertEquals(host + ":" + port, JenkinsPipelineAdapter.extractHostAndPortFromURL(url2));
   }
 }

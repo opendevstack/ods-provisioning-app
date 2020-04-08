@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -60,6 +61,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               OpenProjectDataValidator.COMPONENT_ID_MAX_LENGTH));
 
   public static final String PROJECT_ID_KEY = "PROJECT_ID";
+
+  public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
@@ -112,6 +115,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private Map<String, Job> nameToJobMappings;
+
   private Map<String, String> legacyComponentTypeToNameMappings;
 
   @PostConstruct
@@ -266,6 +270,10 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
+      options.put(
+          OPTION_KEY_GIT_SERVER_URL,
+          JenkinsPipelineAdapter.extractHostAndPortFromURL(new URL(bitbucketUri)));
+
       ExecutionsData data =
           prepareAndExecuteJob(
               new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),
@@ -549,5 +557,15 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;
+  }
+
+  public static String extractHostAndPortFromURL(URL url) {
+    String host = url.getHost();
+    int port = url.getPort();
+    if (port != -1) {
+      return String.format("%s:%s", host, port);
+    } else {
+      return host;
+    }
   }
 }
