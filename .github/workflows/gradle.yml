@@ -13,8 +13,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-    - name: Build with Gradle
-      run: ./gradlew clean spotlessCheck test
+    - name: Build provisioning-app
+      run: ./gradlew clean spotlessCheck build
       env:
         NO_NEXUS: true
     - uses: actions/cache@v1
@@ -23,3 +23,14 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
+    - name: Build docker image
+      if: success()
+      run: docker build -t ods-provisioning-app:local .
+      working-directory: docker
+    - name: Push docker image
+      if: success() && github.repository == 'opendevstack/ods-provisioning-app' && github.event_name == 'push'
+      shell: bash
+      env:
+        DOCKER_USER: ${{ secrets.DockerHubUser }}
+        DOCKER_PASS: ${{ secrets.DockerHubPass }}
+      run: ./.github/workflows/push-image.sh ${{ github.ref }} "$DOCKER_USER" "$DOCKER_PASS"
