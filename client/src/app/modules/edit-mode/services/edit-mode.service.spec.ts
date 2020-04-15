@@ -5,8 +5,7 @@ describe('EditModeService', () => {
   let spectator: SpectatorService<EditModeService>;
 
   const createService = createServiceFactory({
-    service: EditModeService,
-    mocks: []
+    service: EditModeService
   });
 
   let onGetEditModeFlagSpy: any;

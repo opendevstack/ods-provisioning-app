@@ -1,9 +1,9 @@
-<mat-card>
-  <ng-container *ngIf="isLoading; else showProject">
-    <app-loading-indicator></app-loading-indicator>
-  </ng-container>
+<ng-container *ngIf="isLoading; else showProject">
+  <app-loading-indicator></app-loading-indicator>
+</ng-container>
 
-  <ng-template #showProject>
+<ng-template #showProject>
+  <mat-card>
     <div class="row project__header">
       <div class="col-10">
         <div class="project__name">
@@ -13,11 +13,11 @@
       <div class="col-2">
         <div class="project__action">
           <a
-            mat-fab
+            mat-icon-button
             color="primary"
             (click)="activateEditMode()"
             [disabled]="editMode"
-            data-test-edit-btn
+            data-test-edit-project-btn
           >
             <mat-icon
               svgIcon="edit"
@@ -58,7 +58,7 @@
             </li>
           </ul>
           <a
-            mat-fab
+            mat-icon-button
             color="primary"
             [cdkCopyToClipboard]="this.aggregatedProjectLinks"
             (cdkCopyToClipboardCopied)="openDialog('Success!')"
@@ -133,10 +133,10 @@
         </div>
       </div>
     </section>
-  </ng-template>
 
-  <mat-card-actions class="d-flex justify-content-end mt-4" *ngIf="editMode">
-    <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
-    <button mat-raised-button color="primary" disabled>START</button>
-  </mat-card-actions>
-</mat-card>
+    <mat-card-actions class="d-flex justify-content-end mt-4" *ngIf="editMode">
+      <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
+      <button mat-raised-button color="primary" disabled>START</button>
+    </mat-card-actions>
+  </mat-card>
+</ng-template>

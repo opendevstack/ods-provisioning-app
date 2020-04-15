@@ -1,59 +1,69 @@
 body {
   display: grid;
   grid-template-areas: 'header' 'main' 'footer';
-  grid-template-columns: auto;
   grid-template-rows: auto 1fr auto;
   overflow: hidden;
-  background: rgb(221, 224, 227); /* $midGrey from bix ukit TODO put to theme */
+  background: $color-white;
 }
 
 header,
 footer {
-  padding: $space;
+  padding: 15px 35px;
 }
 
 header {
   grid-area: header;
-  height: $header-height;
+  background: $color-gradient-start;
+  background: linear-gradient(
+    90deg,
+    $color-gradient-start 0%,
+    $color-gradient-end 100%
+  );
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin-bottom: 0;
+
+    a {
+      &,
+      &:hover,
+      &:focus,
+      &:active {
+        color: $color-white;
+      }
+    }
+  }
+}
+
+/* TODO fixme */
+.mat-list-item-content {
+  padding: 10px !important;
+}
+
+.main {
+  grid-area: main;
+  height: calc(100vh - #{$header-footer-offset});
+  background: $color-white-light;
+  padding: $main-container-padding;
 }
 
 app-root {
-  grid-area: main;
-  margin-top: $space;
-
   @include make-row();
 
-  .searchbar {
-    height: $search-bar-height;
-  }
-
   .sidebar {
-    height: calc(100vh - #{$header-height} - #{$footer-height});
-    overflow-y: auto;
+    height: calc(
+      100vh - #{$header-footer-offset} - (#{$main-container-padding} * 2)
+    );
+    overflow-y: hidden;
     @include make-col-ready();
     @include media-breakpoint-up(md) {
       @include make-col(4);
     }
-
-    .mat-card {
-      @include overlay();
-    }
-  }
-
-  .nav {
-    height: calc(100% - #{$search-bar-height});
-    overflow-y: auto;
-    position: sticky;
-
-    /* TODO move to separate component scss file later */
-    .project-key {
-      position: absolute;
-      right: 20px;
-    }
   }
 
   .content {
-    height: calc(100vh - #{$header-height} - #{$footer-height});
+    height: calc(100vh - #{$header-footer-offset});
     overflow-y: auto;
     position: sticky;
     padding: 0 $space;

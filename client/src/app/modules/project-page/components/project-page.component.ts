@@ -11,7 +11,7 @@ import {
 import { Subject } from 'rxjs';
 import { Project } from '../domain/project';
 import { ProjectService } from '../services/project.service';
-import { delay, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
@@ -35,13 +35,15 @@ export enum ProjectLinkTypes {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectPageComponent implements OnInit, OnDestroy {
-  destroy$: Subject<boolean> = new Subject<boolean>();
+  destroy$ = new Subject<boolean>();
+  project$ = new Subject<Project>();
   isLoading = true;
   project: Project;
   projectLinksConfig: any;
   aggregatedProjectLinks: string;
   editMode = false;
   quickstarterTableSource: any;
+
   displayedColumns: string[] = ['component_description', 'component_id'];
 
   @Output() onGetEditModeFlag: EventEmitter<boolean> = new EventEmitter<
@@ -59,16 +61,21 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     private dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
-    this.getProjectFromUrl();
+  ngOnInit() {
+    this.route.params.subscribe(param => {
+      this.isLoading = true;
+      this.cdr.detectChanges();
+      if (this.project$) {
+        this.project$.unsubscribe();
+      }
+      this.project$ = this.getProjectByKey(param.key);
+    });
   }
 
-  getProjectFromUrl(): any {
-    const projectKey = this.route.snapshot.paramMap.get('key');
-
+  getProjectByKey(key: string): any {
     return this.projectService
-      .getProjectById(projectKey)
-      .pipe(takeUntil(this.destroy$), delay(0))
+      .getProjectByKey(key)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         (response: any) => {
           this.project = response;
@@ -135,13 +142,13 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     return aggregatedProjectLinks;
   }
 
-  openDialog(text: string): void {
+  openDialog(text: string) {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = text;
     this.dialog.open(NotificationComponent, dialogConfig);
   }
 
-  activateEditMode(): void {
+  activateEditMode() {
     if (!this.editMode) {
       this.editMode = true;
       this.editModeService.emitEditModeFlag(this.editMode);
@@ -149,14 +156,14 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  deactivateEditMode(): void {
+  deactivateEditMode() {
     if (this.editMode) {
       this.editMode = false;
       this.editModeService.emitEditModeFlag(this.editMode);
     }
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.destroy$.next(true);
     this.destroy$.unsubscribe();
   }

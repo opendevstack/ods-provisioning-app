@@ -3,7 +3,10 @@
 
 :host {
   display: block;
-  @include make-container();
+}
+
+mat-card {
+  margin-top: calc(#{$sidebar-header-height} + #{$sidebar-header-margin-top});
 }
 
 .project__links {

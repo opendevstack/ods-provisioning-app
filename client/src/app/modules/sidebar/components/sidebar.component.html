@@ -1,0 +1,60 @@
+<ng-container *ngIf="isLoading">
+  <app-loading-indicator></app-loading-indicator>
+</ng-container>
+
+<ng-container *ngIf="isError">
+  <div class="error">
+    The project list could not be loaded currently
+  </div>
+</ng-container>
+
+<ng-container *ngIf="canDisplayContent()">
+  <div class="sidebar__header">
+    <div class="sidebar__header--count">
+      <span>Projects</span> ({{ (filteredProjects | async).length }})
+    </div>
+    <div class="sidebar__header--action">
+      <a mat-icon-button color="primary" disabled data-test-new-project-btn>
+        <mat-icon
+          svgIcon="plus"
+          aria-hidden="false"
+          [attr.aria-label]="'Create Project'"
+        ></mat-icon>
+      </a>
+    </div>
+  </div>
+
+  <mat-card>
+    <div class="searchbar">
+      <mat-form-field class="searchbar__input">
+        <input
+          matInput
+          autofocus
+          removeWhitespaces
+          placeholder="Search in name, key, description"
+          aria-label="Search in name, key, description"
+          [formControl]="searchControl"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="nav__list">
+      <mat-nav-list>
+        <a
+          title="{{ project.description }}"
+          data-test-sidebar-nav-list-item
+          class="nav__list--item"
+          mat-list-item
+          routerLinkActive="active"
+          routerLink="/project/{{ project.projectKey }}"
+          *ngFor="let project of filteredProjects | async"
+        >
+          <div class="project">
+            <div class="project__name">{{ project.projectName }}</div>
+            <div class="project__key">{{ project.projectKey }}</div>
+          </div>
+        </a>
+      </mat-nav-list>
+    </div>
+  </mat-card>
+</ng-container>
