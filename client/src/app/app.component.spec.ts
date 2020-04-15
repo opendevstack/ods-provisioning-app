@@ -5,17 +5,29 @@ import { MatListModule } from '@angular/material/list';
 import { LoadingIndicatorModule } from './modules/loading-indicator/loading-indicator.module';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
+import { SidebarModule } from './modules/sidebar/sidebar.module';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import {
+  API_ALL_PROJECTS_URL,
+  API_PROJECT_URL
+} from './modules/project-page/tokens';
 
 describe('AppComponent', () => {
   const createComponent = createComponentFactory({
     component: AppComponent,
     imports: [
+      HttpClientTestingModule,
       RouterTestingModule,
       MatListModule,
       MatCardModule,
-      LoadingIndicatorModule
+      LoadingIndicatorModule,
+      SidebarModule
     ],
-    providers: [MatDialog]
+    providers: [
+      MatDialog,
+      { provide: API_PROJECT_URL, useValue: '/api/mock' },
+      { provide: API_ALL_PROJECTS_URL, useValue: '/api/mock' }
+    ]
   });
   let component: any;
   let spectator: Spectator<AppComponent>;

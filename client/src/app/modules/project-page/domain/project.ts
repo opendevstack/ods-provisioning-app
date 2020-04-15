@@ -1,5 +1,9 @@
 import { Quickstarter } from './quickstarter';
 
+/* TODO
+   Changing the current prov-app API is not in scope now, so here I use the same model from the backend.
+   This should be improved there as well in the future.
+*/
 export interface Project {
   projectName: string;
   projectKey: string;

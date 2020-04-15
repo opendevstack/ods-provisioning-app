@@ -38,13 +38,14 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes),
+    RouterModule.forRoot(routes, { enableTracing: false }),
     BrowserModule,
     StorageModule.withOptions({
       storagePrefix: 'provapp_'
     }),
     ProjectPageModule.withOptions({
-      apiProjectUrl: environment.apiProjectUrl
+      apiProjectUrl: environment.apiProjectUrl,
+      apiAllProjectsUrl: environment.apiAllProjectsUrl
     })
   ],
   exports: [RouterModule],
