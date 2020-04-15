@@ -1,9 +1,9 @@
-import { Component, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
 import { ProjectService } from './modules/project-page/services/project.service';
-import { catchError, take } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { Project } from './modules/project-page/domain/project';
 
@@ -11,7 +11,7 @@ import { Project } from './modules/project-page/domain/project';
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   isLoading = true;
   isError: boolean;
 
@@ -37,10 +37,10 @@ export class AppComponent {
   }
 
   ngOnInit() {
-    this.getAllProjects();
+    this.loadAllProjects();
   }
 
-  json2array(json): any[] {
+  json2array(json: Project[]): Project[] {
     var result = [];
     if (json) {
       const keys = Object.keys(json);
@@ -51,18 +51,17 @@ export class AppComponent {
     return result;
   }
 
-  getAllProjects(): any {
-    return this.projectService
+  loadAllProjects() {
+    this.projectService
       .getAllProjects()
       .pipe(
-        take(1),
         catchError(() => {
           this.isError = true;
           this.isLoading = false;
           return EMPTY;
         })
       )
-      .subscribe(response => {
+      .subscribe((response: Project[]) => {
         this.projects = this.json2array(response);
         this.isLoading = false;
         this.isError = false;
