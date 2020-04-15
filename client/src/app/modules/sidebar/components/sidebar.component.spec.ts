@@ -52,17 +52,17 @@ describe('SidebarComponent', () => {
     /* given */
     spectator.setInput({
       projects: {
-        ODS2FRI1: {
-          projectName: 'ODS2 Friday 1',
-          projectKey: 'ODS2FRI1'
+        FOO1: {
+          projectName: 'Foo Project 1',
+          projectKey: 'FOO1'
         },
-        ODSS21: {
-          projectName: 'ODSS21',
-          projectKey: 'ODSS21'
+        FOO2: {
+          projectName: 'Foo Project 2',
+          projectKey: 'FOO2'
         },
-        PTE: {
-          projectName: 'PTE',
-          projectKey: 'PTE'
+        FOO3: {
+          projectName: 'Foo Project 3',
+          projectKey: 'FOO3'
         }
       } as any
     });

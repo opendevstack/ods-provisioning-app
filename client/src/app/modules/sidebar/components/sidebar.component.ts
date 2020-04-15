@@ -27,13 +27,14 @@ export class SidebarComponent {
   }
 
   private filterProjects(value: string): Project[] {
-    const filterValue = new RegExp(value.toLowerCase().trim());
-
     return this.projects.filter(
       project =>
-        filterValue.test(project.projectKey.toLowerCase()) ||
-        filterValue.test(project.projectName.toLowerCase()) ||
-        filterValue.test(project.description.toLowerCase())
+        project.projectKey.toLowerCase().indexOf(value.toLowerCase().trim()) >=
+          0 ||
+        project.projectName.toLowerCase().indexOf(value.toLowerCase().trim()) >=
+          0 ||
+        project.description.toLowerCase().indexOf(value.toLowerCase().trim()) >=
+          0
     );
   }
 
