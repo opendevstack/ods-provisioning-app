@@ -19,7 +19,7 @@ mat-card {
   display: flex;
   align-items: center;
   padding: 0 0 5px 15px;
-  margin-top: $sidebar-header-margin-top;
+  margin-top: -$sidebar-header-margin-top;
   max-height: $sidebar-header-height;
 
   .sidebar__header--count {

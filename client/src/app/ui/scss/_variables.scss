@@ -4,7 +4,7 @@ $footer-height: 54px;
 $header-footer-offset: $footer-height + $header-height;
 
 $sidebar-header-height: 45px;
-$sidebar-header-margin-top: -10px;
+$sidebar-header-margin-top: 10px;
 $searchbar-height: 82px;
 $main-container-padding: 20px;
 
@@ -14,3 +14,7 @@ $color-blue-light: #eef3f5;
 $color-blue: #2169a4;
 $color-gradient-start: #204989;
 $color-gradient-end: #2169a4;
+
+/* temporarily copied from angular material */
+$color-gray-light: rgba(0, 0, 0, 0.04);
+$color-gray: rgba(0, 0, 0, 0.1);
