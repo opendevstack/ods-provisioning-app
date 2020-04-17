@@ -40,17 +40,6 @@ export class AppComponent implements OnInit {
     this.loadAllProjects();
   }
 
-  json2array(json: Project[]): Project[] {
-    var result = [];
-    if (json) {
-      const keys = Object.keys(json);
-      keys.forEach(function (key) {
-        result.push(json[key]);
-      });
-    }
-    return result;
-  }
-
   loadAllProjects() {
     this.projectService
       .getAllProjects()
@@ -62,7 +51,7 @@ export class AppComponent implements OnInit {
         })
       )
       .subscribe((response: Project[]) => {
-        this.projects = this.json2array(response);
+        this.projects = response;
         this.isLoading = false;
         this.isError = false;
       });
