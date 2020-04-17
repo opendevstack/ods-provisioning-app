@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
 import { Project } from '../domain/project';
@@ -16,8 +16,11 @@ export class ProjectService {
   ) {}
 
   getAllProjects(): Observable<Project[]> {
-    return this.httpClient.get<Project[]>(this.allProjectsUrl).pipe(
-      tap(data => console.log('Projects: ', data)),
+    return this.httpClient.get(this.allProjectsUrl).pipe(
+      map(projects => this.sortProjectsByName(this.json2array(projects))),
+      tap(projects => {
+        console.log('Projects: ', projects);
+      }),
       catchError(this.handleError)
     );
   }
@@ -27,6 +30,23 @@ export class ProjectService {
     return this.httpClient
       .get<Project>(projectUrl)
       .pipe(catchError(this.handleError));
+  }
+
+  private json2array(json: Object): Project[] {
+    const result = [];
+    if (json) {
+      const keys = Object.keys(json);
+      keys.forEach(function (key) {
+        result.push(json[key]);
+      });
+    }
+    return result;
+  }
+
+  private sortProjectsByName(projects: Project[]): Project[] {
+    return projects.sort((a: Project, b: Project) => {
+      return a.projectName.localeCompare(b.projectName);
+    });
   }
 
   private replaceUrlPlaceholder(url: string, projectKey: string): string {
