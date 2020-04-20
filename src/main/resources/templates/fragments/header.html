@@ -1,34 +1,57 @@
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
-<head>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+>
+  <head>
     <div th:fragment="header-css">
-        <!-- this is header-css -->
-        <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/dist/css/bootstrap.min.css}" />
-        <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/font-awesome.min.css}"/>
-        <!--<link rel="stylesheet" th:href="@{/css/main.css}"-->
-        <!--href="../../css/main.css" />-->
+      <!-- this is header-css -->
+      <link
+        rel="stylesheet"
+        type="text/css"
+        th:href="@{/webjars/bootstrap/dist/css/bootstrap.min.css}"
+      />
+      <link
+        rel="stylesheet"
+        th:href="@{/webjars/font-awesome/css/font-awesome.min.css}"
+      />
+      <!--<link rel="stylesheet" th:href="@{/css/main.css}"-->
+      <!--href="../../css/main.css" />-->
     </div>
-</head>
-<body>
-<div th:fragment="header">
-    <!-- this is header -->
-    <nav class="navbar navbar-inverse">
+  </head>
+  <body>
+    <div th:fragment="header">
+      <!-- this is header -->
+      <nav class="navbar navbar-inverse">
         <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" th:href="@{/home}">PROJECT PROVISION</a>
-            </div>
-            <div id="navbar" class="collapse navbar-collapse" sec:authorize="isAuthenticated()">
-                <ul class="nav navbar-nav">
-                    <li th:class="${classActiveHome}"><a th:href="@{/home}">Overview</a></li>
-                    <li th:class="${classActiveNew}"><a th:href="@{/provision}">Provision</a></li>
-                    <li th:class="${classActiveHistory}"><a th:href="@{/history}">History</a></li>
-                    <li th:class="${classActiveAbout}"><a th:href="@{/about}">About</a></li>
-                    <li><a th:href="@{/logout}">Log out</a></li>
-                </ul>
-            </div>
+          <div class="navbar-header">
+            <a class="navbar-brand" th:href="@{/home}">PROJECT PROVISION</a>
+          </div>
+          <div
+            id="navbar"
+            class="collapse navbar-collapse"
+            sec:authorize="isAuthenticated()"
+          >
+            <ul class="nav navbar-nav">
+              <li th:class="${classActiveHome}">
+                <a th:href="@{/home}">Overview</a>
+              </li>
+              <li th:class="${classActiveNew}">
+                <a th:href="@{/provision}">Provision</a>
+              </li>
+              <li th:class="${classActiveHistory}">
+                <a th:href="@{/history}">History</a>
+              </li>
+              <li th:class="${classActiveAbout}">
+                <a th:href="@{/nfe}">NFE!!!</a>
+              </li>
+              <li th:class="${classActiveAbout}">
+                <a th:href="@{/about}">About</a>
+              </li>
+              <li><a th:href="@{/logout}">Log out</a></li>
+            </ul>
+          </div>
         </div>
-    </nav>
-</div>
-
-</body>
+      </nav>
+    </div>
+  </body>
 </html>
