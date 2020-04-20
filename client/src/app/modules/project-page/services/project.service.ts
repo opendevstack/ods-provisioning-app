@@ -17,10 +17,9 @@ export class ProjectService {
 
   getAllProjects(): Observable<Project[]> {
     return this.httpClient.get(this.allProjectsUrl).pipe(
-      map(projects => this.sortProjectsByName(this.json2array(projects))),
-      tap(projects => {
-        console.log('Projects: ', projects);
-      }),
+      map(json => (json ? Object.values(json) : []) as Project[]),
+      map(projects => this.sortProjectsByName(projects)),
+      tap(projects => console.log('Projects: ', projects)),
       catchError(this.handleError)
     );
   }
@@ -30,17 +29,6 @@ export class ProjectService {
     return this.httpClient
       .get<Project>(projectUrl)
       .pipe(catchError(this.handleError));
-  }
-
-  private json2array(json: Object): Project[] {
-    const result = [];
-    if (json) {
-      const keys = Object.keys(json);
-      keys.forEach(function (key) {
-        result.push(json[key]);
-      });
-    }
-    return result;
   }
 
   private sortProjectsByName(projects: Project[]): Project[] {
