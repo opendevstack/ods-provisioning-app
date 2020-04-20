@@ -94,11 +94,9 @@ def stageBuildFrontend(def context) {
         script: "yarn build",
         returnStatus: true
       )
-      // junit 'build/test-results/test/*.xml'
       if (status != 0) {
         error "Build failed!"
       }
-      sh "cp -rv dist/client/* ../src/main/resources/static/"
     }
   }
 }

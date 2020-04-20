@@ -169,6 +169,13 @@ dependencies {
 }
 
 bootJar {
+    doFirst {
+        copy {
+            println 'copy New Front End files!!!'
+            from 'client/dist/client'
+            into 'build/resources/main/static/'
+        }
+    }
     launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
