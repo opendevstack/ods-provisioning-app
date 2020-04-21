@@ -7,14 +7,16 @@
 }
 
 mat-card {
-  margin-top: calc(#{$sidebar-header-height} - #{$sidebar-header-margin-top});
-  height: calc(100vh - 196px); // TODO calc
+  height: calc(
+    100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$sidebar-header-margin-top}
+  );
 
   display: grid;
   grid-template-areas: 'project-header' 'project-content' 'project-footer';
   grid-template-rows: auto 1fr auto;
 
   padding: 0;
+  margin-top: calc(#{$sidebar-header-height} - #{$sidebar-header-margin-top});
 }
 
 .project__header {
