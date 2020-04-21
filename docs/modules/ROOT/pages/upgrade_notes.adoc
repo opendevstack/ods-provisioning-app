@@ -1,6 +1,0 @@
-= Upgrade notes
-
-== 1.1.x to next major release
-
-. (https://github.com/opendevstack/ods-provisioning-app/issues/86[#86]) introduces a new `v2` API, as described above.
-This has impact to _ALL_ consumers, the URI to use the `project api` also switches to `v2` with `v1` being removed.

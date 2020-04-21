@@ -1,8 +1,4 @@
-name: ods-provisioning-app
-title: Provisioning App
+name: opendevstack
 version: latest
-
-nav:
-  - modules/ROOT/nav.adoc
 
 
