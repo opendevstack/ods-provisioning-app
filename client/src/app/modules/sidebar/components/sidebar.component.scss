@@ -1,0 +1,90 @@
+@import '../../../ui/scss/mixins';
+@import '../../../ui/scss/variables';
+
+:host {
+  display: block;
+  height: calc(100vh - #{$header-footer-offset});
+  @include overlay();
+}
+
+mat-card {
+  display: block;
+  height: 100%;
+  overflow-y: hidden;
+  padding: 0;
+}
+
+.sidebar__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 0 5px 15px;
+  margin-top: $sidebar-header-margin-top;
+  max-height: $sidebar-header-height;
+
+  .sidebar__header--count {
+    flex: 1;
+    font-size: 1.25rem;
+
+    span {
+      font-weight: bold;
+    }
+  }
+}
+
+.searchbar {
+  padding: 15px 15px 0 15px;
+  margin-bottom: -1px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  max-height: $searchbar-height;
+
+  .searchbar__input {
+    width: 100%;
+  }
+}
+
+.nav__list {
+  height: calc(
+    100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$searchbar-height} -
+      (#{$main-container-padding} * 2)
+  );
+  overflow-y: auto;
+
+  mat-nav-list {
+    padding-top: 0;
+  }
+
+  .nav__list--item {
+    display: block;
+    height: auto;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+    &.active {
+      border-left: 5px solid $color-blue;
+      background: $color-blue-light;
+    }
+  }
+}
+
+.project {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  .project__name,
+  .project__key {
+    flex: 0 1 auto;
+  }
+
+  .project__name {
+    font-size: 1.25rem;
+  }
+
+  .project__key {
+    margin-left: 10px;
+    text-align: right;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 0.75rem;
+  }
+}

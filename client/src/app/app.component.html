@@ -1,25 +1,11 @@
 <div class="sidebar">
-  <ng-container *ngIf="isLoading; else showSidebar">
-    <app-loading-indicator></app-loading-indicator>
-  </ng-container>
-
-  <ng-template #showSidebar>
-    <mat-card>
-      <div class="searchbar">Searchbar</div>
-      <div class="nav">
-        <mat-nav-list>
-          <a
-            mat-list-item
-            routerLink="/project/{{ project.key }}"
-            *ngFor="let project of projects"
-            >{{ project.name }}
-          </a>
-        </mat-nav-list>
-      </div>
-    </mat-card>
-  </ng-template>
+  <app-sidebar
+    [projects]="projects"
+    [isLoading]="isLoading"
+    [isError]="isError"
+  ></app-sidebar>
 </div>
 
 <div class="content">
-  <router-outlet (activate)="getEditModeStatus($event)"></router-outlet>
+  <router-outlet (activate)="getEditModeStatus()"></router-outlet>
 </div>

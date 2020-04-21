@@ -6,7 +6,7 @@ import { LoadingIndicatorModule } from '../../loading-indicator/loading-indicato
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { API_PROJECT_URL } from '../tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -16,8 +16,8 @@ import { MatSortModule } from '@angular/material/sort';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NotificationModule } from '../../notification/notification.module';
 import { BrowserService } from '../../browser/services/browser.service';
-import { ProjectService } from '../services/project.service';
 
+/* TODO fixme + add tests */
 describe('ProjectPageComponent', () => {
   const createComponent = createComponentFactory({
     component: ProjectPageComponent,
@@ -39,6 +39,7 @@ describe('ProjectPageComponent', () => {
     ],
     providers: [
       { provide: API_PROJECT_URL, useValue: '/api/mock' },
+      { provide: API_ALL_PROJECTS_URL, useValue: '/api/mock' },
       {
         provide: BrowserService,
         useValue: {
@@ -59,7 +60,7 @@ describe('ProjectPageComponent', () => {
   });
 
   xit('should show section to add new quickstarters when edit-button is clicked', () => {
-    /* TODO given */
+    /* given */
     /* when */
     spectator.click('[data-test-edit-btn]');
     spectator.detectComponentChanges();

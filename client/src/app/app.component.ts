@@ -2,41 +2,27 @@ import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
+import { ProjectService } from './modules/project-page/services/project.service';
+import { catchError } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { Project } from './modules/project-page/domain/project';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
-  title = 'Prov-App';
+  isLoading = true;
+  isError: boolean;
 
-  isLoading = false;
-
-  projects: any = [
-    {
-      name: 'Airflow Testing Grounds',
-      key: 'AIRF'
-    },
-    {
-      name:
-        'ASAP - Augmented Synthesis and Analytical data-based Process development',
-      key: 'ASAP'
-    },
-    {
-      name: 'Benefit Risk Analytic SyStem (BRASS)',
-      key: 'BRASS'
-    },
-    {
-      name: 'LIFE | BI X Design System',
-      key: 'LIFE'
-    }
-  ];
+  projects: Project[] = [];
 
   constructor(
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
-    private editModeService: EditModeService
+    private editModeService: EditModeService,
+    private projectService: ProjectService
   ) {
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
@@ -50,9 +36,28 @@ export class AppComponent implements OnInit {
     );
   }
 
-  ngOnInit(): void {}
+  ngOnInit() {
+    this.loadAllProjects();
+  }
 
-  getEditModeStatus(instance: any): void {
+  loadAllProjects() {
+    this.projectService
+      .getAllProjects()
+      .pipe(
+        catchError(() => {
+          this.isError = true;
+          this.isLoading = false;
+          return EMPTY;
+        })
+      )
+      .subscribe((response: Project[]) => {
+        this.projects = response;
+        this.isLoading = false;
+        this.isError = false;
+      });
+  }
+
+  getEditModeStatus() {
     this.editModeService.onGetEditModeFlag.subscribe(editModeActive => {
       if (editModeActive) {
         this.renderer.addClass(document.body, 'status-editmode-active');

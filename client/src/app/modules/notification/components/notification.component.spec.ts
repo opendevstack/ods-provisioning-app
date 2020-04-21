@@ -1,28 +1,19 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { NotificationComponent } from './notification.component';
-import {
-  MatDialog,
-  MatDialogModule,
-  MatDialogRef
-} from '@angular/material/dialog';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { CommonModule } from '@angular/common';
+import { MatDialogModule } from '@angular/material/dialog';
 
-// TODO fixme
+// TODO fixme + add tests
 xdescribe('NotificationComponent', () => {
-  let component: NotificationComponent;
-  let fixture: ComponentFixture<NotificationComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [NotificationComponent],
-      providers: [MatDialog]
-    }).compileComponents();
-  }));
-
+  const createComponent = createComponentFactory({
+    component: NotificationComponent,
+    imports: [CommonModule, MatDialogModule]
+  });
+  let component: any;
+  let spectator: Spectator<NotificationComponent>;
   beforeEach(() => {
-    fixture = TestBed.createComponent(NotificationComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
