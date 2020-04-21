@@ -2,184 +2,78 @@
   <app-loading-indicator></app-loading-indicator>
 </ng-container>
 
-<ng-container *ngIf="isError">
+<ng-container *ngIf="isProjectError">
   <div class="error">
     This project could not be loaded currently
   </div>
 </ng-container>
 
 <ng-container *ngIf="canDisplayContent()">
-  <mat-card>
-    <!-- TODO put into separate component -->
-    <div class="project__header">
-      <div class="row">
-        <div class="col-10">
-          <div class="project__name">
-            <h1 class="mat-h1">{{ project.projectName }}</h1>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="project__editmode">
-            <a
-              mat-icon-button
-              color="primary"
-              (click)="activateEditMode()"
-              [disabled]="editMode"
-              data-test-edit-project-btn
-            >
-              <mat-icon
-                svgIcon="edit"
-                aria-hidden="false"
-                [attr.aria-label]="'Edit Project'"
-              ></mat-icon>
-            </a>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="project__links">
-            <ul>
-              <li
-                *ngFor="let projectLink of projectLinks"
-                class="quicklink__item"
-                [ngClass]="!projectLink.url ? 'disabled' : ''"
-                matTooltip="{{ projectLink.iconLabel }}"
-              >
-                <ng-container *ngIf="projectLink.url; else iconOnly">
-                  <a href="{{ projectLink.url }}" target="_blank">
-                    <mat-icon
-                      svgIcon="{{ projectLink.iconName }}"
-                      aria-hidden="false"
-                      [attr.aria-label]="projectLink.iconLabel"
-                    ></mat-icon>
-                  </a>
-                </ng-container>
-                <ng-template #iconOnly>
-                  <mat-icon
-                    svgIcon="{{ projectLink.iconName }}"
-                    aria-hidden="false"
-                    [attr.aria-label]="projectLink.iconLabel"
-                  ></mat-icon>
-                </ng-template>
-              </li>
-            </ul>
-            <a
-              mat-icon-button
-              color="primary"
-              [cdkCopyToClipboard]="this.aggregatedProjectLinks"
-              (cdkCopyToClipboardCopied)="openDialog('Success!')"
-              *ngIf="this.aggregatedProjectLinks"
-            >
-              <mat-icon
-                svgIcon="copy"
-                aria-hidden="false"
-                aria-label="Copy URLs to clipboard"
-              ></mat-icon>
-            </a>
-          </div>
-
-          <h3 class="mat-h3">{{ project.description }}</h3>
-        </div>
-      </div>
+  <div class="project__notifications">
+    <div class="error" *ngIf="isQuickstartersError">
+      Technical error - editing not possible
     </div>
+  </div>
 
-    <!-- TODO put into separate component -->
-    <div class="project__content">
-      <table class="qs-table" *ngIf="project.quickstarters.length">
-        <thead>
-          <tr>
-            <th>Quickstarter</th>
-            <th>IDs</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let qs of quickstarters">
-            <td>
-              <div class="qs-description">
-                {{ qs.desc }}
-              </div>
-            </td>
-            <td>
-              <div class="qs-component">
-                <mat-accordion
-                  [displayMode]="'flat'"
-                  [togglePosition]="'before'"
-                >
-                  <mat-expansion-panel
-                    *ngFor="let id of qs.ids"
-                    class="mat-elevation-z0"
-                  >
-                    <mat-expansion-panel-header>
-                      <mat-panel-title>
-                        {{ id.component_id }}
-                      </mat-panel-title>
-                    </mat-expansion-panel-header>
-
-                    <div class="qs-component__info">
-                      <ul>
-                        <li>ODS Image Tag: {{ id.ODS_IMAGE_TAG }}</li>
-                        <li class="odd">
-                          <span>Package Name</span>: {{ id.PACKAGE_NAME }}
-                        </li>
-                        <li><span>ODS_GIT_REF</span>: {{ id.ODS_GIT_REF }}</li>
-                        <li class="odd">
-                          <a href="{{ id.git_url_http }}" target="_blank"
-                            >GIT</a
-                          >
-                        </li>
-                        <li>
-                          <a href="{{ id.git_url_ssh }}" target="_blank">SSH</a>
-                        </li>
-                      </ul>
-                    </div>
-                  </mat-expansion-panel>
-                </mat-accordion>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- TODO dummy content currently / put into separate component -->
-    <div class="project__footer" *ngIf="editMode">
-      <div class="quickstarter-add">
-        <div class="quickstarter-row">
-          <div class="col-5">
-            <mat-form-field>
-              <mat-label>Quickstarter</mat-label>
-              <select matNativeControl required>
-                <option value="be-golang-plain">Backend - Golang</option>
-                <option value="be-typescript-express"
-                  >Backend - NodeJS/Express</option
-                >
-                <option value="be-python-flask">Backend - Python/Flask</option>
-              </select>
-            </mat-form-field>
-          </div>
-          <div class="col-5">
-            <mat-form-field>
-              <mat-label>Name</mat-label>
-              <input matInput placeholder="Name" />
-            </mat-form-field>
-          </div>
-          <div class="col-2">
-            <a mat-raised-button color="primary">
-              <mat-icon
-                svgIcon="plus"
-                aria-hidden="false"
-                aria-label="Add quickstarter"
-              ></mat-icon>
-            </a>
-          </div>
-        </div>
+  <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
+    <mat-card>
+      <div class="project__header">
+        <project-header
+          [project]="project"
+          [projectLinks]="projectLinks"
+          [editMode]="editMode"
+          [isQuickstartersError]="isQuickstartersError"
+          [aggregatedProjectLinks]="aggregatedProjectLinks"
+          (onActivateEditMode)="activateEditMode()"
+          (onOpenDialog)="openDialog($event)"
+        ></project-header>
       </div>
 
-      <div class="project__action">
-        <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
-        <button mat-raised-button color="primary" disabled>START</button>
+      <div
+        class="project__content"
+        [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''"
+      >
+        <ng-container
+          *ngIf="editMode && !projectQuickstarters; else showQuickstarterList"
+        >
+          <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
+        </ng-container>
+        <ng-template #showQuickstarterList>
+          <project-quickstarter-list
+            [editMode]="editMode"
+            [projectQuickstarters]="projectQuickstarters"
+            [allQuickstarters]="allQuickstarters"
+            [form]="existingComponentsForm"
+            (onActivateEditMode)="activateEditMode()"
+          ></project-quickstarter-list>
+        </ng-template>
       </div>
-    </div>
-  </mat-card>
+
+      <div class="project__footer" *ngIf="editMode && projectQuickstarters">
+        <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
+      </div>
+    </mat-card>
+  </form>
 </ng-container>
+
+<ng-template #showQuickstarterAdd>
+  <project-quickstarter-add
+    [projectQuickstarters]="projectQuickstarters"
+    [allQuickstarters]="allQuickstarters"
+    [form]="newComponentsForm"
+  ></project-quickstarter-add>
+
+  <div class="project__action">
+    <button mat-raised-button (click)="deactivateEditMode()">
+      Cancel
+    </button>
+    <button
+      type="submit"
+      mat-raised-button
+      color="primary"
+      [disabled]="!form.valid"
+    >
+      Start
+    </button>
+  </div>
+</ng-template>

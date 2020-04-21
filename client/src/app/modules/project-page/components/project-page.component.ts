@@ -3,20 +3,23 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  HostListener,
   OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
-import { Project, ProjectLink } from '../domain/project';
+import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
+import { ProjectData, ProjectLink } from '../domain/project';
 import { ProjectService } from '../services/project.service';
-import { catchError, takeUntil } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
-import { GroupedQuickstarters, Quickstarter } from '../domain/quickstarter';
-import { default as projectLinksConfig } from '../config/project-links.conf.json';
+import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
+import { FormBuilder } from '@angular/forms';
+import { QuickstarterService } from '../services/quickstarter.service';
+import { FormBaseComponent } from '../../app-form/components/form-base.component';
 
 @Component({
   selector: 'app-project-page',
@@ -24,69 +27,62 @@ import { default as projectLinksConfig } from '../config/project-links.conf.json
   styleUrls: ['./project-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectPageComponent implements OnInit, OnDestroy {
+export class ProjectPageComponent extends FormBaseComponent
+  implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
-  project$ = new Subject<Project>();
+  project$ = new Subject<ProjectData>();
+  quickstarters$ = new Subject<ProjectData>();
   isLoading = true;
-  isError: boolean;
+  isProjectError: boolean;
+  isQuickstartersError: boolean;
   editMode = false;
-  project: Project;
+  project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
-  quickstarters: GroupedQuickstarters[];
+  allQuickstarters: QuickstarterData[];
+  projectQuickstarters: ProjectQuickstarter[] = null;
 
-  @Output() onGetEditModeFlag: EventEmitter<boolean> = new EventEmitter<
-    boolean
-  >();
+  @Output() onGetEditModeFlag = new EventEmitter<boolean>();
 
   constructor(
     private route: ActivatedRoute,
+    private formBuilder: FormBuilder,
     private projectService: ProjectService,
+    private quickstarterService: QuickstarterService,
     private editModeService: EditModeService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit() {
     this.route.params.subscribe(param => {
       this.isLoading = true;
       this.cdr.detectChanges();
-      if (this.project$) {
-        this.project$.unsubscribe();
-      }
-      this.project$ = this.getProjectByKey(param.key);
+      this.initializeDataRetrieval(param.key);
+      this.initializeFormGroup();
     });
   }
 
-  getProjectByKey(key: string): any {
-    return this.projectService
-      .getProjectByKey(key)
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError(() => {
-          this.isError = true;
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          return EMPTY;
-        })
-      )
-      .subscribe((response: any) => {
-        this.isError = false;
-        this.isLoading = false;
-        this.project = response;
-        this.projectLinks = this.getProjectLinksConfig();
-        this.aggregatedProjectLinks = this.getAggregateProjectLinks();
+  initializeDataRetrieval(projectKey: string) {
+    forkJoin([
+      this.getProjectByKey(projectKey),
+      this.getAllQuickstarters()
+    ]).subscribe(([project, allQuickstarters]) => {
+      this.project = project as ProjectData;
+      this.prepareProjectLinks();
 
-        if (this.project.quickstarters.length) {
-          const groupedQuickstarters = this.groupQuickstartersByDescription(
-            this.project.quickstarters
-          );
-          this.quickstarters = this.sortQuickstartersByDescription(
-            groupedQuickstarters
-          );
-        }
-        this.cdr.detectChanges();
-      });
+      if (this.project.quickstarters.length) {
+        this.projectQuickstarters = this.quickstarterService.transformProjectQuickstarterData(
+          this.project.quickstarters
+        );
+      }
+
+      this.allQuickstarters = allQuickstarters as QuickstarterData[];
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    });
   }
 
   openDialog(text: string) {
@@ -106,11 +102,22 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     if (this.editMode) {
       this.editMode = false;
       this.editModeService.emitEditModeFlag(this.editMode);
+      this.cdr.detectChanges();
     }
   }
 
   canDisplayContent(): boolean {
-    return !this.isLoading && !this.isError;
+    return !this.isLoading && !this.isProjectError;
+  }
+
+  intendFormSubmit(): void {
+    this.submitButtonClicks++;
+    if (this.form.valid) {
+      this.saveProject();
+      // initialize loading
+      // Call ProjectService to send form data
+      // show success or error
+    }
   }
 
   ngOnDestroy(): void {
@@ -118,71 +125,59 @@ export class ProjectPageComponent implements OnInit, OnDestroy {
     this.destroy$.unsubscribe();
   }
 
-  private getAggregateProjectLinks(): string | null {
-    let aggregatedProjectLinks = '';
-    if (!this.projectLinks) {
-      return null;
-    }
-    this.projectLinks.map(projectLink => {
-      if (projectLink.url) {
-        aggregatedProjectLinks += projectLink.url + '\n';
-      }
+  private initializeFormGroup(): void {
+    this.form = this.formBuilder.group({
+      existingComponentsForm: this.formBuilder.group({}),
+      newComponentsForm: this.formBuilder.group({})
     });
-    return aggregatedProjectLinks;
   }
 
-  private groupQuickstartersByDescription(
-    quickstarters: Quickstarter[]
-  ): GroupedQuickstarters[] {
-    return quickstarters.reduce((acc, quickstarter) => {
-      const quickstarterObj: Quickstarter = {
-        id: quickstarter.component_id,
-        GROUP_ID: quickstarter.GROUP_ID,
-        ODS_GIT_REF: quickstarter.ODS_GIT_REF,
-        ODS_IMAGE_TAG: quickstarter.ODS_IMAGE_TAG,
-        PACKAGE_NAME: quickstarter.PACKAGE_NAME,
-        PROJECT_ID: quickstarter.PROJECT_ID,
-        component_description: quickstarter.component_description,
-        component_id: quickstarter.component_id,
-        component_type: quickstarter.component_type,
-        git_url_http: quickstarter.git_url_http,
-        git_url_ssh: quickstarter.git_url_ssh
-      };
-
-      const found = acc.find(
-        predicate => predicate.desc === quickstarter.component_description
-      );
-
-      if (found) {
-        found.ids.push(quickstarterObj);
-      } else {
-        acc.push({
-          desc: quickstarter.component_description,
-          image_tag: quickstarter.ODS_IMAGE_TAG,
-          ids: [quickstarterObj]
-        });
-      }
-      return acc;
-    }, []);
-  }
-
-  private sortQuickstartersByDescription(
-    quickstarters: GroupedQuickstarters[]
-  ): GroupedQuickstarters[] {
-    return quickstarters.sort(
-      (a: GroupedQuickstarters, b: GroupedQuickstarters) => {
-        return a.desc.localeCompare(b.desc);
-      }
+  private getProjectByKey(key: string): Observable<ProjectData> {
+    if (this.project$) {
+      this.project$.unsubscribe();
+    }
+    return this.projectService.getProjectByKey(key).pipe(
+      takeUntil(this.destroy$),
+      tap(() => (this.isProjectError = false)),
+      catchError(() => {
+        this.isProjectError = true;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return EMPTY;
+      })
     );
   }
 
-  private getProjectLinksConfig(): ProjectLink[] {
-    return projectLinksConfig.map(link => {
-      return {
-        url: this.project[link.urlKey],
-        iconName: link.iconName,
-        iconLabel: link.iconLabel
-      };
-    });
+  private getAllQuickstarters(): Observable<boolean | QuickstarterData[]> {
+    if (this.quickstarters$) {
+      this.quickstarters$.unsubscribe();
+    }
+    return this.quickstarterService.getAllQuickstarters().pipe(
+      takeUntil(this.destroy$),
+      tap(() => (this.isQuickstartersError = false)),
+      catchError(() => {
+        this.isQuickstartersError = true;
+        return of(false);
+      })
+    );
+  }
+
+  private prepareProjectLinks() {
+    this.projectLinks = this.projectService.getProjectLinksConfig(this.project);
+    this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(
+      this.projectLinks
+    );
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  deactivateEditModeByEscKey(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.deactivateEditMode();
+    }
+  }
+
+  saveProject() {
+    // this.isLoading = true;
+    console.log(this.project);
   }
 }

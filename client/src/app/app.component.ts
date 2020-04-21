@@ -5,7 +5,7 @@ import { EditModeService } from './modules/edit-mode/services/edit-mode.service'
 import { ProjectService } from './modules/project-page/services/project.service';
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-import { Project } from './modules/project-page/domain/project';
+import { ProjectData } from './modules/project-page/domain/project';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
   isLoading = true;
   isError: boolean;
 
-  projects: Project[] = [];
+  projects: ProjectData[] = [];
 
   constructor(
     private matIconRegistry: MatIconRegistry,
@@ -50,7 +50,7 @@ export class AppComponent implements OnInit {
           return EMPTY;
         })
       )
-      .subscribe((response: Project[]) => {
+      .subscribe((response: ProjectData[]) => {
         this.projects = response;
         this.isLoading = false;
         this.isError = false;

@@ -1,0 +1,44 @@
+@import '../../../ui/scss/variables';
+@import '~bootstrap/scss/bootstrap-grid';
+
+.quickstarter-add {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 20px 50px;
+  border-top: 1px solid $color-gray;
+}
+
+.empty-quickstarters {
+  :host {
+    .quickstarter-add {
+      height: 100%;
+      max-height: initial;
+      padding: 30px 30px 10px 30px;
+      border-top: 0;
+    }
+  }
+}
+
+.qs-table {
+  grid-template-columns: 30% auto min-content;
+  gap: 10px;
+
+  thead {
+    display: none;
+  }
+
+  td {
+    padding: 10px 0;
+    border-bottom: 0;
+  }
+}
+
+.quickstarter-row {
+  @include make-row();
+  border-top: 1px solid lightgray;
+  padding: 20px 0;
+
+  &:first-child {
+    border-top: 0;
+  }
+}

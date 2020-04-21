@@ -6,7 +6,8 @@ export const environment = {
   production: false,
 
   apiProjectUrl: '/api/v2/project/{{{PROJECT_KEY}}}',
-  apiAllProjectsUrl: '/api/v2/project'
+  apiAllProjectsUrl: '/api/v2/project',
+  apiAllQuickstartersUrl: '/api/v1/quickstarter'
 };
 
 /*
