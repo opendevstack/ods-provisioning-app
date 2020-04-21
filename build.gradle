@@ -181,6 +181,19 @@ bootJar {
     destinationDir file("$buildDir/../docker")
 }
 
+bootRun {
+    doFirst {
+        copy {
+            println 'copy New Front End files!!!'
+            from 'client/dist/client'
+            into 'build/resources/main/static/'
+        }
+    }
+    args = [
+            '--spring.config.location=file:./build/resources/main/application-local.properties'
+    ]
+}
+
 jacoco {
     toolVersion = "0.8.3"
 }
