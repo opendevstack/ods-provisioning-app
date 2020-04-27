@@ -17,9 +17,6 @@ parameters:
 - name: PROV_APP_CROWD_URI
   required: true
   description: the URI of crowd used to authenticate users from the app against
-- name: OPENSHIFT_API_HOST
-  required: true
-  description: the API host of the OCP cluster
 - name: OPENSHIFT_CONSOLE_HOST
   required: true
   description: the console host of the OCP cluster
@@ -147,6 +144,7 @@ objects:
       # jenkinspipeline.[some-job-name].repo -> repo name of the Job
       #
       # Optional:
+      # jenkinspipeline.[some-job-name].create-webhook -> whether a default webhook should be created for this repo or not (true by default)
       # jenkinspipeline.[some-job-name].branch -> a branch differing from ods.git-ref
       # jenkinspipeline.[some-job-name].jenkinsfile -> a path to the jenkinsfile differing from [some-job-name]/Jenkinsfile
       #############
@@ -175,6 +173,9 @@ objects:
 
       jenkinspipeline.quickstarter.be-typescript-express.desc=Backend - NodeJS/Express
       jenkinspipeline.quickstarter.be-typescript-express.repo=ods-quickstarters
+
+      jenkinspipeline.quickstarter.be-gateway-nginx.desc=Backend - Gateway/Nginx
+      jenkinspipeline.quickstarter.be-gateway-nginx.repo=ods-quickstarters
 
       # Data Science quickstarters
       jenkinspipeline.quickstarter.ds-jupyter-notebook.desc=Data Science - Jupyter Notebook
@@ -211,6 +212,10 @@ objects:
 
       jenkinspipeline.quickstarter.release-manager.desc=Other - Releasemanager
       jenkinspipeline.quickstarter.release-manager.repo=ods-quickstarters
+      jenkinspipeline.quickstarter.release-manager.create-webhook=false
+
+      jenkinspipeline.quickstarter.e2e-spock-geb.desc=Other - Spock E2E Test
+      jenkinspipeline.quickstarter.e2e-spock-geb.repo=ods-quickstarters
 
       # openshift properties
       openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}

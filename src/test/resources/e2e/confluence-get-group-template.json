@@ -1,0 +1,9 @@
+{
+	"type": "group",
+	"name": "<%GROUP%>",
+	"_links": {
+		"base": "https://example.com",
+		"context": "",
+		"self": "https://example.com/rest/api/group/<%GROUP%>"
+	}
+}

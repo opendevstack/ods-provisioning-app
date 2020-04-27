@@ -1,19 +1,16 @@
-def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsImageTag
 def final projectId = 'prov'
 def final componentId = 'prov-app'
 def final credentialsId = "${projectId}-cd-cd-user-with-password"
-def sharedLibraryRepository
 def dockerRegistry
+def odsGitRef
 node {
-  sharedLibraryRepository = env.SHARED_LIBRARY_REPOSITORY
   dockerRegistry = env.DOCKER_REGISTRY
+  odsImageTag = env.ODS_IMAGE_TAG ?: '2.x'
+  odsGitRef = env.ODS_GIT_REF ?: '2.x'
 }
 
-library identifier: "ods-library@${odsGitRef}", retriever: modernSCM(
-  [$class: 'GitSCMSource',
-   remote: sharedLibraryRepository,
-   credentialsId: credentialsId])
+library("ods-jenkins-shared-library@${odsGitRef}")
 
 // See readme of shared library for usage and customization.
 odsPipeline(
@@ -64,8 +61,6 @@ def stageBuildBackend(def context) {
     springBootEnv = 'dev'
   }
   stage('Build Backend') {
-    sh 'echo ${APP_DNS}'
-    sh 'openssl s_client -showcerts -connect ${APP_DNS}:443 < /dev/null | openssl x509 -outform DER > docker/derp.der'
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
       junit 'build/test-results/test/*.xml'

@@ -18,12 +18,14 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.model.ExecutionJob;
@@ -60,6 +62,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               OpenProjectDataValidator.COMPONENT_ID_MAX_LENGTH));
 
   public static final String PROJECT_ID_KEY = "PROJECT_ID";
+
+  public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
 
   @Value("${openshift.jenkins.webhookproxy.name.pattern}")
   protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
@@ -112,6 +116,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private Map<String, Job> nameToJobMappings;
+
   private Map<String, String> legacyComponentTypeToNameMappings;
 
   @PostConstruct
@@ -266,6 +271,10 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
+      options.put(
+          OPTION_KEY_GIT_SERVER_URL,
+          JenkinsPipelineAdapter.extractHostAndPortFromURL(new URL(bitbucketUri)));
+
       ExecutionsData data =
           prepareAndExecuteJob(
               new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),
@@ -335,11 +344,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     try {
       CreateProjectResponse data =
-          restClient.execute(
-              notAuthenticatedCall(HttpVerb.POST)
-                  .url(execution.url)
-                  .body(execution)
-                  .returnType(CreateProjectResponse.class));
+          getRestClient()
+              .execute(
+                  notAuthenticatedCall(HttpVerb.POST)
+                      .url(execution.url)
+                      .body(execution)
+                      .returnType(CreateProjectResponse.class));
       logger.info("Webhook proxy returned " + data.toString());
       ExecutionsData executionsData = new ExecutionsData();
       executionsData.setMessage(data.toString());
@@ -549,5 +559,21 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;
+  }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
+  }
+
+  public static String extractHostAndPortFromURL(URL url) {
+    String host = url.getHost();
+    int port = url.getPort();
+    if (port != -1) {
+      return String.format("%s:%s", host, port);
+    } else {
+      return host;
+    }
   }
 }

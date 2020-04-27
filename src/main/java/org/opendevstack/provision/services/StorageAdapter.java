@@ -15,12 +15,10 @@
 package org.opendevstack.provision.services;
 
 import com.google.common.base.Preconditions;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.IStorage;
@@ -84,18 +82,30 @@ public class StorageAdapter implements IServiceAdapter {
     this.storage = storage;
   }
 
+  public Map<String, OpenProjectData> getProjects() {
+    Collection<OpenProjectData> projects = listProjectHistory().values();
+
+    Map<String, OpenProjectData> map = new HashMap<>();
+
+    for (OpenProjectData fProject : projects) {
+      map.put(fProject.projectKey, fProject);
+    }
+
+    return map;
+  }
+
   @Override
   public Map<String, String> getProjects(String filter) {
-    Collection<OpenProjectData> filteredProjects = listProjectHistory().values();
+    Collection<OpenProjectData> projectList = listProjectHistory().values();
 
-    Map<String, String> filteredKeys = new HashMap<>();
+    Map<String, String> result = new HashMap<>();
 
-    for (OpenProjectData fProject : filteredProjects) {
+    for (OpenProjectData fProject : projectList) {
       if (filter.equalsIgnoreCase(fProject.projectKey)) {
-        filteredKeys.put(fProject.projectKey, fProject.description);
+        result.put(fProject.projectKey, fProject.description);
       }
     }
-    return filteredKeys;
+    return result;
   }
 
   @Override
@@ -149,5 +159,11 @@ public class StorageAdapter implements IServiceAdapter {
       }
     }
     return null;
+  }
+
+  @Override
+  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+    throw new UnsupportedOperationException("not implemented yet!");
   }
 }

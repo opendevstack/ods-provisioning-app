@@ -15,32 +15,23 @@
 package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
+import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
-import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.adapter.ICollaborationAdapter;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.adapter.ISCMAdapter;
+import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
-import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
 import org.opendevstack.provision.adapter.IServiceAdapter.LIFECYCLE_STAGE;
 import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
+import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
-import org.opendevstack.provision.model.ExecutionJob;
-import org.opendevstack.provision.model.ExecutionsData;
-import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.OpenProjectDataValidator;
+import org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage;
+import org.opendevstack.provision.model.*;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -54,12 +45,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Rest Controller to handle the process of project creation
@@ -74,6 +60,15 @@ public class ProjectApiController {
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
 
   private static final String STR_LOGFILE_KEY = "loggerFileName";
+
+  public static final String ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS =
+      "onlyCheckPreconditions";
+
+  public static final String RETRY_AFTER_INTERVAL_IN_SECONDS = "180";
+  public static final String RETRY_AFTER_HEADER = "Retry-After";
+
+  public static final String CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS =
+      "provision.add-project.check-preconditions";
 
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
@@ -96,7 +91,18 @@ public class ProjectApiController {
   boolean ocUpgradeAllowed;
 
   @Value("${provision.cleanup.incomplete.projects:true}")
-  boolean cleanupAllowed;
+  private boolean cleanupAllowed;
+
+  @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
+  private boolean checkPreconditionsEnabled;
+
+  public ProjectApiController() {
+    logger.info(
+        "Enable check preconditions = {} [{}={}]",
+        checkPreconditionsEnabled,
+        CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS,
+        checkPreconditionsEnabled);
+  }
 
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
@@ -107,7 +113,11 @@ public class ProjectApiController {
    *     happens, the error
    */
   @RequestMapping(method = RequestMethod.POST)
-  public ResponseEntity<Object> addProject(@RequestBody OpenProjectData newProject) {
+  public ResponseEntity<Object> addProject(
+      @RequestBody OpenProjectData newProject,
+      @RequestParam(ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS)
+          Optional<Boolean> onlyCheckPreconditions,
+      @RequestHeader(value = "Content-Type", required = false) String contentType) {
 
     if (newProject == null
         || newProject.projectKey == null
@@ -138,16 +148,6 @@ public class ProjectApiController {
           "Project to be created: {}",
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
 
-      if (newProject.specialPermissionSet) {
-        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
-          logger.info(
-              "Do not validate special bugtracker permission set, "
-                  + "because special permission sets are disabled in configuration");
-        } else {
-          projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
-        }
-      }
-
       // verify the project does NOT exist
       if (directStorage.getProject(newProject.projectKey) != null
           || directStorage.getProjectByName(newProject.projectName) != null) {
@@ -157,6 +157,44 @@ public class ProjectApiController {
                   "Project with key (%s) or name (%s) already exists",
                   newProject.projectKey, newProject.projectName));
         }
+      }
+
+      List<String> preconditionsFailures = new ArrayList<>();
+
+      // TODO: move this block to check preconditions in projectIdentityMgmtAdapter
+      if (newProject.specialPermissionSet) {
+        if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+          logger.info(
+              "Do not validate special bugtracker permission set, "
+                  + "because special permission sets are disabled in configuration");
+        } else {
+          try {
+            projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
+          } catch (IdMgmtException e) {
+            preconditionsFailures.add(e.getMessage());
+          }
+        }
+      }
+
+      // If preconditions check fails an exception is thrown and cough below in try/catch block
+      preconditionsFailures.addAll(checkPreconditions(newProject));
+
+      // if list is not empty the precondition check failed
+      if (!preconditionsFailures.isEmpty()) {
+
+        String body =
+            CheckPreconditionsResponse.failed(
+                contentType, CHECK_PRECONDITIONS, preconditionsFailures);
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .header(RETRY_AFTER_HEADER, RETRY_AFTER_INTERVAL_IN_SECONDS)
+            .body(body);
+      }
+
+      if (onlyCheckPreconditions.orElse(Boolean.FALSE)) {
+
+        return ResponseEntity.ok(
+            CheckPreconditionsResponse.successful(contentType, CHECK_PRECONDITIONS));
       }
 
       if (newProject.bugtrackerSpace) {
@@ -198,6 +236,10 @@ public class ProjectApiController {
     } catch (ProjectAlreadyExistsException exAlreadyExists) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(exAlreadyExists.getMessage());
+    } catch (CreateProjectPreconditionException cppe) {
+      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+          .header(RETRY_AFTER_HEADER, RETRY_AFTER_INTERVAL_IN_SECONDS)
+          .body(formatError(contentType, CHECK_PRECONDITIONS, cppe.getMessage()));
     } catch (Exception exProvisionNew) {
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupResults =
           cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, newProject);
@@ -218,6 +260,54 @@ public class ProjectApiController {
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
     }
+  }
+
+  /**
+   * @param contentType
+   * @param jobStage
+   * @param error
+   * @return a json string if the content type is json, otherwise it returns the error parameter
+   */
+  public static String formatError(String contentType, JobStage jobStage, String error) {
+    if (CheckPreconditionsResponse.isJsonContentType(contentType)) {
+      error = CheckPreconditionsResponse.failedAsJson(jobStage, error);
+    }
+    return error;
+  }
+
+  /**
+   * @param newProject
+   * @return list of precondition check failure messages
+   * @throws CreateProjectPreconditionException if an exception was captured while checking the
+   *     preconditions
+   */
+  private List<String> checkPreconditions(OpenProjectData newProject)
+      throws CreateProjectPreconditionException {
+
+    if (!checkPreconditionsEnabled) {
+      logger.info(
+          "Skipping check preconditions! Check preconditions is disabled [{}={}]",
+          CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS,
+          checkPreconditionsEnabled);
+    }
+
+    List<String> results = new ArrayList<>();
+
+    if (newProject.bugtrackerSpace) {
+
+      IServiceAdapter[] adapters = {confluenceAdapter, jiraAdapter};
+
+      for (IServiceAdapter adapter : adapters) {
+        results.addAll(adapter.checkCreateProjectPreconditions(newProject));
+      }
+    }
+
+    if (newProject.platformRuntime) {
+
+      results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
+    }
+
+    return Collections.unmodifiableList(results);
   }
 
   /**
@@ -465,6 +555,29 @@ public class ProjectApiController {
   }
 
   /**
+   * Get a list with all projects in the ODS prov system. In this case the quickstarters {@link
+   * OpenProjectData#quickstarters} contain also the description of the quickstarter that was used
+   */
+  @GetMapping
+  public ResponseEntity<Map<String, OpenProjectInfo>> getAllProjects() {
+
+    try {
+      Map<String, OpenProjectData> projectsData = filteredStorage.getProjects();
+      Map<String, OpenProjectInfo> projects = new HashMap<>();
+
+      for (Map.Entry<String, OpenProjectData> entry : projectsData.entrySet()) {
+        projects.put(entry.getKey(), new OpenProjectInfo(entry.getValue()));
+      }
+
+      return ResponseEntity.ok(projects);
+
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
    * Get a list with all projects in the ODS prov system defined by their key. In this case the
    * quickstarters {@link OpenProjectData#quickstarters} contain also the description of the
    * quickstarter that was used
@@ -550,15 +663,15 @@ public class ProjectApiController {
 
     templatesForKey.put(
         "bugTrackerTemplate",
-        templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY)
+        templates.get(PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY)
             + "#"
-            + templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
+            + templates.get(PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     templatesForKey.put(
         "collabSpaceTemplate",
         confluenceAdapter
             .retrieveInternalProjectTypeAndTemplateFromProjectType(project)
-            .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
+            .get(PROJECT_TEMPLATE.TEMPLATE_KEY));
 
     return ResponseEntity.ok(templatesForKey);
   }
@@ -633,7 +746,7 @@ public class ProjectApiController {
   public ResponseEntity<Object> deleteProject(@PathVariable String id) throws IOException {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
 
-    if (!cleanupAllowed) {
+    if (!isCleanupAllowed()) {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
@@ -658,7 +771,7 @@ public class ProjectApiController {
   @RequestMapping(method = RequestMethod.DELETE)
   public ResponseEntity<Object> deleteComponents(@RequestBody OpenProjectData deletableComponents)
       throws IOException {
-    if (!cleanupAllowed) {
+    if (!isCleanupAllowed()) {
       throw new IOException("Cleanup of projects is NOT allowed");
     }
 
@@ -696,7 +809,7 @@ public class ProjectApiController {
   Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
       LIFECYCLE_STAGE stage, OpenProjectData project) {
 
-    if (!cleanupAllowed) {
+    if (!isCleanupAllowed()) {
       return new HashMap<>();
     }
 
@@ -719,5 +832,21 @@ public class ProjectApiController {
         notCleanedUpComponents.size() == 0 ? 0 : notCleanedUpComponents);
 
     return notCleanedUpComponents;
+  }
+
+  public void setCleanupAllowed(boolean cleanupAllowed) {
+    this.cleanupAllowed = cleanupAllowed;
+  }
+
+  public boolean isCleanupAllowed() {
+    return cleanupAllowed;
+  }
+
+  public void setDirectStorage(IStorage storage) {
+    this.directStorage = storage;
+  }
+
+  public IStorage getDirectStorage() {
+    return directStorage;
   }
 }
