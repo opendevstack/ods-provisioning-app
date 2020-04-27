@@ -6,8 +6,8 @@ def dockerRegistry
 def odsGitRef
 node {
   dockerRegistry = env.DOCKER_REGISTRY
-  odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-  odsGitRef = env.ODS_GIT_REF ?: 'production'
+  odsImageTag = env.ODS_IMAGE_TAG ?: '2.x'
+  odsGitRef = env.ODS_GIT_REF ?: '2.x'
 }
 
 library("ods-jenkins-shared-library@${odsGitRef}")
@@ -48,9 +48,9 @@ odsPipeline(
     }
   }
   stageBuildBackend(context)
-  odsComponentStageScanWithSonar(context)
-  odsComponentStageBuildOpenShiftImage(context)
-  odsComponentStageRolloutOpenShiftDeployment(context)
+  stageScanForSonarqube(context)
+  stageStartOpenshiftBuild(context)
+  stageDeployToOpenshift(context)
 }
 
 def stageBuildBackend(def context) {
