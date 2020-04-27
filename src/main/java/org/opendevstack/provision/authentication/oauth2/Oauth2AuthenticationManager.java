@@ -28,7 +28,7 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
     return userPassword.getPassword();
   }
 
-  @Value("${spring.security.oauth2.client.provider.keycloak.user-info-uri}")
+  @Value("${provision.auth.provider.oauth2.user-info-uri}")
   private String userInfoUri;
 
   /** @see IODSAuthnzAdapter#getUserName() */
