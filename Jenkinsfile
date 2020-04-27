@@ -60,9 +60,10 @@ def stageBuildBackend(def context) {
   if (springBootEnv.contains('-dev')) {
     springBootEnv = 'dev'
   }
-  stage('Build') {
+  stage('Build Backend') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
+      junit 'build/test-results/test/*.xml'
       if (status != 0) {
         error "Build failed!"
       }
