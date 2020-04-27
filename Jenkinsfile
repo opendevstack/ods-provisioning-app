@@ -48,9 +48,9 @@ odsPipeline(
     }
   }
   stageBuildBackend(context)
-  stageScanForSonarqube(context)
-  stageStartOpenshiftBuild(context)
-  stageDeployToOpenshift(context)
+  odsComponentStageScanWithSonar(context)
+  odsComponentStageBuildOpenShiftImage(context)
+  odsComponentStageRolloutOpenShiftDeployment(context)
 }
 
 def stageBuildBackend(def context) {
