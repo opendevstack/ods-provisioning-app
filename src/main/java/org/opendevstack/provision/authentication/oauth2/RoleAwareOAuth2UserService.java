@@ -10,6 +10,7 @@ import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,11 +41,10 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
 
   private final OidcUserService delegate = new OidcUserService();
 
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final String userRolesExpression;
-
-  private final Oauth2AuthenticationManager authenticationManager;
+  @Value("${oauth2.user.roles.jsonpointerexpression}")
+  private String userRolesExpression;
 
   @Value("${oauth2.user.use-email-claim-as-username:false}")
   private boolean useEmailClaimAsUserName;
@@ -52,15 +52,12 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
   @Value("${oauth2.user.roles.convert-to-lower-case:true}")
   private boolean convertRolesToLowerCase;
 
+  @Value("${oauth2.user.roles.keep-only-opendevstack-roles-from-jwt:true}")
+  private boolean extractOnlyOpendevstackRoles;
+
+  @Qualifier("opendevstackRoles")
   @Autowired
-  public RoleAwareOAuth2UserService(
-      ObjectMapper objectMapper,
-      @Value("${oauth2.user.roles.jsonpointerexpression}") String userRolesExpression,
-      Oauth2AuthenticationManager authenticationManager) {
-    this.objectMapper = objectMapper;
-    this.userRolesExpression = userRolesExpression;
-    this.authenticationManager = authenticationManager;
-  }
+  private List<String> opendevstackRoles;
 
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
@@ -68,11 +65,9 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     OidcUser oidcUser = delegate.loadUser(userRequest);
 
     // Fetch the authority information from the protected resource using idToken
-    Collection<GrantedAuthority> mappedAuthorities = extractAuthorities(userRequest);
+    Collection<GrantedAuthority> mappedAuthorities =
+        extractAuthorities(userRequest, extractOnlyOpendevstackRoles);
     mappedAuthorities.addAll(oidcUser.getAuthorities());
-
-    String username = RoleAwareOAuth2UserService.resolveUsername(oidcUser, useEmailClaimAsUserName);
-    authenticationManager.setUserName(username);
 
     // Create a copy of oidcUser but use the mappedAuthorities instead
     DefaultOidcUser oidcUserWithAuthorities =
@@ -80,13 +75,20 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
     return oidcUserWithAuthorities;
   }
 
-  private Collection<GrantedAuthority> extractAuthorities(OidcUserRequest userRequest) {
+  private Collection<GrantedAuthority> extractAuthorities(
+      OidcUserRequest userRequest, boolean keepOnlyOpendevstackRoles) {
     JsonNode token = objectMapper.convertValue(userRequest.getIdToken(), JsonNode.class);
     LOG.debug("Begin extractRoles at path '{}' from idToken jwt = {}", userRolesExpression, token);
 
     try {
       List<String> roles = extractRoles(token, userRolesExpression, convertRolesToLowerCase);
-      LOG.debug("End extractRoles: roles = {}", roles);
+
+      roles =
+          keepOnlyOpendevstackRoles
+              ? extractOnlyOpendevstackRoles(roles, opendevstackRoles)
+              : roles;
+
+      LOG.debug("Roles extracted from jwt = {}", roles);
 
       if (roles.isEmpty()) {
         LOG.warn(
@@ -116,5 +118,14 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
   public static String resolveUsername(OidcUser oidcUser, boolean useEmailClaimAsUserName) {
     Assert.notNull(oidcUser, "Parameter 'oidcUser' is null!");
     return useEmailClaimAsUserName ? oidcUser.getEmail() : oidcUser.getName();
+  }
+
+  public static List<String> extractOnlyOpendevstackRoles(
+      List<String> roles, List<String> opendevstackRoles) {
+    Assert.notNull(roles, "Parameter roles is null!");
+    Assert.notNull(opendevstackRoles, "Parameter opendevstackRoles is null!");
+    return roles.stream()
+        .filter(role -> opendevstackRoles.contains(role))
+        .collect(Collectors.toList());
   }
 }

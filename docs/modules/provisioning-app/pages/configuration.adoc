@@ -92,12 +92,13 @@ azure.activedirectory.user-group.object-id-key=id
 azure.activedirectory.tenant-id=<TENANT_ID> # <5>
 
 oauth2.user.roles.jsonpointerexpression=/claims/roles # <6>
+oauth2.user.use-email-claim-as-username=true # <7>
 
-# <7>
+# <8>
 idmanager.url=https://login.microsoftonline.com
 idmanager.realm=${spring.security.oauth2.client.registration.azure.client-id}
 
-idmanager.disable-logout-from-idm=true # <8>
+idmanager.disable-logout-from-idm=true # <9>
 ----
 <1> configures oauth2 authentication provider
 <2> configure user info uri
@@ -105,8 +106,9 @@ idmanager.disable-logout-from-idm=true # <8>
 <4> configure allow groups
 <5> register azure ad tenant
 <6> the application reads the user roles from the claim that is inside the oauth2 ID-Token. The property _oauth2.user.roles.jsonpointerexpression_ is a JsonPointer - Expression that defines a path to the roles that are extracted from the id token. Details regarding pointer expression can be found at https://github.com/opendevstack/ods-provisioning-app/blob/master/https://fasterxml.github.io/jackson-core/javadoc/2.5/com/fasterxml/jackson/core/JsonPointer.html[Jackson-core JsonPointer Documentation]
-<7> configure name of the ProvApp realm
-<8> instruct ProvApp to not logout from identity management provider
+<7> configure to use email claim as username
+<8> configure name of the ProvApp realm
+<9> instruct ProvApp to not logout from identity management provider
 
 === Authentication to third party apps via technical users
 The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence and Bitbucket. The used credentials are read from a pair of properties. For Example, _bitbucket.admin_password_ and _bitbucket.admin_user_ properties are used for Bitbucket, _confluence.admin_user_ and _confluence.admin_password_ are used for Confluence, etc.

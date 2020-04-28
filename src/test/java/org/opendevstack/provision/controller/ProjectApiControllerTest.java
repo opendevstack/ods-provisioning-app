@@ -14,8 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
@@ -858,7 +857,7 @@ public class ProjectApiControllerTest {
         "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
 
     OpenProjectData dataReturn = this.copyFromProject(data);
-    apiController.shortenDescription(dataReturn);
+    dataReturn.description = ProjectApiController.createShortenedDescription(dataReturn);
 
     dataReturn.bugtrackerUrl = "bugtracker";
 
@@ -886,15 +885,21 @@ public class ProjectApiControllerTest {
                 .string(CoreMatchers.containsString(dataReturn.description + "\"")));
 
     // test with null
-    apiController.shortenDescription(null);
+    try {
+      ProjectApiController.createShortenedDescription(null);
+      fail();
+    } catch (IllegalArgumentException iae) {
+      assertTrue(iae.getMessage().contains("project"));
+    }
 
     // test with content
-    apiController.shortenDescription(data);
-    assertEquals(dataReturn.description, data.description);
+    String description = ProjectApiController.createShortenedDescription(data);
+    assertEquals(dataReturn.description, description);
 
     // test with null description
     data.description = null;
-    apiController.shortenDescription(data);
+    description = ProjectApiController.createShortenedDescription(data);
+    assertEquals(data.description, description);
   }
 
   public static String asJsonString(final Object obj) {

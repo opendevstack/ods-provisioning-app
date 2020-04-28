@@ -33,6 +33,7 @@ import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
@@ -113,7 +114,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   @Autowired private ConfigurableEnvironment environment;
 
-  @Autowired private List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
 
   public JiraAdapter() {
     super(ADAPTER_NAME);
@@ -448,7 +451,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     if (!(project.specialPermissionSet && isSpecialPermissionSchemeEnabled())
         || project.projectAdminUser == null
         || project.projectAdminUser.trim().length() == 0) {
-      return manager.getUserName();
+      return getUserName();
     } else {
       return project.projectAdminUser;
     }
@@ -734,7 +737,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       if (!checkUserExists(user)) {
         preconditionFailures.add(
-            String.format("User '%s' does not exists in {}!", user, ADAPTER_NAME));
+            String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME));
       }
 
       return preconditionFailures;
