@@ -8,6 +8,7 @@
     "start:dev": "ng serve --proxy-config proxy.conf.json",
     "start": "ng serve",
     "build": "ng build",
+    "buildps": "ng build --source-map=false --stats-json",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint && sass-lint --verbose --no-exit",

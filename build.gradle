@@ -171,7 +171,7 @@ dependencies {
 bootJar {
     doFirst {
         copy {
-            println 'copy New Front End files!!!'
+            println 'bootJar: Copy New Front End files!!!'
             from 'client/dist/client'
             into 'build/resources/main/static/'
         }
@@ -184,7 +184,7 @@ bootJar {
 bootRun {
     doFirst {
         copy {
-            println 'copy New Front End files!!!'
+            println 'bootRun: Copy New Front End files!!!'
             from 'client/dist/client'
             into 'build/resources/main/static/'
         }
@@ -204,3 +204,19 @@ spotless {
         indentWithSpaces(2)
     }
 }
+
+task yarnBuild(type:Exec) {
+
+    println 'Yarn build task created!'
+
+    workingDir 'client'
+
+    //on windows:
+    commandLine 'cmd', '/c', 'yarn', 'buildps'
+
+    //on linux
+    commandLine 'yarn', 'buildps'
+}
+
+bootJar.dependsOn yarnBuild
+bootRun.dependsOn yarnBuild

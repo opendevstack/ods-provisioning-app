@@ -103,7 +103,6 @@ public class DefaultController {
     return "redirect:/index.html";
   }
 
-
   @RequestMapping("/provision")
   String provisionProject(Model model) {
     if (!isAuthenticated()) {
