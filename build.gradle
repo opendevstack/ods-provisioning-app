@@ -212,10 +212,10 @@ task yarnBuild(type:Exec) {
     workingDir 'client'
 
     //on windows:
-    commandLine 'cmd', '/c', 'yarn', 'buildps'
+    commandLine 'cmd', '/c', 'yarn', 'build'
 
     //on linux
-    commandLine 'yarn', 'buildps'
+    commandLine 'yarn', 'build'
 }
 
 bootJar.dependsOn yarnBuild
