@@ -30,3 +30,9 @@ export interface Project {
   projectType?: string;
   physicalLocation: string;
 }
+
+export interface ProjectLink {
+  url: string;
+  iconName: string;
+  iconLabel: string;
+}

@@ -1,108 +1,151 @@
-<ng-container *ngIf="isLoading; else showProject">
+<ng-container *ngIf="isLoading">
   <app-loading-indicator></app-loading-indicator>
 </ng-container>
 
-<ng-template #showProject>
-  <mat-card>
-    <div class="row project__header">
-      <div class="col-10">
-        <div class="project__name">
-          <h1 class="mat-h1">{{ project.projectName }}</h1>
-        </div>
-      </div>
-      <div class="col-2">
-        <div class="project__action">
-          <a
-            mat-icon-button
-            color="primary"
-            (click)="activateEditMode()"
-            [disabled]="editMode"
-            data-test-edit-project-btn
-          >
-            <mat-icon
-              svgIcon="edit"
-              aria-hidden="false"
-              [attr.aria-label]="'Edit Project'"
-            ></mat-icon>
-          </a>
-        </div>
-      </div>
-    </div>
+<ng-container *ngIf="isError">
+  <div class="error">
+    This project could not be loaded currently
+  </div>
+</ng-container>
 
-    <div class="row">
-      <div class="col-12">
-        <div class="project__links">
-          <ul>
-            <li
-              *ngFor="let projectLink of projectLinksConfig"
-              class="quicklink__item"
-              [ngClass]="!projectLink.url ? 'disabled' : ''"
-              matTooltip="{{ projectLink.iconLabel }}"
+<ng-container *ngIf="canDisplayContent()">
+  <mat-card>
+    <!-- TODO put into separate component -->
+    <div class="project__header">
+      <div class="row">
+        <div class="col-10">
+          <div class="project__name">
+            <h1 class="mat-h1">{{ project.projectName }}</h1>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="project__editmode">
+            <a
+              mat-icon-button
+              color="primary"
+              (click)="activateEditMode()"
+              [disabled]="editMode"
+              data-test-edit-project-btn
             >
-              <ng-container *ngIf="projectLink.url; else iconOnly">
-                <a href="{{ projectLink.url }}" target="_blank">
+              <mat-icon
+                svgIcon="edit"
+                aria-hidden="false"
+                [attr.aria-label]="'Edit Project'"
+              ></mat-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="project__links">
+            <ul>
+              <li
+                *ngFor="let projectLink of projectLinks"
+                class="quicklink__item"
+                [ngClass]="!projectLink.url ? 'disabled' : ''"
+                matTooltip="{{ projectLink.iconLabel }}"
+              >
+                <ng-container *ngIf="projectLink.url; else iconOnly">
+                  <a href="{{ projectLink.url }}" target="_blank">
+                    <mat-icon
+                      svgIcon="{{ projectLink.iconName }}"
+                      aria-hidden="false"
+                      [attr.aria-label]="projectLink.iconLabel"
+                    ></mat-icon>
+                  </a>
+                </ng-container>
+                <ng-template #iconOnly>
                   <mat-icon
                     svgIcon="{{ projectLink.iconName }}"
                     aria-hidden="false"
                     [attr.aria-label]="projectLink.iconLabel"
                   ></mat-icon>
-                </a>
-              </ng-container>
-              <ng-template #iconOnly>
-                <mat-icon
-                  svgIcon="{{ projectLink.iconName }}"
-                  aria-hidden="false"
-                  [attr.aria-label]="projectLink.iconLabel"
-                ></mat-icon>
-              </ng-template>
-            </li>
-          </ul>
-          <a
-            mat-icon-button
-            color="primary"
-            [cdkCopyToClipboard]="this.aggregatedProjectLinks"
-            (cdkCopyToClipboardCopied)="openDialog('Success!')"
-            *ngIf="this.aggregatedProjectLinks"
-          >
-            <mat-icon
-              svgIcon="copy"
-              aria-hidden="false"
-              aria-label="Copy URLs to clipboard"
-            ></mat-icon>
-          </a>
-        </div>
+                </ng-template>
+              </li>
+            </ul>
+            <a
+              mat-icon-button
+              color="primary"
+              [cdkCopyToClipboard]="this.aggregatedProjectLinks"
+              (cdkCopyToClipboardCopied)="openDialog('Success!')"
+              *ngIf="this.aggregatedProjectLinks"
+            >
+              <mat-icon
+                svgIcon="copy"
+                aria-hidden="false"
+                aria-label="Copy URLs to clipboard"
+              ></mat-icon>
+            </a>
+          </div>
 
-        <h3 class="mat-h3">{{ project.description }}</h3>
+          <h3 class="mat-h3">{{ project.description }}</h3>
+        </div>
       </div>
     </div>
 
-    <section class="quickstarter-list">
-      <table mat-table [dataSource]="quickstarterTableSource" matSort>
-        <ng-container matColumnDef="component_description">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            Quickstarter
-          </th>
-          <td mat-cell *matCellDef="let element">
-            {{ element.component_description }}
-          </td>
-        </ng-container>
+    <!-- TODO put into separate component -->
+    <div class="project__content">
+      <table class="qs-table" *ngIf="project.quickstarters.length">
+        <thead>
+          <tr>
+            <th>Quickstarter</th>
+            <th>IDs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let qs of quickstarters">
+            <td>
+              <div class="qs-description">
+                {{ qs.desc }}
+              </div>
+            </td>
+            <td>
+              <div class="qs-component">
+                <mat-accordion
+                  [displayMode]="'flat'"
+                  [togglePosition]="'before'"
+                >
+                  <mat-expansion-panel
+                    *ngFor="let id of qs.ids"
+                    class="mat-elevation-z0"
+                  >
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        {{ id.component_id }}
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
 
-        <ng-container matColumnDef="component_id">
-          <th mat-header-cell *matHeaderCellDef>IDs</th>
-          <td mat-cell *matCellDef="let element">{{ element.component_id }}</td>
-        </ng-container>
-
-        <tr
-          mat-header-row
-          *matHeaderRowDef="displayedColumns; sticky: true"
-        ></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                    <div class="qs-component__info">
+                      <ul>
+                        <li>ODS Image Tag: {{ id.ODS_IMAGE_TAG }}</li>
+                        <li class="odd">
+                          <span>Package Name</span>: {{ id.PACKAGE_NAME }}
+                        </li>
+                        <li><span>ODS_GIT_REF</span>: {{ id.ODS_GIT_REF }}</li>
+                        <li class="odd">
+                          <a href="{{ id.git_url_http }}" target="_blank"
+                            >GIT</a
+                          >
+                        </li>
+                        <li>
+                          <a href="{{ id.git_url_ssh }}" target="_blank">SSH</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </table>
-    </section>
+    </div>
 
-    <section id="new">
-      <div class="quickstarter-add" *ngIf="editMode">
-        <div class="quickstarter-row mt-4">
+    <!-- TODO dummy content currently / put into separate component -->
+    <div class="project__footer" *ngIf="editMode">
+      <div class="quickstarter-add">
+        <div class="quickstarter-row">
           <div class="col-5">
             <mat-form-field>
               <mat-label>Quickstarter</mat-label>
@@ -132,11 +175,11 @@
           </div>
         </div>
       </div>
-    </section>
 
-    <mat-card-actions class="d-flex justify-content-end mt-4" *ngIf="editMode">
-      <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
-      <button mat-raised-button color="primary" disabled>START</button>
-    </mat-card-actions>
+      <div class="project__action">
+        <button mat-raised-button (click)="deactivateEditMode()">CANCEL</button>
+        <button mat-raised-button color="primary" disabled>START</button>
+      </div>
+    </div>
   </mat-card>
-</ng-template>
+</ng-container>

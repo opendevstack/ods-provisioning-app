@@ -63,9 +63,10 @@ app-root {
   }
 
   .content {
-    height: calc(100vh - #{$header-footer-offset});
-    overflow-y: auto;
-    position: sticky;
+    height: calc(
+      100vh - #{$header-footer-offset} - #{$sidebar-header-height} + #{$sidebar-header-margin-top}
+    );
+    overflow: hidden;
     padding: 0 $space;
 
     @include make-col-ready();

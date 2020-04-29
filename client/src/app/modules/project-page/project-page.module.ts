@@ -12,11 +12,10 @@ import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from './tokens';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule } from '@angular/material/sort';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NotificationModule } from '../notification/notification.module';
 import { RouterModule } from '@angular/router';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
   declarations: [ProjectPageComponent],
@@ -31,10 +30,9 @@ import { RouterModule } from '@angular/router';
     MatCardModule,
     MatTooltipModule,
     MatButtonModule,
-    MatTableModule,
-    MatSortModule,
     ClipboardModule,
-    NotificationModule
+    NotificationModule,
+    MatExpansionModule
   ],
   providers: [ProjectService, httpInterceptorProviders],
   schemas: [NO_ERRORS_SCHEMA]
