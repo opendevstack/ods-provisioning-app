@@ -94,13 +94,13 @@ public class DefaultController {
     return "home";
   }
 
-  @RequestMapping("/nfe")
+  @RequestMapping("/newfrontend")
   String newfrontend(Model model) {
     if (!isAuthenticated()) {
       return LOGIN_REDIRECT;
     }
     model.addAttribute("classActiveHome", ACTIVE);
-    return "redirect:/index.html";
+    return "redirect:/nfe/index.html";
   }
 
   @RequestMapping("/provision")

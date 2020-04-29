@@ -172,8 +172,8 @@ bootJar {
     doFirst {
         copy {
             println 'bootJar: Copy New Front End files!!!'
-            from 'client/dist/client'
-            into 'build/resources/main/static/'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
         }
     }
     launchScript()
@@ -185,8 +185,8 @@ bootRun {
     doFirst {
         copy {
             println 'bootRun: Copy New Front End files!!!'
-            from 'client/dist/client'
-            into 'build/resources/main/static/'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
         }
     }
     args = [
