@@ -207,8 +207,6 @@ spotless {
 
 task yarnBuild(type:Exec) {
 
-    println 'Yarn build task created!'
-
     workingDir 'client'
 
     //on windows:
@@ -218,5 +216,4 @@ task yarnBuild(type:Exec) {
     commandLine 'yarn', 'build'
 }
 
-bootJar.dependsOn yarnBuild
 bootRun.dependsOn yarnBuild
