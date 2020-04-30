@@ -27,12 +27,12 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/project',
+    redirectTo: 'about',
     pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: '/project'
+    redirectTo: 'about'
   }
 ];
 

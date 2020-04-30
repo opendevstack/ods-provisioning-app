@@ -26,12 +26,12 @@ export class AppComponent implements OnInit {
   ) {
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
-        '../assets/icons/mdi-custom-icons.svg'
+        'assets/icons/mdi-custom-icons.svg'
       )
     );
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
-        '../assets/icons/bi-stack.svg'
+        'assets/icons/bi-stack.svg'
       )
     );
   }

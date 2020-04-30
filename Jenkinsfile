@@ -91,14 +91,12 @@ def stageBuildFrontend(def context) {
     withEnv(["NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}"]) {
       def status = sh(
         label: "Building Angular Frontend client",
-        script: "yarn build",
+        script: "yarn build:prod",
         returnStatus: true
       )
-      // junit 'build/test-results/test/*.xml'
       if (status != 0) {
         error "Build failed!"
       }
-      sh "cp -rv dist/client/* ../src/main/resources/static/"
     }
   }
 }
