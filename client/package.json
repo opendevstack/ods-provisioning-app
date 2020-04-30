@@ -8,7 +8,7 @@
     "start:dev": "ng serve --proxy-config proxy.conf.json",
     "start": "ng serve",
     "build": "ng build --sourceMap=false --baseHref=/nfe/",
-    "build:prod": "ng build --prod=true --aot=true --buildOptimizer=true --sourceMap=false --statsJson=true --optimization=true --progress=true",
+    "build:prod": "ng build --baseHref=/nfe/ --prod=true --aot=true --buildOptimizer=true --sourceMap=false --statsJson=true --optimization=true --progress=true",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint && sass-lint --verbose --no-exit",
