@@ -150,6 +150,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             .map(qs -> qs.getName())
             .collect(Collectors.toSet());
     logger.info("noWebhookComponents={}", noWebhookComponents);
+    logger.info("readablerepos={}", scmGlobalProperties.getReadableRepos());
   }
 
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
