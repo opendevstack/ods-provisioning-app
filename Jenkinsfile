@@ -1,22 +1,12 @@
-def odsImageTag
-def final projectId = 'prov'
-def final componentId = 'prov-app'
-def final credentialsId = "${projectId}-cd-cd-user-with-password"
-def dockerRegistry
-def odsGitRef 
-node {
-  dockerRegistry = env.DOCKER_REGISTRY
-  odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-  odsGitRef = env.ODS_GIT_REF ?: 'production'
-}
+def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
+def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
+def odsGitRef = env.ODS_GIT_REF ?: 'production'
 
 library("ods-jenkins-shared-library@${odsGitRef}")
 
-// See readme of shared library for usage and customization.
-odsPipeline(
-  image: "${dockerRegistry}/cd/jenkins-slave-maven:${odsImageTag}",
-  projectId: projectId,
-  componentId: componentId,
+odsComponentPipeline(
+  imageStreamTag: "${odsNamespace}/jenkins-slave-maven:${odsImageTag}",
+  componentId: 'prov-app',
   branchToEnvironmentMapping: [
     'production': 'test',
     '*': 'dev'
@@ -24,9 +14,9 @@ odsPipeline(
   sonarQubeBranch: '*'
 ) { context ->
   stageBuild(context)
-  stageScanForSonarqube(context)
-  stageStartOpenshiftBuild(context)
-  stageDeployToOpenshift(context)
+  odsComponentStageScanWithSonar(context)
+  odsComponentStageBuildOpenShiftImage(context)
+  odsComponentStageRolloutOpenShiftDeployment(context)
 }
 
 def stageBuild(def context) {
