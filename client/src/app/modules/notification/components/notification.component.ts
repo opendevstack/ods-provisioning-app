@@ -21,7 +21,7 @@ export class NotificationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    setTimeout(() => this.dialogRef.close(), 1000);
+    setTimeout(() => this.dialogRef.close(), 2000);
 
     this.dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');

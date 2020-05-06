@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Project } from '../../project-page/domain/project';
+import { ProjectData } from '../../project-page/domain/project';
 import { FormControl } from '@angular/forms';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -10,12 +10,12 @@ import { Observable } from 'rxjs';
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-  @Input() projects: Project[];
+  @Input() projects: ProjectData[];
   @Input() isError: boolean;
   @Input() isLoading: boolean;
 
   searchControl: FormControl = new FormControl();
-  filteredProjects: Observable<Project[]>;
+  filteredProjects: Observable<ProjectData[]>;
 
   constructor() {
     this.filteredProjects = this.searchControl.valueChanges.pipe(
@@ -26,7 +26,7 @@ export class SidebarComponent {
     );
   }
 
-  private filterProjects(value: string): Project[] {
+  private filterProjects(value: string): ProjectData[] {
     return this.projects.filter(
       project =>
         project.projectKey.toLowerCase().indexOf(value.toLowerCase().trim()) >=

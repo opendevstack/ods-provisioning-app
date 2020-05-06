@@ -45,7 +45,8 @@ const routes: Routes = [
     }),
     ProjectPageModule.withOptions({
       apiProjectUrl: environment.apiProjectUrl,
-      apiAllProjectsUrl: environment.apiAllProjectsUrl
+      apiAllProjectsUrl: environment.apiAllProjectsUrl,
+      apiAllQuickstartersUrl: environment.apiAllQuickstartersUrl
     })
   ],
   exports: [RouterModule],

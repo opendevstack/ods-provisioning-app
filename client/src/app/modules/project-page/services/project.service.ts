@@ -3,45 +3,27 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
-import { Project } from '../domain/project';
+import { ProjectData, ProjectLink } from '../domain/project';
+import { default as projectLinksConfig } from '../config/project-links.conf.json';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectService {
-  constructor(
-    private httpClient: HttpClient,
-    @Inject(API_PROJECT_URL) private projectUrl: string,
-    @Inject(API_ALL_PROJECTS_URL) private allProjectsUrl: string
-  ) {}
-
-  getAllProjects(): Observable<Project[]> {
-    return this.httpClient.get(this.allProjectsUrl).pipe(
-      map(json => (json ? Object.values(json) : []) as Project[]),
-      map(projects => this.sortProjectsByName(projects)),
-      tap(projects => console.log('Projects: ', projects)),
-      catchError(this.handleError)
-    );
-  }
-
-  getProjectByKey(projectKey: string): Observable<Project> {
-    const projectUrl = this.replaceUrlPlaceholder(this.projectUrl, projectKey);
-    return this.httpClient
-      .get<Project>(projectUrl)
-      .pipe(catchError(this.handleError));
-  }
-
-  private sortProjectsByName(projects: Project[]): Project[] {
-    return projects.sort((a: Project, b: Project) => {
+  private static sortProjectsByName(projects: ProjectData[]): ProjectData[] {
+    return projects.sort((a: ProjectData, b: ProjectData) => {
       return a.projectName.localeCompare(b.projectName);
     });
   }
 
-  private replaceUrlPlaceholder(url: string, projectKey: string): string {
+  private static replaceUrlPlaceholder(
+    url: string,
+    projectKey: string
+  ): string {
     return url.replace(/{{{PROJECT_KEY}}}/, `${projectKey}`);
   }
 
-  private handleError(err: any) {
+  private static handleError(err: any) {
     let errorMsg: string;
     if (err.error instanceof ErrorEvent) {
       // Client error
@@ -52,5 +34,44 @@ export class ProjectService {
     }
     // TODO: send the error to remote logging infrastructure
     return throwError(errorMsg);
+  }
+
+  constructor(
+    private httpClient: HttpClient,
+    @Inject(API_PROJECT_URL) private projectUrl: string,
+    @Inject(API_ALL_PROJECTS_URL) private allProjectsUrl: string
+  ) {}
+
+  getAllProjects(): Observable<ProjectData[]> {
+    return this.httpClient.get(this.allProjectsUrl).pipe(
+      map(json => (json ? Object.values(json) : []) as ProjectData[]),
+      map(projects => ProjectService.sortProjectsByName(projects)),
+      // tap(projects => console.log('Projects: ', projects)),
+      catchError(ProjectService.handleError)
+    );
+  }
+
+  getProjectByKey(projectKey: string): Observable<ProjectData> {
+    const projectUrl = ProjectService.replaceUrlPlaceholder(
+      this.projectUrl,
+      projectKey
+    );
+    return this.httpClient
+      .get<ProjectData>(projectUrl)
+      .pipe(catchError(ProjectService.handleError));
+  }
+
+  getProjectLinksConfig(project: ProjectData): ProjectLink[] {
+    return projectLinksConfig.map(link => {
+      return {
+        url: project[link.urlKey],
+        iconName: link.iconName,
+        iconLabel: link.iconLabel
+      };
+    });
+  }
+
+  getAggregateProjectLinks(projectLinks: ProjectLink[]): string | null {
+    return projectLinks?.map(link => link.url).join('\n');
   }
 }

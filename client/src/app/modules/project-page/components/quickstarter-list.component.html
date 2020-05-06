@@ -1,0 +1,173 @@
+<table
+  class="qs-table"
+  [formGroup]="form"
+  *ngIf="projectQuickstarters; else emptyContent"
+>
+  <thead>
+    <tr>
+      <th>Quickstarter</th>
+      <th>IDs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr
+      formArrayName="newComponent"
+      *ngFor="let control of newComponentArray.controls; let i = index"
+    >
+      <ng-container formGroupName="{{ i }}">
+        <td>
+          <div class="qs-id">
+            {{ getQuickstarterData(i).description }}
+          </div>
+        </td>
+        <td class="qs-components">
+          <mat-accordion [displayMode]="'flat'" [togglePosition]="'before'">
+            <mat-expansion-panel
+              *ngFor="let id of getQuickstarterData(i).ids"
+              class="mat-elevation-z0"
+            >
+              <mat-expansion-panel-header
+                [collapsedHeight]="'*'"
+                [expandedHeight]="'*'"
+              >
+                <mat-panel-title>
+                  {{ id.componentId }}
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <div class="qs-component__data">
+                <dl>
+                  <dt>ODS Image Tag</dt>
+                  <dd matTooltip="{{ id.odsImageTag }}">
+                    {{ id.odsImageTag || '-' }}
+                  </dd>
+                </dl>
+                <dl>
+                  <dt>Package Name</dt>
+                  <dd matTooltip="{{ id.packageName }}">
+                    {{ id.packageName || '-' }}
+                  </dd>
+                </dl>
+                <dl>
+                  <dt>OSD Git Ref</dt>
+                  <dd matTooltip="{{ id.odsGitRef }}">
+                    {{ id.odsGitRef || '-' }}
+                  </dd>
+                </dl>
+                <dl>
+                  <dt>Group ID</dt>
+                  <dd matTooltip="{{ id.groupId }}">{{ id.groupId || '-' }}</dd>
+                </dl>
+                <dl>
+                  <dt>GIT HTTP</dt>
+                  <dd matTooltip="{{ id.gitUrlHttp }}">
+                    <ng-container *ngIf="id.gitUrlHttp; else empty">
+                      <a href="{{ id.gitUrlHttp }}" target="_blank">{{
+                        id.gitUrlHttp
+                      }}</a>
+                    </ng-container>
+                  </dd>
+                </dl>
+                <dl>
+                  <dt>GIT SSH</dt>
+                  <dd matTooltip="{{ id.gitUrlSsh }}">
+                    <ng-container *ngIf="id.gitUrlHttp; else empty">
+                      <a href="{{ id.gitUrlSsh }}" target="_blank">{{
+                        id.gitUrlSsh
+                      }}</a>
+                    </ng-container>
+                  </dd>
+                  <ng-template #empty>-</ng-template>
+                </dl>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+
+          <ng-container *ngIf="editMode">
+            <ng-container
+              *ngIf="
+                getQuickstarterData(i).isNewComponentPossible;
+                else newComponentImpossible
+              "
+            >
+              <mat-form-field class="formfield__input">
+                <mat-label>New component ID</mat-label>
+                <input
+                  matInput
+                  placeholder="Component ID for additional quickstarter"
+                  name="componentName"
+                  formControlName="componentName"
+                  removeWhitespaces
+                />
+              </mat-form-field>
+              <mat-error
+                class="formfield__error"
+                *ngIf="
+                  quickstarterHasValidationErrorByType(
+                    i,
+                    'componentName',
+                    'nameExistsInAllQuickstarters'
+                  );
+                  else nextValidationError
+                "
+              >
+                <mat-icon
+                  svgIcon="alert"
+                  aria-hidden="false"
+                  aria-label="Form error"
+                ></mat-icon>
+                This ID is reserved for a quickstarter
+              </mat-error>
+              <ng-template #nextValidationError>
+                <mat-error
+                  class="formfield__error"
+                  *ngIf="
+                    quickstarterHasValidationErrorByType(
+                      i,
+                      'componentName',
+                      'nameExistsInProjectQuickstarterComponents'
+                    ) ||
+                    quickstarterHasValidationErrorByType(
+                      i,
+                      'componentName',
+                      'nameExistsInNewProjectQuickstarterComponents'
+                    )
+                  "
+                >
+                  <mat-icon
+                    svgIcon="alert"
+                    aria-hidden="false"
+                    aria-label="Form error"
+                  ></mat-icon>
+                  This ID is already used in another component
+                </mat-error>
+              </ng-template>
+            </ng-container>
+            <ng-template #newComponentImpossible>
+              <div class="qs-component__info">
+                <mat-icon
+                  svgIcon="alert"
+                  aria-hidden="false"
+                  aria-label="Form error"
+                ></mat-icon>
+                This quickstarter might have been renamed or deleted
+              </div>
+            </ng-template>
+          </ng-container>
+        </td>
+      </ng-container>
+    </tr>
+  </tbody>
+</table>
+<ng-template #emptyContent>
+  <div class="empty-content">
+    <button
+      mat-raised-button
+      color="primary"
+      [hidden]="editMode"
+      (click)="emitActivateEditMode()"
+    >
+      Add quickstarter
+    </button>
+  </div>
+</ng-template>

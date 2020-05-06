@@ -2,7 +2,7 @@ import { ProjectService } from './project.service';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
 import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';
 import { HTTPMethod } from '@ngneat/spectator';
-import { Project } from '../domain/project';
+import { ProjectData } from '../domain/project';
 
 describe('ProjectService', () => {
   const projectService: () => SpectatorHttp<ProjectService> = createHttpFactory<
@@ -31,7 +31,7 @@ describe('ProjectService', () => {
       FOO2: {},
       FOO3: {}
     };
-    service.getAllProjects().subscribe((projects: Project[]) => {
+    service.getAllProjects().subscribe((projects: ProjectData[]) => {
       expect(projects).toEqual(mockResult);
       done();
     });
@@ -58,7 +58,7 @@ describe('ProjectService', () => {
     const { service, expectOne } = projectService();
     const mockResponse = { projectName: 'FOO' };
     const mockResult = { projectName: 'FOO' };
-    service.getProjectByKey('FOO').subscribe((project: Project) => {
+    service.getProjectByKey('FOO').subscribe((project: ProjectData) => {
       expect(project).toEqual(mockResult);
       done();
     });
