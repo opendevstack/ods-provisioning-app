@@ -1,6 +1,6 @@
 def odsNamespace = env.ODS_NAMESPACE ?: 'ods'
 def odsImageTag = env.ODS_IMAGE_TAG ?: 'latest'
-def odsGitRef = env.ODS_GIT_REF ?: 'production'
+def odsGitRef = env.ODS_GIT_REF ?: 'master'
 
 library("ods-jenkins-shared-library@${odsGitRef}")
 
@@ -8,13 +8,12 @@ odsComponentPipeline(
   imageStreamTag: "${odsNamespace}/jenkins-slave-maven:${odsImageTag}",
   componentId: 'prov-app',
   branchToEnvironmentMapping: [
-    'production': 'test',
+    "${odsGitRef}": 'test',
     '*': 'dev'
-  ],
-  sonarQubeBranch: '*'
+  ]
 ) { context ->
   stageBuild(context)
-  odsComponentStageScanWithSonar(context)
+  odsComponentStageScanWithSonar(context, [branch: '*'])
   odsComponentStageBuildOpenShiftImage(context)
   odsComponentStageRolloutOpenShiftDeployment(context)
 }
