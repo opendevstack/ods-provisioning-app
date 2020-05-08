@@ -25,7 +25,7 @@ import { ProjectHeaderComponent } from './components/header.component';
 import { QuickstarterListComponent } from './components/quickstarter-list.component';
 import { QuickstarterAddComponent } from './components/quickstarter-add.component';
 import { QuickstarterService } from './services/quickstarter.service';
-import { NewProjectComponent } from '../new-project/components/new-project.component';
+import { httpInterceptorProviders } from '../http-interceptors';
 
 @NgModule({
   declarations: [
@@ -56,7 +56,7 @@ import { NewProjectComponent } from '../new-project/components/new-project.compo
     ReactiveFormsModule,
     AppFormModule
   ],
-  providers: [ProjectService, QuickstarterService],
+  providers: [ProjectService, QuickstarterService, httpInterceptorProviders],
   schemas: [NO_ERRORS_SCHEMA]
 })
 export class ProjectPageModule {
