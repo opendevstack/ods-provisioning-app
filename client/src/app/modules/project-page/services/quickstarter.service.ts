@@ -19,19 +19,9 @@ export class QuickstarterService {
   ): ProjectQuickstarter[] {
     return quickstarters.reduce(
       (acc, quickstarter: ProjectQuickstarterComponentsData) => {
-        const quickstarterComponentObj: ProjectQuickstarterComponent = {
-          id: quickstarter.component_id,
-          groupId: quickstarter.GROUP_ID,
-          odsGitRef: quickstarter.ODS_GIT_REF,
-          odsImageTag: quickstarter.ODS_IMAGE_TAG,
-          packageName: quickstarter.PACKAGE_NAME,
-          projectId: quickstarter.PROJECT_ID,
-          componentDescription: quickstarter.component_description,
-          componentId: quickstarter.component_id,
-          componentType: quickstarter.component_type,
-          gitUrlHttp: quickstarter.git_url_http,
-          gitUrlSsh: quickstarter.git_url_ssh
-        };
+        const quickstarterComponentObj: ProjectQuickstarterComponent = this.mapQuickstarterComponentsToFeModel(
+          quickstarter
+        );
 
         const found = acc.find(
           predicate =>
@@ -43,7 +33,7 @@ export class QuickstarterService {
         } else {
           acc.push({
             description: quickstarter.component_description,
-            id: quickstarter.component_id,
+            type: quickstarter.component_type,
             ids: [quickstarterComponentObj]
           });
         }
@@ -68,6 +58,25 @@ export class QuickstarterService {
     quickstarters: QuickstarterData[]
   ): QuickstarterData[] {
     return quickstarters.sort(this.sortByDescription);
+  }
+
+  // TODO consider lodash to shorten mapping
+  private static mapQuickstarterComponentsToFeModel(
+    quickstarter: ProjectQuickstarterComponentsData
+  ): ProjectQuickstarterComponent {
+    return {
+      id: quickstarter.component_id,
+      groupId: quickstarter.GROUP_ID,
+      odsGitRef: quickstarter.ODS_GIT_REF,
+      odsImageTag: quickstarter.ODS_IMAGE_TAG,
+      packageName: quickstarter.PACKAGE_NAME,
+      projectId: quickstarter.PROJECT_ID,
+      componentDescription: quickstarter.component_description,
+      componentId: quickstarter.component_id,
+      componentType: quickstarter.component_type,
+      gitUrlHttp: quickstarter.git_url_http,
+      gitUrlSsh: quickstarter.git_url_ssh
+    };
   }
 
   private static handleError(err: any) {

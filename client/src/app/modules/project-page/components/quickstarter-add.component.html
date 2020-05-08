@@ -20,7 +20,7 @@
                 <select
                   matNativeControl
                   required
-                  formControlName="quickstarterId"
+                  formControlName="quickstarterType"
                 >
                   <option value="">Select quickstarter</option>
                   <option
@@ -35,7 +35,7 @@
                 *ngIf="
                   quickstarterHasValidationErrorByType(
                     i,
-                    'quickstarterId',
+                    'quickstarterType',
                     'required'
                   )
                 "
