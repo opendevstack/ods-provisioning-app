@@ -8,7 +8,7 @@ import {
   Output
 } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { ProjectData, ProjectLink } from '../domain/project';
+import { ProjectData, ProjectErrorTypes, ProjectLink } from '../domain/project';
 import { ProjectService } from '../services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
