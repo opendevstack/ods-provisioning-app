@@ -34,6 +34,7 @@ export class ProjectPageComponent extends FormBaseComponent
   isLoading = true;
   isProjectError: boolean;
   isQuickstartersError: boolean;
+  errorType: string;
   project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
@@ -57,10 +58,14 @@ export class ProjectPageComponent extends FormBaseComponent
 
   ngOnInit() {
     this.route.params.subscribe(param => {
-      this.isLoading = true;
-      this.cdr.detectChanges();
-      this.initializeDataRetrieval(param.key);
-      this.initializeFormGroup();
+      if (!param.key) {
+        this.switchToErrorDisplay('NO_PROJECT_KEY');
+      } else {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        this.initializeDataRetrieval(param.key);
+        this.initializeFormGroup();
+      }
     });
   }
 
@@ -123,10 +128,8 @@ export class ProjectPageComponent extends FormBaseComponent
     return this.projectService.getProjectByKey(key).pipe(
       takeUntil(this.destroy$),
       tap(() => (this.isProjectError = false)),
-      catchError(() => {
-        this.isProjectError = true;
-        this.isLoading = false;
-        this.cdr.detectChanges();
+      catchError(errorType => {
+        this.switchToErrorDisplay(errorType);
         return EMPTY;
       })
     );
@@ -151,6 +154,13 @@ export class ProjectPageComponent extends FormBaseComponent
     this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(
       this.projectLinks
     );
+  }
+
+  private switchToErrorDisplay(errorType) {
+    this.errorType = errorType;
+    this.isProjectError = true;
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   saveProject() {

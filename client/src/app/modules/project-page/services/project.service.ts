@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, map, tap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, map } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
 import { ProjectData, ProjectLink } from '../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
+import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,17 +24,14 @@ export class ProjectService {
     return url.replace(/{{{PROJECT_KEY}}}/, `${projectKey}`);
   }
 
-  private static handleError(err: any) {
-    let errorMsg: string;
-    if (err.error instanceof ErrorEvent) {
-      // Client error
-      errorMsg = `An error occured: ${err.error}`;
-    } else {
-      // Backend error
-      errorMsg = `Backend returned ${err.status}`;
-    }
+  private static handleError(err: HttpErrorResponse): Observable<any> {
     // TODO: send the error to remote logging infrastructure
-    return throwError(errorMsg);
+    switch (err.status) {
+      case 404:
+        return throwError(HttpErrorTypes.NOT_FOUND);
+      default:
+        return throwError(HttpErrorTypes.UNKNOWN);
+    }
   }
 
   constructor(
