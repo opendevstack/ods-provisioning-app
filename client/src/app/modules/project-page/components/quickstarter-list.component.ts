@@ -4,6 +4,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
@@ -11,6 +12,7 @@ import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'project-quickstarter-list',
@@ -19,12 +21,13 @@ import { EditProjectValidators } from '../../app-form/validators/edit-project.va
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickstarterListComponent extends FormBaseComponent
-  implements OnInit {
+  implements OnInit, OnDestroy {
   @Input() editMode: boolean;
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() allQuickstarters: QuickstarterData[];
   @Input() form: FormGroup;
   @Output() onActivateEditMode = new EventEmitter<boolean>();
+  destroy$ = new Subject<boolean>();
 
   constructor(
     private formBuilder: FormBuilder,
@@ -46,10 +49,10 @@ export class QuickstarterListComponent extends FormBaseComponent
   }
 
   getQuickstarterData(index: number) {
-    const id = this.newComponentArray.controls[index].get('quickstarterId')
+    const id = this.newComponentArray.controls[index].get('quickstarterType')
       .value;
     return this.projectQuickstarters.find(
-      projectQuickstarter => id === projectQuickstarter.id
+      projectQuickstarter => id === projectQuickstarter.type
     );
   }
 
@@ -68,6 +71,11 @@ export class QuickstarterListComponent extends FormBaseComponent
     this.onActivateEditMode.emit(true);
   }
 
+  ngOnDestroy() {
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
+  }
+
   private initializeFormGroup(): void {
     this.form.addControl('newComponent', new FormArray([]));
   }
@@ -77,13 +85,13 @@ export class QuickstarterListComponent extends FormBaseComponent
       let isNewComponentPossible = false;
 
       const newGroup = this.formBuilder.group({
-        quickstarterId: [projectQuickstarter.id, [Validators.required]],
+        quickstarterType: [projectQuickstarter.type, [Validators.required]],
         componentName: ['']
       });
 
       if (this.allQuickstarters) {
-        isNewComponentPossible = this.existsQuickstarterIdInAllQuickstarters(
-          projectQuickstarter.id
+        isNewComponentPossible = this.existsQuickstarterTypeInAllQuickstarters(
+          projectQuickstarter.type
         );
 
         newGroup
@@ -110,9 +118,11 @@ export class QuickstarterListComponent extends FormBaseComponent
     });
   }
 
-  private existsQuickstarterIdInAllQuickstarters(searchId: string): boolean {
+  private existsQuickstarterTypeInAllQuickstarters(
+    searchType: string
+  ): boolean {
     return this.allQuickstarters.some(
-      quickstarter => quickstarter.id === searchId
+      quickstarter => quickstarter.id === searchType
     );
   }
 }

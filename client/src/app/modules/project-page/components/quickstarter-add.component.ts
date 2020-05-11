@@ -3,12 +3,14 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
+  OnDestroy,
   OnInit
 } from '@angular/core';
 import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'project-quickstarter-add',
@@ -17,10 +19,11 @@ import { FormBaseComponent } from '../../app-form/components/form-base.component
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickstarterAddComponent extends FormBaseComponent
-  implements OnInit {
+  implements OnInit, OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() allQuickstarters: QuickstarterData[];
   @Input() form: FormGroup;
+  destroy$ = new Subject<boolean>();
 
   constructor(
     private formBuilder: FormBuilder,
@@ -66,6 +69,11 @@ export class QuickstarterAddComponent extends FormBaseComponent
     );
   }
 
+  ngOnDestroy() {
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
+  }
+
   private initializeFormGroup(): void {
     this.form.addControl(
       'newComponent',
@@ -75,7 +83,7 @@ export class QuickstarterAddComponent extends FormBaseComponent
 
   private createNewFormGroup(): FormGroup {
     return this.formBuilder.group({
-      quickstarterId: ['', [Validators.required]],
+      quickstarterType: ['', [Validators.required]],
       componentName: [
         '',
         [

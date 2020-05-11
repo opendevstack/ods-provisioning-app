@@ -38,7 +38,7 @@ export interface ProjectQuickstarterComponent {
 
 export interface ProjectQuickstarter {
   description: string;
-  id: string;
+  type: string;
   ids: ProjectQuickstarterComponent[];
   isNewComponentPossible?: boolean;
 }
