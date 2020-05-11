@@ -1,5 +1,6 @@
 package org.opendevstack.provision.authentication.oauth2;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.util.Optional;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
@@ -31,7 +32,17 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
   /** @see IODSAuthnzAdapter#getUserName() */
   public String getUserName() {
-    return (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (DefaultOidcUser.class.isInstance(principal)) {
+      return ((DefaultOidcUser) principal).getEmail();
+    } else if (CrowdUserDetails.class.isInstance(principal)) {
+      return ((CrowdUserDetails) principal).getUsername();
+    } else {
+      throw new RuntimeException(
+          String.format(
+              "Unexpected error! Contact developers! Unsupported Principal object class '%s'! Supported Principal classes are String or DefaultOAuth2User",
+              principal.getClass()));
+    }
   }
 
   /** @see IODSAuthnzAdapter#getToken() */

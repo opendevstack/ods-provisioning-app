@@ -10,6 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 
 public class TestAuthentication implements Authentication {
 
+  public TestAuthentication() {}
+
   @Override
   public String getName() {
     // TODO Auto-generated method stub
