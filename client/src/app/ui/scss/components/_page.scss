@@ -1,0 +1,47 @@
+.page {
+  mat-card {
+    height: calc(
+      100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$main-container-padding} -
+        12px
+    ); // TODO calc number
+
+    display: grid;
+    grid-template-areas: 'page-header' 'page-content' 'page-footer';
+    grid-template-rows: auto 1fr auto;
+
+    padding: 0;
+    margin-top: calc(#{$sidebar-header-height} - 10px); // TODO calc number
+  }
+}
+
+.page__notifications {
+  position: absolute;
+  top: 0;
+  color: red;
+  font-size: 0.85rem;
+}
+
+.page__header {
+  grid-area: page-header;
+  padding: 30px;
+  border-bottom: 1px solid $color-gray;
+}
+
+.page__content {
+  grid-area: page-content;
+  overflow-y: auto;
+}
+
+.page__footer {
+  grid-area: page-footer;
+}
+
+.page__action {
+  display: flex;
+  justify-content: flex-end;
+  text-transform: uppercase;
+
+  > button:not(:first-child) {
+    margin-left: 20px;
+  }
+}

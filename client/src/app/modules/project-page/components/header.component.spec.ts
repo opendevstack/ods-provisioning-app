@@ -17,7 +17,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NotificationModule } from '../../notification/notification.module';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
 import { BrowserService } from '../../browser/services/browser.service';
 
 describe('ProjectHeaderComponent', () => {

@@ -94,14 +94,20 @@ export class ProjectPageComponent extends FormBaseComponent
   activateEditMode() {
     if (!this.editMode) {
       this.editMode = true;
-      this.editModeService.emitEditModeFlag(this.editMode);
+      this.editModeService.emitEditModeFlag({
+        active: this.editMode,
+        context: 'edit'
+      });
     }
   }
 
   deactivateEditMode() {
     if (this.editMode) {
       this.editMode = false;
-      this.editModeService.emitEditModeFlag(this.editMode);
+      this.editModeService.emitEditModeFlag({
+        active: this.editMode,
+        context: 'edit'
+      });
       this.cdr.detectChanges();
     }
   }

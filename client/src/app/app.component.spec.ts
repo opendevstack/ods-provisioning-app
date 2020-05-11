@@ -7,10 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { SidebarModule } from './modules/sidebar/sidebar.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import {
-  API_ALL_PROJECTS_URL,
-  API_PROJECT_URL
-} from './modules/project-page/tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from './tokens';
 
 describe('AppComponent', () => {
   const createComponent = createComponentFactory({

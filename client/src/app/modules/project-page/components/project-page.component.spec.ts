@@ -6,7 +6,7 @@ import { LoadingIndicatorModule } from '../../loading-indicator/loading-indicato
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';

@@ -13,6 +13,7 @@ export class SidebarComponent {
   @Input() projects: ProjectData[];
   @Input() isError: boolean;
   @Input() isLoading: boolean;
+  @Input() isNewProjectFormActive: boolean;
 
   searchControl: FormControl = new FormControl();
   filteredProjects: Observable<ProjectData[]>;
@@ -26,6 +27,10 @@ export class SidebarComponent {
     );
   }
 
+  canDisplayContent(): boolean {
+    return !this.isLoading && !this.isError;
+  }
+
   private filterProjects(value: string): ProjectData[] {
     return this.projects.filter(
       project =>
@@ -36,9 +41,5 @@ export class SidebarComponent {
         project.description.toLowerCase().indexOf(value.toLowerCase().trim()) >=
           0
     );
-  }
-
-  canDisplayContent(): boolean {
-    return !this.isLoading && !this.isError;
   }
 }

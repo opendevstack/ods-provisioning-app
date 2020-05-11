@@ -3,7 +3,9 @@
 
 :host {
   display: block;
-  height: calc(100vh - #{$header-footer-offset} - #{$main-container-padding} - 58px); // TODO calculate where 58px come from
+  height: calc(
+    100vh - #{$header-footer-offset} - #{$main-container-padding} - 58px
+  ); // TODO calculate where 58px come from
   @include overlay();
 }
 
@@ -19,7 +21,6 @@ mat-card {
   display: flex;
   align-items: center;
   padding: 0 0 5px 15px;
-  margin-top: -$sidebar-header-margin-top;
   max-height: $sidebar-header-height;
 
   .sidebar__header--count {

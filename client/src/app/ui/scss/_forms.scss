@@ -1,3 +1,8 @@
+.row-form {
+  @include make-row();
+  padding-bottom: 10px;
+}
+
 .formfield__input {
   width: 100%;
 }
@@ -6,4 +11,17 @@
   font-size: 0.85rem;
   padding-bottom: 20px;
   color: red;
+}
+
+.formfield-wrapper {
+  display: flex;
+  align-items: center;
+
+  > mat-icon {
+    margin-left: 20px;
+  }
+}
+
+.formfield__tooltip {
+  font-size: 0.85rem;
 }

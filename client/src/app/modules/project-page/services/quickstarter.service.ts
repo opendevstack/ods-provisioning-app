@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { API_ALL_QUICKSTARTERS_URL } from '../tokens';
+import { API_ALL_QUICKSTARTERS_URL } from '../../../tokens';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import {

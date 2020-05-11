@@ -1,5 +1,5 @@
 import { ProjectService } from './project.service';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
 import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';
 import { HTTPMethod } from '@ngneat/spectator';
 import { ProjectData } from '../domain/project';

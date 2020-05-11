@@ -6,6 +6,7 @@ import { ProjectService } from './modules/project-page/services/project.service'
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { ProjectData } from './modules/project-page/domain/project';
+import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { ProjectData } from './modules/project-page/domain/project';
 export class AppComponent implements OnInit {
   isLoading = true;
   isError: boolean;
+  isNewProjectFormActive = false;
 
   projects: ProjectData[] = [];
 
@@ -58,12 +60,18 @@ export class AppComponent implements OnInit {
   }
 
   getEditModeStatus() {
-    this.editModeService.onGetEditModeFlag.subscribe(editModeActive => {
-      if (editModeActive) {
-        this.renderer.addClass(document.body, 'status-editmode-active');
-      } else {
-        this.renderer.removeClass(document.body, 'status-editmode-active');
+    this.editModeService.onGetEditModeFlag.subscribe(
+      (editModeFlag: EditModeFlag) => {
+        if (editModeFlag.active) {
+          this.renderer.addClass(document.body, 'status-editmode-active');
+          if (editModeFlag.context === 'new') {
+            this.isNewProjectFormActive = true;
+          }
+        } else {
+          this.renderer.removeClass(document.body, 'status-editmode-active');
+          this.isNewProjectFormActive = false;
+        }
       }
-    });
+    );
   }
 }

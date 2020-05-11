@@ -1,38 +1,9 @@
 @import '../../../ui/scss/variables';
-@import '~bootstrap/scss/mixins';
+@import '../../../ui/scss/components/_page.scss';
 
-.project__notifications {
-  position: absolute;
-  top: 0;
-  color: red;
-  font-size: 0.85rem;
-}
-
-mat-card {
-  height: calc(
-    100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$sidebar-header-margin-top} -
-      #{$main-container-padding}
-  );
-
-  display: grid;
-  grid-template-areas: 'project-header' 'project-content' 'project-footer';
-  grid-template-rows: auto 1fr auto;
-
-  padding: 0;
-  margin-top: calc(#{$sidebar-header-height} - #{$sidebar-header-margin-top});
-}
-
-.project__header {
-  grid-area: project-header;
-  padding: 30px;
-  border-bottom: 1px solid $color-gray;
-}
-
-.project__content {
-  grid-area: project-content;
-  overflow-y: auto;
+.page__content {
   &.empty-quickstarters {
-    .project__action {
+    .page__action {
       position: sticky;
       bottom: 0;
       background: $color-white;
@@ -40,18 +11,7 @@ mat-card {
   }
 }
 
-.project__footer {
-  grid-area: project-footer;
-}
-
-.project__action {
-  display: flex;
-  justify-content: flex-end;
-  text-transform: uppercase;
+.page__action {
   padding: 20px 50px;
-  border-top: 1px solid $color-gray;
-
-  > button:not(:first-child) {
-    margin-left: 20px;
-  }
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
