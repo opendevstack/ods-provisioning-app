@@ -81,7 +81,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${openshift.apps.basedomain}")
   private String projectOpenshiftBaseDomain;
 
-  @Value("${openshift.jenkins.webhookproxy.name.pattern}")
+  @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
   private String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
   @Value("${openshift.jenkins.trigger.secret}")

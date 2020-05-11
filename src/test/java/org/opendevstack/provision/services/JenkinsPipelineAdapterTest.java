@@ -71,7 +71,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.jenkinsPipelineProperties = buildJenkinsPipelineProperties();
 
     jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
-    jenkinsPipelineAdapter.projectOpenshiftJenkinsWebhookProxyNamePattern = "webhook-proxy-%s-cd%s";
+    jenkinsPipelineAdapter.adminWebhookProxyHost = "webhook-proxy-ods";
+    jenkinsPipelineAdapter.projectWebhookProxyHostPattern = "webhook-proxy-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
     jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
     jenkinsPipelineAdapter.projectOpenshiftCdProjectPattern = "%s/project/%s-cd";

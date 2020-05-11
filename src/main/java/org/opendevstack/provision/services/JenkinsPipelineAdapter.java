@@ -65,8 +65,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
 
-  @Value("${openshift.jenkins.webhookproxy.name.pattern}")
-  protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
+  @Value("${openshift.jenkins.admin.webhookproxy.host}")
+  protected String adminWebhookProxyHost;
+
+  @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
+  protected String projectWebhookProxyHostPattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
   private String projectOpenshiftJenkinsTriggerSecret;
@@ -382,11 +385,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (jenkinsPipelineProperties.isAdminjob(job.getId())) {
 
       boolean deleteComponentJob = jenkinsPipelineProperties.isDeleteComponentJob(job.getId());
-      String webhookProxyHost =
-          String.format(
-              projectOpenshiftJenkinsWebhookProxyNamePattern,
-              deleteComponentJob ? projID : "prov",
-              projectOpenshiftBaseDomain);
+      String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
       String url =
           buildExecutionUrlAdminJob(
               job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
@@ -396,9 +395,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       execution.project = bitbucketOdsProject;
 
     } else {
-      String webhookProxyHost =
-          String.format(
-              projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
+      String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
 
       execution.url =
           JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
@@ -414,6 +411,16 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     logger.info("Execution url={}", execution.url);
 
     return execution;
+  }
+
+  private String computeWebhookProxyHost(String jobId, String projID) {
+    if (jenkinsPipelineProperties.isDeleteComponentJob(jobId)) {
+      return String.format(projectWebhookProxyHostPattern, projID, projectOpenshiftBaseDomain);
+    } else if (jenkinsPipelineProperties.isAdminjob(jobId)) {
+      return adminWebhookProxyHost + projectOpenshiftBaseDomain;
+    } else {
+      return String.format(projectWebhookProxyHostPattern, projID, projectOpenshiftBaseDomain);
+    }
   }
 
   private static String buildExecutionBaseUrl(
