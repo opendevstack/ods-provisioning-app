@@ -494,7 +494,7 @@ public class E2EProjectAPIControllerTest {
                 .url(
                     containsString(
                         createJenkinsJobPath(
-                            "prov",
+                            "ods",
                             "create-projects/Jenkinsfile",
                             "ods-corejob-" + data.projectKey.toLowerCase())))
                 .bodyMatches(instanceOf(Execution.class))
@@ -655,7 +655,7 @@ public class E2EProjectAPIControllerTest {
     toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
-    mockExecuteAdminJob("prov", "delete-projects", "testp");
+    mockExecuteAdminJob("ods", "delete-projects", "testp");
     // delete whole projects (-cd, -dev and -test), calls
     // org.opendevstack.provision.controller.ProjectApiController.deleteProject
 
@@ -686,7 +686,7 @@ public class E2EProjectAPIControllerTest {
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
     String prefix = createdProjectIncludingQuickstarters.quickstarters.get(0).get("component_id");
-    mockExecuteAdminJob("testp", "delete-components", prefix);
+    mockExecuteAdminJob("testp-cd", "delete-components", prefix);
 
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
@@ -929,7 +929,7 @@ public class E2EProjectAPIControllerTest {
   private String createJenkinsJobPath(String namespace, String jenkinsfilePath, String component) {
     return "https://webhook-proxy-"
         + namespace
-        + "-cd.192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+        + ".192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;
