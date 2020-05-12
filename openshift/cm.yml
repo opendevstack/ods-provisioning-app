@@ -240,6 +240,9 @@ objects:
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
 
+      # list of supported webhook events
+      openshift.jenkins.project.webhookproxy.events=repo:refs_changed,pr:merged,pr:declined,pr:deleted
+
       openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
 
       artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
