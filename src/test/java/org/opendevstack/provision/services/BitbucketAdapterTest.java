@@ -44,16 +44,14 @@ import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.bitbucket.BitbucketProject;
-import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
-import org.opendevstack.provision.model.bitbucket.Link;
-import org.opendevstack.provision.model.bitbucket.Repository;
-import org.opendevstack.provision.model.bitbucket.RepositoryData;
+import org.opendevstack.provision.model.bitbucket.*;
 import org.opendevstack.provision.util.TestDataFileReader;
+import org.opendevstack.provision.util.ValueCaptor;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,6 +67,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @ActiveProfiles("utest")
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
+
+  @Value("${openshift.jenkins.project.webhookproxy.events}")
+  private List<String> webhookEvents;
 
   private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapterTest.class);
 
@@ -151,7 +152,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
     SecurityContextHolder.setContext(securityContext);
 
-    Repository repo = new Repository();
     OpenProjectData projectData = getReturnOpenProjectData();
     Map<String, Map<URL_TYPE, String>> repos = new HashMap();
     projectData.repositories = repos;
@@ -384,9 +384,14 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    ValueCaptor<Webhook> bodyCaptor = new ValueCaptor();
 
-    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(repoData1);
+    mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(bodyCaptor))
+        .thenReturn(repoData1);
+
     spyAdapter.createWebHooksForRepository(repoData1, projectData, "testComponent");
+    // Verify that configured webhook events are added to the webhook request
+    assertEquals(webhookEvents, bodyCaptor.getValues().get(0).getEvents());
   }
 
   @Test

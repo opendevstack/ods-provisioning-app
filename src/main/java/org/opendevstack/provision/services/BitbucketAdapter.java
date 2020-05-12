@@ -102,6 +102,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
   private boolean grantRepositoryWriteToAllOpenDevStackUsers;
 
+  @Value("${openshift.jenkins.project.webhookproxy.events}")
+  private List<String> webhookEvents;
+
   @Autowired private ScmGlobalProperties scmGlobalProperties;
 
   @Autowired private IODSAuthnzAdapter manager;
@@ -508,11 +511,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     webhook.setName("Jenkins");
     webhook.setActive(true);
     webhook.setUrl(webhookProxyUrl);
-    List<String> events = new ArrayList<>();
-    events.add("repo:refs_changed");
-    events.add("pr:merged");
-    events.add("pr:declined");
-    webhook.setEvents(events);
+    webhook.setEvents(webhookEvents);
 
     // projects/CLE200/repos/cle200-be-node-express/webhooks
     String url =
