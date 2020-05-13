@@ -30,8 +30,8 @@ import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
+import org.opendevstack.provision.authentication.PreAuthorizeAllRoles;
 import org.opendevstack.provision.authentication.PreAuthorizeOnlyAdministrator;
-import org.opendevstack.provision.authentication.PreAuthorizeUserOrAdministrator;
 import org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
@@ -326,7 +326,7 @@ public class ProjectApiController {
    * @param updatedProject the project containing the update data
    * @return the updated project
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.PUT)
   public ResponseEntity<Object> updateProject(@RequestBody OpenProjectData updatedProject) {
 
@@ -569,7 +569,7 @@ public class ProjectApiController {
    * Get a list with all projects in the ODS prov system. In this case the quickstarters {@link
    * OpenProjectData#quickstarters} contain also the description of the quickstarter that was used
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @GetMapping
   public ResponseEntity<Map<String, OpenProjectInfo>> getAllProjects() {
 
@@ -597,7 +597,7 @@ public class ProjectApiController {
    * @param id the project's key
    * @return Response with a complete project list of {@link OpenProjectData}
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/{id}")
   public ResponseEntity<OpenProjectData> getProject(@PathVariable String id) {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
@@ -631,7 +631,7 @@ public class ProjectApiController {
    * @param name the project's name
    * @return Response with HTTP status. If 406 a project with this name exists in JIRA
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/validate")
   public ResponseEntity<Object> validateProject(@RequestParam(value = "projectName") String name) {
     if (jiraAdapter.projectKeyExists(name)) {
@@ -649,7 +649,7 @@ public class ProjectApiController {
    *
    * @return a list of available template keys
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
   public ResponseEntity<List<String>> getProjectTemplateKeys() {
     return ResponseEntity.ok(projectTemplateKeyNames);
@@ -662,7 +662,7 @@ public class ProjectApiController {
    * @param key the project type as in {@link OpenProjectData#projectKey}
    * @return a map with the templates (which are implementation specific)
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
   public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey(
       @PathVariable String key) {
@@ -698,7 +698,7 @@ public class ProjectApiController {
    * @param key the project's name to validate against
    * @return Response with HTTP status. If 406 a project with this key exists in JIRA
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
   public ResponseEntity<Object> validateKey(@RequestParam(value = "projectKey") String key) {
     if (jiraAdapter.projectKeyExists(key)) {
@@ -716,7 +716,7 @@ public class ProjectApiController {
    * @param name the project name to generate the key from
    * @return the generated key
    */
-  @PreAuthorizeUserOrAdministrator
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/key/generate")
   public ResponseEntity<Map<String, String>> generateKey(
       @RequestParam(value = "name") String name) {
