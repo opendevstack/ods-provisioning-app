@@ -1,57 +1,53 @@
 package org.opendevstack.provision.authentication.oauth2;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.util.Optional;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.StandardClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Component;
 
-@Component("provisioningAppAuthenticationManager")
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
-  @Autowired private SessionAwarePasswordHolder userPassword;
-
-  @Override
-  public String getUserPassword() {
-    return userPassword.getPassword();
-  }
+  private static final Logger LOG = LoggerFactory.getLogger(Oauth2AuthenticationManager.class);
 
   @Value("${provision.auth.provider.oauth2.user-info-uri}")
   private String userInfoUri;
 
+  @Override
+  public String getUserPassword() {
+    throw new UnsupportedOperationException("not supported in oauth2 or basic auth authentication");
+  }
+
   /** @see IODSAuthnzAdapter#getUserName() */
   public String getUserName() {
-    return userPassword.getUsername();
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (DefaultOidcUser.class.isInstance(principal)) {
+      return ((DefaultOidcUser) principal).getEmail();
+    } else if (CrowdUserDetails.class.isInstance(principal)) {
+      return ((CrowdUserDetails) principal).getUsername();
+    } else {
+      throw new RuntimeException(
+          String.format(
+              "Unexpected error! Contact developers! Unsupported Principal object class '%s'! Supported Principal classes are String or DefaultOAuth2User",
+              principal.getClass()));
+    }
   }
 
   /** @see IODSAuthnzAdapter#getToken() */
   public String getToken() {
-    return userPassword.getToken();
-  }
-
-  /** @see IODSAuthnzAdapter#getAuthorities() */
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-    if (auth == null) {
-      return new ArrayList<>();
-    }
-
-    DefaultOAuth2User userDetails = (DefaultOAuth2User) auth.getPrincipal();
-
-    return userDetails.getAuthorities();
+    throw new UnsupportedOperationException("not supported in oauth2 or basic auth authentication");
   }
 
   @Override
@@ -65,20 +61,17 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
 
   @Override
   public void setUserPassword(String userPassword) {
-    this.userPassword.setPassword(userPassword);
+    throw new UnsupportedOperationException("not supported in oauth2 or basic auth authentication");
   }
 
-  /** open for testing */
+  @Override
   public void setUserName(String userName) {
-    this.userPassword.setUsername(userName);
+    throw new UnsupportedOperationException("not supported in oauth2 or basic auth authentication");
   }
 
   @Override
   public void invalidateIdentity() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth != null) {
-      setUserPassword(null);
-    }
+    LOG.debug("nothing to do here!");
   }
 
   /**

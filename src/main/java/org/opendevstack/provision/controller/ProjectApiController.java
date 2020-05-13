@@ -15,7 +15,7 @@
 package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
-import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.*;
+import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -30,8 +30,13 @@ import org.opendevstack.provision.adapter.IServiceAdapter.PROJECT_TEMPLATE;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
+import org.opendevstack.provision.authentication.PreAuthorizeAllRoles;
+import org.opendevstack.provision.authentication.PreAuthorizeOnlyAdministrator;
 import org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage;
-import org.opendevstack.provision.model.*;
+import org.opendevstack.provision.model.ExecutionJob;
+import org.opendevstack.provision.model.ExecutionsData;
+import org.opendevstack.provision.model.OpenProjectData;
+import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -41,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +60,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Clemens Utschig
  */
 @RestController
-@RequestMapping(value = "api/v2/project")
+@RequestMapping(value = ProjectAPI.API_V2_PROJECT)
 public class ProjectApiController {
 
   private static final Logger logger = LoggerFactory.getLogger(ProjectApiController.class);
@@ -70,6 +76,8 @@ public class ProjectApiController {
   public static final String CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS =
       "provision.add-project.check-preconditions";
 
+  private static final String EMPTY_PROJECT_DESCRIPTION = "";
+
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
   @Autowired private ISCMAdapter bitbucketAdapter;
@@ -79,7 +87,9 @@ public class ProjectApiController {
 
   @Autowired private IProjectIdentityMgmtAdapter projectIdentityMgmtAdapter;
 
-  @Autowired private List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
 
   @Autowired private StorageAdapter filteredStorage;
 
@@ -112,6 +122,7 @@ public class ProjectApiController {
    * @return the created project with additional information, e.g. links or in case an error
    *     happens, the error
    */
+  @PreAuthorizeOnlyAdministrator
   @RequestMapping(method = RequestMethod.POST)
   public ResponseEntity<Object> addProject(
       @RequestBody OpenProjectData newProject,
@@ -137,8 +148,7 @@ public class ProjectApiController {
                   newProject.projectKey));
     }
 
-    // fix for opendevstack/ods-provisioning-app/issues/64
-    shortenDescription(newProject);
+    newProject.description = ProjectApiController.createShortenedDescription(newProject);
 
     newProject.projectKey = newProject.projectKey.toUpperCase();
     MDC.put(STR_LOGFILE_KEY, newProject.projectKey);
@@ -316,6 +326,7 @@ public class ProjectApiController {
    * @param updatedProject the project containing the update data
    * @return the updated project
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.PUT)
   public ResponseEntity<Object> updateProject(@RequestBody OpenProjectData updatedProject) {
 
@@ -558,6 +569,7 @@ public class ProjectApiController {
    * Get a list with all projects in the ODS prov system. In this case the quickstarters {@link
    * OpenProjectData#quickstarters} contain also the description of the quickstarter that was used
    */
+  @PreAuthorizeAllRoles
   @GetMapping
   public ResponseEntity<Map<String, OpenProjectInfo>> getAllProjects() {
 
@@ -585,6 +597,7 @@ public class ProjectApiController {
    * @param id the project's key
    * @return Response with a complete project list of {@link OpenProjectData}
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/{id}")
   public ResponseEntity<OpenProjectData> getProject(@PathVariable String id) {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
@@ -618,6 +631,7 @@ public class ProjectApiController {
    * @param name the project's name
    * @return Response with HTTP status. If 406 a project with this name exists in JIRA
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/validate")
   public ResponseEntity<Object> validateProject(@RequestParam(value = "projectName") String name) {
     if (jiraAdapter.projectKeyExists(name)) {
@@ -635,6 +649,7 @@ public class ProjectApiController {
    *
    * @return a list of available template keys
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
   public ResponseEntity<List<String>> getProjectTemplateKeys() {
     return ResponseEntity.ok(projectTemplateKeyNames);
@@ -647,6 +662,7 @@ public class ProjectApiController {
    * @param key the project type as in {@link OpenProjectData#projectKey}
    * @return a map with the templates (which are implementation specific)
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/template/{key}")
   public ResponseEntity<Map<String, String>> getProjectTypeTemplatesForKey(
       @PathVariable String key) {
@@ -682,6 +698,7 @@ public class ProjectApiController {
    * @param key the project's name to validate against
    * @return Response with HTTP status. If 406 a project with this key exists in JIRA
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/key/validate")
   public ResponseEntity<Object> validateKey(@RequestParam(value = "projectKey") String key) {
     if (jiraAdapter.projectKeyExists(key)) {
@@ -699,6 +716,7 @@ public class ProjectApiController {
    * @param name the project name to generate the key from
    * @return the generated key
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/key/generate")
   public ResponseEntity<Map<String, String>> generateKey(
       @RequestParam(value = "name") String name) {
@@ -707,10 +725,16 @@ public class ProjectApiController {
     return ResponseEntity.ok(proj);
   }
 
-  void shortenDescription(OpenProjectData project) {
+  /**
+   * @param project
+   * @return empty String if parameter is null!
+   */
+  public static String createShortenedDescription(OpenProjectData project) {
+    Assert.notNull(project, "Parameter project is null!");
     if (project != null && project.description != null && project.description.length() > 100) {
-      project.description = project.description.substring(0, 99);
+      return project.description.substring(0, 99);
     }
+    return project.description;
   }
 
   private void addRepositoryUrlsToQuickstarters(OpenProjectData project) {
@@ -742,6 +766,7 @@ public class ProjectApiController {
     }
   }
 
+  @PreAuthorizeOnlyAdministrator
   @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
   public ResponseEntity<Object> deleteProject(@PathVariable String id) throws IOException {
     OpenProjectData project = filteredStorage.getFilteredSingleProject(id);
@@ -768,6 +793,7 @@ public class ProjectApiController {
     }
   }
 
+  @PreAuthorizeOnlyAdministrator
   @RequestMapping(method = RequestMethod.DELETE)
   public ResponseEntity<Object> deleteComponents(@RequestBody OpenProjectData deletableComponents)
       throws IOException {
@@ -806,7 +832,7 @@ public class ProjectApiController {
    * @param stage the lifecycle stage
    * @param project the project including any created information
    */
-  Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanup(
       LIFECYCLE_STAGE stage, OpenProjectData project) {
 
     if (!isCleanupAllowed()) {

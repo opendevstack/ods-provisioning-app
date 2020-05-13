@@ -31,15 +31,12 @@ import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.confluence.Blueprint;
-import org.opendevstack.provision.model.confluence.Context;
-import org.opendevstack.provision.model.confluence.JiraServer;
-import org.opendevstack.provision.model.confluence.Space;
-import org.opendevstack.provision.model.confluence.SpaceData;
+import org.opendevstack.provision.model.confluence.*;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
@@ -114,7 +111,9 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   @Autowired ConfigurableEnvironment environment;
 
-  @Autowired List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  List<String> projectTemplateKeyNames;
 
   public ConfluenceAdapter() {
     super(ADAPTER_NAME);

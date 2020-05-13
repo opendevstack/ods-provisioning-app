@@ -6,7 +6,7 @@
 	"platformRuntime": true,
 	"projectAdminGroup": "BI-AS-ATLASSIAN-P-TestP-MANAGER",
 	"projectUserGroup": "BI-AS-ATLASSIAN-P-TestP-TEAM",
-	"projectAdminUser": "clemens",
+	"projectAdminUser": "admin",
 	"projectReadonlyGroup": "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
 	"specialPermissionSet": false,
 	"projectType": "default"

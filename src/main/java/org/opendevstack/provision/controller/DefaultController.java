@@ -14,18 +14,11 @@
 
 package org.opendevstack.provision.controller;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.adapter.ICollaborationAdapter;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.adapter.ISCMAdapter;
+import java.util.*;
+import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -42,9 +35,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Controller
 public class DefaultController {
-  StorageAdapter storageAdapter;
 
-  IODSAuthnzAdapter manager;
+  private StorageAdapter storageAdapter;
+
+  private IODSAuthnzAdapter manager;
 
   private IJobExecutionAdapter jenkinspipelineAdapter;
 
@@ -67,7 +61,9 @@ public class DefaultController {
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
 
-  @Autowired List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
 
   @Value("${provision.auth.provider}")
   private String authProvider;
