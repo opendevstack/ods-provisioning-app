@@ -3,7 +3,6 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
-  HostListener,
   OnDestroy,
   OnInit,
   Output
@@ -15,7 +14,7 @@ import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
-import { EditModeService } from '../../edit-mode/services/edit-mode.service';
+import { EditMode } from '../../edit-mode/services/edit-mode.service';
 import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
 import { FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
@@ -35,7 +34,6 @@ export class ProjectPageComponent extends FormBaseComponent
   isLoading = true;
   isProjectError: boolean;
   isQuickstartersError: boolean;
-  editMode = false;
   project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
@@ -49,11 +47,12 @@ export class ProjectPageComponent extends FormBaseComponent
     private formBuilder: FormBuilder,
     private projectService: ProjectService,
     private quickstarterService: QuickstarterService,
-    private editModeService: EditModeService,
+    public editMode: EditMode,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog
   ) {
     super();
+    this.editMode.context = 'edit';
   }
 
   ngOnInit() {
@@ -89,27 +88,6 @@ export class ProjectPageComponent extends FormBaseComponent
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = text;
     this.dialog.open(NotificationComponent, dialogConfig);
-  }
-
-  activateEditMode() {
-    if (!this.editMode) {
-      this.editMode = true;
-      this.editModeService.emitEditModeFlag({
-        active: this.editMode,
-        context: 'edit'
-      });
-    }
-  }
-
-  deactivateEditMode() {
-    if (this.editMode) {
-      this.editMode = false;
-      this.editModeService.emitEditModeFlag({
-        active: this.editMode,
-        context: 'edit'
-      });
-      this.cdr.detectChanges();
-    }
   }
 
   canDisplayContent(): boolean {
@@ -173,13 +151,6 @@ export class ProjectPageComponent extends FormBaseComponent
     this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(
       this.projectLinks
     );
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  deactivateEditModeByEscKey(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      this.deactivateEditMode();
-    }
   }
 
   saveProject() {

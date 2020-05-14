@@ -22,10 +22,10 @@
           <project-header
             [project]="project"
             [projectLinks]="projectLinks"
-            [editMode]="editMode"
+            [editMode]="editMode.enabled"
             [isQuickstartersError]="isQuickstartersError"
             [aggregatedProjectLinks]="aggregatedProjectLinks"
-            (onActivateEditMode)="activateEditMode()"
+            (onActivateEditMode)="editMode.enabled = true"
             (onOpenDialog)="openDialog($event)"
           ></project-header>
         </div>
@@ -35,7 +35,10 @@
           [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''"
         >
           <ng-container
-            *ngIf="editMode && !projectQuickstarters; else showQuickstarterList"
+            *ngIf="
+              editMode.enabled && !projectQuickstarters;
+              else showQuickstarterList
+            "
           >
             <ng-container
               *ngTemplateOutlet="showQuickstarterAdd"
@@ -43,16 +46,19 @@
           </ng-container>
           <ng-template #showQuickstarterList>
             <project-quickstarter-list
-              [editMode]="editMode"
+              [editMode]="editMode.enabled"
               [projectQuickstarters]="projectQuickstarters"
               [allQuickstarters]="allQuickstarters"
               [form]="existingComponentsForm"
-              (onActivateEditMode)="activateEditMode()"
+              (onActivateEditMode)="editMode.enabled = true"
             ></project-quickstarter-list>
           </ng-template>
         </div>
 
-        <div class="page__footer" *ngIf="editMode && projectQuickstarters">
+        <div
+          class="page__footer"
+          *ngIf="editMode.enabled && projectQuickstarters"
+        >
           <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
         </div>
       </mat-card>
@@ -67,7 +73,7 @@
     ></project-quickstarter-add>
 
     <div class="page__action">
-      <button mat-raised-button (click)="deactivateEditMode()">
+      <button mat-raised-button (click)="editMode.enabled = false">
         Cancel
       </button>
       <button

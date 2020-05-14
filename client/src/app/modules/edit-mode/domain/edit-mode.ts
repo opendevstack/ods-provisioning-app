@@ -1,4 +1,4 @@
 export interface EditModeFlag {
-  active: boolean;
+  enabled: boolean;
   context: string;
 }

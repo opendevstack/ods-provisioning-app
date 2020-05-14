@@ -8,13 +8,14 @@ import {
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { EditModeService } from '../../edit-mode/services/edit-mode.service';
+import { EditMode } from '../../edit-mode/services/edit-mode.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-new-project',
   templateUrl: './new-project.component.html',
-  styleUrls: ['./new-project.component.scss']
+  styleUrls: ['./new-project.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewProjectComponent extends FormBaseComponent
   implements OnInit, OnDestroy {
@@ -22,14 +23,16 @@ export class NewProjectComponent extends FormBaseComponent
 
   constructor(
     private formBuilder: FormBuilder,
-    private editModeService: EditModeService,
-    private router: Router
+    private editMode: EditMode,
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     super();
   }
 
-  ngOnInit(): void {
-    this.activateEditMode();
+  ngOnInit() {
+    this.editMode.context = 'new';
+    this.editMode.enabled = true;
     this.initializeFormGroup();
   }
 
@@ -59,16 +62,8 @@ export class NewProjectComponent extends FormBaseComponent
     }
   }
 
-  activateEditMode() {
-    this.editModeService.emitEditModeFlag({ active: true, context: 'new' });
-  }
-
-  deactivateEditMode() {
-    this.editModeService.emitEditModeFlag({ active: false, context: 'new' });
-  }
-
   leavePage() {
-    this.deactivateEditMode();
+    this.editMode.enabled = false;
     this.router.navigateByUrl('/');
   }
 
