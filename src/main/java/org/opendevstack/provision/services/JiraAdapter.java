@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
@@ -79,6 +80,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   private static final String USERNAME_PARAM = "username";
   private static final String QUERY_PARAM = "query";
+
+  private static final String USER_KEY = "key";
+  private static final String USER_EMAIL_ADDRESS = "emailAddress";
 
   @Value("${jira.api.path}")
   private String jiraApiPath;
@@ -807,17 +811,21 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       JsonNode json = new ObjectMapper().readTree(response);
 
-      return containsUser(json, username);
+      BiPredicate<String, String> findAndCompare = createFindPathAndCompare(json);
+
+      return findAndCompare.test(USER_KEY, username)
+          || findAndCompare.test(USER_EMAIL_ADDRESS, username);
 
     } catch (IOException e) {
       throw new AdapterException(e);
     }
   }
 
-  public boolean containsUser(JsonNode json, String username) {
-
-    JsonNode key = json.get("key");
-    return key != null && key.asText().equals(username);
+  public static BiPredicate<String, String> createFindPathAndCompare(JsonNode json) {
+    return (path, value) -> {
+      JsonNode key = json.findPath(path);
+      return key != null && key.asText().equals(value);
+    };
   }
 
   public String getJiraNotificationSchemeId() {

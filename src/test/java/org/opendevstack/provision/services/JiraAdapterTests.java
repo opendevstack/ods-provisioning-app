@@ -514,6 +514,12 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     List<String> newResult = checkUser.apply(result);
     Assert.assertEquals(0, newResult.size());
 
+    // Case no error, username in json response is different than key but equals to emailAddress,
+    // user exists!
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    newResult = spyAdapter.createProjectAdminUserExistsCheck(user + "@domain.com").apply(result);
+    Assert.assertEquals(0, newResult.size());
+
     // Case error, user does not exists!
     String thisUserDoesNotExists = "this_cd_user_not_exist";
     checkUser = spyAdapter.createProjectAdminUserExistsCheck(thisUserDoesNotExists);
