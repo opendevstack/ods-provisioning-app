@@ -40,3 +40,7 @@ export interface ProjectLink {
 export interface ProjectStorage {
   key: string;
 }
+
+export interface ProjectStorage {
+  key: string;
+}

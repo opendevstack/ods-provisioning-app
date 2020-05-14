@@ -62,8 +62,8 @@
           title="{{ project.description }}"
           data-test-sidebar-nav-list-item
           class="nav__list--item"
-          mat-list-item
           routerLinkActive="active"
+          mat-list-item
           routerLink="/project/{{ project.projectKey }}"
           *ngFor="let project of filteredProjects | async"
         >

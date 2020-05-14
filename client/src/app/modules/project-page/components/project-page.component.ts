@@ -62,16 +62,32 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   ngOnInit() {
+    let projectKey: string;
+    const projectKeyFromStorage = this.getProjectKeyFromStorage();
     this.route.params.subscribe(param => {
       if (!param.key) {
-        this.switchToErrorDisplay('NO_PROJECT_KEY');
+        if (!projectKeyFromStorage) {
+          this.switchToErrorDisplay('NO_PROJECT_KEY');
+        }
+        projectKey = projectKeyFromStorage;
       } else {
-        this.isLoading = true;
-        this.cdr.detectChanges();
-        this.initializeDataRetrieval(param.key);
-        this.initializeFormGroup();
+        projectKey = param.key;
       }
+      this.isLoading = true;
+      this.cdr.detectChanges();
+      this.initializeDataRetrieval(projectKey);
+      this.initializeFormGroup();
     });
+  }
+
+  getProjectKeyFromStorage(): string | null {
+    const projectKeyFromStorage = this.storageService.getItem(
+      'project'
+    ) as ProjectStorage;
+    if (!projectKeyFromStorage) {
+      return;
+    }
+    return projectKeyFromStorage.key;
   }
 
   getProjectKeyFromStorage(): string | null {

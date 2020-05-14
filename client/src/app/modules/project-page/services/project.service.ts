@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { EventEmitter, Inject, Injectable, Output } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
@@ -71,5 +71,9 @@ export class ProjectService {
 
   getAggregateProjectLinks(projectLinks: ProjectLink[]): string | null {
     return projectLinks?.map(link => link.url).join('\n');
+  }
+
+  emitUpdateNavState(projectKey: string): void {
+    this.onUpdateNavState.emit(projectKey);
   }
 }
