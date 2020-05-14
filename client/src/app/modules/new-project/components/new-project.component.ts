@@ -1,6 +1,5 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   OnDestroy,
   OnInit
@@ -8,7 +7,7 @@ import {
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { EditMode } from '../../edit-mode/services/edit-mode.service';
+import { EditModeService } from '../../edit-mode/services/edit-mode.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -23,9 +22,8 @@ export class NewProjectComponent extends FormBaseComponent
 
   constructor(
     private formBuilder: FormBuilder,
-    private editMode: EditMode,
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private editMode: EditModeService,
+    private router: Router
   ) {
     super();
   }

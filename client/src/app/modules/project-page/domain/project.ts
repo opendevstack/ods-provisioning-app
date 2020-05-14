@@ -37,6 +37,6 @@ export interface ProjectLink {
   iconLabel: string;
 }
 
-export enum ProjectErrorTypes {
-  NO_PROJECT_KEY = 'NO_PROJECT_KEY'
+export interface ProjectStorage {
+  key: string;
 }

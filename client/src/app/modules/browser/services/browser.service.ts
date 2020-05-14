@@ -17,6 +17,10 @@ export class BrowserService {
     return this.window.sessionStorage;
   }
 
+  getLocalStorage(): Storage {
+    return this.window.localStorage;
+  }
+
   setCookie(cookie: Cookie): void {
     this.document.cookie = cookie.buildCookieString();
   }

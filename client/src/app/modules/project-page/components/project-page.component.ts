@@ -8,18 +8,19 @@ import {
   Output
 } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { ProjectData, ProjectErrorTypes, ProjectLink } from '../domain/project';
+import { ProjectData, ProjectLink, ProjectStorage } from '../domain/project';
 import { ProjectService } from '../services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
-import { EditMode } from '../../edit-mode/services/edit-mode.service';
+import { EditModeService } from '../../edit-mode/services/edit-mode.service';
 import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
 import { FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
+import { StorageService } from '../../storage/services/storage.service';
 
 type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
 
@@ -51,9 +52,10 @@ export class ProjectPageComponent extends FormBaseComponent
     private formBuilder: FormBuilder,
     private projectService: ProjectService,
     private quickstarterService: QuickstarterService,
-    public editMode: EditMode,
+    public editMode: EditModeService,
     private cdr: ChangeDetectorRef,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private storageService: StorageService
   ) {
     super();
     this.editMode.context = 'edit';
@@ -72,6 +74,16 @@ export class ProjectPageComponent extends FormBaseComponent
     });
   }
 
+  getProjectKeyFromStorage(): string | null {
+    const projectKeyFromStorage = this.storageService.getItem(
+      'project'
+    ) as ProjectStorage;
+    if (!projectKeyFromStorage) {
+      return;
+    }
+    return projectKeyFromStorage.key;
+  }
+
   initializeDataRetrieval(projectKey: string) {
     forkJoin([
       this.getProjectByKey(projectKey),
@@ -80,11 +92,14 @@ export class ProjectPageComponent extends FormBaseComponent
       this.project = project as ProjectData;
       this.prepareProjectLinks();
 
+      this.projectQuickstarters = null;
       if (this.project.quickstarters.length) {
         this.projectQuickstarters = this.quickstarterService.transformProjectQuickstarterData(
           this.project.quickstarters
         );
       }
+
+      this.storageService.saveItem('project', { key: this.project.projectKey });
 
       this.allQuickstarters = allQuickstarters as QuickstarterData[];
       this.isLoading = false;
@@ -132,6 +147,7 @@ export class ProjectPageComponent extends FormBaseComponent
       takeUntil(this.destroy$),
       tap(() => (this.isProjectError = false)),
       catchError((errorType: HttpErrorTypes) => {
+        this.storageService.removeItem('project');
         this.switchToErrorDisplay(errorType);
         return EMPTY;
       })

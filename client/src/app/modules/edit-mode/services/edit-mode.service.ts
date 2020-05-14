@@ -10,7 +10,7 @@ import { EditModeFlag } from '../domain/edit-mode';
 @Injectable({
   providedIn: 'root'
 })
-export class EditMode {
+export class EditModeService {
   @Output() onGetEditModeFlag = new EventEmitter<EditModeFlag>();
 
   private _enabled = false;
