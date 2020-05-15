@@ -1,19 +1,19 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AuthInterceptor } from './auth-interceptor.service';
+import { HttpRequestInterceptor } from './http-request-interceptor.service';
 import { ProjectService } from '../project-page/services/project.service';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../project-page/tokens';
 import { BrowserService } from '../browser/services/browser.service';
 import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';
 
 describe(`AuthHttpInterceptor`, () => {
-  let spectator: SpectatorHttp<AuthInterceptor>;
+  let spectator: SpectatorHttp<HttpRequestInterceptor>;
   const createService = createHttpFactory({
-    service: AuthInterceptor,
+    service: HttpRequestInterceptor,
     mocks: [ProjectService],
     providers: [
       {
         provide: HTTP_INTERCEPTORS,
-        useClass: AuthInterceptor,
+        useClass: HttpRequestInterceptor,
         multi: true
       },
       { provide: API_PROJECT_URL, useValue: '/mock/url' },
