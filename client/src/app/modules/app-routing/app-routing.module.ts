@@ -4,6 +4,7 @@ import { BrowserModule } from '../browser/browser.module';
 import { environment } from '../../../environments/environment';
 import { ProjectPageModule } from '../project-page/project-page.module';
 import { StorageModule } from '../storage/storage.module';
+import { NewProjectModule } from '../new-project/new-project.module';
 
 const routes: Routes = [
   {
@@ -19,6 +20,11 @@ const routes: Routes = [
       import('../project-page/project-page.module').then(
         m => m.ProjectPageModule
       )
+  },
+  {
+    path: 'new',
+    loadChildren: () =>
+      import('../new-project/new-project.module').then(m => m.NewProjectModule)
   },
   {
     path: 'about',
@@ -47,6 +53,9 @@ const routes: Routes = [
       apiProjectUrl: environment.apiProjectUrl,
       apiAllProjectsUrl: environment.apiAllProjectsUrl,
       apiAllQuickstartersUrl: environment.apiAllQuickstartersUrl
+    }),
+    NewProjectModule.withOptions({
+      apiProjectUrl: environment.apiProjectUrl
     })
   ],
   exports: [RouterModule],

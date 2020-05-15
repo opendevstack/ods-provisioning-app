@@ -56,7 +56,6 @@ app-root {
     height: calc(
       100vh - #{$header-footer-offset} - (#{$main-container-padding} * 2)
     );
-    overflow-y: hidden;
     @include make-col-ready();
     @include media-breakpoint-up(md) {
       @include make-col(4);
@@ -64,10 +63,7 @@ app-root {
   }
 
   .content {
-    height: calc(
-      100vh - #{$header-footer-offset} - #{$sidebar-header-height} + #{$sidebar-header-margin-top}
-    );
-    overflow: hidden;
+    height: calc(100vh - #{$header-footer-offset} - #{$sidebar-header-height});
     padding: 0 $space;
 
     @include make-col-ready();

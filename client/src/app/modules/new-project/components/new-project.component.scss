@@ -1,0 +1,25 @@
+@import '../../../ui/scss/variables';
+@import '../../../ui/scss/components/page';
+
+.page__content,
+.page__footer {
+  padding: 30px;
+}
+
+.page__header {
+  padding: 5px 30px;
+}
+
+.page__footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+h3 {
+  color: $color-black-light; // TODO apply material design
+  margin-bottom: 0;
+}
+
+mat-form-field,
+mat-checkbox {
+  display: block;
+}

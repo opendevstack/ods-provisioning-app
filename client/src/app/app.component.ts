@@ -1,11 +1,12 @@
 import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
-import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
+import { EditMode } from './modules/edit-mode/services/edit-mode.service';
 import { ProjectService } from './modules/project-page/services/project.service';
 import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { ProjectData } from './modules/project-page/domain/project';
+import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { ProjectData } from './modules/project-page/domain/project';
 export class AppComponent implements OnInit {
   isLoading = true;
   isError: boolean;
+  isNewProjectFormActive = false;
 
   projects: ProjectData[] = [];
 
@@ -21,7 +23,7 @@ export class AppComponent implements OnInit {
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
-    private editModeService: EditModeService,
+    public editMode: EditMode,
     private projectService: ProjectService
   ) {
     this.matIconRegistry.addSvgIconSet(
@@ -58,11 +60,15 @@ export class AppComponent implements OnInit {
   }
 
   getEditModeStatus() {
-    this.editModeService.onGetEditModeFlag.subscribe(editModeActive => {
-      if (editModeActive) {
+    this.editMode.onGetEditModeFlag.subscribe((editMode: EditModeFlag) => {
+      if (editMode.enabled) {
         this.renderer.addClass(document.body, 'status-editmode-active');
+        if (editMode.context === 'new') {
+          this.isNewProjectFormActive = true;
+        }
       } else {
         this.renderer.removeClass(document.body, 'status-editmode-active');
+        this.isNewProjectFormActive = false;
       }
     });
   }

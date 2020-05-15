@@ -14,12 +14,19 @@
       <span>Projects</span> ({{ (filteredProjects | async).length }})
     </div>
     <div class="sidebar__header--action">
-      <a mat-icon-button color="primary" disabled data-test-new-project-btn>
+      <a
+        mat-stroked-button
+        color="primary"
+        routerLink="/new"
+        class="mini-icon-button mat-elevation-z0"
+        data-test-new-project-btn
+      >
         <mat-icon
           svgIcon="plus"
           aria-hidden="false"
-          [attr.aria-label]="'Create Project'"
+          [attr.aria-label]="'Create new project'"
         ></mat-icon>
+        <span>New</span>
       </a>
     </div>
   </div>
@@ -40,6 +47,17 @@
 
     <div class="nav__list">
       <mat-nav-list>
+        <a
+          *ngIf="isNewProjectFormActive"
+          data-test-sidebar-nav-list-item-new
+          class="nav__list--item active"
+          mat-list-item
+        >
+          <div class="project">
+            <div class="project__name">New project</div>
+            <div class="project__key">Key</div>
+          </div>
+        </a>
         <a
           title="{{ project.description }}"
           data-test-sidebar-nav-list-item

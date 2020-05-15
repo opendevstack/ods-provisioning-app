@@ -1,11 +1,11 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { EditModeService } from './edit-mode.service';
+import { EditMode } from './edit-mode.service';
 
 describe('EditModeService', () => {
-  let spectator: SpectatorService<EditModeService>;
+  let spectator: SpectatorService<EditMode>;
 
   const createService = createServiceFactory({
-    service: EditModeService
+    service: EditMode
   });
 
   let onGetEditModeFlagSpy: any;
@@ -22,7 +22,7 @@ describe('EditModeService', () => {
   it('should emit editmode event with "true" flag to host component', () => {
     /* given */
     /* when */
-    spectator.service.emitEditModeFlag(true);
+    spectator.service.enabled = true;
     /* then */
     expect(onGetEditModeFlagSpy).toBeCalledWith(true);
   });
@@ -30,7 +30,7 @@ describe('EditModeService', () => {
   it('should emit editmode event with "false" flag to host component', () => {
     /* given */
     /* when */
-    spectator.service.emitEditModeFlag(false);
+    spectator.service.enabled = false;
     /* then */
     expect(onGetEditModeFlagSpy).toBeCalledWith(false);
   });

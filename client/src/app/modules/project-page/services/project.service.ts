@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../tokens';
+import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
 import { ProjectData, ProjectLink } from '../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
 

@@ -1,79 +1,89 @@
-<ng-container *ngIf="isLoading">
-  <app-loading-indicator></app-loading-indicator>
-</ng-container>
+<div class="page">
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
 
-<ng-container *ngIf="isProjectError">
-  <div class="error">
-    This project could not be loaded currently
-  </div>
-</ng-container>
-
-<ng-container *ngIf="canDisplayContent()">
-  <div class="project__notifications">
-    <div class="error" *ngIf="isQuickstartersError">
-      Technical error - editing not possible
+  <ng-container *ngIf="isProjectError">
+    <div class="error">
+      This project could not be loaded currently
     </div>
-  </div>
+  </ng-container>
 
-  <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
-    <mat-card>
-      <div class="project__header">
-        <project-header
-          [project]="project"
-          [projectLinks]="projectLinks"
-          [editMode]="editMode"
-          [isQuickstartersError]="isQuickstartersError"
-          [aggregatedProjectLinks]="aggregatedProjectLinks"
-          (onActivateEditMode)="activateEditMode()"
-          (onOpenDialog)="openDialog($event)"
-        ></project-header>
+  <ng-container *ngIf="canDisplayContent()">
+    <div class="page__notifications">
+      <div class="error" *ngIf="isQuickstartersError">
+        Technical error - editing not possible
       </div>
+    </div>
 
-      <div
-        class="project__content"
-        [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''"
-      >
-        <ng-container
-          *ngIf="editMode && !projectQuickstarters; else showQuickstarterList"
+    <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
+      <mat-card>
+        <div class="page__header">
+          <project-header
+            [project]="project"
+            [projectLinks]="projectLinks"
+            [editMode]="editMode.enabled"
+            [isQuickstartersError]="isQuickstartersError"
+            [aggregatedProjectLinks]="aggregatedProjectLinks"
+            (onActivateEditMode)="editMode.enabled = true"
+            (onOpenDialog)="openDialog($event)"
+          ></project-header>
+        </div>
+
+        <div
+          class="page__content"
+          [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''"
+        >
+          <ng-container
+            *ngIf="
+              editMode.enabled && !projectQuickstarters;
+              else showQuickstarterList
+            "
+          >
+            <ng-container
+              *ngTemplateOutlet="showQuickstarterAdd"
+            ></ng-container>
+          </ng-container>
+          <ng-template #showQuickstarterList>
+            <project-quickstarter-list
+              [editMode]="editMode.enabled"
+              [projectQuickstarters]="projectQuickstarters"
+              [allQuickstarters]="allQuickstarters"
+              [form]="existingComponentsForm"
+              (onActivateEditMode)="editMode.enabled = true"
+            ></project-quickstarter-list>
+          </ng-template>
+        </div>
+
+        <div
+          class="page__footer"
+          *ngIf="editMode.enabled && projectQuickstarters"
         >
           <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
-        </ng-container>
-        <ng-template #showQuickstarterList>
-          <project-quickstarter-list
-            [editMode]="editMode"
-            [projectQuickstarters]="projectQuickstarters"
-            [allQuickstarters]="allQuickstarters"
-            [form]="existingComponentsForm"
-            (onActivateEditMode)="activateEditMode()"
-          ></project-quickstarter-list>
-        </ng-template>
-      </div>
+        </div>
+      </mat-card>
+    </form>
+  </ng-container>
 
-      <div class="project__footer" *ngIf="editMode && projectQuickstarters">
-        <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
-      </div>
-    </mat-card>
-  </form>
-</ng-container>
+  <ng-template #showQuickstarterAdd>
+    <project-quickstarter-add
+      [projectQuickstarters]="projectQuickstarters"
+      [allQuickstarters]="allQuickstarters"
+      [form]="newComponentsForm"
+    ></project-quickstarter-add>
 
-<ng-template #showQuickstarterAdd>
-  <project-quickstarter-add
-    [projectQuickstarters]="projectQuickstarters"
-    [allQuickstarters]="allQuickstarters"
-    [form]="newComponentsForm"
-  ></project-quickstarter-add>
-
-  <div class="project__action">
-    <button mat-raised-button (click)="deactivateEditMode()">
-      Cancel
-    </button>
-    <button
-      type="submit"
-      mat-raised-button
-      color="primary"
-      [disabled]="!form.valid"
-    >
-      Start
-    </button>
-  </div>
-</ng-template>
+    <div class="page__action">
+      <button mat-raised-button (click)="editMode.enabled = false">
+        Cancel
+      </button>
+      <button
+        type="submit"
+        mat-raised-button
+        color="primary"
+        [disabled]="!form.valid"
+      >
+        Start
+      </button>
+    </div>
+  </ng-template>
+</div>
