@@ -161,13 +161,31 @@
 </table>
 <ng-template #emptyContent>
   <div class="empty-content">
-    <button
-      mat-raised-button
-      color="primary"
-      [hidden]="editMode"
-      (click)="emitActivateEditMode()"
-    >
-      Add quickstarter
-    </button>
+    <div class="errorbox">
+      <div class="errorbox__img">
+        <img
+          src="assets/icons/quickstarter-not-found.svg"
+          alt="No quickstarters applied yet"
+        />
+      </div>
+      <div class="errorbox__headline">No quickstarters applied yet</div>
+      <div class="errorbox__subline">
+        Add new components to your project
+      </div>
+      <button
+        mat-stroked-button
+        color="primary"
+        class="mini-icon-button mat-elevation-z0"
+        (click)="emitActivateEditMode()"
+        data-test-edit-project-btn
+      >
+        <mat-icon
+          svgIcon="plus"
+          aria-hidden="false"
+          [attr.aria-label]="'Add'"
+        ></mat-icon>
+        <span>Add</span>
+      </button>
+    </div>
   </div>
 </ng-template>

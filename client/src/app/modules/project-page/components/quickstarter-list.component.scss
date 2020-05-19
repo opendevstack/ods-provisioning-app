@@ -1,6 +1,7 @@
 :host {
   display: block;
   padding: 0 50px 30px 50px;
+  height: 100%;
 }
 
 .empty-quickstarters {
@@ -13,14 +14,4 @@
 .qs-id {
   padding: 13px 0;
   font-size: 1rem;
-}
-
-.empty-content {
-  display: flex;
-  height: 100%;
-  justify-content: center;
-
-  button {
-    align-self: center;
-  }
 }
