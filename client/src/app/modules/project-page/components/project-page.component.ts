@@ -19,6 +19,9 @@ import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
 import { FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
+import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
+
+type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
 
 @Component({
   selector: 'app-project-page',
@@ -34,7 +37,7 @@ export class ProjectPageComponent extends FormBaseComponent
   isLoading = true;
   isProjectError: boolean;
   isQuickstartersError: boolean;
-  errorType: string;
+  errorType: ProjectErrorType;
   project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
@@ -128,7 +131,7 @@ export class ProjectPageComponent extends FormBaseComponent
     return this.projectService.getProjectByKey(key).pipe(
       takeUntil(this.destroy$),
       tap(() => (this.isProjectError = false)),
-      catchError(errorType => {
+      catchError((errorType: HttpErrorTypes) => {
         this.switchToErrorDisplay(errorType);
         return EMPTY;
       })
@@ -156,7 +159,7 @@ export class ProjectPageComponent extends FormBaseComponent
     );
   }
 
-  private switchToErrorDisplay(errorType) {
+  private switchToErrorDisplay(errorType: ProjectErrorType) {
     this.errorType = errorType;
     this.isProjectError = true;
     this.isLoading = false;
