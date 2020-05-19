@@ -3,11 +3,38 @@
     <app-loading-indicator></app-loading-indicator>
   </ng-container>
 
-  <ng-container *ngIf="isProjectError">
-    <div class="error">
-      This project could not be loaded currently
+<ng-container *ngIf="isProjectError && !isLoading">
+  <div class="empty-content">
+    <div class="errorbox" *ngIf="errorType === 'NOT_FOUND'">
+      <div class="errorbox__img">
+        <img
+          src="assets/icons/project-not-found.svg"
+          alt="Project was not found"
+        />
+      </div>
+      <div class="errorbox__headline">Project was not found</div>
+      <div class="errorbox__subline">
+        Please check URL or select another project
+      </div>
     </div>
-  </ng-container>
+    <div class="errorbox" *ngIf="errorType === 'NO_PROJECT_KEY'">
+      <div class="errorbox__img">
+        <img src="assets/icons/project-empty.svg" alt="No project selected" />
+      </div>
+      <div class="errorbox__headline">No project selected</div>
+      <div class="errorbox__subline">
+        Select or create a project to see more detail
+      </div>
+    </div>
+    <div class="errorbox" *ngIf="errorType === 'UNKNOWN'">
+      <div class="errorbox__img">
+        <img src="assets/icons/project-empty.svg" alt="General error" />
+      </div>
+      <div class="errorbox__headline">General error</div>
+      <div class="errorbox__subline">Please try again soon</div>
+    </div>
+  </div>
+</ng-container>
 
   <ng-container *ngIf="canDisplayContent()">
     <div class="page__notifications">

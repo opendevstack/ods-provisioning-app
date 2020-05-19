@@ -1,0 +1,23 @@
+.errorbox {
+  color: $color-black-light;
+  text-align: center;
+}
+
+.errorbox__img {
+  margin-bottom: 15px;
+
+  img {
+    width: 240px;
+  }
+}
+
+.errorbox__headline {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.errorbox__subline {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}

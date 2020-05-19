@@ -8,6 +8,11 @@ import {
 
 import { Observable } from 'rxjs';
 
+export enum HttpErrorTypes {
+  UNKNOWN = 'UNKNOWN',
+  NOT_FOUND = 'NOT_FOUND'
+}
+
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
   intercept(

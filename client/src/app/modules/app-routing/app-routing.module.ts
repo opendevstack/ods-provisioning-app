@@ -8,10 +8,10 @@ import { NewProjectModule } from '../new-project/new-project.module';
 
 const routes: Routes = [
   {
-    path: 'provision',
+    path: 'project',
     loadChildren: () =>
-      import('../provision-page/provision-page.module').then(
-        m => m.ProvisionPageModule
+      import('../project-page/project-page.module').then(
+        m => m.ProjectPageModule
       )
   },
   {
@@ -33,12 +33,12 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'about',
+    redirectTo: 'project',
     pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: 'about'
+    redirectTo: 'project'
   }
 ];
 
