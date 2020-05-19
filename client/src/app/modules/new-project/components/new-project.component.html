@@ -1,196 +1,288 @@
 <div class="page">
-  <mat-card>
-    <div class="page__header">
-      <h3 class="mat-h3">Create new project</h3>
-    </div>
-    <div class="page__content">
-      <form
-        [formGroup]="form"
-        novalidate
-        (ngSubmit)="intendFormSubmit()"
-        id="form"
-      >
-        <div class="row-form">
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Name *</mat-label>
-              <input
-                matInput
-                placeholder="Name"
-                formControlName="name"
-                removeWhitespaces
-              />
-              <mat-error *ngIf="form.controls['name'].hasError('required')">
-                Name is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Key *</mat-label>
-              <input
-                matInput
-                placeholder="Key"
-                formControlName="key"
-                uppercase
-                removeWhitespaces
-              />
-              <mat-error *ngIf="form.controls['key'].hasError('required')">
-                Key is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
 
-        <div class="row-form">
-          <div class="col">
-            <div class="formfield-wrapper">
-              <mat-form-field class="formfield__input">
-                <mat-label>Project specific CD user</mat-label>
-                <input
-                  matInput
-                  placeholder="Project specific CD user"
-                  formControlName="cdUser"
-                  removeWhitespaces
-                />
-              </mat-form-field>
-              <mat-icon
-                svgIcon="information"
-                aria-hidden="false"
-                aria-label="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
-                After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
-                matTooltip="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
-                After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
-                matTooltipClass="formfield__tooltip"
-              ></mat-icon>
-            </div>
-          </div>
-          <div class="col">
-            <mat-form-field>
-              <mat-label>Project type</mat-label>
-              <select matNativeControl required formControlName="projectType">
-                <option value="">Select project type</option>
-                <option
-                  [value]="type"
-                  *ngFor="let type of ['default', 'kanban']"
-                  >{{ type }}</option
-                >
-              </select>
-            </mat-form-field>
-          </div>
+  <ng-container *ngIf="isProjectTemplatesError && !isLoading">
+    <div class="empty-content">
+      <div class="errorbox">
+        <div class="errorbox__img">
+          <img
+            src="assets/icons/project-empty.svg"
+            alt="Project template data could not be retrieved"
+          />
         </div>
-        <div class="row-form">
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Description *</mat-label>
-              <textarea
-                matInput
-                placeholder="Description"
-                formControlName="description"
-                rows="3"
-              ></textarea>
-            </mat-form-field>
-          </div>
-          <div class="col">
-            <mat-checkbox formControlName="optInJira"
-              >Create JIRA / Confluence spaces</mat-checkbox
-            >
-            <mat-checkbox formControlName="optInODS"
-              >Create Openshift Project</mat-checkbox
-            >
-          </div>
+        <div class="errorbox__headline">
+          Project template data could not be retrieved
         </div>
-
-        <div class="row-form">
-          <div class="col">
-            <h3 class="mat-h3">Create special permission set</h3>
-          </div>
+        <div class="errorbox__subline">
+          Please try again soon
         </div>
-
-        <div class="row-form">
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Admin user</mat-label>
-              <input
-                matInput
-                placeholder="Admin user"
-                formControlName="adminUser"
-                removeWhitespaces
-              />
-              <mat-error
-                *ngIf="form.controls['adminUser'].hasError('required')"
-              >
-                Admin user is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Admin group</mat-label>
-              <input
-                matInput
-                placeholder="Admin group"
-                formControlName="adminGroup"
-                removeWhitespaces
-              />
-              <mat-error
-                *ngIf="form.controls['adminGroup'].hasError('required')"
-              >
-                Admin group is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
-        <div class="row-form">
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>User group</mat-label>
-              <input
-                matInput
-                placeholder="User group"
-                formControlName="userGroup"
-                removeWhitespaces
-              />
-              <mat-error
-                *ngIf="form.controls['userGroup'].hasError('required')"
-              >
-                User group is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-          <div class="col">
-            <mat-form-field class="formfield__input">
-              <mat-label>Readonly user group</mat-label>
-              <input
-                matInput
-                placeholder="Readonly user group"
-                formControlName="readonlyUserGroup"
-                removeWhitespaces
-              />
-              <mat-error
-                *ngIf="form.controls['readonlyUserGroup'].hasError('required')"
-              >
-                Readonly user group is <strong>required</strong>
-              </mat-error>
-            </mat-form-field>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="page__footer">
-      <div class="page__action">
-        <button mat-raised-button (click)="leavePage()">
-          Cancel
-        </button>
-        <button
-          type="submit"
-          mat-raised-button
-          color="primary"
-          [disabled]="!form.valid"
-        >
-          Create new project
-        </button>
       </div>
     </div>
-  </mat-card>
+  </ng-container>
+
+  <ng-container *ngIf="canDisplayContent()">
+    <form
+      [formGroup]="form"
+      novalidate
+      (ngSubmit)="intendFormSubmit()"
+      id="form"
+    >
+      <mat-card>
+        <div class="page__header">
+          <h3 class="mat-h3">Create new project</h3>
+        </div>
+        <div class="page__content">
+          <div class="row-form">
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Name</mat-label>
+                <input
+                  matInput
+                  placeholder="Name"
+                  formControlName="name"
+                  removeWhitespaces
+                  maxlength="30"
+                  required
+                  (blur)="generateProjectKey()"
+                />
+                <mat-error
+                  class="formfield__error"
+                  *ngIf="hasValidationErrorByType(form.get('name'), 'required')"
+                >
+                  <mat-icon
+                    svgIcon="alert"
+                    aria-hidden="false"
+                    aria-label="Form error"
+                  ></mat-icon>
+                  Project name is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Key</mat-label>
+                <input
+                  matInput
+                  placeholder="Key"
+                  formControlName="key"
+                  uppercase
+                  removeWhitespaces
+                  required
+                />
+                <mat-error
+                  class="formfield__error"
+                  *ngIf="hasValidationErrorByType(form.get('key'), 'required')"
+                >
+                  <mat-icon
+                    svgIcon="alert"
+                    aria-hidden="false"
+                    aria-label="Form error"
+                  ></mat-icon>
+                  Key is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row-form">
+            <div class="col">
+              <div class="formfield-wrapper">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Project specific CD user</mat-label>
+                  <input
+                    matInput
+                    placeholder="Project specific CD user"
+                    formControlName="cdUser"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+                <mat-icon
+                  svgIcon="information"
+                  aria-hidden="false"
+                  aria-label="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                    After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
+                  matTooltip="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                    After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
+                  matTooltipClass="formfield__tooltip"
+                ></mat-icon>
+              </div>
+            </div>
+            <div class="col">
+              <mat-form-field>
+                <mat-label>Project template</mat-label>
+                <select matNativeControl required formControlName="template">
+                  <option value="">Select project template</option>
+                  <option
+                    [value]="template.key"
+                    *ngFor="let template of projectTemplates"
+                    >{{ template.name }}</option
+                  >
+                </select>
+                <mat-error
+                  class="formfield__error"
+                  *ngIf="
+                    hasValidationErrorByType(form.get('template'), 'required')
+                  "
+                >
+                  <mat-icon
+                    svgIcon="alert"
+                    aria-hidden="false"
+                    aria-label="Form error"
+                  ></mat-icon>
+                  Project template is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="row-form">
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Description</mat-label>
+                <textarea
+                  matInput
+                  placeholder="Description"
+                  formControlName="description"
+                  rows="3"
+                  required
+                ></textarea>
+                <mat-error
+                  class="formfield__error"
+                  *ngIf="
+                    hasValidationErrorByType(
+                      form.get('description'),
+                      'required'
+                    )
+                  "
+                >
+                  <mat-icon
+                    svgIcon="alert"
+                    aria-hidden="false"
+                    aria-label="Form error"
+                  ></mat-icon>
+                  Description is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+            <div class="col">
+              <mat-checkbox formControlName="optInJira"
+                >Create JIRA / Confluence spaces</mat-checkbox
+              >
+              <mat-checkbox formControlName="optInODS"
+                >Create Openshift Project</mat-checkbox
+              >
+            </div>
+          </div>
+
+          <ng-container formGroupName="permissionSet">
+            <div class="row-form">
+              <div class="col">
+                <h3 class="mat-h3">Create special permission set</h3>
+              </div>
+            </div>
+
+            <div class="row-form" formGroupName="admin">
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Admin user</mat-label>
+                  <input
+                    matInput
+                    placeholder="Admin user"
+                    formControlName="name"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+              </div>
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Admin group</mat-label>
+                  <input
+                    matInput
+                    placeholder="Admin group"
+                    formControlName="group"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <mat-error
+              class="formfield__error"
+              *ngIf="
+                hasValidationErrorByType(
+                  form.get('permissionSet').get('admin'),
+                  'isPermissionSetGroupMandatory'
+                )
+              "
+            >
+              <mat-icon
+                svgIcon="alert"
+                aria-hidden="false"
+                aria-label="Form error"
+              ></mat-icon>
+              Please enter values for both fields
+            </mat-error>
+
+            <div class="row-form" formGroupName="user">
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>User group</mat-label>
+                  <input
+                    matInput
+                    placeholder="User group"
+                    formControlName="name"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+              </div>
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Readonly user group</mat-label>
+                  <input
+                    matInput
+                    placeholder="Readonly user group"
+                    formControlName="group"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <mat-error
+              class="formfield__error"
+              *ngIf="
+                hasValidationErrorByType(
+                  form.get('permissionSet').get('user'),
+                  'isPermissionSetGroupMandatory'
+                )
+              "
+            >
+              <mat-icon
+                svgIcon="alert"
+                aria-hidden="false"
+                aria-label="Form error"
+              ></mat-icon>
+              Please enter values for both fields
+            </mat-error>
+          </ng-container>
+        </div>
+        <div class="page__footer">
+          <div class="page__action">
+            <button mat-raised-button (click)="leavePage()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              mat-raised-button
+              color="primary"
+              [disabled]="!form.valid"
+            >
+              Create new project
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </form>
+  </ng-container>
 </div>

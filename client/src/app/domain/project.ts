@@ -50,3 +50,13 @@ export interface ProjectLink {
 export interface ProjectStorage {
   key: string;
 }
+
+export interface ProjectKeyResponse {
+  projectKey: string;
+}
+
+export interface ProjectTemplate {
+  name: string;
+  key: string;
+  type: string;
+}

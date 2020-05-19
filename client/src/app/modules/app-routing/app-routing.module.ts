@@ -55,7 +55,8 @@ const routes: Routes = [
     }),
     ProjectModule.withOptions({
       apiProjectUrl: environment.apiProjectUrl,
-      apiAllProjectsUrl: environment.apiAllProjectsUrl
+      apiAllProjectsUrl: environment.apiAllProjectsUrl,
+      apiGenerateProjectKeyUrl: environment.apiGenerateProjectKeyUrl
     }),
     NewProjectModule
   ],
