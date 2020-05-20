@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EditMode } from './services/edit-mode.service';
+import { EditModeService } from './services/edit-mode.service';
 
 @NgModule({
   imports: [CommonModule],
-  providers: [EditMode]
+  providers: [EditModeService]
 })
 export class EditModeModule {}

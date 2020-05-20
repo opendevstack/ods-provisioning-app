@@ -14,7 +14,7 @@ export class StorageService {
     @Inject(STORAGE_PREFIX) private storagePrefix: string,
     private browserService: BrowserService
   ) {
-    this.storage = this.browserService.getSessionStorage();
+    this.storage = this.browserService.getLocalStorage();
     this.restoreKeys();
     this.cookieName = '_' + this.storagePrefix + 'storage';
   }

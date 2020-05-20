@@ -36,3 +36,7 @@ export interface ProjectLink {
   iconName: string;
   iconLabel: string;
 }
+
+export interface ProjectStorage {
+  key: string;
+}

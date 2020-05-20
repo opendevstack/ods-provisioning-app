@@ -1,11 +1,11 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
-import { EditMode } from './edit-mode.service';
+import { EditModeService } from './edit-mode.service';
 
 describe('EditModeService', () => {
-  let spectator: SpectatorService<EditMode>;
+  let spectator: SpectatorService<EditModeService>;
 
   const createService = createServiceFactory({
-    service: EditMode
+    service: EditModeService
   });
 
   let onGetEditModeFlagSpy: any;

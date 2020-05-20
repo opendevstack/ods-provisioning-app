@@ -1,12 +1,17 @@
 import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
-import { EditMode } from './modules/edit-mode/services/edit-mode.service';
+import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
 import { ProjectService } from './modules/project-page/services/project.service';
-import { catchError } from 'rxjs/operators';
+import { catchError, filter } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-import { ProjectData } from './modules/project-page/domain/project';
 import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
+import {
+  ProjectData,
+  ProjectStorage
+} from './modules/project-page/domain/project';
+import { StorageService } from './modules/storage/services/storage.service';
+import { NavigationStart, Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -23,8 +28,10 @@ export class AppComponent implements OnInit {
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
-    public editMode: EditMode,
-    private projectService: ProjectService
+    public editMode: EditModeService,
+    private projectService: ProjectService,
+    private storageService: StorageService,
+    private router: Router
   ) {
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
@@ -39,24 +46,8 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.checkRedirectToProjectDetail();
     this.loadAllProjects();
-  }
-
-  loadAllProjects() {
-    this.projectService
-      .getAllProjects()
-      .pipe(
-        catchError(() => {
-          this.isError = true;
-          this.isLoading = false;
-          return EMPTY;
-        })
-      )
-      .subscribe((response: ProjectData[]) => {
-        this.projects = response;
-        this.isLoading = false;
-        this.isError = false;
-      });
   }
 
   getEditModeStatus() {
@@ -71,5 +62,42 @@ export class AppComponent implements OnInit {
         this.isNewProjectFormActive = false;
       }
     });
+  }
+
+  private checkRedirectToProjectDetail() {
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationStart && event.url === '/')
+      )
+      .subscribe(() => {
+        const projectKey = this.getProjectKeyFormStorage();
+        if (projectKey) {
+          this.router.navigateByUrl(`/project/${projectKey}`);
+        }
+      });
+  }
+
+  private getProjectKeyFormStorage(): string | undefined {
+    const projectKeyFromStorage = this.storageService.getItem(
+      'project'
+    ) as ProjectStorage;
+    return projectKeyFromStorage?.key;
+  }
+
+  private loadAllProjects() {
+    this.projectService
+      .getAllProjects()
+      .pipe(
+        catchError(() => {
+          this.isError = true;
+          this.isLoading = false;
+          return EMPTY;
+        })
+      )
+      .subscribe((response: ProjectData[]) => {
+        this.projects = response;
+        this.isLoading = false;
+        this.isError = false;
+      });
   }
 }
