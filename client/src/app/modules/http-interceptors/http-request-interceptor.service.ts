@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
+  HttpHeaders,
   HttpInterceptor,
   HttpRequest
 } from '@angular/common/http';
@@ -29,9 +30,10 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     if (req.method === 'PUT') {
       httpOptions = {
         ...credentials,
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8'
-        }
+        headers: new HttpHeaders().set(
+          'Content-Type',
+          'application/json; charset=UTF-8'
+        )
       };
     } else {
       httpOptions = credentials;
