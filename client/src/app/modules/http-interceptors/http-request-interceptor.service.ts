@@ -15,13 +15,29 @@ export enum HttpErrorTypes {
 
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
+  constructor() {}
+
   intercept(
     req: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    req = req.clone({
+    const credentials = {
       withCredentials: true
-    });
+    };
+
+    let httpOptions;
+    if (req.method === 'PUT') {
+      httpOptions = {
+        ...credentials,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8'
+        }
+      };
+    } else {
+      httpOptions = credentials;
+    }
+
+    req = req.clone(httpOptions);
 
     return next.handle(req);
   }

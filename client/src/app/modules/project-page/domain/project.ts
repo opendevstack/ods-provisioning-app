@@ -31,6 +31,16 @@ export interface ProjectData {
   physicalLocation: string;
 }
 
+export interface UpdateProjectRequest {
+  projectKey: string;
+  quickstarters: UpdateProjectQuickstartersData[];
+}
+
+export interface UpdateProjectQuickstartersData {
+  component_type: string;
+  component_id: string;
+}
+
 export interface ProjectLink {
   url: string;
   iconName: string;

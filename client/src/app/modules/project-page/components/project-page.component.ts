@@ -8,7 +8,13 @@ import {
   Output
 } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { ProjectData, ProjectLink, ProjectStorage } from '../domain/project';
+import {
+  UpdateProjectQuickstartersData,
+  UpdateProjectRequest,
+  ProjectData,
+  ProjectLink,
+  ProjectStorage
+} from '../domain/project';
 import { ProjectService } from '../services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -16,11 +22,11 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
 import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
-import { FormBuilder } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
-import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 import { StorageService } from '../../storage/services/storage.service';
+import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 
 type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
 
@@ -47,6 +53,17 @@ export class ProjectPageComponent extends FormBaseComponent
 
   @Output() onGetEditModeFlag = new EventEmitter<boolean>();
 
+  private static mapFormValuesToBackendModel(
+    formArray: AbstractControl[]
+  ): UpdateProjectQuickstartersData[] {
+    return formArray.map((component: FormArray) => {
+      return {
+        component_id: component.value.componentName,
+        component_type: component.value.quickstarterType
+      };
+    });
+  }
+
   constructor(
     private route: ActivatedRoute,
     private formBuilder: FormBuilder,
@@ -62,19 +79,50 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   ngOnInit() {
+    let projectKey: string;
+    const projectKeyFromStorage = this.getProjectKeyFromStorage();
     this.route.params.subscribe(param => {
       if (!param.key) {
-        this.switchToErrorDisplay('NO_PROJECT_KEY');
+        if (!projectKeyFromStorage) {
+          this.switchToErrorDisplay('NO_PROJECT_KEY');
+        }
+        projectKey = projectKeyFromStorage;
       } else {
-        this.isLoading = true;
-        this.cdr.detectChanges();
-        this.initializeDataRetrieval(param.key);
-        this.initializeFormGroup();
+        projectKey = param.key;
       }
+      this.isLoading = true;
+      this.cdr.detectChanges();
+      this.initializeDataRetrieval(projectKey);
+      this.initializeFormGroup();
     });
   }
 
-  getProjectKeyFromStorage(): string | null {
+  openDialog(text: string, reload?: boolean) {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.data = text;
+    const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
+    if (reload) {
+      dialogRef.afterClosed().subscribe(() => window.location.reload());
+    }
+  }
+
+  canDisplayContent(): boolean {
+    return !this.isLoading && !this.isProjectError;
+  }
+
+  intendFormSubmit(): void {
+    this.submitButtonClicks++;
+    if (this.form.valid) {
+      this.saveProject();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next(true);
+    this.destroy$.unsubscribe();
+  }
+
+  private getProjectKeyFromStorage(): string | null {
     const projectKeyFromStorage = this.storageService.getItem(
       'project'
     ) as ProjectStorage;
@@ -84,7 +132,7 @@ export class ProjectPageComponent extends FormBaseComponent
     return projectKeyFromStorage.key;
   }
 
-  initializeDataRetrieval(projectKey: string) {
+  private initializeDataRetrieval(projectKey: string) {
     forkJoin([
       this.getProjectByKey(projectKey),
       this.getAllQuickstarters()
@@ -107,29 +155,23 @@ export class ProjectPageComponent extends FormBaseComponent
     });
   }
 
-  openDialog(text: string) {
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.data = text;
-    this.dialog.open(NotificationComponent, dialogConfig);
-  }
-
-  canDisplayContent(): boolean {
-    return !this.isLoading && !this.isProjectError;
-  }
-
-  intendFormSubmit(): void {
-    this.submitButtonClicks++;
-    if (this.form.valid) {
-      this.saveProject();
-      // initialize loading
-      // Call ProjectService to send form data
-      // show success or error
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next(true);
-    this.destroy$.unsubscribe();
+  private saveProject() {
+    const requestData: UpdateProjectRequest = this.createUpdateProjectRequestData();
+    this.isLoading = true;
+    return this.projectService.updateProject(requestData).subscribe(
+      project => {
+        this.openDialog(
+          `${project.projectKey} successfully updated, reloading ...`,
+          true
+        );
+      },
+      () => {
+        this.openDialog(`Project could not be updated, please try again soon`);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return EMPTY;
+      }
+    );
   }
 
   private initializeFormGroup(): void {
@@ -182,8 +224,26 @@ export class ProjectPageComponent extends FormBaseComponent
     this.cdr.detectChanges();
   }
 
-  saveProject() {
-    // this.isLoading = true;
-    console.log(this.project);
+  private createUpdateProjectRequestData(): UpdateProjectRequest {
+    const existingComponentsControls = (this.existingComponentsForm.get(
+      'newComponent'
+    ) as FormArray).controls.filter(
+      control => control.get('componentName').value !== ''
+    );
+    const newComponentsControls = (this.newComponentsForm.get(
+      'newComponent'
+    ) as FormArray).controls;
+
+    const allComponentsData = [
+      ...ProjectPageComponent.mapFormValuesToBackendModel(
+        existingComponentsControls
+      ),
+      ...ProjectPageComponent.mapFormValuesToBackendModel(newComponentsControls)
+    ];
+
+    return {
+      projectKey: this.project.projectKey,
+      quickstarters: allComponentsData
+    };
   }
 }

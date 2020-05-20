@@ -1,9 +1,13 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
-import { ProjectData, ProjectLink } from '../domain/project';
+import {
+  UpdateProjectRequest,
+  ProjectData,
+  ProjectLink
+} from '../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 
@@ -56,6 +60,12 @@ export class ProjectService {
     );
     return this.httpClient
       .get<ProjectData>(projectUrl)
+      .pipe(catchError(ProjectService.handleError));
+  }
+
+  updateProject(project: UpdateProjectRequest): Observable<ProjectData> {
+    return this.httpClient
+      .put<UpdateProjectRequest>(this.allProjectsUrl, project)
       .pipe(catchError(ProjectService.handleError));
   }
 
