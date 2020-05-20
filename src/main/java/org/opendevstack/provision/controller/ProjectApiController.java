@@ -671,9 +671,9 @@ public class ProjectApiController {
       throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<ProjectTemplateType> list = ProjectTemplateType.createList(projectTemplateKeys);
-    ObjectNode node = JsonNodeFactory.instance.objectNode(); // initializing
-    node.put(PROJECT_TEMPLATE_KEYS, mapper.writeValueAsString(list)); // building
-    return node.toString();
+    Map<String,List<ProjectTemplateType>> map = new HashMap();
+    map.put(PROJECT_TEMPLATE_KEYS, list);
+    return mapper.writeValueAsString(map);
   }
 
   /**
