@@ -8,7 +8,7 @@ import {
   ProjectQuickstarterComponent,
   ProjectQuickstarterComponentsData,
   QuickstarterData
-} from '../domain/quickstarter';
+} from '../../../domain/quickstarter';
 
 @Injectable({
   providedIn: 'root'

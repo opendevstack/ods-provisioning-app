@@ -1,6 +1,5 @@
-import { ModuleWithProviders, NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
+import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,9 +12,9 @@ import { RouterModule } from '@angular/router';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../app-form/app-form.module';
-import { NewProjectComponent } from '../new-project/components/new-project.component';
-import { API_PROJECT_URL } from '../../tokens';
+import { NewProjectComponent } from './components/new-project.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ProjectModule } from '../project/project.module';
 
 @NgModule({
   declarations: [NewProjectComponent],
@@ -27,7 +26,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
         component: NewProjectComponent
       }
     ]),
-    HttpClientModule,
+    ProjectModule,
     LoadingIndicatorModule,
     MatIconModule,
     MatFormFieldModule,
@@ -43,16 +42,4 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   ],
   schemas: [NO_ERRORS_SCHEMA]
 })
-export class NewProjectModule {
-  static withOptions(options: { apiProjectUrl: string }): ModuleWithProviders {
-    return {
-      ngModule: NewProjectModule,
-      providers: [
-        {
-          provide: API_PROJECT_URL,
-          useValue: options.apiProjectUrl
-        }
-      ]
-    };
-  }
-}
+export class NewProjectModule {}

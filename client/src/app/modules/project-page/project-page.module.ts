@@ -1,17 +1,11 @@
 import { ModuleWithProviders, NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProjectPageComponent } from './components/project-page.component';
-import { HttpClientModule } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ProjectService } from './services/project.service';
 import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
-import {
-  API_ALL_PROJECTS_URL,
-  API_ALL_QUICKSTARTERS_URL,
-  API_PROJECT_URL
-} from '../../tokens';
+import { API_ALL_QUICKSTARTERS_URL } from '../../tokens';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,8 +18,8 @@ import { AppFormModule } from '../app-form/app-form.module';
 import { ProjectHeaderComponent } from './components/header.component';
 import { QuickstarterListComponent } from './components/quickstarter-list.component';
 import { QuickstarterAddComponent } from './components/quickstarter-add.component';
-import { QuickstarterService } from './services/quickstarter.service';
 import { httpInterceptorProviders } from '../http-interceptors';
+import { ProjectModule } from '../project/project.module';
 
 @NgModule({
   declarations: [
@@ -42,7 +36,7 @@ import { httpInterceptorProviders } from '../http-interceptors';
         component: ProjectPageComponent
       }
     ]),
-    HttpClientModule,
+    ProjectModule,
     LoadingIndicatorModule,
     MatIconModule,
     MatFormFieldModule,
@@ -56,26 +50,16 @@ import { httpInterceptorProviders } from '../http-interceptors';
     ReactiveFormsModule,
     AppFormModule
   ],
-  providers: [ProjectService, QuickstarterService, httpInterceptorProviders],
+  providers: [httpInterceptorProviders],
   schemas: [NO_ERRORS_SCHEMA]
 })
 export class ProjectPageModule {
   static withOptions(options: {
-    apiProjectUrl: string;
-    apiAllProjectsUrl: string;
     apiAllQuickstartersUrl: string;
   }): ModuleWithProviders {
     return {
       ngModule: ProjectPageModule,
       providers: [
-        {
-          provide: API_PROJECT_URL,
-          useValue: options.apiProjectUrl
-        },
-        {
-          provide: API_ALL_PROJECTS_URL,
-          useValue: options.apiAllProjectsUrl
-        },
         {
           provide: API_ALL_QUICKSTARTERS_URL,
           useValue: options.apiAllQuickstartersUrl
