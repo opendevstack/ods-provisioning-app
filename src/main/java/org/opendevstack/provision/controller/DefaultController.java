@@ -94,6 +94,11 @@ public class DefaultController {
     return "home";
   }
 
+  @RequestMapping("/nfe/{path:[^\\.]*}")
+  String nfe(Model model) {
+    return newfrontend(model);
+  }
+
   @RequestMapping("/newfrontend")
   String newfrontend(Model model) {
     if (!isAuthenticated()) {
