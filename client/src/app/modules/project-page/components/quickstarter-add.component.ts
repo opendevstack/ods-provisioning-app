@@ -6,7 +6,10 @@ import {
   OnDestroy,
   OnInit
 } from '@angular/core';
-import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
+import {
+  ProjectQuickstarter,
+  QuickstarterData
+} from '../../../domain/quickstarter';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';

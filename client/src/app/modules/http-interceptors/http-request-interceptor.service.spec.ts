@@ -1,6 +1,6 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpRequestInterceptor } from './http-request-interceptor.service';
-import { ProjectService } from '../project-page/services/project.service';
+import { ProjectService } from '../project/services/project.service';
 import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../tokens';
 import { BrowserService } from '../browser/services/browser.service';
 import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';

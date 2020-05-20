@@ -9,7 +9,7 @@ import {
   ProjectQuickstarter,
   ProjectQuickstarterComponent,
   QuickstarterData
-} from '../../project-page/domain/quickstarter';
+} from '../../../domain/quickstarter';
 
 export class EditProjectValidators {
   public static nameExistsInAllQuickstartersValidator(

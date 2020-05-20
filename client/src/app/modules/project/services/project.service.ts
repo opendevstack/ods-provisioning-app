@@ -7,7 +7,7 @@ import {
   UpdateProjectRequest,
   ProjectData,
   ProjectLink
-} from '../domain/project';
+} from '../../../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 

@@ -14,14 +14,17 @@ import {
   ProjectData,
   ProjectLink,
   ProjectStorage
-} from '../domain/project';
-import { ProjectService } from '../services/project.service';
+} from '../../../domain/project';
+import { ProjectService } from '../../project/services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
-import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
+import {
+  ProjectQuickstarter,
+  QuickstarterData
+} from '../../../domain/quickstarter';
 import { AbstractControl, FormArray, FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';

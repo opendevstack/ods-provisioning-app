@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { ProjectData, ProjectLink } from '../domain/project';
+import { ProjectData, ProjectLink } from '../../../domain/project';
 
 @Component({
   selector: 'project-header',

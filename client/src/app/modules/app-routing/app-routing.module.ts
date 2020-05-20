@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ProjectPageModule } from '../project-page/project-page.module';
 import { StorageModule } from '../storage/storage.module';
 import { NewProjectModule } from '../new-project/new-project.module';
+import { ProjectModule } from '../project/project.module';
 
 const routes: Routes = [
   {
@@ -50,13 +51,13 @@ const routes: Routes = [
       storagePrefix: 'provapp_'
     }),
     ProjectPageModule.withOptions({
-      apiProjectUrl: environment.apiProjectUrl,
-      apiAllProjectsUrl: environment.apiAllProjectsUrl,
       apiAllQuickstartersUrl: environment.apiAllQuickstartersUrl
     }),
-    NewProjectModule.withOptions({
-      apiProjectUrl: environment.apiProjectUrl
-    })
+    ProjectModule.withOptions({
+      apiProjectUrl: environment.apiProjectUrl,
+      apiAllProjectsUrl: environment.apiAllProjectsUrl
+    }),
+    NewProjectModule
   ],
   exports: [RouterModule],
   providers: []

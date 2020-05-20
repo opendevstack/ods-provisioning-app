@@ -2,16 +2,13 @@ import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
-import { ProjectService } from './modules/project-page/services/project.service';
 import { catchError, filter } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
-import {
-  ProjectData,
-  ProjectStorage
-} from './modules/project-page/domain/project';
 import { StorageService } from './modules/storage/services/storage.service';
 import { NavigationStart, Router } from '@angular/router';
+import { ProjectService } from './modules/project/services/project.service';
+import { ProjectData, ProjectStorage } from './domain/project';
 
 @Component({
   selector: 'app-root',

@@ -8,7 +8,10 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import { ProjectQuickstarter, QuickstarterData } from '../domain/quickstarter';
+import {
+  ProjectQuickstarter,
+  QuickstarterData
+} from '../../../domain/quickstarter';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';

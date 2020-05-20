@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { ProjectData } from '../../project-page/domain/project';
+import { ProjectData } from '../../../domain/project';
 import { FormControl } from '@angular/forms';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
