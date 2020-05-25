@@ -17,7 +17,7 @@ import {
 } from '../../../domain/project';
 import { ProjectService } from '../../project/services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
@@ -75,8 +75,7 @@ export class ProjectPageComponent extends FormBaseComponent
     public editMode: EditModeService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog,
-    private storageService: StorageService,
-    private router: Router
+    private storageService: StorageService
   ) {
     super();
     this.editMode.context = 'edit';
@@ -106,7 +105,11 @@ export class ProjectPageComponent extends FormBaseComponent
     dialogConfig.data = text;
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
     if (reload) {
-      dialogRef.afterClosed().subscribe(() => this.router.navigateByUrl('/'));
+      dialogRef
+        .afterClosed()
+        .subscribe(
+          () => (window.location.href = document.querySelector('base').href)
+        );
     }
   }
 
