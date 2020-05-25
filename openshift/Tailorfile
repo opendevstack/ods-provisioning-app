@@ -1,6 +1,7 @@
 namespace prov-dev
 selector app=prov-app
 param-file ods-provisioning-app.env
+preserve bc:quickstarters.properties:/data
 ignore-path bc:/spec/output/to/name
 ignore-path bc:/spec/output/imageLabels
 ignore-unknown-parameters true
