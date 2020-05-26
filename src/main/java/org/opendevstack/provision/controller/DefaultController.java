@@ -46,7 +46,8 @@ public class DefaultController {
 
   private ISCMAdapter bitbucketAdapter;
 
-  @Autowired private ICollaborationAdapter confluenceAdapter;
+  @Autowired(required = false)
+  private ICollaborationAdapter confluenceAdapter;
 
   private static final String LOGIN_REDIRECT = "redirect:/login";
 
@@ -67,6 +68,9 @@ public class DefaultController {
 
   @Value("${provision.auth.provider}")
   private String authProvider;
+
+  @Value("${adapters.confluence.enabled:true}")
+  private boolean confluenceAdapterEnable;
 
   @RequestMapping("/")
   public String rootRedirect() {
@@ -135,7 +139,12 @@ public class DefaultController {
     Map<String, String> endpoints = new HashMap<>();
     endpoints.put("JIRA", jiraAdapter.getAdapterApiUri());
     endpoints.put("GIT", bitbucketAdapter.getAdapterApiUri());
-    endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
+
+    if (confluenceAdapterEnable) {
+      endpoints.put("CONFLUENCE", confluenceAdapter.getAdapterApiUri());
+    } else {
+      endpoints.put("CONFLUENCE", "no project created (confluence is disabled by configuration!)");
+    }
 
     model.addAttribute("endpointMap", endpoints);
 
