@@ -79,7 +79,10 @@ public class ProjectApiController {
   private static final String EMPTY_PROJECT_DESCRIPTION = "";
 
   @Autowired IBugtrackerAdapter jiraAdapter;
-  @Autowired ICollaborationAdapter confluenceAdapter;
+
+  @Autowired(required = false)
+  private ICollaborationAdapter confluenceAdapter;
+
   @Autowired private ISCMAdapter bitbucketAdapter;
   @Autowired private IJobExecutionAdapter jenkinsPipelineAdapter;
   @Autowired private MailAdapter mailAdapter;
@@ -105,6 +108,9 @@ public class ProjectApiController {
 
   @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
   private boolean checkPreconditionsEnabled;
+
+  @Value("${adapters.confluence.enabled:true}")
+  private boolean confluenceAdapterEnable;
 
   public ProjectApiController() {
     logger.info(
@@ -215,12 +221,14 @@ public class ProjectApiController {
             newProject.bugtrackerUrl, jiraAdapter.getClass() + " did not return bugTracker url");
 
         // create confluence space
-        newProject.collaborationSpaceUrl =
-            confluenceAdapter.createCollaborationSpaceForODSProject(newProject);
+        if (isConfluenceAdapterEnable()) {
+          newProject.collaborationSpaceUrl =
+              confluenceAdapter.createCollaborationSpaceForODSProject(newProject);
 
-        Preconditions.checkNotNull(
-            newProject.collaborationSpaceUrl,
-            confluenceAdapter.getClass() + " did not return collabSpace url");
+          Preconditions.checkNotNull(
+              newProject.collaborationSpaceUrl,
+              confluenceAdapter.getClass() + " did not return collabSpace url");
+        }
 
         logger.debug(
             "Updated project with collaboration information:\n {}",
@@ -305,7 +313,12 @@ public class ProjectApiController {
 
     if (newProject.bugtrackerSpace) {
 
-      IServiceAdapter[] adapters = {confluenceAdapter, jiraAdapter};
+      List<IServiceAdapter> adapters = new ArrayList<>();
+      adapters.add(jiraAdapter);
+
+      if (isConfluenceAdapterEnable()) {
+        adapters.add(confluenceAdapter);
+      }
 
       for (IServiceAdapter adapter : adapters) {
         results.addAll(adapter.checkCreateProjectPreconditions(newProject));
@@ -683,11 +696,13 @@ public class ProjectApiController {
             + "#"
             + templates.get(PROJECT_TEMPLATE.TEMPLATE_KEY));
 
-    templatesForKey.put(
-        "collabSpaceTemplate",
-        confluenceAdapter
-            .retrieveInternalProjectTypeAndTemplateFromProjectType(project)
-            .get(PROJECT_TEMPLATE.TEMPLATE_KEY));
+    if (isConfluenceAdapterEnable()) {
+      templatesForKey.put(
+          "collabSpaceTemplate",
+          confluenceAdapter
+              .retrieveInternalProjectTypeAndTemplateFromProjectType(project)
+              .get(PROJECT_TEMPLATE.TEMPLATE_KEY));
+    }
 
     return ResponseEntity.ok(templatesForKey);
   }
@@ -847,7 +862,9 @@ public class ProjectApiController {
 
     notCleanedUpComponents.putAll(bitbucketAdapter.cleanup(stage, project));
 
-    notCleanedUpComponents.putAll(confluenceAdapter.cleanup(stage, project));
+    if (isConfluenceAdapterEnable()) {
+      notCleanedUpComponents.putAll(confluenceAdapter.cleanup(stage, project));
+    }
 
     notCleanedUpComponents.putAll(jiraAdapter.cleanup(stage, project));
 
@@ -874,5 +891,21 @@ public class ProjectApiController {
 
   public IStorage getDirectStorage() {
     return directStorage;
+  }
+
+  public boolean isConfluenceAdapterEnable() {
+    return confluenceAdapterEnable;
+  }
+
+  public void setConfluenceAdapterEnable(boolean confluenceAdapterEnable) {
+    this.confluenceAdapterEnable = confluenceAdapterEnable;
+  }
+
+  public void setConfluenceAdapter(ICollaborationAdapter confluenceAdapter) {
+    this.confluenceAdapter = confluenceAdapter;
+  }
+
+  public ICollaborationAdapter getConfluenceAdapter() {
+    return confluenceAdapter;
   }
 }
