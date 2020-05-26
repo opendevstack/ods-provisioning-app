@@ -51,6 +51,20 @@ export interface ProjectStorage {
   key: string;
 }
 
+export interface NewProjectRequest {
+  projectName: string;
+  projectKey: string;
+  description: string;
+  projectType: string;
+  cdUser: string;
+  projectAdminUser: string;
+  projectAdminGroup: string;
+  projectUserGroup: string;
+  projectReadonlyGroup: string;
+  bugtrackerSpace: boolean;
+  platformRuntime: boolean;
+}
+
 export interface ProjectKeyResponse {
   projectKey: string;
 }
@@ -58,5 +72,4 @@ export interface ProjectKeyResponse {
 export interface ProjectTemplate {
   name: string;
   key: string;
-  type: string;
 }

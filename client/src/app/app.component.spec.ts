@@ -7,7 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { SidebarModule } from './modules/sidebar/sidebar.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from './tokens';
+import { API_PROJECT_URL, API_PROJECT_DETAIL_URL } from './tokens';
 
 describe('AppComponent', () => {
   const createComponent = createComponentFactory({
@@ -22,8 +22,8 @@ describe('AppComponent', () => {
     ],
     providers: [
       MatDialog,
-      { provide: API_PROJECT_URL, useValue: '/api/mock' },
-      { provide: API_ALL_PROJECTS_URL, useValue: '/api/mock' }
+      { provide: API_PROJECT_DETAIL_URL, useValue: '/api/mock' },
+      { provide: API_PROJECT_URL, useValue: '/api/mock' }
     ]
   });
   let component: any;

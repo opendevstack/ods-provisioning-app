@@ -27,16 +27,29 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     };
 
     let httpOptions;
-    if (req.method === 'PUT') {
-      httpOptions = {
-        ...credentials,
-        headers: new HttpHeaders().set(
-          'Content-Type',
-          'application/json; charset=UTF-8'
-        )
-      };
-    } else {
-      httpOptions = credentials;
+
+    switch (req.method) {
+      case 'PUT':
+      case 'POST':
+        httpOptions = {
+          ...credentials,
+          headers: new HttpHeaders().set(
+            'Content-Type',
+            'application/json; charset=UTF-8'
+          )
+        };
+        break;
+      case 'GET':
+        httpOptions = {
+          ...credentials,
+          headers: new HttpHeaders().set(
+            'Accept',
+            'application/json; charset=UTF-8'
+          )
+        };
+        break;
+      default:
+        httpOptions = credentials;
     }
 
     req = req.clone(httpOptions);

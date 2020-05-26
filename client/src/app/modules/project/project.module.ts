@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ProjectService } from './services/project.service';
 import { HttpClientModule } from '@angular/common/http';
 import {
-  API_ALL_PROJECTS_URL,
+  API_PROJECT_URL,
   API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_URL
+  API_PROJECT_DETAIL_URL,
+  API_PROJECT_TEMPLATES_URL
 } from '../../tokens';
 
 @NgModule({
@@ -15,20 +16,25 @@ import {
 })
 export class ProjectModule {
   static withOptions(options: {
+    apiProjectDetailUrl: string;
     apiProjectUrl: string;
-    apiAllProjectsUrl: string;
+    apiProjectTemplatesUrl: string;
     apiGenerateProjectKeyUrl: string;
   }): ModuleWithProviders {
     return {
       ngModule: ProjectModule,
       providers: [
         {
+          provide: API_PROJECT_DETAIL_URL,
+          useValue: options.apiProjectDetailUrl
+        },
+        {
           provide: API_PROJECT_URL,
           useValue: options.apiProjectUrl
         },
         {
-          provide: API_ALL_PROJECTS_URL,
-          useValue: options.apiAllProjectsUrl
+          provide: API_PROJECT_TEMPLATES_URL,
+          useValue: options.apiProjectTemplatesUrl
         },
         {
           provide: API_GENERATE_PROJECT_KEY_URL,

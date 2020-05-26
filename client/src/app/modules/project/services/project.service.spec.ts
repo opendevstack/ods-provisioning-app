@@ -1,5 +1,5 @@
 import { ProjectService } from './project.service';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
+import { API_PROJECT_URL, API_PROJECT_DETAIL_URL } from '../../../tokens';
 import { createHttpFactory, SpectatorHttp } from '@ngneat/spectator/jest';
 import { HTTPMethod } from '@ngneat/spectator';
 import { ProjectData } from '../../../domain/project';
@@ -10,8 +10,8 @@ describe('ProjectService', () => {
   >({
     service: ProjectService,
     providers: [
-      { provide: API_PROJECT_URL, useValue: '/api/project/FOO' },
-      { provide: API_ALL_PROJECTS_URL, useValue: '/api/project' }
+      { provide: API_PROJECT_DETAIL_URL, useValue: '/api/project/FOO' },
+      { provide: API_PROJECT_URL, useValue: '/api/project' }
     ]
   });
 
