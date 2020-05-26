@@ -2,7 +2,6 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ProjectHeaderComponent } from './header.component';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { ProjectPageComponent } from './project-page.component';
 import { CommonModule } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -17,8 +16,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NotificationModule } from '../../notification/notification.module';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
-import { BrowserService } from '../../browser/services/browser.service';
 
 describe('ProjectHeaderComponent', () => {
   const createComponent = createComponentFactory({

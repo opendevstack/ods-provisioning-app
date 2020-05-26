@@ -1,6 +1,10 @@
 @import '../../../ui/scss/variables';
 @import '../../../ui/scss/components/page';
 
+.page {
+  height: 100%;
+}
+
 .page__content,
 .page__footer {
   padding: 30px;

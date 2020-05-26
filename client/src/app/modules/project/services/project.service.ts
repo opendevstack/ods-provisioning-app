@@ -1,18 +1,20 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import {
-  API_ALL_PROJECTS_URL,
+  API_PROJECT_URL,
   API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_URL
+  API_PROJECT_DETAIL_URL,
+  API_PROJECT_TEMPLATES_URL
 } from '../../../tokens';
 import {
   UpdateProjectRequest,
   ProjectData,
   ProjectLink,
   ProjectTemplate,
-  ProjectKeyResponse
+  ProjectKeyResponse,
+  NewProjectRequest
 } from '../../../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
@@ -46,13 +48,14 @@ export class ProjectService {
 
   constructor(
     private httpClient: HttpClient,
+    @Inject(API_PROJECT_DETAIL_URL) private projectDetailUrl: string,
     @Inject(API_PROJECT_URL) private projectUrl: string,
-    @Inject(API_ALL_PROJECTS_URL) private allProjectsUrl: string,
+    @Inject(API_PROJECT_TEMPLATES_URL) private projectTemplatesUrl: string,
     @Inject(API_GENERATE_PROJECT_KEY_URL) private generateProjectKeyUrl: string
   ) {}
 
   getAllProjects(): Observable<ProjectData[]> {
-    return this.httpClient.get(this.allProjectsUrl).pipe(
+    return this.httpClient.get(this.projectUrl).pipe(
       map(json => (json ? Object.values(json) : []) as ProjectData[]),
       map(projects => ProjectService.sortProjectsByName(projects)),
       // tap(projects => console.log('Projects: ', projects)),
@@ -62,7 +65,7 @@ export class ProjectService {
 
   getProjectByKey(projectKey: string): Observable<ProjectData> {
     const projectUrl = ProjectService.replaceUrlPlaceholder(
-      this.projectUrl,
+      this.projectDetailUrl,
       projectKey
     );
     return this.httpClient
@@ -72,7 +75,13 @@ export class ProjectService {
 
   updateProject(project: UpdateProjectRequest): Observable<ProjectData> {
     return this.httpClient
-      .put<UpdateProjectRequest>(this.allProjectsUrl, project)
+      .put<UpdateProjectRequest>(this.projectUrl, project)
+      .pipe(catchError(ProjectService.handleError));
+  }
+
+  createProject(project: NewProjectRequest): Observable<ProjectData> {
+    return this.httpClient
+      .post<NewProjectRequest>(this.projectUrl, project)
       .pipe(catchError(ProjectService.handleError));
   }
 
@@ -91,20 +100,12 @@ export class ProjectService {
   }
 
   getProjectTemplates(): Observable<ProjectTemplate[]> {
-    // TODO get real data
-    //  https://jira.bix-digital.com/browse/PANFE-40
-    return of([
-      {
-        name: 'default',
-        key: 'default',
-        type: 'software'
-      },
-      {
-        name: 'kanban',
-        key: 'kanban',
-        type: 'software'
-      }
-    ]);
+    return this.httpClient
+      .get<ProjectTemplate[]>(this.projectTemplatesUrl)
+      .pipe(
+        map(result => result['project-template-keys']),
+        catchError(ProjectService.handleError)
+      );
   }
 
   generateProjectKey(projectName: string): Observable<ProjectKeyResponse> {

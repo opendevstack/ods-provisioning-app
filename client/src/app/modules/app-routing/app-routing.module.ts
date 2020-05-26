@@ -54,8 +54,9 @@ const routes: Routes = [
       apiAllQuickstartersUrl: environment.apiAllQuickstartersUrl
     }),
     ProjectModule.withOptions({
+      apiProjectDetailUrl: environment.apiProjectDetailUrl,
       apiProjectUrl: environment.apiProjectUrl,
-      apiAllProjectsUrl: environment.apiAllProjectsUrl,
+      apiProjectTemplatesUrl: environment.apiProjectTemplatesUrl,
       apiGenerateProjectKeyUrl: environment.apiGenerateProjectKeyUrl
     }),
     NewProjectModule
