@@ -17,7 +17,10 @@ package org.opendevstack.provision.controller;
 import static java.lang.String.format;
 import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.*;
@@ -43,6 +46,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
@@ -69,6 +73,7 @@ public class ProjectApiController {
 
   public static final String CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS =
       "provision.add-project.check-preconditions";
+  public static final String PROJECT_TEMPLATE_KEYS = "project-template-keys";
 
   @Autowired IBugtrackerAdapter jiraAdapter;
   @Autowired ICollaborationAdapter confluenceAdapter;
@@ -95,6 +100,8 @@ public class ProjectApiController {
 
   @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
   private boolean checkPreconditionsEnabled;
+
+  private String projectTemplateKeysAsJson;
 
   public ProjectApiController() {
     logger.info(
@@ -636,8 +643,37 @@ public class ProjectApiController {
    * @return a list of available template keys
    */
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
-  public ResponseEntity<List<String>> getProjectTemplateKeys() {
-    return ResponseEntity.ok(projectTemplateKeyNames);
+  public ResponseEntity<String> getProjectTemplateKeys(
+      @RequestHeader(value = "Accept", required = false) String acceptType) {
+    try {
+      if (null == acceptType
+          || MediaType.TEXT_PLAIN.isCompatibleWith(MediaType.parseMediaType(acceptType))) {
+        return ResponseEntity.ok(
+            ProjectTemplateType.createProjectTemplateKeysAsString(projectTemplateKeyNames));
+      } else {
+        String json = getProjectTemplateKeysAsJson();
+        return ResponseEntity.ok(json);
+      }
+    } catch (JsonProcessingException e) {
+      logger.error(e.getMessage(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  private String getProjectTemplateKeysAsJson() throws JsonProcessingException {
+    if (projectTemplateKeysAsJson == null) {
+      projectTemplateKeysAsJson = createProjectTemplateKeysJson(projectTemplateKeyNames);
+    }
+    return projectTemplateKeysAsJson;
+  }
+
+  public static String createProjectTemplateKeysJson(List<String> projectTemplateKeys)
+      throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    List<ProjectTemplateType> list = ProjectTemplateType.createList(projectTemplateKeys);
+    ObjectNode node = JsonNodeFactory.instance.objectNode(); // initializing
+    node.put(PROJECT_TEMPLATE_KEYS, mapper.writeValueAsString(list)); // building
+    return node.toString();
   }
 
   /**
