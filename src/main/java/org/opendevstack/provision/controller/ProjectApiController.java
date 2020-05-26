@@ -19,8 +19,6 @@ import static org.opendevstack.provision.controller.CheckPreconditionsResponse.J
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.*;
@@ -671,7 +669,7 @@ public class ProjectApiController {
       throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<ProjectTemplateType> list = ProjectTemplateType.createList(projectTemplateKeys);
-    Map<String,List<ProjectTemplateType>> map = new HashMap();
+    Map<String, List<ProjectTemplateType>> map = new HashMap();
     map.put(PROJECT_TEMPLATE_KEYS, list);
     return mapper.writeValueAsString(map);
   }
