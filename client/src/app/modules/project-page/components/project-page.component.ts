@@ -105,11 +105,11 @@ export class ProjectPageComponent extends FormBaseComponent
     dialogConfig.data = text;
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
     if (reload) {
-      dialogRef
-        .afterClosed()
-        .subscribe(
-          () => (window.location.href = document.querySelector('base').href)
-        );
+      dialogRef.afterClosed().subscribe(() => {
+        // workaround until https://jira.bix-digital.com/browse/PANFE-43 is done
+        window.location.href =
+          document.querySelector('base').href + 'index.html';
+      });
     }
   }
 
