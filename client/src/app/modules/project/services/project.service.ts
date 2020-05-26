@@ -1,12 +1,18 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
-import { Observable, throwError } from 'rxjs';
-import { API_ALL_PROJECTS_URL, API_PROJECT_URL } from '../../../tokens';
+import { Observable, of, throwError } from 'rxjs';
+import {
+  API_ALL_PROJECTS_URL,
+  API_GENERATE_PROJECT_KEY_URL,
+  API_PROJECT_URL
+} from '../../../tokens';
 import {
   UpdateProjectRequest,
   ProjectData,
-  ProjectLink
+  ProjectLink,
+  ProjectTemplate,
+  ProjectKeyResponse
 } from '../../../domain/project';
 import { default as projectLinksConfig } from '../config/project-links.conf.json';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
@@ -41,7 +47,8 @@ export class ProjectService {
   constructor(
     private httpClient: HttpClient,
     @Inject(API_PROJECT_URL) private projectUrl: string,
-    @Inject(API_ALL_PROJECTS_URL) private allProjectsUrl: string
+    @Inject(API_ALL_PROJECTS_URL) private allProjectsUrl: string,
+    @Inject(API_GENERATE_PROJECT_KEY_URL) private generateProjectKeyUrl: string
   ) {}
 
   getAllProjects(): Observable<ProjectData[]> {
@@ -81,5 +88,30 @@ export class ProjectService {
 
   getAggregateProjectLinks(projectLinks: ProjectLink[]): string | null {
     return projectLinks?.map(link => link.url).join('\n');
+  }
+
+  getProjectTemplates(): Observable<ProjectTemplate[]> {
+    // TODO get real data
+    //  https://jira.bix-digital.com/browse/PANFE-40
+    return of([
+      {
+        name: 'default',
+        key: 'default',
+        type: 'software'
+      },
+      {
+        name: 'kanban',
+        key: 'kanban',
+        type: 'software'
+      }
+    ]);
+  }
+
+  generateProjectKey(projectName: string): Observable<ProjectKeyResponse> {
+    return this.httpClient
+      .get<ProjectKeyResponse>(this.generateProjectKeyUrl, {
+        params: { name: projectName }
+      })
+      .pipe(catchError(ProjectService.handleError));
   }
 }
