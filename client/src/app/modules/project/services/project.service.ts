@@ -95,8 +95,11 @@ export class ProjectService {
     });
   }
 
-  getAggregateProjectLinks(projectLinks: ProjectLink[]): string | null {
-    return projectLinks?.map(link => link.url).join('\n');
+  getAggregateProjectLinks(projectLinks: ProjectLink[]): string | undefined {
+    return projectLinks
+      ?.filter(link => link.url)
+      .map(link => link.url)
+      .join('\n');
   }
 
   getProjectTemplates(): Observable<ProjectTemplate[]> {
