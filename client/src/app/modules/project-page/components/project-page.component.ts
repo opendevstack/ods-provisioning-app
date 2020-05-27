@@ -232,21 +232,34 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   private createUpdateProjectRequestData(): UpdateProjectRequest {
-    const existingComponentsControls = (this.existingComponentsForm.get(
-      'newComponent'
-    ) as FormArray).controls.filter(
-      control => control.get('componentName').value !== ''
-    );
+    let allComponentsData;
+
     const newComponentsControls = (this.newComponentsForm.get(
       'newComponent'
     ) as FormArray).controls;
 
-    const allComponentsData = [
-      ...ProjectPageComponent.mapFormValuesToBackendModel(
-        existingComponentsControls
-      ),
-      ...ProjectPageComponent.mapFormValuesToBackendModel(newComponentsControls)
-    ];
+    const existingComponentsControlsTmp = this.existingComponentsForm.get(
+      'newComponent'
+    ) as FormArray;
+
+    if (existingComponentsControlsTmp) {
+      const existingComponentsControls = existingComponentsControlsTmp.controls.filter(
+        control => control.get('componentName').value !== ''
+      );
+
+      allComponentsData = [
+        ...ProjectPageComponent.mapFormValuesToBackendModel(
+          existingComponentsControls
+        ),
+        ...ProjectPageComponent.mapFormValuesToBackendModel(
+          newComponentsControls
+        )
+      ];
+    } else {
+      allComponentsData = ProjectPageComponent.mapFormValuesToBackendModel(
+        newComponentsControls
+      );
+    }
 
     return {
       projectKey: this.project.projectKey,
