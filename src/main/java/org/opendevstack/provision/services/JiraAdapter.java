@@ -327,7 +327,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     Shortcut shortcutConfluence = new Shortcut();
     shortcutConfluence.setId("" + id++);
     shortcutConfluence.setName("Confluence: " + data.projectKey);
-    shortcutConfluence.setUrl(data.bugtrackerUrl);
+    shortcutConfluence.setUrl(data.collaborationSpaceUrl);
     shortcutConfluence.setIcon("");
     shortcuts.add(shortcutConfluence);
 
