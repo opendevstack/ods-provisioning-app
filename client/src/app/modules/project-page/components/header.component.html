@@ -2,6 +2,7 @@
   <div class="col-10">
     <div class="project__name">
       <h1 class="mat-h1">{{ project.projectName }}</h1>
+      <div class="project__key">{{ project.projectKey }}</div>
     </div>
   </div>
   <div class="col-2">
@@ -23,52 +24,51 @@
     </div>
   </div>
 </div>
-<div class="row">
-  <div class="col-12">
-    <div class="project__links">
-      <ul>
-        <li
-          *ngFor="let projectLink of projectLinks"
-          class="quicklink__item"
-          [ngClass]="!projectLink.url ? 'disabled' : ''"
-          matTooltip="{{ projectLink.iconLabel }}"
-        >
-          <ng-container *ngIf="projectLink.url; else iconOnly">
-            <a href="{{ projectLink.url }}" target="_blank">
-              <mat-icon
-                svgIcon="{{ projectLink.iconName }}"
-                aria-hidden="false"
-                aria-label="projectLink.iconLabel"
-              ></mat-icon>
-            </a>
-          </ng-container>
-          <ng-template #iconOnly>
+<div class="d-flex justify-content-between align-items-center">
+  <div class="project__description" matTooltip="{{ project.description }}">
+    {{ project.description }}
+  </div>
+  <div class="project__links">
+    <ul>
+      <li
+        *ngFor="let projectLink of projectLinks"
+        class="quicklink__item"
+        [ngClass]="!projectLink.url ? 'disabled' : ''"
+        matTooltip="{{ projectLink.iconLabel }}"
+      >
+        <ng-container *ngIf="projectLink.url; else iconOnly">
+          <a href="{{ projectLink.url }}" target="_blank">
             <mat-icon
               svgIcon="{{ projectLink.iconName }}"
               aria-hidden="false"
               aria-label="projectLink.iconLabel"
             ></mat-icon>
-          </ng-template>
-        </li>
-      </ul>
-      <a
-        mat-icon-button
-        color="primary"
-        title="Copy URLs to clipboard"
-        [cdkCopyToClipboard]="this.aggregatedProjectLinks"
-        (cdkCopyToClipboardCopied)="
-          emitOpenDialog('Success, URLs copied to clipboard!')
-        "
-        *ngIf="this.aggregatedProjectLinks"
-      >
-        <mat-icon
-          svgIcon="copy"
-          aria-hidden="false"
-          aria-label="Copy URLs to clipboard"
-        ></mat-icon>
-      </a>
-    </div>
-
-    <h3 class="mat-h3">{{ project.description }}</h3>
+          </a>
+        </ng-container>
+        <ng-template #iconOnly>
+          <mat-icon
+            svgIcon="{{ projectLink.iconName }}"
+            aria-hidden="false"
+            aria-label="projectLink.iconLabel"
+          ></mat-icon>
+        </ng-template>
+      </li>
+    </ul>
+    <a
+      mat-icon-button
+      color="primary"
+      title="Copy URLs to clipboard"
+      [cdkCopyToClipboard]="this.aggregatedProjectLinks"
+      (cdkCopyToClipboardCopied)="
+        emitOpenDialog('Success, URLs copied to clipboard!')
+      "
+      *ngIf="this.aggregatedProjectLinks"
+    >
+      <mat-icon
+        svgIcon="copy"
+        aria-hidden="false"
+        aria-label="Copy URLs to clipboard"
+      ></mat-icon>
+    </a>
   </div>
 </div>

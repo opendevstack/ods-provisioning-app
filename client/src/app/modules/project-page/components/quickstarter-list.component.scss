@@ -12,6 +12,11 @@
 }
 
 .qs-id {
-  padding: 13px 0;
+  padding: 18px 0;
   font-size: 1rem;
+  transition: padding-top 0.25s ease-in-out;
+}
+
+.formfield__input {
+  margin-top: 10px;
 }
