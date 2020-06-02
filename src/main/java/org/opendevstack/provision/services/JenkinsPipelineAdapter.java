@@ -369,7 +369,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       executionsData.setPermalink(href);
       return executionsData;
     } catch (IOException ex) {
-      logger.error("Error starting job {} - details:", jobNameOrId, ex);
+      String url = null != execution.url ? execution.url : "null'";
+      logger.error("Error starting job {} for url '{}' - details:", jobNameOrId, url, ex);
       throw ex;
     }
   }
