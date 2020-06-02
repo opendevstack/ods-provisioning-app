@@ -7,10 +7,7 @@ export class NewProjectValidators {
     const name = control.get('name');
     const group = control.get('group');
 
-    if (
-      (name.value !== '' && group.value !== '') ||
-      (name.value === '' && group.value === '')
-    ) {
+    if ((!!name.value && !!group.value) || (!name.value && !group.value)) {
       return null;
     }
 

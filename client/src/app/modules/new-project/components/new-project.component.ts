@@ -126,12 +126,11 @@ export class NewProjectComponent extends FormBaseComponent
       template: [null, Validators.required],
       description: ['', Validators.required],
       optInJira: null,
-      optInODS: null,
       permissionSet: this.formBuilder.group({
         admin: this.formBuilder.group(
           {
-            name: '',
-            group: ''
+            name: null,
+            group: null
           },
           {
             validators: [
@@ -141,8 +140,8 @@ export class NewProjectComponent extends FormBaseComponent
         ),
         user: this.formBuilder.group(
           {
-            name: '',
-            group: ''
+            name: null,
+            group: null
           },
           {
             validators: [
@@ -192,7 +191,7 @@ export class NewProjectComponent extends FormBaseComponent
         .get('user')
         .get('group').value,
       bugtrackerSpace: this.form.get('optInJira').value,
-      platformRuntime: this.form.get('optInODS').value
+      platformRuntime: true
     };
   }
 
