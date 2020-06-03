@@ -90,6 +90,8 @@ public class ProjectApiControllerTest {
   @Value("${project.template.key.names}")
   private String projectKeys;
 
+  @Autowired private List<String> projectTemplateKeyNames;
+
   @Autowired private JiraAdapter realJiraAdapter;
 
   @Autowired ConfluenceAdapter realConfluenceAdapter;
@@ -634,15 +636,51 @@ public class ProjectApiControllerTest {
 
   @Test
   public void getProjectTemplateKeys() throws Exception {
-    // list of keys - that we need to jsonify
-    projectKeys = projectKeys.replace(",", "\",\"");
-    mockMvc
-        .perform(get("/api/v2/project/templates").accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk())
-        .andExpect(
-            MockMvcResultMatchers.content()
-                .string(CoreMatchers.containsString("[\"" + projectKeys + "\"]")))
-        .andDo(MockMvcResultHandlers.print());
+
+    BiConsumer<MediaType, String> consumer =
+        (mediaType, responseBody) -> {
+          try {
+            mockMvc
+                .perform(get("/api/v2/project/templates").accept(mediaType))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(
+                    MockMvcResultMatchers.content()
+                        .string(CoreMatchers.containsString(responseBody)))
+                .andDo(MockMvcResultHandlers.print());
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        };
+
+    consumer.accept(
+        MediaType.TEXT_PLAIN,
+        ProjectTemplateType.createProjectTemplateKeysAsString(projectTemplateKeyNames));
+
+    consumer.accept(
+        MediaType.APPLICATION_JSON,
+        ProjectApiController.createProjectTemplateKeysJson(projectTemplateKeyNames));
+
+    consumer =
+        (mediaType, responseBody) -> {
+          try {
+            mockMvc
+                .perform(get("/api/v2/project/templates").accept(mediaType))
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
+                .andExpect(
+                    MockMvcResultMatchers.content()
+                        .string(CoreMatchers.containsString(responseBody)))
+                .andDo(MockMvcResultHandlers.print());
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        };
+
+    ObjectMapper mapper = new ObjectMapper();
+    String body =
+        mapper.writeValueAsString(
+            Map.of("ERROR:", "Unsupported accept type: " + MediaType.APPLICATION_OCTET_STREAM));
+
+    consumer.accept(MediaType.APPLICATION_OCTET_STREAM, body);
   }
 
   @Test
