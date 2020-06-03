@@ -25,12 +25,6 @@
   @include truncate(2, 1.2rem);
 }
 
-.project__editmode {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 15px;
-}
-
 .quicklink__item {
   margin-left: 10px;
 

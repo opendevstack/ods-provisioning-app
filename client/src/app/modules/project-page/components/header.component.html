@@ -6,21 +6,38 @@
     </div>
   </div>
   <div class="col-2">
-    <div class="project__editmode">
-      <a
-        mat-icon-button
-        color="primary"
-        title="Edit project"
-        (click)="emitActivateEditMode()"
-        [disabled]="editMode || isQuickstartersError"
-        data-test-edit-project-btn
-      >
-        <mat-icon
-          svgIcon="edit"
-          aria-hidden="false"
-          aria-label="'Edit project'"
-        ></mat-icon>
-      </a>
+    <div class="editmode-button">
+      <ng-container *ngIf="editMode; else showEditButton">
+        <a
+          mat-icon-button
+          color="primary"
+          title="Close editing"
+          (click)="emitActivateEditMode(false)"
+          data-test-close-edit-project-btn
+        >
+          <mat-icon
+            svgIcon="close"
+            aria-hidden="false"
+            aria-label="'Close editing'"
+          ></mat-icon>
+        </a>
+      </ng-container>
+      <ng-template #showEditButton>
+        <a
+          mat-icon-button
+          color="primary"
+          title="Start editing"
+          (click)="emitActivateEditMode(true)"
+          [disabled]="isQuickstartersError"
+          data-test-start-edit-project-btn
+        >
+          <mat-icon
+            svgIcon="edit"
+            aria-hidden="false"
+            aria-label="'Start editing'"
+          ></mat-icon>
+        </a>
+      </ng-template>
     </div>
   </div>
 </div>
