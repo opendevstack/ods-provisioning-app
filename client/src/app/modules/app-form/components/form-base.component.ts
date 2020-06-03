@@ -1,4 +1,5 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { CustomValidation } from '../domain/custom-validation';
 
 export abstract class FormBaseComponent {
   form: FormGroup;
@@ -14,10 +15,7 @@ export abstract class FormBaseComponent {
     return this.form.get('newComponentsForm') as FormGroup;
   }
 
-  hasValidationErrorByType(
-    control: AbstractControl,
-    errorType: string
-  ): boolean {
+  hasErrorByType(control: AbstractControl, errorType: string): boolean {
     const hasTypeSpecificError = control.hasError(errorType);
     const hasInteractions = this.controlHasInteractions(control);
 
@@ -26,6 +24,13 @@ export abstract class FormBaseComponent {
     }
 
     return hasTypeSpecificError && hasInteractions;
+  }
+
+  getCustomValidationConfig(validationConfig): CustomValidation {
+    return {
+      regex: validationConfig.regex,
+      errorMessages: validationConfig.errorMessages
+    };
   }
 
   private controlHasInteractions(control: AbstractControl): boolean {

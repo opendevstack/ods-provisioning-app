@@ -32,19 +32,8 @@
               </mat-form-field>
               <mat-error
                 class="formfield__error"
-                *ngIf="
-                  quickstarterHasValidationErrorByType(
-                    i,
-                    'quickstarterType',
-                    'required'
-                  )
-                "
+                *ngIf="controlHasErrorByType(i, 'quickstarterType', 'required')"
               >
-                <mat-icon
-                  svgIcon="alert"
-                  aria-hidden="false"
-                  aria-label="Form error"
-                ></mat-icon>
                 Select a quickstarter
               </mat-error>
             </div>
@@ -64,25 +53,28 @@
               </mat-form-field>
               <mat-error
                 class="formfield__error"
-                *ngIf="
-                  quickstarterHasValidationErrorByType(
-                    i,
-                    'componentName',
-                    'required'
-                  )
-                "
+                *ngIf="controlHasErrorByType(i, 'componentName', 'required')"
               >
-                <mat-icon
-                  svgIcon="alert"
-                  aria-hidden="false"
-                  aria-label="Form error"
-                ></mat-icon>
                 Please enter a component ID
               </mat-error>
               <mat-error
                 class="formfield__error"
+                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')"
+              >
+                <ul>
+                  <li
+                    *ngFor="
+                      let message of componentNameCustomValidation.errorMessages
+                    "
+                  >
+                    {{ message }}
+                  </li>
+                </ul>
+              </mat-error>
+              <mat-error
+                class="formfield__error"
                 *ngIf="
-                  quickstarterHasValidationErrorByType(
+                  controlHasErrorByType(
                     i,
                     'componentName',
                     'nameExistsInAllQuickstarters'
@@ -90,34 +82,24 @@
                   else nextValidationError
                 "
               >
-                <mat-icon
-                  svgIcon="alert"
-                  aria-hidden="false"
-                  aria-label="Form error"
-                ></mat-icon>
                 This ID is reserved for a quickstarter
               </mat-error>
               <ng-template #nextValidationError>
                 <mat-error
                   class="formfield__error"
                   *ngIf="
-                    quickstarterHasValidationErrorByType(
+                    controlHasErrorByType(
                       i,
                       'componentName',
                       'nameExistsInProjectQuickstarterComponents'
                     ) ||
-                    quickstarterHasValidationErrorByType(
+                    controlHasErrorByType(
                       i,
                       'componentName',
                       'nameExistsInNewProjectQuickstarterComponents'
                     )
                   "
                 >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
                   This ID is already used in another component
                 </mat-error>
               </ng-template>

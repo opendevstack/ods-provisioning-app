@@ -16,6 +16,8 @@ import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
 import { Subject } from 'rxjs';
+import { default as validationConfig } from '../../app-form/config/validation.json';
+import { CustomValidation } from '../../app-form/domain/custom-validation';
 
 @Component({
   selector: 'project-quickstarter-list',
@@ -30,6 +32,7 @@ export class QuickstarterListComponent extends FormBaseComponent
   @Input() allQuickstarters: QuickstarterData[];
   @Input() form: FormGroup;
   @Output() onActivateEditMode = new EventEmitter<boolean>();
+  componentNameCustomValidation: CustomValidation;
   destroy$ = new Subject<boolean>();
 
   constructor(
@@ -41,6 +44,9 @@ export class QuickstarterListComponent extends FormBaseComponent
 
   ngOnInit(): void {
     if (this.projectQuickstarters) {
+      this.componentNameCustomValidation = this.getCustomValidationConfig(
+        validationConfig.quickstarters.componentName
+      );
       this.initializeFormGroup();
       this.projectQuickstarters = this.prepareProjectQuickstartersFormGroup();
     }
@@ -59,12 +65,12 @@ export class QuickstarterListComponent extends FormBaseComponent
     );
   }
 
-  quickstarterHasValidationErrorByType(
+  controlHasErrorByType(
     index,
     controlName: string,
     errorType: string
   ): boolean {
-    return this.hasValidationErrorByType(
+    return this.hasErrorByType(
       this.newComponentArray.controls[index].get(controlName),
       errorType
     );
@@ -100,6 +106,7 @@ export class QuickstarterListComponent extends FormBaseComponent
         newGroup
           .get('componentName')
           .setValidators([
+            Validators.pattern(this.componentNameCustomValidation.regex),
             EditProjectValidators.nameExistsInProjectQuickstarterComponentsValidator(
               this.projectQuickstarters
             ),
