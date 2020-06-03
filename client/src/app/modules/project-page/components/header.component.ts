@@ -20,8 +20,8 @@ export class ProjectHeaderComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  emitActivateEditMode() {
-    this.onActivateEditMode.emit(true);
+  emitActivateEditMode(flag: boolean) {
+    this.onActivateEditMode.emit(flag);
   }
 
   emitOpenDialog(text) {

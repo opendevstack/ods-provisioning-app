@@ -12,6 +12,13 @@
 
 .page__header {
   padding: 5px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editmode-button {
+  margin-right: -12px; // adjust position to synch with form paddings
 }
 
 .page__footer {

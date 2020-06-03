@@ -32,6 +32,21 @@
       <mat-card>
         <div class="page__header">
           <h3 class="mat-h3">Create new project</h3>
+          <div class="editmode-button">
+            <a
+              mat-icon-button
+              color="primary"
+              title="Cancel"
+              (click)="leavePage()"
+              data-test-close-create-project-btn
+            >
+              <mat-icon
+                svgIcon="close"
+                aria-hidden="false"
+                aria-label="'Cancel'"
+              ></mat-icon>
+            </a>
+          </div>
         </div>
         <div class="page__content">
           <div class="row-form">
