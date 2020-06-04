@@ -1,10 +1,26 @@
 {
+  "project": {
+    "name": {
+      "regex": "([a-zA-Z][a-zA-Z_0-9]+)",
+      "errorMessages": [
+        "Please enter 2-80 characters",
+        "Please use numbers, letters and underscore"
+      ]
+    },
+    "key": {
+      "regex": "([a-zA-Z][a-zA-Z_0-9]+)",
+      "errorMessages": [
+        "Please enter 2-10 characters",
+        "Please use numbers, letters and underscore"
+      ]
+    }
+  },
   "quickstarters": {
     "componentName": {
       "regex": "(([A-Za-z0-9][-A-Za-z0-9_]*)?[A-Za-z0-9]){3,40}",
       "errorMessages": [
-        "Length: 3-40 characters",
-        "Format: alphanumericals, dash, lowdash"
+        "Please enter 3-40 characters",
+        "Please use numbers, letters, dash and underscore"
       ]
     }
   }

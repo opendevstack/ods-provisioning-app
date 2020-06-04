@@ -1,8 +1,3 @@
-.row-form {
-  @include make-row();
-  padding-bottom: 10px;
-}
-
 .formfield__input {
   width: 100%;
 }
@@ -13,7 +8,7 @@
   color: red;
 
   ul {
-    padding-left: 20px;
+    padding-left: 15px;
 
     li {
       list-style: initial;

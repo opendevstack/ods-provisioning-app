@@ -6,27 +6,18 @@ import {
   OnInit
 } from '@angular/core';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
-import {
-  AbstractControl,
-  FormArray,
-  FormBuilder,
-  Validators
-} from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
 import { Router } from '@angular/router';
-import {
-  NewProjectRequest,
-  ProjectTemplate,
-  UpdateProjectQuickstartersData,
-  UpdateProjectRequest
-} from '../../../domain/project';
+import { NewProjectRequest, ProjectTemplate } from '../../../domain/project';
 import { ProjectService } from '../../project/services/project.service';
 import { NewProjectValidators } from '../../app-form/validators/new-project.validators';
 import { catchError, debounceTime, map } from 'rxjs/operators';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { StorageService } from '../../storage/services/storage.service';
+import { default as validationConfig } from '../../app-form/config/validation.json';
 
 @Component({
   selector: 'app-new-project',
@@ -40,6 +31,7 @@ export class NewProjectComponent extends FormBaseComponent
   isLoading = true;
   isProjectTemplatesError: boolean;
   projectTemplates: ProjectTemplate[];
+  validationConfig = validationConfig;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -84,7 +76,7 @@ export class NewProjectComponent extends FormBaseComponent
   generateProjectKey(): void | null {
     const projectNameControl = this.form.get('name');
     const projectKeyControl = this.form.get('key');
-    if (projectNameControl.value === '' || projectKeyControl.value !== '') {
+    if (!projectNameControl.valid || projectKeyControl.value !== '') {
       return null;
     }
 
@@ -120,11 +112,23 @@ export class NewProjectComponent extends FormBaseComponent
 
   private initializeFormGroup(): void {
     this.form = this.formBuilder.group({
-      name: ['', Validators.required],
-      key: ['', Validators.required],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(this.validationConfig.project.name.regex)
+        ]
+      ],
+      key: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(this.validationConfig.project.key.regex)
+        ]
+      ],
       cdUser: null,
       template: [null, Validators.required],
-      description: ['', Validators.required],
+      description: null,
       optInJira: null,
       permissionSet: this.formBuilder.group({
         admin: this.formBuilder.group(
