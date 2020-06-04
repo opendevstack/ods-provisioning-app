@@ -246,6 +246,16 @@ objects:
       provison.mail.sender=provision@${PROV_APP_MAIL_HOST}
       spring.main.allow-bean-definition-overriding=true
 
+      # adminjobs configuration: create projects, delete-projects and delete-components
+      jenkinspipeline.adminjobs.create-projects.desc=Create Project
+      jenkinspipeline.adminjobs.create-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-projects.desc=Delete openshift project
+      jenkinspipeline.adminjobs.delete-projects.repo=ods-core
+
+      jenkinspipeline.adminjobs.delete-components.desc=Delete openshift components
+      jenkinspipeline.adminjobs.delete-components.repo=ods-core
+
 - kind: ConfigMap
   metadata:
     labels:
