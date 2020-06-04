@@ -1,6 +1,6 @@
 :toc: macro
 
-= Internal architecture
+= Provisioning App: Internal architecture / Development
 
 toc::[]
 
@@ -141,6 +141,48 @@ The process for new operations to be called is:
 . see if there is a JSON Schema available
 . Generate (a) Pojo('s) for the Endpoint
 . Use the pojo to build your request, convert it to JSON with Jackson and send it via OKHTTP3, and the Provision Application's https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/util/rest/RestClient.java[RestClient]
+
+== Consuming REST APIs via curl
+
+[source,bash]
+----
+PROVISION_API_HOST=<host name>
+
+curl -D headers.txt -k -H "Content-Type: application/x-www-form-urlencoded" \
+-X POST ${PROVISION_API_HOST}/j_security_check \
+-d username=<username> -d password=<password>
+
+# grab the login status, and exit if error
+login_status=$(cat headers.txt | grep ${PROVISION_API_HOST}/login?error)
+
+if [[ $login_status != "" ]]; then echo "Login Error"; exit 1; fi;
+
+# grab the needed IDs and bake the cookies
+JSESSION_ID=$(cat headers.txt | grep "Set-Cookie: JSESSION" | cut -d ';' -f1 | cut -d ":" -f2)";"
+CROWD_COOKIE=$(cat headers.txt | grep "Set-Cookie: crowd" | cut -d ';' -f1 | cut -d ":" -f2)
+
+COOKIES=${JSESSION_ID}${CROWD_COOKIE}
+
+# sample provision file >> create.txt
+{
+  "name" : "<Mandatory name>",
+  "key" : "<Mandatory key>",
+  "createpermissionset" : true,
+  "jiraconfluencespace" : true,
+  "admin" : "<admin user>",
+  "adminGroup" : "<admin group>",
+  "userGroup" : "<user group>",
+  "readonlyGroup" : "<readonly group>",
+  "openshiftproject" : false
+}
+
+provisionfile=create.txt
+
+# invoke the provision API to create a new project
+curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
+-H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
+----
+
 
 == Link collection
 
