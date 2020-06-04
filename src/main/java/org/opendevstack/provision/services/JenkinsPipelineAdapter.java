@@ -18,7 +18,6 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;

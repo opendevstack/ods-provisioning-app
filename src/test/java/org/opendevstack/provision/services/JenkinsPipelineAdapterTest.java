@@ -22,8 +22,6 @@ import static org.opendevstack.provision.config.Quickstarter.componentQuickstart
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.api.Assertions;
