@@ -7,28 +7,16 @@
     <div class="empty-content">
       <div class="errorbox">
         <div class="errorbox__img">
-          <img
-            src="assets/icons/project-empty.svg"
-            alt="Project template data could not be retrieved"
-          />
+          <img src="assets/icons/project-empty.svg" alt="Project template data could not be retrieved" />
         </div>
-        <div class="errorbox__headline">
-          Project template data could not be retrieved
-        </div>
-        <div class="errorbox__subline">
-          Please try again soon
-        </div>
+        <div class="errorbox__headline">Project template data could not be retrieved</div>
+        <div class="errorbox__subline">Please try again soon</div>
       </div>
     </div>
   </ng-container>
 
   <ng-container *ngIf="canDisplayContent()">
-    <form
-      [formGroup]="form"
-      novalidate
-      (ngSubmit)="intendFormSubmit()"
-      id="form"
-    >
+    <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()" id="form">
       <mat-card>
         <div class="page__header">
           <h3 class="mat-h3">Create new project</h3>
@@ -38,13 +26,8 @@
               color="primary"
               title="Cancel"
               (click)="leavePage()"
-              data-test-close-create-project-btn
-            >
-              <mat-icon
-                svgIcon="close"
-                aria-hidden="false"
-                aria-label="'Cancel'"
-              ></mat-icon>
+              data-test-close-create-project-btn>
+              <mat-icon svgIcon="close" aria-hidden="false" aria-label="'Cancel'"></mat-icon>
             </a>
           </div>
         </div>
@@ -60,17 +43,11 @@
                   removeWhitespaces
                   maxlength="30"
                   required
-                  (blur)="generateProjectKey()"
-                />
+                  (blur)="generateProjectKey()" />
                 <mat-error
                   class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('name'), 'required')"
-                >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
+                  *ngIf="hasErrorByType(form.get('name'), 'required')">
+                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
                   Project name is required
                 </mat-error>
               </mat-form-field>
@@ -84,17 +61,11 @@
                   formControlName="key"
                   uppercase
                   removeWhitespaces
-                  required
-                />
+                  required />
                 <mat-error
                   class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('key'), 'required')"
-                >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
+                  *ngIf="hasErrorByType(form.get('key'), 'required')">
+                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
                   Key is required
                 </mat-error>
               </mat-form-field>
@@ -129,21 +100,10 @@
                 <mat-label>Project template</mat-label>
                 <select matNativeControl required formControlName="template">
                   <option value="">Select project template</option>
-                  <option
-                    [value]="template.key"
-                    *ngFor="let template of projectTemplates"
-                    >{{ template.name }}</option
-                  >
+                  <option [value]="template.key" *ngFor="let template of projectTemplates">{{ template.name }}</option>
                 </select>
-                <mat-error
-                  class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('template'), 'required')"
-                >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
+                <mat-error class="formfield__error" *ngIf="hasErrorByType(form.get('template'), 'required')">
+                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
                   Project template is required
                 </mat-error>
               </mat-form-field>
@@ -153,30 +113,17 @@
             <div class="col">
               <mat-form-field class="formfield__input">
                 <mat-label>Description</mat-label>
-                <textarea
-                  matInput
-                  placeholder="Description"
-                  formControlName="description"
-                  rows="3"
-                  required
-                ></textarea>
+                <textarea matInput placeholder="Description" formControlName="description" rows="3" required></textarea>
                 <mat-error
                   class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('description'), 'required')"
-                >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
+                  *ngIf="hasErrorByType(form.get('description'), 'required')">
+                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
                   Description is required
                 </mat-error>
               </mat-form-field>
             </div>
             <div class="col">
-              <mat-checkbox formControlName="optInJira"
-                >Create JIRA / Confluence spaces</mat-checkbox
-              >
+              <mat-checkbox formControlName="optInJira">Create JIRA / Confluence spaces</mat-checkbox>
             </div>
           </div>
 
@@ -191,22 +138,13 @@
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Admin user</mat-label>
-                  <input
-                    matInput
-                    placeholder="Admin user"
-                    formControlName="name"
-                    removeWhitespaces
-                  />
+                  <input matInput placeholder="Admin user" formControlName="name" removeWhitespaces />
                 </mat-form-field>
               </div>
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Admin group</mat-label>
-                  <input
-                    matInput
-                    placeholder="Admin group"
-                    formControlName="group"
-                    removeWhitespaces
+                  <input matInput placeholder="Admin group" formControlName="group" removeWhitespaces
                   />
                 </mat-form-field>
               </div>
@@ -214,18 +152,8 @@
 
             <mat-error
               class="formfield__error"
-              *ngIf="
-                hasErrorByType(
-                  form.get('permissionSet').get('admin'),
-                  'isPermissionSetGroupMandatory'
-                )
-              "
-            >
-              <mat-icon
-                svgIcon="alert"
-                aria-hidden="false"
-                aria-label="Form error"
-              ></mat-icon>
+              *ngIf="hasErrorByType(form.get('permissionSet').get('admin'),'isPermissionSetGroupMandatory')">
+              <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
               Please enter values for both fields
             </mat-error>
 
@@ -233,58 +161,29 @@
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>User group</mat-label>
-                  <input
-                    matInput
-                    placeholder="User group"
-                    formControlName="name"
-                    removeWhitespaces
-                  />
+                  <input matInput placeholder="User group" formControlName="name" removeWhitespaces />
                 </mat-form-field>
               </div>
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Readonly user group</mat-label>
-                  <input
-                    matInput
-                    placeholder="Readonly user group"
-                    formControlName="group"
-                    removeWhitespaces
-                  />
+                  <input matInput placeholder="Readonly user group" formControlName="group" removeWhitespaces />
                 </mat-form-field>
               </div>
             </div>
 
             <mat-error
               class="formfield__error"
-              *ngIf="
-                hasErrorByType(
-                  form.get('permissionSet').get('user'),
-                  'isPermissionSetGroupMandatory'
-                )
-              "
-            >
-              <mat-icon
-                svgIcon="alert"
-                aria-hidden="false"
-                aria-label="Form error"
-              ></mat-icon>
+              *ngIf="hasErrorByType(form.get('permissionSet').get('user'), 'isPermissionSetGroupMandatory')">
+              <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
               Please enter values for both fields
             </mat-error>
           </ng-container>
         </div>
         <div class="page__footer">
           <div class="page__action">
-            <button mat-raised-button (click)="leavePage()">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              mat-raised-button
-              color="primary"
-              [disabled]="!form.valid"
-            >
-              Create new project
-            </button>
+            <button mat-raised-button (click)="leavePage()">Cancel</button>
+            <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Create new project</button>
           </div>
         </div>
       </mat-card>

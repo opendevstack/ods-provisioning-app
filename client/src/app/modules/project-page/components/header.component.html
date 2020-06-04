@@ -13,13 +13,8 @@
           color="primary"
           title="Close editing"
           (click)="emitActivateEditMode(false)"
-          data-test-close-edit-project-btn
-        >
-          <mat-icon
-            svgIcon="close"
-            aria-hidden="false"
-            aria-label="'Close editing'"
-          ></mat-icon>
+          data-test-close-edit-project-btn>
+          <mat-icon svgIcon="close" aria-hidden="false" aria-label="'Close editing'"></mat-icon>
         </a>
       </ng-container>
       <ng-template #showEditButton>
@@ -29,13 +24,8 @@
           title="Start editing"
           (click)="emitActivateEditMode(true)"
           [disabled]="isQuickstartersError"
-          data-test-start-edit-project-btn
-        >
-          <mat-icon
-            svgIcon="edit"
-            aria-hidden="false"
-            aria-label="'Start editing'"
-          ></mat-icon>
+          data-test-start-edit-project-btn>
+          <mat-icon svgIcon="edit" aria-hidden="false" aria-label="'Start editing'"></mat-icon>
         </a>
       </ng-template>
     </div>
@@ -51,23 +41,20 @@
         *ngFor="let projectLink of projectLinks"
         class="quicklink__item"
         [ngClass]="!projectLink.url ? 'disabled' : ''"
-        matTooltip="{{ projectLink.iconLabel }}"
-      >
+        matTooltip="{{ projectLink.iconLabel }}">
         <ng-container *ngIf="projectLink.url; else iconOnly">
           <a href="{{ projectLink.url }}" target="_blank">
             <mat-icon
               svgIcon="{{ projectLink.iconName }}"
               aria-hidden="false"
-              aria-label="projectLink.iconLabel"
-            ></mat-icon>
+              aria-label="projectLink.iconLabel"></mat-icon>
           </a>
         </ng-container>
         <ng-template #iconOnly>
           <mat-icon
             svgIcon="{{ projectLink.iconName }}"
             aria-hidden="false"
-            aria-label="projectLink.iconLabel"
-          ></mat-icon>
+            aria-label="projectLink.iconLabel"></mat-icon>
         </ng-template>
       </li>
     </ul>
@@ -76,16 +63,9 @@
       color="primary"
       title="Copy URLs to clipboard"
       [cdkCopyToClipboard]="this.aggregatedProjectLinks"
-      (cdkCopyToClipboardCopied)="
-        emitOpenDialog('Success, URLs copied to clipboard!')
-      "
-      *ngIf="this.aggregatedProjectLinks"
-    >
-      <mat-icon
-        svgIcon="copy"
-        aria-hidden="false"
-        aria-label="Copy URLs to clipboard"
-      ></mat-icon>
+      (cdkCopyToClipboardCopied)="emitOpenDialog('Success, URLs copied to clipboard!')"
+      *ngIf="this.aggregatedProjectLinks">
+      <mat-icon svgIcon="copy" aria-hidden="false" aria-label="Copy URLs to clipboard"></mat-icon>
     </a>
   </div>
 </div>

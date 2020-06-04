@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prettier": "prettier --write \"**/*.{js,json,css,scss,less,md,ts,html,component.html}\"",
+    "prettier": "prettier --config ./prettier.config.js --write \"**/*.{js,json,scss,md,ts}\"",
     "prettier:check": "prettier --check \"**/*.{js,json,css,scss,less,md,ts,html,component.html}\"",
     "start:dev": "ng serve --proxy-config proxy.conf.json",
     "start": "ng serve",
@@ -12,7 +12,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint && sass-lint --verbose --no-exit",
-    "format:fix:staged": "pretty-quick --staged --verbose"
+    "format:fix:staged": "pretty-quick --staged --verbose --pattern \"**/*.{js,json,scss,md,ts}\""
   },
   "private": true,
   "dependencies": {
