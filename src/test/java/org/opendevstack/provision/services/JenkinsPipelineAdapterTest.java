@@ -260,9 +260,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Assertions.assertThat(
             capturedBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
-        .isEqualTo(
-            JenkinsPipelineAdapter.extractHostAndPortFromURL(
-                new URL(jenkinsPipelineAdapter.bitbucketUri)));
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
 
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
@@ -357,9 +355,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         .isEqualTo(projectData.projectKey);
     Assertions.assertThat(
             actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
-        .isEqualTo(
-            JenkinsPipelineAdapter.extractHostAndPortFromURL(
-                new URL(jenkinsPipelineAdapter.bitbucketUri)));
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
@@ -402,19 +398,5 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void getComponentByNameComponentType() {
     Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_NAME);
     assertTrue(foundByLegacyType.isPresent());
-  }
-
-  @Test
-  public void extractHostAndPortFromURI() throws MalformedURLException {
-
-    String host = "some.domain.com";
-    int port = 8080;
-    String hostWithoutPort = "https://" + host + "/path/context/page.html?test=hello";
-    URL url = new URL(hostWithoutPort);
-    assertEquals(host, JenkinsPipelineAdapter.extractHostAndPortFromURL(url));
-
-    String hostWithPort = "https://" + host + ":" + port + "/path/context/page.html?test=hello";
-    URL url2 = new URL(hostWithPort);
-    assertEquals(host + ":" + port, JenkinsPipelineAdapter.extractHostAndPortFromURL(url2));
   }
 }
