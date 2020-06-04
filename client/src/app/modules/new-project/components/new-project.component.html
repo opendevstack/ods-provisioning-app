@@ -64,7 +64,7 @@
                 />
                 <mat-error
                   class="formfield__error"
-                  *ngIf="hasValidationErrorByType(form.get('name'), 'required')"
+                  *ngIf="hasErrorByType(form.get('name'), 'required')"
                 >
                   <mat-icon
                     svgIcon="alert"
@@ -88,7 +88,7 @@
                 />
                 <mat-error
                   class="formfield__error"
-                  *ngIf="hasValidationErrorByType(form.get('key'), 'required')"
+                  *ngIf="hasErrorByType(form.get('key'), 'required')"
                 >
                   <mat-icon
                     svgIcon="alert"
@@ -137,9 +137,7 @@
                 </select>
                 <mat-error
                   class="formfield__error"
-                  *ngIf="
-                    hasValidationErrorByType(form.get('template'), 'required')
-                  "
+                  *ngIf="hasErrorByType(form.get('template'), 'required')"
                 >
                   <mat-icon
                     svgIcon="alert"
@@ -164,12 +162,7 @@
                 ></textarea>
                 <mat-error
                   class="formfield__error"
-                  *ngIf="
-                    hasValidationErrorByType(
-                      form.get('description'),
-                      'required'
-                    )
-                  "
+                  *ngIf="hasErrorByType(form.get('description'), 'required')"
                 >
                   <mat-icon
                     svgIcon="alert"
@@ -222,7 +215,7 @@
             <mat-error
               class="formfield__error"
               *ngIf="
-                hasValidationErrorByType(
+                hasErrorByType(
                   form.get('permissionSet').get('admin'),
                   'isPermissionSetGroupMandatory'
                 )
@@ -264,7 +257,7 @@
             <mat-error
               class="formfield__error"
               *ngIf="
-                hasValidationErrorByType(
+                hasErrorByType(
                   form.get('permissionSet').get('user'),
                   'isPermissionSetGroupMandatory'
                 )

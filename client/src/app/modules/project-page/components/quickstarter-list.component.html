@@ -40,8 +40,22 @@
               </mat-form-field>
               <mat-error
                 class="formfield__error"
+                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')"
+              >
+                <ul>
+                  <li
+                    *ngFor="
+                      let message of componentNameCustomValidation.errorMessages
+                    "
+                  >
+                    {{ message }}
+                  </li>
+                </ul>
+              </mat-error>
+              <mat-error
+                class="formfield__error"
                 *ngIf="
-                  quickstarterHasValidationErrorByType(
+                  controlHasErrorByType(
                     i,
                     'componentName',
                     'nameExistsInAllQuickstarters'
@@ -49,34 +63,24 @@
                   else nextValidationError
                 "
               >
-                <mat-icon
-                  svgIcon="alert"
-                  aria-hidden="false"
-                  aria-label="Form error"
-                ></mat-icon>
                 This ID is reserved for a quickstarter
               </mat-error>
               <ng-template #nextValidationError>
                 <mat-error
                   class="formfield__error"
                   *ngIf="
-                    quickstarterHasValidationErrorByType(
+                    controlHasErrorByType(
                       i,
                       'componentName',
                       'nameExistsInProjectQuickstarterComponents'
                     ) ||
-                    quickstarterHasValidationErrorByType(
+                    controlHasErrorByType(
                       i,
                       'componentName',
                       'nameExistsInNewProjectQuickstarterComponents'
                     )
                   "
                 >
-                  <mat-icon
-                    svgIcon="alert"
-                    aria-hidden="false"
-                    aria-label="Form error"
-                  ></mat-icon>
                   This ID is already used in another component
                 </mat-error>
               </ng-template>
@@ -88,7 +92,7 @@
                   aria-hidden="false"
                   aria-label="Form error"
                 ></mat-icon>
-                This quickstarter might have been renamed or deleted
+                This quickstarter might have been renamed or deleted.
               </div>
             </ng-template>
           </ng-container>

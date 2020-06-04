@@ -14,6 +14,8 @@ import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { Subject } from 'rxjs';
+import { default as validationConfig } from '../../app-form/config/validation.json';
+import { CustomValidation } from '../../app-form/domain/custom-validation';
 
 @Component({
   selector: 'project-quickstarter-add',
@@ -26,6 +28,7 @@ export class QuickstarterAddComponent extends FormBaseComponent
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() allQuickstarters: QuickstarterData[];
   @Input() form: FormGroup;
+  componentNameCustomValidation: CustomValidation;
   destroy$ = new Subject<boolean>();
 
   constructor(
@@ -36,6 +39,9 @@ export class QuickstarterAddComponent extends FormBaseComponent
   }
 
   ngOnInit() {
+    this.componentNameCustomValidation = this.getCustomValidationConfig(
+      validationConfig.quickstarters.componentName
+    );
     this.initializeFormGroup();
   }
 
@@ -61,12 +67,12 @@ export class QuickstarterAddComponent extends FormBaseComponent
     return this.newComponentArray.length > 1;
   }
 
-  quickstarterHasValidationErrorByType(
+  controlHasErrorByType(
     index,
     controlName: string,
     errorType: string
   ): boolean {
-    return this.hasValidationErrorByType(
+    return this.hasErrorByType(
       this.newComponentArray.controls[index].get(controlName),
       errorType
     );
@@ -91,6 +97,7 @@ export class QuickstarterAddComponent extends FormBaseComponent
         '',
         [
           Validators.required,
+          Validators.pattern(this.componentNameCustomValidation.regex),
           EditProjectValidators.nameExistsInAllQuickstartersValidator(
             this.allQuickstarters
           ),
