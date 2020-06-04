@@ -684,7 +684,7 @@ public class ProjectApiController {
         ObjectMapper mapper = new ObjectMapper();
         String body =
             mapper.writeValueAsString(Map.of("ERROR:", "Unsupported accept type: " + acceptType));
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(body);
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(body);
       }
     } catch (JsonProcessingException e) {
       logger.error(e.getMessage(), e);

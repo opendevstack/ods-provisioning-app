@@ -665,7 +665,7 @@ public class ProjectApiControllerTest {
           try {
             mockMvc
                 .perform(get("/api/v2/project/templates").accept(mediaType))
-                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
+                .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType())
                 .andExpect(
                     MockMvcResultMatchers.content()
                         .string(CoreMatchers.containsString(responseBody)))
