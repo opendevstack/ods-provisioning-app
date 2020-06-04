@@ -3,9 +3,7 @@
 </ng-container>
 
 <ng-container *ngIf="isError">
-  <div class="error">
-    The project list could not be loaded currently
-  </div>
+  <div class="error">The project list could not be loaded currently</div>
 </ng-container>
 
 <ng-container *ngIf="canDisplayContent()">
@@ -19,13 +17,8 @@
         color="primary"
         routerLink="/new"
         class="mini-icon-button mat-elevation-z0"
-        data-test-new-project-btn
-      >
-        <mat-icon
-          svgIcon="plus"
-          aria-hidden="false"
-          [attr.aria-label]="'Create new project'"
-        ></mat-icon>
+        data-test-new-project-btn>
+        <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Create new project'"></mat-icon>
         <span>New</span>
       </a>
     </div>
@@ -40,8 +33,7 @@
           removeWhitespaces
           placeholder="Search in name, key, description"
           aria-label="Search in name, key, description"
-          [formControl]="searchControl"
-        />
+          [formControl]="searchControl" />
       </mat-form-field>
     </div>
 
@@ -51,8 +43,7 @@
           *ngIf="isNewProjectFormActive"
           data-test-sidebar-nav-list-item-new
           class="nav__list--item active"
-          mat-list-item
-        >
+          mat-list-item>
           <div class="project">
             <div class="project__name">New project</div>
             <div class="project__key">Key</div>
@@ -65,8 +56,7 @@
           mat-list-item
           routerLinkActive="active"
           routerLink="/project/{{ project.projectKey }}"
-          *ngFor="let project of filteredProjects | async"
-        >
+          *ngFor="let project of filteredProjects | async">
           <div class="project">
             <div class="project__name">{{ project.projectName }}</div>
             <div class="project__key">{{ project.projectKey }}</div>
@@ -78,15 +68,10 @@
     <div class="empty-content" *ngIf="(filteredProjects | async).length === 0">
       <div class="errorbox">
         <div class="errorbox__img">
-          <img
-            src="assets/icons/search-empty.svg"
-            alt="Sorry, no results found"
-          />
+          <img src="assets/icons/search-empty.svg" alt="Sorry, no results found" />
         </div>
         <div class="errorbox__headline">Sorry, no results found</div>
-        <div class="errorbox__subline">
-          Try searching another keyword
-        </div>
+        <div class="errorbox__subline">Try searching another keyword</div>
       </div>
     </div>
   </mat-card>

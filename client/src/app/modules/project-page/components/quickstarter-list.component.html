@@ -1,8 +1,4 @@
-<table
-  class="qs-table"
-  [formGroup]="form"
-  *ngIf="projectQuickstarters; else emptyContent"
->
+<table class="qs-table" [formGroup]="form" *ngIf="projectQuickstarters; else emptyContent">
   <thead>
     <tr>
       <th>Quickstarter</th>
@@ -10,24 +6,14 @@
     </tr>
   </thead>
   <tbody>
-    <tr
-      formArrayName="newComponent"
-      *ngFor="let control of newComponentArray.controls; let i = index"
-    >
+    <tr formArrayName="newComponent" *ngFor="let control of newComponentArray.controls; let i = index">
       <ng-container formGroupName="{{ i }}">
         <td>
-          <div class="qs-id">
-            {{ getQuickstarterData(i).description }}
-          </div>
+          <div class="qs-id">{{ getQuickstarterData(i).description }}</div>
         </td>
         <td class="qs-components">
           <ng-container *ngIf="editMode">
-            <ng-container
-              *ngIf="
-                getQuickstarterData(i).isNewComponentPossible;
-                else newComponentImpossible
-              "
-            >
+            <ng-container *ngIf="getQuickstarterData(i).isNewComponentPossible; else newComponentImpossible">
               <mat-form-field class="formfield__input">
                 <mat-label>New component ID</mat-label>
                 <input
@@ -35,21 +21,13 @@
                   placeholder="Component ID for additional quickstarter"
                   name="componentName"
                   formControlName="componentName"
-                  removeWhitespaces
-                />
+                  removeWhitespaces />
               </mat-form-field>
               <mat-error
                 class="formfield__error"
-                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')"
-              >
+                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')">
                 <ul>
-                  <li
-                    *ngFor="
-                      let message of componentNameCustomValidation.errorMessages
-                    "
-                  >
-                    {{ message }}
-                  </li>
+                  <li *ngFor="let message of componentNameCustomValidation.errorMessages">{{ message }}</li>
                 </ul>
               </mat-error>
               <mat-error
@@ -59,10 +37,7 @@
                     i,
                     'componentName',
                     'nameExistsInAllQuickstarters'
-                  );
-                  else nextValidationError
-                "
-              >
+                  ); else nextValidationError">
                 This ID is reserved for a quickstarter
               </mat-error>
               <ng-template #nextValidationError>
@@ -78,57 +53,37 @@
                       i,
                       'componentName',
                       'nameExistsInNewProjectQuickstarterComponents'
-                    )
-                  "
-                >
+                    )">
                   This ID is already used in another component
                 </mat-error>
               </ng-template>
             </ng-container>
             <ng-template #newComponentImpossible>
               <div class="qs-component__info">
-                <mat-icon
-                  svgIcon="alert"
-                  aria-hidden="false"
-                  aria-label="Form error"
-                ></mat-icon>
+                <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
                 This quickstarter might have been renamed or deleted.
               </div>
             </ng-template>
           </ng-container>
 
           <mat-accordion [displayMode]="'flat'" [togglePosition]="'before'">
-            <mat-expansion-panel
-              *ngFor="let id of getQuickstarterData(i).ids"
-              class="mat-elevation-z0"
-            >
-              <mat-expansion-panel-header
-                [collapsedHeight]="'*'"
-                [expandedHeight]="'*'"
-              >
-                <mat-panel-title>
-                  {{ id.componentId }}
-                </mat-panel-title>
+            <mat-expansion-panel *ngFor="let id of getQuickstarterData(i).ids" class="mat-elevation-z0">
+              <mat-expansion-panel-header [collapsedHeight]="'*'" [expandedHeight]="'*'">
+                <mat-panel-title>{{ id.componentId }}</mat-panel-title>
               </mat-expansion-panel-header>
 
               <div class="qs-component__data">
                 <dl>
                   <dt>ODS Image Tag</dt>
-                  <dd>
-                    {{ id.odsImageTag || '-' }}
-                  </dd>
+                  <dd>{{ id.odsImageTag || '-' }}</dd>
                 </dl>
                 <dl>
                   <dt>Package Name</dt>
-                  <dd matTooltip="{{ id.packageName }}">
-                    {{ id.packageName || '-' }}
-                  </dd>
+                  <dd matTooltip="{{ id.packageName }}">{{ id.packageName || '-' }}</dd>
                 </dl>
                 <dl>
                   <dt>OSD Git Ref</dt>
-                  <dd>
-                    {{ id.odsGitRef || '-' }}
-                  </dd>
+                  <dd>{{ id.odsGitRef || '-' }}</dd>
                 </dl>
                 <dl>
                   <dt>Group ID</dt>
@@ -138,9 +93,7 @@
                   <dt>GIT HTTP</dt>
                   <dd matTooltip="{{ id.gitUrlHttp }}">
                     <ng-container *ngIf="id.gitUrlHttp; else empty">
-                      <a href="{{ id.gitUrlHttp }}" target="_blank">{{
-                        id.gitUrlHttp
-                      }}</a>
+                      <a href="{{ id.gitUrlHttp }}" target="_blank">{{ id.gitUrlHttp }}</a>
                     </ng-container>
                   </dd>
                 </dl>
@@ -148,9 +101,7 @@
                   <dt>GIT SSH</dt>
                   <dd matTooltip="{{ id.gitUrlSsh }}">
                     <ng-container *ngIf="id.gitUrlHttp; else empty">
-                      <a href="{{ id.gitUrlSsh }}" target="_blank">{{
-                        id.gitUrlSsh
-                      }}</a>
+                      <a href="{{ id.gitUrlSsh }}" target="_blank">{{ id.gitUrlSsh }}</a>
                     </ng-container>
                   </dd>
                   <ng-template #empty>-</ng-template>
@@ -167,27 +118,17 @@
   <div class="empty-content">
     <div class="errorbox">
       <div class="errorbox__img">
-        <img
-          src="assets/icons/quickstarter-not-found.svg"
-          alt="No quickstarters applied yet"
-        />
+        <img src="assets/icons/quickstarter-not-found.svg" alt="No quickstarters applied yet" />
       </div>
       <div class="errorbox__headline">No quickstarters applied yet</div>
-      <div class="errorbox__subline">
-        Add new components to your project
-      </div>
+      <div class="errorbox__subline">Add new components to your project</div>
       <button
         mat-stroked-button
         color="primary"
         class="mini-icon-button mat-elevation-z0"
         (click)="emitActivateEditMode()"
-        data-test-edit-project-btn
-      >
-        <mat-icon
-          svgIcon="plus"
-          aria-hidden="false"
-          [attr.aria-label]="'Add'"
-        ></mat-icon>
+        data-test-edit-project-btn>
+        <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Add'"></mat-icon>
         <span>Add</span>
       </button>
     </div>

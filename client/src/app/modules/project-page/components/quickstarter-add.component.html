@@ -8,32 +8,22 @@
       </tr>
     </thead>
     <tbody>
-      <tr
-        formArrayName="newComponent"
-        *ngFor="let control of newComponentArray.controls; let i = index"
-      >
+      <tr formArrayName="newComponent" *ngFor="let control of newComponentArray.controls; let i = index">
         <ng-container formGroupName="{{ i }}">
           <td>
             <div class="qs-id">
               <mat-form-field>
                 <mat-label>Quickstarter</mat-label>
-                <select
-                  matNativeControl
-                  required
-                  formControlName="quickstarterType"
-                >
+                <select matNativeControl required formControlName="quickstarterType">
                   <option value="">Select quickstarter</option>
                   <option
                     [value]="quickstarter.id"
-                    *ngFor="let quickstarter of allQuickstarters"
-                    >{{ quickstarter.description }}</option
-                  >
+                    *ngFor="let quickstarter of allQuickstarters">{{ quickstarter.description }}</option>
                 </select>
               </mat-form-field>
               <mat-error
                 class="formfield__error"
-                *ngIf="controlHasErrorByType(i, 'quickstarterType', 'required')"
-              >
+                *ngIf="controlHasErrorByType(i, 'quickstarterType', 'required')">
                 Select a quickstarter
               </mat-error>
             </div>
@@ -48,40 +38,26 @@
                   name="componentName"
                   required
                   formControlName="componentName"
-                  removeWhitespaces
-                />
+                  removeWhitespaces />
               </mat-form-field>
               <mat-error
                 class="formfield__error"
-                *ngIf="controlHasErrorByType(i, 'componentName', 'required')"
-              >
+                *ngIf="controlHasErrorByType(i, 'componentName', 'required')">
                 Please enter a component ID
               </mat-error>
               <mat-error
                 class="formfield__error"
-                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')"
-              >
+                *ngIf="controlHasErrorByType(i, 'componentName', 'pattern')">
                 <ul>
-                  <li
-                    *ngFor="
-                      let message of componentNameCustomValidation.errorMessages
-                    "
-                  >
-                    {{ message }}
-                  </li>
+                  <li *ngFor="let message of componentNameCustomValidation.errorMessages">{{ message }}</li>
                 </ul>
               </mat-error>
               <mat-error
                 class="formfield__error"
-                *ngIf="
-                  controlHasErrorByType(
-                    i,
-                    'componentName',
-                    'nameExistsInAllQuickstarters'
-                  );
-                  else nextValidationError
-                "
-              >
+                *ngIf="controlHasErrorByType(
+                  i,
+                  'componentName',
+                  'nameExistsInAllQuickstarters'); else nextValidationError">
                 This ID is reserved for a quickstarter
               </mat-error>
               <ng-template #nextValidationError>
@@ -97,9 +73,7 @@
                       i,
                       'componentName',
                       'nameExistsInNewProjectQuickstarterComponents'
-                    )
-                  "
-                >
+                    )">
                   This ID is already used in another component
                 </mat-error>
               </ng-template>
@@ -112,26 +86,16 @@
                 color="primary"
                 title="Add quickstarter"
                 (click)="removeInput(i)"
-                [disabled]="!removeAllowed()"
-              >
-                <mat-icon
-                  svgIcon="minus"
-                  aria-hidden="false"
-                  aria-label="Add quickstarter"
-                ></mat-icon>
+                [disabled]="!removeAllowed()">
+                <mat-icon svgIcon="minus" aria-hidden="false" aria-label="Add quickstarter"></mat-icon>
               </a>
               <a
                 mat-icon-button
                 color="primary"
                 title="Remove quickstarter"
                 [disabled]="!newComponentArray.valid"
-                (click)="addInput()"
-              >
-                <mat-icon
-                  svgIcon="plus"
-                  aria-hidden="false"
-                  aria-label="Remove quickstarter"
-                ></mat-icon>
+                (click)="addInput()">
+                <mat-icon svgIcon="plus" aria-hidden="false" aria-label="Remove quickstarter"></mat-icon>
               </a>
             </div>
           </td>

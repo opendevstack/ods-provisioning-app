@@ -7,24 +7,17 @@
     <div class="empty-content">
       <div class="errorbox" *ngIf="errorType === 'NOT_FOUND'">
         <div class="errorbox__img">
-          <img
-            src="assets/icons/project-not-found.svg"
-            alt="Project was not found"
-          />
+          <img src="assets/icons/project-not-found.svg" alt="Project was not found" />
         </div>
         <div class="errorbox__headline">Project was not found</div>
-        <div class="errorbox__subline">
-          Please check URL or select another project
-        </div>
+        <div class="errorbox__subline">Please check URL or select another project</div>
       </div>
       <div class="errorbox" *ngIf="errorType === 'NO_PROJECT_KEY'">
         <div class="errorbox__img">
           <img src="assets/icons/project-empty.svg" alt="No project selected" />
         </div>
         <div class="errorbox__headline">No project selected</div>
-        <div class="errorbox__subline">
-          Select or create a project to see more detail
-        </div>
+        <div class="errorbox__subline">Select or create a project to see more detail</div>
       </div>
       <div class="errorbox" *ngIf="errorType === 'UNKNOWN'">
         <div class="errorbox__img">
@@ -38,9 +31,7 @@
 
   <ng-container *ngIf="canDisplayContent()">
     <div class="page__notifications">
-      <div class="error" *ngIf="isQuickstartersError">
-        Technical error - editing not possible
-      </div>
+      <div class="error" *ngIf="isQuickstartersError">Technical error - editing not possible</div>
     </div>
 
     <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
@@ -53,23 +44,12 @@
             [isQuickstartersError]="isQuickstartersError"
             [aggregatedProjectLinks]="aggregatedProjectLinks"
             (onActivateEditMode)="editMode.enabled = $event"
-            (onOpenDialog)="openDialog($event)"
-          ></project-header>
+            (onOpenDialog)="openDialog($event)"></project-header>
         </div>
 
-        <div
-          class="page__content"
-          [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''"
-        >
-          <ng-container
-            *ngIf="
-              editMode.enabled && !projectQuickstarters;
-              else showQuickstarterList
-            "
-          >
-            <ng-container
-              *ngTemplateOutlet="showQuickstarterAdd"
-            ></ng-container>
+        <div class="page__content" [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''">
+          <ng-container *ngIf="editMode.enabled && !projectQuickstarters; else showQuickstarterList">
+            <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
           </ng-container>
           <ng-template #showQuickstarterList>
             <project-quickstarter-list
@@ -77,15 +57,11 @@
               [projectQuickstarters]="projectQuickstarters"
               [allQuickstarters]="allQuickstarters"
               [form]="existingComponentsForm"
-              (onActivateEditMode)="editMode.enabled = $event"
-            ></project-quickstarter-list>
+              (onActivateEditMode)="editMode.enabled = $event"></project-quickstarter-list>
           </ng-template>
         </div>
 
-        <div
-          class="page__footer"
-          *ngIf="editMode.enabled && projectQuickstarters"
-        >
+        <div class="page__footer" *ngIf="editMode.enabled && projectQuickstarters">
           <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
         </div>
       </mat-card>
@@ -96,21 +72,11 @@
     <project-quickstarter-add
       [projectQuickstarters]="projectQuickstarters"
       [allQuickstarters]="allQuickstarters"
-      [form]="newComponentsForm"
-    ></project-quickstarter-add>
+      [form]="newComponentsForm"></project-quickstarter-add>
 
     <div class="page__action">
-      <button mat-raised-button (click)="editMode.enabled = false">
-        Cancel
-      </button>
-      <button
-        type="submit"
-        mat-raised-button
-        color="primary"
-        [disabled]="!form.valid"
-      >
-        Start
-      </button>
+      <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
+      <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
     </div>
   </ng-template>
 </div>
