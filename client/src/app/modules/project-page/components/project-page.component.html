@@ -48,35 +48,27 @@
         </div>
 
         <div class="page__content" [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''">
-          <ng-container *ngIf="editMode.enabled && !projectQuickstarters; else showQuickstarterList">
-            <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
+          <ng-container *ngIf="editMode.enabled; else showQuickstarterList">
+            <project-quickstarter-add
+              [projectQuickstarters]="projectQuickstarters"
+              [allQuickstarters]="allQuickstarters"
+              [form]="newComponentsForm"></project-quickstarter-add>
           </ng-container>
           <ng-template #showQuickstarterList>
             <project-quickstarter-list
-              [editMode]="editMode.enabled"
               [projectQuickstarters]="projectQuickstarters"
-              [allQuickstarters]="allQuickstarters"
-              [form]="existingComponentsForm"
-              (onActivateEditMode)="editMode.enabled = $event"></project-quickstarter-list>
+            (onActivateEditMode)="editMode.enabled = true"></project-quickstarter-list>
           </ng-template>
         </div>
 
-        <div class="page__footer" *ngIf="editMode.enabled && projectQuickstarters">
-          <ng-container *ngTemplateOutlet="showQuickstarterAdd"></ng-container>
+        <div class="page__footer" *ngIf="editMode.enabled">
+          <div class="page__action">
+            <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
+            <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
+          </div>
         </div>
       </mat-card>
     </form>
   </ng-container>
 
-  <ng-template #showQuickstarterAdd>
-    <project-quickstarter-add
-      [projectQuickstarters]="projectQuickstarters"
-      [allQuickstarters]="allQuickstarters"
-      [form]="newComponentsForm"></project-quickstarter-add>
-
-    <div class="page__action">
-      <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
-      <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
-    </div>
-  </ng-template>
 </div>
