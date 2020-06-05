@@ -1,22 +1,8 @@
-@import '../../../ui/scss/variables';
 @import '~bootstrap/scss/bootstrap-grid';
 
-.quickstarter-add {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 20px 50px;
-  border-top: 1px solid $color-gray;
-}
-
-.empty-quickstarters {
-  :host {
-    .quickstarter-add {
-      height: 100%;
-      max-height: initial;
-      padding: 30px 30px 10px 30px;
-      border-top: 0;
-    }
-  }
+:host {
+  display: block;
+  padding: 20px 30px;
 }
 
 .qs-table {

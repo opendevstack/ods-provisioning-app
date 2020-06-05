@@ -3,15 +3,8 @@
 
 .page__content {
   &.empty-quickstarters {
-    .page__action {
-      position: sticky;
-      bottom: 0;
-      background: $color-white;
+    project-quickstarter-list {
+      padding: 0;
     }
   }
-}
-
-.page__action {
-  padding: 20px 50px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }

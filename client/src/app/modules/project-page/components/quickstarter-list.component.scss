@@ -1,20 +1,12 @@
 :host {
   display: block;
-  padding: 0 50px 30px 50px;
+  padding: 0 30px 30px 30px;
   height: 100%;
-}
-
-.empty-quickstarters {
-  :host {
-    display: initial;
-    padding: 0;
-  }
 }
 
 .qs-id {
   padding: 18px 0;
   font-size: 1rem;
-  transition: padding-top 0.25s ease-in-out;
 }
 
 .formfield__input {
