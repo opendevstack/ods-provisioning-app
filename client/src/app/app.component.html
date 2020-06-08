@@ -10,3 +10,15 @@
 <div class="content">
   <router-outlet (activate)="getEditModeStatus()"></router-outlet>
 </div>
+
+<div class="empty-content">
+
+  <div class="infobox">
+    <div class="infobox__img">
+      <img src="assets/icons/screen-too-small.svg" width="178" height="145" alt="Screen size too small" />
+    </div>
+    <div class="infobox__headline">Screen size too small</div>
+    <div class="infobox__subline">The ODS Provisioning App only works on screens bigger than 992 pixels. Maybe rotating your device helps?</div>
+  </div>
+
+</div>

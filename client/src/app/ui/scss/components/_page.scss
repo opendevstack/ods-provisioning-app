@@ -1,4 +1,6 @@
 .page {
+  height: 100%;
+
   mat-card {
     height: calc(
       100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$main-container-padding} -
