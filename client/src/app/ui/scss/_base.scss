@@ -9,3 +9,8 @@ ul {
     list-style-type: none;
   }
 }
+
+hr {
+  border-top: 1px solid $color-gray;
+  margin: 10px 0 20px 0;
+}

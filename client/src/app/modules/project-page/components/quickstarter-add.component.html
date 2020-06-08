@@ -1,15 +1,9 @@
-<table class="qs-table" [formGroup]="form">
-  <thead>
-    <tr>
-      <th>Quickstarter</th>
-      <th>ID</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr formArrayName="newComponent" *ngFor="let control of newComponentArray.controls; let i = index">
+<ng-container [formGroup]="form">
+  <ng-container formArrayName="newComponent" *ngFor="let control of newComponentArray.controls; let i = index">
+    <hr *ngIf="i > 0" />
+    <div class="row" >
       <ng-container formGroupName="{{ i }}">
-        <td>
+        <div class="col">
           <div class="qs-id">
             <mat-form-field>
               <mat-label>Quickstarter</mat-label>
@@ -26,8 +20,8 @@
               Select a quickstarter
             </mat-error>
           </div>
-        </td>
-        <td>
+        </div>
+        <div class="col">
           <div class="qs-component">
             <mat-form-field class="formfield__input">
               <mat-label>New component ID</mat-label>
@@ -37,7 +31,7 @@
                 name="componentName"
                 required
                 formControlName="componentName"
-                removeWhitespaces />
+                removeWhitespaces/>
             </mat-form-field>
             <mat-error
               class="formfield__error"
@@ -54,31 +48,26 @@
             <mat-error
               class="formfield__error"
               *ngIf="controlHasErrorByType(
-                i,
-                'componentName',
-                'nameExistsInAllQuickstarters'); else nextValidationError">
+                  i,
+                  'componentName',
+                  'nameExistsInAllQuickstarters'); else nextValidationError">
               This ID is reserved for a quickstarter
             </mat-error>
             <ng-template #nextValidationError>
               <mat-error
                 class="formfield__error"
                 *ngIf="
-                  controlHasErrorByType(
-                    i,
-                    'componentName',
-                    'nameExistsInProjectQuickstarterComponents'
-                  ) ||
-                  controlHasErrorByType(
-                    i,
-                    'componentName',
-                    'nameExistsInNewProjectQuickstarterComponents'
-                  )">
+                    controlHasErrorByType(
+                      i,
+                      'componentName',
+                      'nameExistsInNewProjectQuickstarterComponents'
+                    )">
                 This ID is already used in another component
               </mat-error>
             </ng-template>
           </div>
-        </td>
-        <td>
+        </div>
+        <div class="col flex-grow-0">
           <div class="qs-action">
             <a
               mat-icon-button
@@ -97,8 +86,9 @@
               <mat-icon svgIcon="plus" aria-hidden="false" aria-label="Remove quickstarter"></mat-icon>
             </a>
           </div>
-        </td>
+        </div>
+
       </ng-container>
-    </tr>
-  </tbody>
-</table>
+    </div>
+  </ng-container>
+</ng-container>
