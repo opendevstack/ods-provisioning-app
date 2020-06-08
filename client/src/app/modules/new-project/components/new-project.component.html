@@ -32,7 +32,7 @@
           </div>
         </div>
         <div class="page__content">
-          <div class="row-form">
+          <div class="row">
             <div class="col">
               <mat-form-field class="formfield__input">
                 <mat-label>Name</mat-label>
@@ -41,16 +41,22 @@
                   placeholder="Name"
                   formControlName="name"
                   removeWhitespaces
-                  maxlength="30"
+                  maxlength="80"
                   required
                   (blur)="generateProjectKey()" />
-                <mat-error
-                  class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('name'), 'required')">
-                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
-                  Project name is required
-                </mat-error>
               </mat-form-field>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('name'), 'required')">
+                Project name is required
+              </mat-error>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('name'), 'pattern')">
+                <ul>
+                  <li *ngFor="let message of validationConfig.project.name.errorMessages">{{ message }}</li>
+                </ul>
+              </mat-error>
             </div>
             <div class="col">
               <mat-form-field class="formfield__input">
@@ -61,18 +67,25 @@
                   formControlName="key"
                   uppercase
                   removeWhitespaces
+                  maxlength="10"
                   required />
-                <mat-error
-                  class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('key'), 'required')">
-                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
-                  Key is required
-                </mat-error>
               </mat-form-field>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('key'), 'required')">
+                Key is required
+              </mat-error>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('key'), 'pattern')">
+                <ul>
+                  <li *ngFor="let message of validationConfig.project.key.errorMessages">{{ message }}</li>
+                </ul>
+              </mat-error>
             </div>
           </div>
 
-          <div class="row-form">
+          <div class="row">
             <div class="col">
               <div class="formfield-wrapper">
                 <mat-form-field class="formfield__input">
@@ -102,24 +115,22 @@
                   <option value="">Select project template</option>
                   <option [value]="template.key" *ngFor="let template of projectTemplates">{{ template.name }}</option>
                 </select>
-                <mat-error class="formfield__error" *ngIf="hasErrorByType(form.get('template'), 'required')">
-                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
-                  Project template is required
-                </mat-error>
               </mat-form-field>
+              <mat-error class="formfield__error" *ngIf="hasErrorByType(form.get('template'), 'required')">
+                Project template is required
+              </mat-error>
             </div>
           </div>
-          <div class="row-form">
+          <div class="row">
             <div class="col">
               <mat-form-field class="formfield__input">
                 <mat-label>Description</mat-label>
-                <textarea matInput placeholder="Description" formControlName="description" rows="3" required></textarea>
-                <mat-error
-                  class="formfield__error"
-                  *ngIf="hasErrorByType(form.get('description'), 'required')">
-                  <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
-                  Description is required
-                </mat-error>
+                <textarea
+                  matInput
+                  placeholder="Description"
+                  formControlName="description"
+                  rows="3"
+                  maxlength="100"></textarea>
               </mat-form-field>
             </div>
             <div class="col">
@@ -128,13 +139,13 @@
           </div>
 
           <ng-container formGroupName="permissionSet">
-            <div class="row-form">
+            <div class="row">
               <div class="col">
                 <h3 class="mat-h3">Create special permission set</h3>
               </div>
             </div>
 
-            <div class="row-form" formGroupName="admin">
+            <div class="row" formGroupName="admin">
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Admin user</mat-label>
@@ -153,11 +164,10 @@
             <mat-error
               class="formfield__error"
               *ngIf="hasErrorByType(form.get('permissionSet').get('admin'),'isPermissionSetGroupMandatory')">
-              <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
               Please enter values for both fields
             </mat-error>
 
-            <div class="row-form" formGroupName="user">
+            <div class="row" formGroupName="user">
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>User group</mat-label>
@@ -171,11 +181,9 @@
                 </mat-form-field>
               </div>
             </div>
-
             <mat-error
               class="formfield__error"
               *ngIf="hasErrorByType(form.get('permissionSet').get('user'), 'isPermissionSetGroupMandatory')">
-              <mat-icon svgIcon="alert" aria-hidden="false" aria-label="Form error"></mat-icon>
               Please enter values for both fields
             </mat-error>
           </ng-container>
