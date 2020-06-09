@@ -5,26 +5,26 @@
 
   <ng-container *ngIf="isProjectError && !isLoading">
     <div class="empty-content">
-      <div class="errorbox" *ngIf="errorType === 'NOT_FOUND'">
-        <div class="errorbox__img">
+      <div class="infobox" *ngIf="errorType === 'NOT_FOUND'">
+        <div class="infobox__img">
           <img src="assets/icons/project-not-found.svg" alt="Project was not found" />
         </div>
-        <div class="errorbox__headline">Project was not found</div>
-        <div class="errorbox__subline">Please check URL or select another project</div>
+        <div class="infobox__headline">Project was not found</div>
+        <div class="infobox__subline">Please check URL or select another project</div>
       </div>
-      <div class="errorbox" *ngIf="errorType === 'NO_PROJECT_KEY'">
-        <div class="errorbox__img">
+      <div class="infobox" *ngIf="errorType === 'NO_PROJECT_KEY'">
+        <div class="infobox__img">
           <img src="assets/icons/project-empty.svg" alt="No project selected" />
         </div>
-        <div class="errorbox__headline">No project selected</div>
-        <div class="errorbox__subline">Select or create a project to see more detail</div>
+        <div class="infobox__headline">No project selected</div>
+        <div class="infobox__subline">Select or create a project to see more detail</div>
       </div>
-      <div class="errorbox" *ngIf="errorType === 'UNKNOWN'">
-        <div class="errorbox__img">
+      <div class="infobox" *ngIf="errorType === 'UNKNOWN'">
+        <div class="infobox__img">
           <img src="assets/icons/project-empty.svg" alt="General error" />
         </div>
-        <div class="errorbox__headline">General error</div>
-        <div class="errorbox__subline">Please try again soon</div>
+        <div class="infobox__headline">General error</div>
+        <div class="infobox__subline">Please try again soon</div>
       </div>
     </div>
   </ng-container>
