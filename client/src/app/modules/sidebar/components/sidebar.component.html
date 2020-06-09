@@ -66,12 +66,12 @@
     </div>
 
     <div class="empty-content" *ngIf="(filteredProjects | async).length === 0">
-      <div class="errorbox">
-        <div class="errorbox__img">
+      <div class="infobox">
+        <div class="infobox__img">
           <img src="assets/icons/search-empty.svg" alt="Sorry, no results found" />
         </div>
-        <div class="errorbox__headline">Sorry, no results found</div>
-        <div class="errorbox__subline">Try searching another keyword</div>
+        <div class="infobox__headline">Sorry, no results found</div>
+        <div class="infobox__subline">Try searching another keyword</div>
       </div>
     </div>
   </mat-card>

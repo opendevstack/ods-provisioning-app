@@ -1,9 +1,9 @@
-.errorbox {
+.infobox {
   color: $color-black-light;
   text-align: center;
 }
 
-.errorbox__img {
+.infobox__img {
   margin-bottom: 15px;
 
   img {
@@ -11,13 +11,13 @@
   }
 }
 
-.errorbox__headline {
+.infobox__headline {
   font-size: 1.75rem;
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-.errorbox__subline {
+.infobox__subline {
   font-size: 1.25rem;
   margin-bottom: 10px;
 }
