@@ -1,30 +1,8 @@
-@import '~bootstrap/scss/bootstrap-grid';
-
 :host {
   display: block;
   padding: 20px 30px;
 }
 
-.qs-table {
-  grid-template-columns: 30% auto min-content;
-  gap: 10px;
-
-  thead {
-    display: none;
-  }
-
-  td {
-    padding: 10px 0;
-    border-bottom: 0;
-  }
-}
-
-.quickstarter-row {
-  @include make-row();
-  border-top: 1px solid lightgray;
-  padding: 20px 0;
-
-  &:first-child {
-    border-top: 0;
-  }
+.qs-action {
+  display: flex;
 }

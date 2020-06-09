@@ -28,28 +28,6 @@ export class EditProjectValidators {
     };
   }
 
-  public static nameExistsInProjectQuickstarterComponentsValidator(
-    projectQuickstarters: ProjectQuickstarter[]
-  ): ValidatorFn {
-    return (control: FormControl): ValidationErrors | null => {
-      const found = projectQuickstarters.some(
-        (quickstarter: ProjectQuickstarter) => {
-          return quickstarter.ids.some(
-            (component: ProjectQuickstarterComponent) => {
-              return component.id === control.value;
-            }
-          );
-        }
-      );
-
-      return found
-        ? {
-            nameExistsInProjectQuickstarterComponents: true
-          }
-        : null;
-    };
-  }
-
   public static nameExistsInNewProjectQuickstarterComponentsValidator(
     form: FormGroup
   ): ValidatorFn {
@@ -57,28 +35,17 @@ export class EditProjectValidators {
       const newComponentsForm = form.get('newComponentsForm') as FormGroup;
       const newComponentFormUserInputs = newComponentsForm.controls
         .newComponent as FormArray;
-      const existingComponentsForm = form.get(
-        'existingComponentsForm'
-      ) as FormGroup;
-      const existingComponentsFormUserInputs = existingComponentsForm.controls
-        .newComponent as FormArray;
 
       if (
         control.value === '' ||
-        !Object.keys(newComponentsForm.controls).length ||
-        !Object.keys(existingComponentsForm.controls).length
+        !Object.keys(newComponentsForm.controls).length
       ) {
         return null;
       }
 
-      const found = [
-        ...newComponentFormUserInputs.controls.map(
-          (item: FormControl) => item.value.componentName
-        ),
-        ...existingComponentsFormUserInputs.controls.map(
-          (item: FormControl) => item.value.componentName
-        )
-      ].some(item => item === control.value);
+      const found = newComponentFormUserInputs.controls
+        .map((item: FormControl) => item.value.componentName)
+        .some(item => item === control.value);
 
       return found
         ? {
