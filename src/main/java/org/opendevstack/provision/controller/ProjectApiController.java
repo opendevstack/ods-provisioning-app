@@ -17,6 +17,7 @@ package org.opendevstack.provision.controller;
 import static java.lang.String.format;
 import static org.opendevstack.provision.controller.CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
@@ -75,6 +77,7 @@ public class ProjectApiController {
 
   public static final String CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS =
       "provision.add-project.check-preconditions";
+  public static final String PROJECT_TEMPLATE_KEYS = "project-template-keys";
 
   private static final String EMPTY_PROJECT_DESCRIPTION = "";
 
@@ -108,6 +111,8 @@ public class ProjectApiController {
 
   @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
   private boolean checkPreconditionsEnabled;
+
+  private String projectTemplateKeysAsJson;
 
   @Value("${adapters.confluence.enabled:true}")
   private boolean confluenceAdapterEnable;
@@ -664,8 +669,43 @@ public class ProjectApiController {
    */
   @PreAuthorizeAllRoles
   @RequestMapping(method = RequestMethod.GET, value = "/templates")
-  public ResponseEntity<List<String>> getProjectTemplateKeys() {
-    return ResponseEntity.ok(projectTemplateKeyNames);
+  public ResponseEntity<String> getProjectTemplateKeys(
+      @RequestHeader(value = "Accept", required = false) String acceptType) {
+    try {
+      if (null == acceptType
+          || MediaType.TEXT_PLAIN.isCompatibleWith(MediaType.parseMediaType(acceptType))) {
+        return ResponseEntity.ok(
+            ProjectTemplateType.createProjectTemplateKeysAsString(projectTemplateKeyNames));
+      } else if (MediaType.APPLICATION_JSON.isCompatibleWith(
+          MediaType.parseMediaType(acceptType))) {
+        String json = getProjectTemplateKeysAsJson();
+        return ResponseEntity.ok(json);
+      } else {
+        ObjectMapper mapper = new ObjectMapper();
+        String body =
+            mapper.writeValueAsString(Map.of("ERROR:", "Unsupported accept type: " + acceptType));
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(body);
+      }
+    } catch (JsonProcessingException e) {
+      logger.error(e.getMessage(), e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  private String getProjectTemplateKeysAsJson() throws JsonProcessingException {
+    if (projectTemplateKeysAsJson == null) {
+      projectTemplateKeysAsJson = createProjectTemplateKeysJson(projectTemplateKeyNames);
+    }
+    return projectTemplateKeysAsJson;
+  }
+
+  public static String createProjectTemplateKeysJson(List<String> projectTemplateKeys)
+      throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    List<ProjectTemplateType> list = ProjectTemplateType.createList(projectTemplateKeys);
+    Map<String, List<ProjectTemplateType>> map = new HashMap();
+    map.put(PROJECT_TEMPLATE_KEYS, list);
+    return mapper.writeValueAsString(map);
   }
 
   /**
