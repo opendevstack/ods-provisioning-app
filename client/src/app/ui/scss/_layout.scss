@@ -2,7 +2,9 @@ body {
   display: grid;
   grid-template-areas: 'header' 'main' 'footer';
   grid-template-rows: auto 1fr auto;
-  overflow: hidden;
+  @include media-breakpoint-up(lg) {
+    overflow: hidden;
+  }
   background: $color-white;
   font-size: 16px;
 }
@@ -41,31 +43,39 @@ header {
 
 .main {
   grid-area: main;
-  height: calc(100vh - #{$header-footer-offset});
   background: $color-white-light;
   padding: $main-container-padding;
+
+  @include media-breakpoint-up(lg) {
+    height: calc(100vh - #{$header-footer-offset});
+  }
 }
 
 app-root {
   @include make-row();
 
   .sidebar {
-    height: calc(
-      100vh - #{$header-footer-offset} - (#{$main-container-padding} * 2)
-    );
     @include make-col-ready();
-    @include media-breakpoint-up(md) {
+    display: block;
+
+    @include media-breakpoint-up(lg) {
       @include make-col(4);
+      height: calc(
+        100vh - #{$header-footer-offset} - (#{$main-container-padding} * 2)
+      );
     }
   }
 
   .content {
-    height: calc(100vh - #{$header-footer-offset} - #{$sidebar-header-height});
+    @include make-col-ready();
+    display: block;
     padding: 0 $space;
 
-    @include make-col-ready();
-    @include media-breakpoint-up(md) {
+    @include media-breakpoint-up(lg) {
       @include make-col(8);
+      height: calc(
+        100vh - #{$header-footer-offset} - #{$sidebar-header-height}
+      );
     }
   }
 }

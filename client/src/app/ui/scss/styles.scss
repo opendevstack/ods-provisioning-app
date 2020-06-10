@@ -1,5 +1,7 @@
 @import 'variables';
 @import 'mixins';
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
 @import '~bootstrap/scss/mixins/breakpoints';
 @import '~bootstrap/scss/bootstrap-grid';
 @import '~bootstrap/scss/bootstrap-reboot';
@@ -9,8 +11,10 @@
 @import 'theme/default';
 @import 'layout';
 @import 'forms';
+@import 'editmode';
 @import 'components/quickstarter-table';
 @import 'components/buttons';
 @import 'components/empty-content';
 @import 'components/infobox';
 @import 'components/project-key';
+@import 'components/page';

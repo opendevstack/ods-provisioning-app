@@ -1,16 +1,22 @@
 .page {
-  mat-card {
-    height: calc(
-      100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$main-container-padding} -
-        12px
-    ); // TODO calc number
+  @include media-breakpoint-up(lg) {
+    height: 100%;
+  }
 
+  mat-card {
     display: grid;
     grid-template-areas: 'page-header' 'page-content' 'page-footer';
     grid-template-rows: auto 1fr auto;
 
     padding: 0;
     margin-top: calc(#{$sidebar-header-height} - 10px); // TODO calc number
+
+    @include media-breakpoint-up(lg) {
+      height: calc(
+        100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$main-container-padding} -
+          12px
+      ); // TODO calc number
+    }
   }
 }
 

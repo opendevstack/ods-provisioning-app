@@ -1,6 +1,10 @@
 @import '../../../ui/scss/variables';
 @import '../../../ui/scss/mixins';
 
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/mixins/breakpoints';
+
 .project__name {
   margin-bottom: 10px;
 
@@ -10,11 +14,12 @@
 }
 
 .project__links {
+  display: flex;
+  justify-content: flex-end;
   flex-shrink: 0;
-  padding-left: 20px;
 
   ul {
-    display: inline-flex;
+    display: flex;
     margin-right: 20px;
   }
 }
@@ -22,7 +27,11 @@
 .project__description {
   font-size: 0.9rem;
   line-height: 1.2rem;
-  @include truncate(2, 1.2rem);
+  margin-bottom: 20px;
+  @include media-breakpoint-up(lg) {
+    @include truncate(2, 1.2rem);
+    margin-bottom: 0;
+  }
 }
 
 .quicklink__item {
