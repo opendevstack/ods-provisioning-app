@@ -3,7 +3,7 @@
     <hr *ngIf="i > 0" />
     <div class="row" >
       <ng-container formGroupName="{{ i }}">
-        <div class="col">
+        <div class="col-12 col-lg">
           <div class="qs-id">
             <mat-form-field>
               <mat-label>Quickstarter</mat-label>
@@ -21,7 +21,7 @@
             </mat-error>
           </div>
         </div>
-        <div class="col">
+        <div class="col-12 col-lg">
           <div class="qs-component">
             <mat-form-field class="formfield__input">
               <mat-label>New component ID</mat-label>
@@ -67,7 +67,7 @@
             </ng-template>
           </div>
         </div>
-        <div class="col flex-grow-0">
+        <div class="col-12 col-lg flex-lg-grow-0">
           <div class="qs-action">
             <a
               mat-icon-button

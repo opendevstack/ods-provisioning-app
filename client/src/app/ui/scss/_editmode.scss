@@ -1,0 +1,18 @@
+.status-editmode-active {
+  @include media-breakpoint-down(lg) {
+    .sidebar {
+      display: none;
+    }
+    .page {
+      mat-card {
+        margin-top: 0;
+      }
+    }
+  }
+
+  @include media-breakpoint-up(lg) {
+    .sidebar {
+      display: block;
+    }
+  }
+}
