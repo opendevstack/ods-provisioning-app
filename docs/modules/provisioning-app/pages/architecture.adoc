@@ -81,6 +81,12 @@ The base configuration map as well as the deployment yamls can be found in https
 http://localhost:8080
 ```
 
+== How to deploy to OpenShift
+
+In order to test your changes in a real environment, you should deploy the provisioning app in OpenShift. To do so, you need to have an existing OpeDevStack project (consisting of `-dev`, `-test` and `-cd` namespaces). If you don't have one yet, you can xref:provisioning-app:index.adoc#_basic_idea_usage[create one via the provisioning app in the central namespace].
+
+Now you can make use of the https://github.com/opendevstack/ods-quickstarters/tree/master/ods-provisioning-app[ods-provisioning-app quickstarter] in order to set up the Bitbucket repository in your Bitbucket space. The easiest way to provision that quickstarter is via https://github.com/BIX-Digital/ods-contrib/tree/master/quickstart-with-jenkins. Once you have provisioned the quickstarter, the first deployment of the prov app will run, but fail since you need to create the OpenShift resources manually. This step cannot be automated during the quickstart process at the moment as you need to supply configuration manually. Once the resources have been created, subsequent runs of the Jenkins pipeline should succeed and deploy the prov app in your own ODS project.
+
 == Frontend Code
 
 The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
