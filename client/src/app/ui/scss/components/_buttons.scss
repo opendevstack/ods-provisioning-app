@@ -6,7 +6,6 @@ button:focus {
 .button-group {
   display: flex;
   justify-content: flex-end;
-  text-transform: uppercase;
 
   > button:not(:first-child) {
     margin-left: 20px;
@@ -15,7 +14,7 @@ button:focus {
 
 .mini-icon-button {
   &.mat-stroked-button {
-    border-color: $color-blue !important; // TODO remove important and apply material design
+    border-color: var(--accent-color) !important; // TODO remove brutal override here
     line-height: 1;
     padding: 5px 15px;
   }

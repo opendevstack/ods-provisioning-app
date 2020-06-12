@@ -1,7 +1,7 @@
 <div class="dialog">
   <div class="dialog-header">
     <h1 mat-dialog-title>{{ confirmationConfig.text.title }}</h1>
-    <a mat-icon-button color="primary" title="Cancel" mat-dialog-close>
+    <a mat-icon-button color="accent" title="Cancel" mat-dialog-close>
       <mat-icon svgIcon="close" aria-hidden="false" aria-label="Cancel"></mat-icon>
     </a>
   </div>
@@ -24,7 +24,7 @@
     </ng-container>
   </div>
   <div class="button-group">
-    <button mat-raised-button mat-dialog-close>Cancel</button>
+    <button mat-button mat-dialog-close>Cancel</button>
     <button mat-raised-button color="warn" [mat-dialog-close]="true" [disabled]="confirmationConfig.verify && !form.get('verify').valid">
       {{ confirmationConfig.text.ctaButtonLabel }}
     </button>

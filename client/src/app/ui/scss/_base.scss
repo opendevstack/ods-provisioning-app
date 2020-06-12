@@ -11,10 +11,19 @@ ul {
 }
 
 hr {
-  border-top: 1px solid $color-gray;
+  border-top: 1px solid var(--primary-lighter-color);
   margin: 10px 0 20px 0;
 }
 
-mat-card {
-  padding: 0 !important; // TODO find a better way to manipulate mat ui styles
+a {
+  &,
+  &:hover,
+  &:focus,
+  &:active,
+  &:visited {
+    color: var(--accent-darker-color);
+  }
+  &:hover {
+    color: var(--text-color);
+  }
 }

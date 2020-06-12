@@ -5,7 +5,7 @@
       <ng-container formGroupName="{{ i }}">
         <div class="col-12 col-lg">
           <div class="qs-id">
-            <mat-form-field>
+            <mat-form-field class="formfield__input">
               <mat-label>Quickstarter</mat-label>
               <select matNativeControl required formControlName="quickstarterType">
                 <option value="">Select quickstarter</option>
@@ -71,7 +71,7 @@
           <div class="qs-action">
             <a
               mat-icon-button
-              color="primary"
+              color="accent"
               title="Add quickstarter"
               (click)="removeInput(i)"
               [disabled]="!removeAllowed()">
@@ -79,7 +79,7 @@
             </a>
             <a
               mat-icon-button
-              color="primary"
+              color="accent"
               title="Remove quickstarter"
               [disabled]="!newComponentArray.valid"
               (click)="addInput()">

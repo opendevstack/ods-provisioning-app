@@ -12,19 +12,19 @@
       <span>Projects</span> ({{ (filteredProjects | async).length }})
     </div>
     <div class="sidebar__header--action">
-      <a
+      <button
         mat-stroked-button
-        color="primary"
+        color="accent"
         routerLink="/new"
         class="mini-icon-button mat-elevation-z0"
         data-test-new-project-btn>
         <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Create new project'"></mat-icon>
         <span>New</span>
-      </a>
+      </button>
     </div>
   </div>
 
-  <mat-card>
+  <div class="box">
     <div class="searchbar">
       <mat-form-field class="searchbar__input">
         <input
@@ -74,5 +74,5 @@
         <div class="infobox__subline">Try searching another keyword</div>
       </div>
     </div>
-  </mat-card>
+  </div>
 </ng-container>

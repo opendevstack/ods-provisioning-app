@@ -5,7 +5,6 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../../app-form/app-form.module';
@@ -23,7 +22,6 @@ describe('SidebarComponent', () => {
       ReactiveFormsModule,
       FormsModule,
       AppFormModule,
-      MatCardModule,
       LoadingIndicatorModule,
       MatListModule,
       MatFormFieldModule,

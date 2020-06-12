@@ -1,5 +1,8 @@
-@import 'variables';
+@import '~@angular/material/theming';
+@import 'theme/default';
+
 @import 'mixins';
+
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
 @import '~bootstrap/scss/mixins/breakpoints';
@@ -8,10 +11,10 @@
 @import '~bootstrap/scss/utilities';
 
 @import 'base';
-@import 'theme/default';
 @import 'layout';
 @import 'forms';
 @import 'editmode';
+
 @import 'components/quickstarter-table';
 @import 'components/buttons';
 @import 'components/empty-content';

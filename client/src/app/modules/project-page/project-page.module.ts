@@ -6,7 +6,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
 import { API_ALL_QUICKSTARTERS_URL } from '../../tokens';
-import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -42,7 +41,6 @@ import { ConfirmationModule } from '../confirmation/confirmation.module';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCardModule,
     MatTooltipModule,
     MatButtonModule,
     ClipboardModule,

@@ -3,7 +3,7 @@
 
 @mixin overlay() {
   opacity: 1;
-  transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: opacity 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &:after {
     content: '';
@@ -19,7 +19,7 @@
 
   .status-editmode-active & {
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.25;
   }
 }
 

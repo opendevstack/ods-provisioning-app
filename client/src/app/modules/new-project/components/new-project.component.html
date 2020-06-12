@@ -19,13 +19,13 @@
     <div class="page__notifications"></div>
 
     <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()" id="form">
-      <mat-card>
+      <div class="box">
         <div class="page__header">
           <h3 class="mat-h3">Create new project</h3>
           <div class="editmode-button">
             <a
               mat-icon-button
-              color="primary"
+              color="accent"
               title="Cancel"
               (click)="leavePage()"
               data-test-close-create-project-btn>
@@ -193,11 +193,11 @@
         </div>
         <div class="page__footer">
           <div class="button-group">
-            <button mat-raised-button (click)="leavePage()">Cancel</button>
-            <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Create new project</button>
+            <button mat-button (click)="leavePage()">Cancel</button>
+            <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Create new project</button>
           </div>
         </div>
-      </mat-card>
+      </div>
     </form>
   </ng-container>
 </div>
