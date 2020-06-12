@@ -103,6 +103,8 @@ public class ProjectApiControllerTest {
     initOpenProjectData();
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
 
+    apiController.setCheckPreconditionsEnabled(true);
+
     // Reset status of api controller for each test
     apiController.setConfluenceAdapterEnable(true);
   }
