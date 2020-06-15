@@ -99,6 +99,8 @@ public class ProjectApiControllerTest {
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     initOpenProjectData();
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
+
+    apiController.setCheckPreconditionsEnabled(true);
   }
 
   private void initOpenProjectData() {

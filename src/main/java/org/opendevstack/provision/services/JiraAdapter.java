@@ -81,6 +81,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   private static final String QUERY_PARAM = "query";
 
   private static final String USER_KEY = "key";
+  private static final String USER_NAME = "name";
   private static final String USER_EMAIL_ADDRESS = "emailAddress";
 
   @Value("${jira.api.path}")
@@ -811,6 +812,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       BiPredicate<String, String> findAndCompare = createFindPathAndCompare(json);
 
       return findAndCompare.test(USER_KEY, username)
+          || findAndCompare.test(USER_NAME, username)
           || findAndCompare.test(USER_EMAIL_ADDRESS, username);
 
     } catch (IOException e) {

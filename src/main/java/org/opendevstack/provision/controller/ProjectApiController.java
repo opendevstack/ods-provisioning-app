@@ -287,11 +287,12 @@ public class ProjectApiController {
   private List<String> checkPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
-    if (!checkPreconditionsEnabled) {
+    if (!isCheckPreconditionsEnabled()) {
       logger.info(
           "Skipping check preconditions! Check preconditions is disabled [{}={}]",
           CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS,
           checkPreconditionsEnabled);
+      return new ArrayList<>();
     }
 
     List<String> results = new ArrayList<>();
@@ -311,6 +312,10 @@ public class ProjectApiController {
     }
 
     return Collections.unmodifiableList(results);
+  }
+
+  private boolean checkPreconditionsEnabled() {
+    return checkPreconditionsEnabled;
   }
 
   /**
@@ -828,5 +833,13 @@ public class ProjectApiController {
 
   public IStorage getDirectStorage() {
     return directStorage;
+  }
+
+  public boolean isCheckPreconditionsEnabled() {
+    return checkPreconditionsEnabled;
+  }
+
+  public void setCheckPreconditionsEnabled(boolean checkPreconditionsEnabled) {
+    this.checkPreconditionsEnabled = checkPreconditionsEnabled;
   }
 }
