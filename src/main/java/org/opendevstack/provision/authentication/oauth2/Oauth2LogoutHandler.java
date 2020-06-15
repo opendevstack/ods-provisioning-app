@@ -21,7 +21,7 @@ public class Oauth2LogoutHandler implements LogoutHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(Oauth2LogoutHandler.class);
 
-  public static final String LOGOUT_PATH = Oauth2SecurityConfiguration.LOGIN_PATH + "?logout";
+  public static final String LOGOUT_PATH = Oauth2SecurityConfiguration.LOGIN_URI + "?logout";
 
   @Value("${idmanager.url}")
   private String idManagerUrl;

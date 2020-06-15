@@ -40,12 +40,10 @@ import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipMan
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -82,8 +80,6 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
-
-  @Autowired private ApplicationContext context;
 
   /**
    * Configure the security for the spring application
@@ -251,7 +247,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
    * @return
    * @throws IOException
    */
-  @Bean(name = "provisioningAppAuthenticationManager")
+  @Bean
   public AuthenticationManager crowdAuthenticationManager() throws IOException {
     return new CrowdAuthenticationManager(securityServerClient());
   }

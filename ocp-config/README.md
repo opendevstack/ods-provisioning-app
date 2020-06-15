@@ -1,23 +1,11 @@
 # OCP Configuration
 
-There are two parts to OCP config: the CD environment (`prov-cd`) and the app
-environments (`prov-dev` and `prov-test`).
+This directory contains the necessary resources to bootstrap the provisioning application in an existing openshift namespace.
+From ODS version 3 the provision app will run after the default installation in the `ods` namespace.
 
-To apply the OCP config for `prov-cd`:
-```
-cd prov-cd
-tailor update
-```
+To create the provisioning app in an existing `foo` namespace, copy the existing `ods-provisioning-app.env.sample` to a new file `ods-provisioning-app.env`.
+After adapting the example values you can apply the configuration via:
 
-To apply the OCP config for `prov-dev`:
 ```
-cd prov-app
-tailor update -f Tailorfile.dev
+tailor update -n foo
 ```
-
-To apply the OCP config for `prov-test`:
-```
-cd prov-app
-tailor update -f Tailorfile.test
-```
-

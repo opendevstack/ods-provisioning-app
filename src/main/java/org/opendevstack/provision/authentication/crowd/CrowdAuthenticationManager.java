@@ -28,8 +28,6 @@ import com.atlassian.crowd.service.AuthenticationManager;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import com.google.common.base.Preconditions;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -48,7 +45,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Torsten Jaeschke
  */
-@Component("provisioningAppAuthenticationManager")
+@Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
@@ -70,19 +67,6 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   /** @see IODSAuthnzAdapter#getToken() */
   public String getToken() {
     return userPassword.getToken();
-  }
-
-  /** @see IODSAuthnzAdapter#getAuthorities() */
-  public Collection<GrantedAuthority> getAuthorities() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-    if (auth == null) {
-      return new ArrayList<>();
-    }
-
-    CrowdUserDetails userDetails = (CrowdUserDetails) auth.getPrincipal();
-
-    return userDetails.getAuthorities();
   }
 
   /** @see IODSAuthnzAdapter#getUserEmail() () */

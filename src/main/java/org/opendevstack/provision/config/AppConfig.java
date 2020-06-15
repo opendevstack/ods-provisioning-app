@@ -33,7 +33,7 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 public class AppConfig {
 
   @Value("${project.template.key.names:default}")
-  String[] projectTemplateKeyNames;
+  private String[] projectTemplateKeyNames;
 
   @Bean
   public SpringTemplateEngine templateEngine(ITemplateResolver templateResolver) {
@@ -43,7 +43,7 @@ public class AppConfig {
     return templateEngine;
   }
 
-  @Bean(name = "projectKeys")
+  @Bean(name = "projectTemplateKeyNames")
   public List<String> globalProjectKeys() {
     return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));
   }

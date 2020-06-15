@@ -67,6 +67,7 @@ import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -109,7 +110,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   @Autowired private Environment env;
 
-  @Autowired private List<String> projectTemplateKeyNames;
+  @Autowired
+  @Qualifier("projectTemplateKeyNames")
+  private List<String> projectTemplateKeyNames;
 
   @Before
   public void initTests() {
@@ -509,6 +512,12 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     // Case no error, user exists!
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<String> newResult = checkUser.apply(result);
+    Assert.assertEquals(0, newResult.size());
+
+    // Case no error, username in json response is different than key but equals to emailAddress,
+    // user exists!
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    newResult = spyAdapter.createProjectAdminUserExistsCheck(user + "@domain.com").apply(result);
     Assert.assertEquals(0, newResult.size());
 
     // Case error, user does not exists!

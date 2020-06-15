@@ -1,7 +1,21 @@
+/*
+ * Copyright 2017-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package org.opendevstack.provision.services;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import java.util.List;
 import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
@@ -12,6 +26,7 @@ import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 
 public class BaseServiceAdapter {
@@ -29,6 +44,10 @@ public class BaseServiceAdapter {
 
   @Autowired private RestClient restClient;
 
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
+
   public BaseServiceAdapter(String configurationPrefix) {
     this.configurationPrefix = configurationPrefix;
   }
@@ -41,16 +60,16 @@ public class BaseServiceAdapter {
     String propertyAdminUserKey = configurationPrefix + ".admin_user";
     String propertyAdminUserPasswordKey = configurationPrefix + ".admin_password";
 
-    this.userName = environment.getProperty(propertyAdminUserKey);
-    this.userPassword = environment.getProperty(propertyAdminUserPasswordKey);
+    userName = environment.getProperty(propertyAdminUserKey);
+    userPassword = environment.getProperty(propertyAdminUserPasswordKey);
 
-    this.useTechnicalUser = !isEmpty(userName) && !isEmpty(userPassword);
+    useTechnicalUser = !isEmpty(userName) && !isEmpty(userPassword);
     if (useTechnicalUser) {
       LOG.info(
           "{} basic authentication via technical user is configured via property '{}'={}",
           logPrefix,
           propertyAdminUserKey,
-          this.userName);
+          userName);
     } else {
       String reason =
           "property "
