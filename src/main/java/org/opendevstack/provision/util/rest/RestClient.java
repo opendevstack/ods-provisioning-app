@@ -6,7 +6,9 @@ import javax.annotation.PostConstruct;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.Buffer;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +38,24 @@ public class RestClient {
     if (call.getRequest() == null) {
       call.prepareRequest();
     }
+
     try {
       if (call.isPreAuthenticated()) {
         LOG.info("prepare preauthenticated call");
         Request preAuthRequest = call.getPreauthRequest();
         sendPreAuthRequest(preAuthRequest);
       }
+
       Request request = call.getRequest();
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "method={}, url={} , body={}",
+            request.method(),
+            request.url(),
+            request.body() != null ? bodyToString(request.body()) : "");
+      }
+
       try (Response callResponse = this.client.newCall(request).execute()) {
         String responseBody = callResponse.body().string();
         if (callResponse.code() < 200 || callResponse.code() >= 300) {
@@ -109,5 +122,19 @@ public class RestClient {
 
   public void setReadTimeout(int readTimeout) {
     this.readTimeout = readTimeout;
+  }
+
+  public static String bodyToString(final RequestBody body) {
+    try {
+      if (null == body) {
+        return null;
+      }
+
+      final Buffer buffer = new Buffer();
+      body.writeTo(buffer);
+      return buffer.readUtf8();
+    } catch (final IOException e) {
+      return "did not work";
+    }
   }
 }
