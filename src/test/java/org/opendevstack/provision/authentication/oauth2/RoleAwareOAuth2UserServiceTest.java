@@ -1,6 +1,6 @@
 package org.opendevstack.provision.authentication.oauth2;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,6 +105,34 @@ public class RoleAwareOAuth2UserServiceTest {
 
     List<String> roles = RoleAwareOAuth2UserService.extractRoles(jwt, "/doesnotexists", false);
     Assert.assertNotNull(roles);
+  }
+
+  @Test
+  public void extractOnlyOpendevstackRoles() {
+
+    String roleA = "A";
+    String roleB = "B";
+    String roleC = "C";
+
+    List<String> allRoles = List.of(roleA, roleB, roleC);
+
+    List<String> extracted =
+        RoleAwareOAuth2UserService.extractOnlyOpendevstackRoles(allRoles, List.of(roleB));
+
+    assertEquals(1, extracted.size());
+    assertTrue(extracted.contains(roleB));
+
+    try {
+      RoleAwareOAuth2UserService.extractOnlyOpendevstackRoles(null, List.of(roleB));
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("roles"));
+    }
+
+    try {
+      RoleAwareOAuth2UserService.extractOnlyOpendevstackRoles(allRoles, null);
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("opendevstackRoles"));
+    }
   }
 
   public class Token {

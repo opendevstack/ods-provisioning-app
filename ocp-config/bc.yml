@@ -15,7 +15,7 @@ objects:
     output:
       imageLabels:
       - name: "ods.application.name"
-        value: "Provisioning application"    
+        value: "Provisioning application"
       to:
         kind: ImageStreamTag
         name: prov-app:${ODS_IMAGE_TAG}

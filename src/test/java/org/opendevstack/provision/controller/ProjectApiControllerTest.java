@@ -14,8 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
@@ -103,6 +102,11 @@ public class ProjectApiControllerTest {
     mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     initOpenProjectData();
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
+
+    apiController.setCheckPreconditionsEnabled(true);
+
+    // Reset status of api controller for each test
+    apiController.setConfluenceAdapterEnable(true);
   }
 
   private void initOpenProjectData() {
@@ -168,46 +172,60 @@ public class ProjectApiControllerTest {
 
   @Test
   public void addProjectWithOC() throws Exception {
-    data.platformRuntime = true;
-    data.quickstarters = null;
 
-    OpenProjectData bugTrackProject = copyFromProject(data);
-    String bugtrackerUrl = "bugtracker";
-    bugTrackProject.bugtrackerUrl = bugtrackerUrl;
-    String collaborationSpaceURL = "collspace";
-    bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
+    List.of(true, false)
+        .forEach(
+            confluenceAdapterEnabled -> {
+              try {
+                apiController.setConfluenceAdapterEnable(confluenceAdapterEnabled);
 
-    when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(bugTrackProject);
-    when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
-        .thenReturn(collaborationSpaceURL);
+                data.platformRuntime = true;
+                data.quickstarters = null;
 
-    OpenProjectData projectSCM = copyFromProject(bugTrackProject);
+                OpenProjectData bugTrackProject = copyFromProject(data);
+                String bugtrackerUrl = "bugtracker";
+                bugTrackProject.bugtrackerUrl = bugtrackerUrl;
+                String collaborationSpaceURL = "collspace";
+                bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
-    projectSCM.scmvcsUrl = "scmspace";
+                when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
+                    .thenReturn(bugTrackProject);
+                when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
+                    .thenReturn(collaborationSpaceURL);
 
-    Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
+                OpenProjectData projectSCM = copyFromProject(bugTrackProject);
 
-    when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
-        .thenReturn(projectSCM.scmvcsUrl);
-    when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
-    when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
-        .thenReturn(repos);
-    when(jenkinsPipelineAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
-    Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
-    when(storage.storeProject(data)).thenReturn("created");
+                projectSCM.scmvcsUrl = "scmspace";
 
-    Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
+                Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
 
-    mockMvc
-        .perform(
-            post("/api/v2/project")
-                .content(asJsonString(data))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk())
-        .andDo(MockMvcResultHandlers.print());
+                when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
+                    .thenReturn(projectSCM.scmvcsUrl);
+                when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
+                    .thenReturn(repos);
+                when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(
+                        isNotNull(), isNotNull()))
+                    .thenReturn(repos);
+                when(jenkinsPipelineAdapter.createPlatformProjects(isNotNull())).thenReturn(data);
+                Mockito.doNothing().when(mailAdapter).notifyUsersAboutProject(data);
+                when(storage.storeProject(data)).thenReturn("created");
 
-    verifyAddProjectAdapterCalls(times(1));
+                Mockito.doNothing().when(idm).validateIdSettingsOfProject(data);
+
+                mockMvc
+                    .perform(
+                        post("/api/v2/project")
+                            .content(asJsonString(data))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andDo(MockMvcResultHandlers.print());
+
+                verifyAddProjectAdapterCalls(times(1), times(confluenceAdapterEnabled ? 1 : 0));
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            });
   }
 
   @Test
@@ -274,6 +292,11 @@ public class ProjectApiControllerTest {
 
   public void verifyAddProjectAdapterCalls(VerificationMode times)
       throws IOException, CreateProjectPreconditionException {
+    verifyAddProjectAdapterCalls(times, times);
+  }
+
+  public void verifyAddProjectAdapterCalls(VerificationMode times, VerificationMode confluenceTimes)
+      throws IOException, CreateProjectPreconditionException {
     Mockito.verify(jenkinsPipelineAdapter, times).createPlatformProjects(isNotNull());
     // check preconditions should be always called
     Mockito.verify(bitbucketAdapter, times(1)).checkCreateProjectPreconditions(isNotNull());
@@ -282,6 +305,9 @@ public class ProjectApiControllerTest {
     // jira components
     Mockito.verify(jiraAdapter, times)
         .createComponentsForProjectRepositories(isNotNull(), isNotNull());
+
+    Mockito.clearInvocations(
+        jiraAdapter, confluenceAdapter, bitbucketAdapter, jenkinsPipelineAdapter);
   }
 
   @Test
@@ -635,12 +661,34 @@ public class ProjectApiControllerTest {
     consumer.accept(
         MediaType.APPLICATION_JSON,
         ProjectApiController.createProjectTemplateKeysJson(projectTemplateKeyNames));
+
+    consumer =
+        (mediaType, responseBody) -> {
+          try {
+            mockMvc
+                .perform(get("/api/v2/project/templates").accept(mediaType))
+                .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType())
+                .andExpect(
+                    MockMvcResultMatchers.content()
+                        .string(CoreMatchers.containsString(responseBody)))
+                .andDo(MockMvcResultHandlers.print());
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        };
+
+    ObjectMapper mapper = new ObjectMapper();
+    String body =
+        mapper.writeValueAsString(
+            Map.of("ERROR:", "Unsupported accept type: " + MediaType.APPLICATION_OCTET_STREAM));
+
+    consumer.accept(MediaType.APPLICATION_OCTET_STREAM, body);
   }
 
   @Test
   public void getProjectTypeTemplatesForKey() throws Exception {
     apiController.jiraAdapter = realJiraAdapter;
-    apiController.confluenceAdapter = realConfluenceAdapter;
+    apiController.setConfluenceAdapter(realConfluenceAdapter);
 
     mockMvc
         .perform(get("/api/v2/project/template/default").accept(MediaType.APPLICATION_JSON))
@@ -874,7 +922,7 @@ public class ProjectApiControllerTest {
         "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
 
     OpenProjectData dataReturn = this.copyFromProject(data);
-    apiController.shortenDescription(dataReturn);
+    dataReturn.description = ProjectApiController.createShortenedDescription(dataReturn);
 
     dataReturn.bugtrackerUrl = "bugtracker";
 
@@ -902,15 +950,21 @@ public class ProjectApiControllerTest {
                 .string(CoreMatchers.containsString(dataReturn.description + "\"")));
 
     // test with null
-    apiController.shortenDescription(null);
+    try {
+      ProjectApiController.createShortenedDescription(null);
+      fail();
+    } catch (IllegalArgumentException iae) {
+      assertTrue(iae.getMessage().contains("project"));
+    }
 
     // test with content
-    apiController.shortenDescription(data);
-    assertEquals(dataReturn.description, data.description);
+    String description = ProjectApiController.createShortenedDescription(data);
+    assertEquals(dataReturn.description, description);
 
     // test with null description
     data.description = null;
-    apiController.shortenDescription(data);
+    description = ProjectApiController.createShortenedDescription(data);
+    assertEquals(data.description, description);
   }
 
   public static String asJsonString(final Object obj) {

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
@@ -33,6 +34,7 @@ import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
@@ -79,6 +81,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   private static final String USERNAME_PARAM = "username";
   private static final String QUERY_PARAM = "query";
 
+  private static final String USER_KEY = "key";
+  private static final String USER_NAME = "name";
+  private static final String USER_EMAIL_ADDRESS = "emailAddress";
+
   @Value("${jira.api.path}")
   private String jiraApiPath;
 
@@ -113,7 +119,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   @Autowired private ConfigurableEnvironment environment;
 
-  @Autowired private List<String> projectTemplateKeyNames;
+  @Qualifier("projectTemplateKeyNames")
+  @Autowired
+  private List<String> projectTemplateKeyNames;
 
   public JiraAdapter() {
     super(ADAPTER_NAME);
@@ -320,7 +328,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     Shortcut shortcutConfluence = new Shortcut();
     shortcutConfluence.setId("" + id++);
     shortcutConfluence.setName("Confluence: " + data.projectKey);
-    shortcutConfluence.setUrl(data.bugtrackerUrl);
+    shortcutConfluence.setUrl(data.collaborationSpaceUrl);
     shortcutConfluence.setIcon("");
     shortcuts.add(shortcutConfluence);
 
@@ -448,7 +456,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     if (!(project.specialPermissionSet && isSpecialPermissionSchemeEnabled())
         || project.projectAdminUser == null
         || project.projectAdminUser.trim().length() == 0) {
-      return manager.getUserName();
+      return getUserName();
     } else {
       return project.projectAdminUser;
     }
@@ -734,7 +742,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       if (!checkUserExists(user)) {
         preconditionFailures.add(
-            String.format("User '%s' does not exists in {}!", user, ADAPTER_NAME));
+            String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME));
       }
 
       return preconditionFailures;
@@ -804,17 +812,22 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       JsonNode json = new ObjectMapper().readTree(response);
 
-      return containsUser(json, username);
+      BiPredicate<String, String> findAndCompare = createFindPathAndCompare(json);
+
+      return findAndCompare.test(USER_KEY, username)
+          || findAndCompare.test(USER_NAME, username)
+          || findAndCompare.test(USER_EMAIL_ADDRESS, username);
 
     } catch (IOException e) {
       throw new AdapterException(e);
     }
   }
 
-  public boolean containsUser(JsonNode json, String username) {
-
-    JsonNode key = json.get("key");
-    return key != null && key.asText().equals(username);
+  public static BiPredicate<String, String> createFindPathAndCompare(JsonNode json) {
+    return (path, value) -> {
+      JsonNode key = json.findPath(path);
+      return key != null && key.asText().equals(value);
+    };
   }
 
   public String getJiraNotificationSchemeId() {

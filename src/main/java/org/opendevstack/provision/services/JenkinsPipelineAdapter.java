@@ -18,7 +18,6 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -65,8 +64,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
 
-  @Value("${openshift.jenkins.webhookproxy.name.pattern}")
-  protected String projectOpenshiftJenkinsWebhookProxyNamePattern;
+  @Value("${openshift.jenkins.admin.webhookproxy.host}")
+  protected String adminWebhookProxyHost;
+
+  @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
+  protected String projectWebhookProxyHostPattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
   private String projectOpenshiftJenkinsTriggerSecret;
@@ -271,9 +273,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
-      options.put(
-          OPTION_KEY_GIT_SERVER_URL,
-          JenkinsPipelineAdapter.extractHostAndPortFromURL(new URL(bitbucketUri)));
+      options.put(OPTION_KEY_GIT_SERVER_URL, bitbucketUri);
 
       ExecutionsData data =
           prepareAndExecuteJob(
@@ -366,7 +366,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       executionsData.setPermalink(href);
       return executionsData;
     } catch (IOException ex) {
-      logger.error("Error starting job {} - details:", jobNameOrId, ex);
+      String url = null != execution.url ? execution.url : "null'";
+      logger.error("Error starting job {} for url '{}' - details:", jobNameOrId, url, ex);
       throw ex;
     }
   }
@@ -382,11 +383,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     if (jenkinsPipelineProperties.isAdminjob(job.getId())) {
 
       boolean deleteComponentJob = jenkinsPipelineProperties.isDeleteComponentJob(job.getId());
-      String webhookProxyHost =
-          String.format(
-              projectOpenshiftJenkinsWebhookProxyNamePattern,
-              deleteComponentJob ? projID : "prov",
-              projectOpenshiftBaseDomain);
+      String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
       String url =
           buildExecutionUrlAdminJob(
               job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
@@ -396,9 +393,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       execution.project = bitbucketOdsProject;
 
     } else {
-      String webhookProxyHost =
-          String.format(
-              projectOpenshiftJenkinsWebhookProxyNamePattern, projID, projectOpenshiftBaseDomain);
+      String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
 
       execution.url =
           JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
@@ -414,6 +409,16 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     logger.info("Execution url={}", execution.url);
 
     return execution;
+  }
+
+  private String computeWebhookProxyHost(String jobId, String projID) {
+    if (jenkinsPipelineProperties.isDeleteComponentJob(jobId)) {
+      return String.format(projectWebhookProxyHostPattern, projID, projectOpenshiftBaseDomain);
+    } else if (jenkinsPipelineProperties.isAdminjob(jobId)) {
+      return adminWebhookProxyHost + projectOpenshiftBaseDomain;
+    } else {
+      return String.format(projectWebhookProxyHostPattern, projID, projectOpenshiftBaseDomain);
+    }
   }
 
   private static String buildExecutionBaseUrl(
@@ -565,15 +570,5 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
     throw new UnsupportedOperationException("not implemented yet!");
-  }
-
-  public static String extractHostAndPortFromURL(URL url) {
-    String host = url.getHost();
-    int port = url.getPort();
-    if (port != -1) {
-      return String.format("%s:%s", host, port);
-    } else {
-      return host;
-    }
   }
 }

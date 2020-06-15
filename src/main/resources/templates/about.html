@@ -13,7 +13,7 @@
 <div class="container">
   <h1>About</h1>
   <p>
-   Logged user: <span sec:authentication="name"/><br />
+   Logged user: <span th:text="${username}"/><br />
 	 Roles: <span sec:authentication="principal.authorities"/><br/>
 	 Email: <span th:text="${email}"></span><br/>
 	 UserGroup: <span th:text="${idmanagerUserGroup}"></span><br/>

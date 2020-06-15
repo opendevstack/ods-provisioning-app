@@ -1,4 +1,1 @@
 * xref:provisioning-app:index.adoc[Provisioning App]
-** xref:provisioning-app:configuration.adoc[Configuration Guide]
-** xref:provisioning-app:architecture.adoc[Internal Architecture]
-** xref:provisioning-app:faq.adoc[FAQ]

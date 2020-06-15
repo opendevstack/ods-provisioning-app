@@ -81,7 +81,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${openshift.apps.basedomain}")
   private String projectOpenshiftBaseDomain;
 
-  @Value("${openshift.jenkins.webhookproxy.name.pattern}")
+  @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
   private String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
@@ -101,6 +101,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
   private boolean grantRepositoryWriteToAllOpenDevStackUsers;
+
+  @Value("${openshift.jenkins.project.webhookproxy.events}")
+  private List<String> webhookEvents;
 
   @Autowired private ScmGlobalProperties scmGlobalProperties;
 
@@ -150,6 +153,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             .map(qs -> qs.getName())
             .collect(Collectors.toSet());
     logger.info("noWebhookComponents={}", noWebhookComponents);
+    logger.info("readablerepos={}", scmGlobalProperties.getReadableRepos());
   }
 
   public String createSCMProjectForODSProject(OpenProjectData project) throws IOException {
@@ -507,11 +511,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     webhook.setName("Jenkins");
     webhook.setActive(true);
     webhook.setUrl(webhookProxyUrl);
-    List<String> events = new ArrayList<>();
-    events.add("repo:refs_changed");
-    events.add("pr:merged");
-    events.add("pr:declined");
-    webhook.setEvents(events);
+    webhook.setEvents(webhookEvents);
 
     // projects/CLE200/repos/cle200-be-node-express/webhooks
     String url =

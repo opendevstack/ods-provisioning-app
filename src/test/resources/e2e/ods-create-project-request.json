@@ -1,13 +1,13 @@
 {
-	"projectName": "TestProject",
-	"description": "Environment to learn Openshift and Bitbucket.",
-	"projectKey": "TestP",
-	"bugtrackerSpace": true,
-	"platformRuntime": true,
-	"projectAdminGroup": "BI-AS-ATLASSIAN-P-TestP-MANAGER",
-	"projectUserGroup": "BI-AS-ATLASSIAN-P-TestP-TEAM",
-	"projectAdminUser": "clemens",
-	"projectReadonlyGroup": "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
-	"specialPermissionSet": false,
-	"projectType": "default"
+  "projectName": "TestProject",
+  "description": "Environment to learn Openshift and Bitbucket.",
+  "projectKey": "TestP",
+  "bugtrackerSpace": true,
+  "platformRuntime": true,
+  "projectAdminGroup": "BI-AS-ATLASSIAN-P-TestP-MANAGER",
+  "projectUserGroup": "BI-AS-ATLASSIAN-P-TestP-TEAM",
+  "projectAdminUser": "admin",
+  "projectReadonlyGroup": "BI-AS-ATLASSIAN-P-TestP-STAKEHOLDER",
+  "specialPermissionSet": false,
+  "projectType": "default"
 }

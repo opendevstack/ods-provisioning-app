@@ -1,11 +1,96 @@
 :toc: macro
 
-= Configuration Guide
+= Provisioning App: Configuration Guide
 
 toc::[]
 
-The Provisioning Application is configured via spring boot profiles.
-Default configuration properties are definded in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[application.properties]
+== Quickstarters
+
+Available quickstarters can be provided in the container via `/quickstarters/quickstarters.properties`. In the context of OpenShift, this file is supplied by the `ConfigMap` `quickstarters.properties`. The quickstarters defined there will be displayed to the users in the UI when they modify an existing project.
+
+NOTE: When the provisioning app is installed for the first time, a default set of quickstarters (from the `ods-quickstarters` repository) is seeded. As each installation can configure the available quickstarters differently, the `quickstarter.properties` `ConfigMap` is not updated automatically when updating ODS.
+
+A quickstarter needs to have two mandatory entries:
+[source%nowrap,bash]
+.quickstarters.properties
+----
+jenkinspipeline.quickstarter.<quickstarter-key>.desc=<description>
+jenkinspipeline.quickstarter.<quickstarter-key>.repo=<repository>
+----
+
+For example:
+[source%nowrap,bash]
+.quickstarters.properties
+----
+jenkinspipeline.quickstarter.be-java-springboot.desc=Backend - SpringBoot/Java
+jenkinspipeline.quickstarter.be-java-springboot.repo=ods-quickstarters
+----
+
+This means that in order to provision the quickstarter, the provisioning app will start a Jenkins pipeline based on the `Jenkinsfile` located in the `opendevstack/ods-quickstarters` repository, in the folder `be-java-springboot`. The UI will display the quickstarter as `Backend - SpringBoot/Java`.
+
+Apart from the required properties, there are also optional properties:
+
+[source%nowrap,bash]
+.quickstarters.properties
+----
+jenkinspipeline.[some-job-name].create-webhook -> whether a default webhook should be created for this repo or not (true by default)
+jenkinspipeline.[some-job-name].branch -> a branch differing from ods.git-ref property
+jenkinspipeline.[some-job-name].jenkinsfile -> a path to the Jenkinsfile differing from [some-job-name]/Jenkinsfile
+----
+
+NOTE: When the quickstarter properties are modified, the provisioning app needs to be restarted for the changes to have effect.
+
+== Permissions
+
+By default no special permissions are set on either confluence / jira / bitbucket or openshift, only system-wide settings are inherited.
+
+However there is a special knob to tighten security (which can be passed with the project input `createpermissionset : boolean`)  - based on three groups that need to be provided as part of the API call / from the userinterface.
+
+. admin group: admin rights on the generated projects / spaces / repositories
+. user group: read / write rights on the generated projects / spaces / repositories
+. readonly group: read rights on the generated projects / spaces / repositories
+
+The configuration for the permission sets are configured:
+
+. JIRA Project is provisioned with its own permissionset defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates/jira.permission.all.txt[src/main/resources/permission-templates/jira.permission.all.txt]
+. Confluence Project is provisioned with special permission set defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates[src/main/resources/permission-templates/confluence.permission.*]
+. Bitbucket Project is provisioned with tight read & write roles
+. Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
+
+== Project/Space types based on templates
+
+The default jira / confluence project' types are defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
+
+----
+project.template.key.names=default
+
+jira.project.template.key=com.pyxis.greenhopper.jira:gh-scrum-template
+jira.project.template.type=software
+
+confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-software-project:sp-space-blueprint
+----
+
+To add a new template - copy, and add your config, based on a new `<name>`
+
+----
+jira.project.template.key.<name>=com.pyxis.greenhopper.jira:gh-scrum-template
+jira.project.template.type.<name>=software
+
+# optional, can stay as is
+confluence.blueprint.key.<name>=com.atlassian.confluence.plugins.confluence-software-project:sp-space-blueprint
+----
+
+and add the new +++<name>+++from above to the existing property `project.template.key.names`+++</name>+++
+
+----
+# list of templates surfaced to the UI and API
+project.template.key.names=default,<name>
+----
+
+== Error Handling
+
+Up to (and including) _v1.1.x_ when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up _manually_ based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned _off_ by specifying the new property
+_provision.cleanup.incomplete.projects_ and setting it to _false_.
 
 == Authentication Configuration
 There are to separate authentication options to authenticated a user for the provisioning app.
@@ -33,7 +118,7 @@ spring.profiles.active=crowd # <2>
 The crowd specific configuration is done in the included profile _crowd_, see property documentation inside the profile file _application-crowd.properties_. The provided example configuration is appropriate for a locally installed OpenDevStack environment.
 
 === Authentication OAUTH2 Configuration
-A default oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
+An example of plain oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
 
 [source%nowrap,bash]
 .application-oauth2.properties
@@ -69,6 +154,47 @@ spring.security.oauth2.client.provider.keycloak.user-name-attribute=preferred_us
 https://github.com/opendevstack/ods-provisioning-app/blob/master/https://docs.spring.io/spring-security/site/docs/5.1.5.RELEASE/reference/html/jc.html#oauth2login-boot-property-mappings[OAUTH2 Spring Boot 2.x Property Mappings] for details.
 <6> Defines the OAUTH2 _client.provider_ properties. These properties correspond to the _well-known_ OAUTH2-URIs. In case of keycloak, this URIs can be read out using the  https://github.com/opendevstack/ods-provisioning-app/blob/master/http://192.168.56.32:8080/auth/realms/provisioning-app/.well-known/openid-configuration[.well-known/openid-configuration-link]
 
+Alternatively if your identity provider is Azure AD, a configuration example is given in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-azure.properties[application-azure.properties]
+
+[source%nowrap,bash]
+.application-azure.properties
+----
+provision.auth.provider=oauth2 # <1>
+provision.auth.provider.oauth2.user-info-uri=userInfo # <2>
+
+# <3>
+# Application ID (also called Client ID)
+spring.security.oauth2.client.registration.azure.client-id=<CLIENT_ID>>
+spring.security.oauth2.client.registration.azure.client-secret=<CLIENT_SECRET>
+
+# It's suggested the logged in user should at least belong to one of the below groups
+# If not, the logged in user will not be able to access any authorization controller rest APIs
+azure.activedirectory.user-group.allowed-groups=opendevstack-administrators,opendevstack-users # <4>
+azure.activedirectory.environment=global-v2-graph
+azure.activedirectory.user-group.key=@odata.type
+azure.activedirectory.user-group.value=#microsoft.graph.group
+azure.activedirectory.user-group.object-id-key=id
+azure.activedirectory.tenant-id=<TENANT_ID> # <5>
+
+oauth2.user.roles.jsonpointerexpression=/claims/roles # <6>
+oauth2.user.use-email-claim-as-username=true # <7>
+
+# <8>
+idmanager.url=https://login.microsoftonline.com
+idmanager.realm=${spring.security.oauth2.client.registration.azure.client-id}
+
+idmanager.disable-logout-from-idm=true # <9>
+----
+<1> configures oauth2 authentication provider
+<2> configure user info uri
+<3> registers in spring security azure oauth2 client id and secret
+<4> configure allow groups
+<5> register azure ad tenant
+<6> the application reads the user roles from the claim that is inside the oauth2 ID-Token. The property _oauth2.user.roles.jsonpointerexpression_ is a JsonPointer - Expression that defines a path to the roles that are extracted from the id token. Details regarding pointer expression can be found at https://github.com/opendevstack/ods-provisioning-app/blob/master/https://fasterxml.github.io/jackson-core/javadoc/2.5/com/fasterxml/jackson/core/JsonPointer.html[Jackson-core JsonPointer Documentation]
+<7> configure to use email claim as username
+<8> configure name of the ProvApp realm
+<9> instruct ProvApp to not logout from identity management provider
+
 === Authentication to third party apps via technical users
 The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence and Bitbucket. The used credentials are read from a pair of properties. For Example, _bitbucket.admin_password_ and _bitbucket.admin_user_ properties are used for Bitbucket, _confluence.admin_user_ and _confluence.admin_password_ are used for Confluence, etc.
 
@@ -90,3 +216,12 @@ jira.admin_user=jira_admin
 [TIP]
 Note: if the pair of properties is not defined for a third party tool, the logged in user's credentials are used to authenticate against the application.
 The credentials are read by caling the method _getUserName_ and _getUserPassword_ from https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
+
+== FAQ
+
+. Where is the provision app deployed? +
+A. the provision application is deployed on openshift, in both `prov-dev` and `prov-test`. `prov-dev` is the development environment in case you want to change / enhance the application, while the production version of the application is deployed in `prov-test`. The URL to get to the provision application, is defined thru a route. Ít's `+https://prov-app-test.+`+++<openshift application="" domains="">+++.+++</openshift>+++
+. Where do I find the logs, if something went wrong? +
+A. Within the Openshift `pod` of the provision app (in ``project``dev/test, namely in `/opt/provision/history/logs` a logfile is created per `project`)
+. Where is the real configuration of the provision application? +
+A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.

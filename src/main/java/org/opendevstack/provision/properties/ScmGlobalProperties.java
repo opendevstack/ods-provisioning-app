@@ -14,8 +14,10 @@
 
 package org.opendevstack.provision.properties;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,7 +36,13 @@ public class ScmGlobalProperties {
     return readableRepos;
   }
 
-  public void setReadableRepos(Map<String, List<String>> readableRepos) {
-    this.readableRepos = readableRepos;
+  // readablerepos is a map of comma separated lists, such as:
+  // scm.global.readablerepos.foo=bar,baz
+  public void setReadableRepos(Map<String, String> readableRepos) {
+    this.readableRepos =
+        readableRepos.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    r -> r.getKey(), r -> Arrays.asList(r.getValue().trim().split("\\s*,\\s*"))));
   }
 }
