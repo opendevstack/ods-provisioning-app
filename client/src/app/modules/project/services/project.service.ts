@@ -85,6 +85,12 @@ export class ProjectService {
       .pipe(catchError(ProjectService.handleError));
   }
 
+  deleteProject(projectKey: string): Observable<null> {
+    return this.httpClient
+      .delete<NewProjectRequest>(this.projectUrl + '/' + projectKey)
+      .pipe(catchError(ProjectService.handleError));
+  }
+
   getProjectLinksConfig(project: ProjectData): ProjectLink[] {
     return projectLinksConfig.map(link => {
       return {

@@ -20,6 +20,7 @@ import { QuickstarterListComponent } from './components/quickstarter-list.compon
 import { QuickstarterAddComponent } from './components/quickstarter-add.component';
 import { httpInterceptorProviders } from '../http-interceptors';
 import { ProjectModule } from '../project/project.module';
+import { ConfirmationModule } from '../confirmation/confirmation.module';
 
 @NgModule({
   declarations: [
@@ -46,6 +47,7 @@ import { ProjectModule } from '../project/project.module';
     MatButtonModule,
     ClipboardModule,
     NotificationModule,
+    ConfirmationModule,
     MatExpansionModule,
     ReactiveFormsModule,
     AppFormModule

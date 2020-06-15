@@ -44,7 +44,7 @@
             [isQuickstartersError]="isQuickstartersError"
             [aggregatedProjectLinks]="aggregatedProjectLinks"
             (onActivateEditMode)="editMode.enabled = $event"
-            (onOpenDialog)="openDialog($event)"></project-header>
+            (onOpenNotification)="openNotification($event)"></project-header>
         </div>
 
         <div class="page__content" [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''">
@@ -62,9 +62,16 @@
         </div>
 
         <div class="page__footer" *ngIf="editMode.enabled">
-          <div class="page__action">
-            <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
-            <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
+          <div class="row">
+            <div class="col-12 col-lg">
+              <button mat-button color="warn" (click)="intendRemoveProject()">Remove project</button>
+            </div>
+            <div class="col-12 col-lg">
+              <div class="button-group">
+                <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
+                <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
+              </div>
+            </div>
           </div>
         </div>
       </mat-card>

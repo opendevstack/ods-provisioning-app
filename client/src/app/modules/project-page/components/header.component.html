@@ -66,7 +66,7 @@
         color="primary"
         title="Copy URLs to clipboard"
         [cdkCopyToClipboard]="this.aggregatedProjectLinks"
-        (cdkCopyToClipboardCopied)="emitOpenDialog('Success, URLs copied to clipboard!')"
+        (cdkCopyToClipboardCopied)="emitOpenNotification('Success, URLs copied to clipboard!')"
         *ngIf="this.aggregatedProjectLinks">
         <mat-icon svgIcon="copy" aria-hidden="false" aria-label="Copy URLs to clipboard"></mat-icon>
       </a>

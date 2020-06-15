@@ -1,0 +1,32 @@
+<div class="dialog">
+  <div class="dialog-header">
+    <h1 mat-dialog-title>{{ confirmationConfig.text.title }}</h1>
+    <a mat-icon-button color="primary" title="Cancel" mat-dialog-close>
+      <mat-icon svgIcon="close" aria-hidden="false" aria-label="Cancel"></mat-icon>
+    </a>
+  </div>
+  <div mat-dialog-content>
+    <p>{{ confirmationConfig.text.info }}</p>
+    <p>Are you really sure?</p>
+    <ng-container *ngIf="confirmationConfig.verify" [formGroup]="form">
+      <p>Then please type in the <strong>{{ confirmationConfig.verify.inputLabel | lowercase }}</strong> to confirm</p>
+      <mat-form-field class="formfield__input">
+        <mat-label>{{ confirmationConfig.verify.inputLabel }}</mat-label>
+        <input
+          matInput
+          placeholder="{{ confirmationConfig.verify.inputLabel }}"
+          formControlName="verify"
+          uppercase
+          autofocus
+          pattern="{{ confirmationConfig.verify.compareValue }}"
+          required />
+      </mat-form-field>
+    </ng-container>
+  </div>
+  <div class="button-group">
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true" [disabled]="confirmationConfig.verify && !form.get('verify').valid">
+      {{ confirmationConfig.text.ctaButtonLabel }}
+    </button>
+  </div>
+</div>

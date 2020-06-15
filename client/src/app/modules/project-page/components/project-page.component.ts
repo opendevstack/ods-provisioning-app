@@ -17,7 +17,7 @@ import {
 } from '../../../domain/project';
 import { ProjectService } from '../../project/services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
@@ -30,6 +30,8 @@ import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { StorageService } from '../../storage/services/storage.service';
 import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
+import { ConfirmationComponent } from '../../confirmation/components/confirmation.component';
+import { ConfirmationConfig } from '../../confirmation/domain/confirmation-config';
 
 type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
 
@@ -68,14 +70,15 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   constructor(
+    public editMode: EditModeService,
     private route: ActivatedRoute,
     private formBuilder: FormBuilder,
     private projectService: ProjectService,
     private quickstarterService: QuickstarterService,
-    public editMode: EditModeService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private router: Router
   ) {
     super();
     this.editMode.context = 'edit';
@@ -100,17 +103,28 @@ export class ProjectPageComponent extends FormBaseComponent
     });
   }
 
-  openDialog(text: string, reload?: boolean) {
+  openNotification(text: string, reload?: boolean) {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = text;
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
     if (reload) {
       dialogRef.afterClosed().subscribe(() => {
-        // workaround until https://jira.bix-digital.com/browse/PANFE-43 is done
-        window.location.href =
-          document.querySelector('base').href + 'index.html';
+        this.router.navigateByUrl('/');
       });
     }
+  }
+
+  intendRemoveProject() {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.data = this.buildConfirmationConfig();
+    const dialogRef = this.dialog.open(ConfirmationComponent, dialogConfig);
+    dialogRef.afterClosed().subscribe(submitRequest => {
+      if (submitRequest) {
+        this.editMode.enabled = false;
+        this.isLoading = true;
+        this.deleteProject();
+      }
+    });
   }
 
   canDisplayContent(): boolean {
@@ -129,6 +143,20 @@ export class ProjectPageComponent extends FormBaseComponent
     this.destroy$.unsubscribe();
   }
 
+  private buildConfirmationConfig(): ConfirmationConfig {
+    return {
+      verify: {
+        inputLabel: 'Project key',
+        compareValue: this.project.projectKey
+      },
+      text: {
+        title: 'Remove project',
+        info:
+          'This will delete your Jira- and Confluence spaces as well as Jenkins pipelines and OpenShift namespace (if existing). Bitbucket repositories will not be deleted.',
+        ctaButtonLabel: 'Yes, remove project'
+      }
+    };
+  }
   private getProjectKeyFromStorage(): string | null {
     const projectKeyFromStorage = this.storageService.getItem(
       'project'
@@ -167,13 +195,35 @@ export class ProjectPageComponent extends FormBaseComponent
     this.isLoading = true;
     return this.projectService.updateProject(requestData).subscribe(
       project => {
-        this.openDialog(
+        this.openNotification(
           `${project.projectKey} successfully updated, reloading ...`,
           true
         );
       },
       () => {
-        this.openDialog(`Project could not be updated, please try again soon`);
+        this.openNotification(
+          `Project could not be updated, please try again soon`
+        );
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return EMPTY;
+      }
+    );
+  }
+
+  private deleteProject() {
+    return this.projectService.deleteProject(this.project.projectKey).subscribe(
+      project => {
+        this.storageService.removeItem('project');
+        this.openNotification(
+          `${this.project.projectKey} successfully deleted, reloading ...`,
+          true
+        );
+      },
+      () => {
+        this.openNotification(
+          `Project could not be deleted, please try again soon`
+        );
         this.isLoading = false;
         this.cdr.detectChanges();
         return EMPTY;

@@ -97,7 +97,7 @@ export class NewProjectComponent extends FormBaseComponent
       });
   }
 
-  openDialog(text: string, reload?: boolean) {
+  openNotification(text: string, reload?: boolean) {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = text;
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
@@ -205,13 +205,15 @@ export class NewProjectComponent extends FormBaseComponent
     return this.projectService.createProject(requestData).subscribe(
       project => {
         this.storageService.saveItem('project', { key: project.projectKey });
-        this.openDialog(
+        this.openNotification(
           `${project.projectKey} successfully created, reloading ...`,
           true
         );
       },
       () => {
-        this.openDialog(`Project could not be created, please try again soon`);
+        this.openNotification(
+          `Project could not be created, please try again soon`
+        );
         this.isLoading = false;
         this.cdr.detectChanges();
         return EMPTY;

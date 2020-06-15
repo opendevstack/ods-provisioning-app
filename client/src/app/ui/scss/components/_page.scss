@@ -57,13 +57,3 @@
     grid-area: page-footer;
   }
 }
-
-.page__action {
-  display: flex;
-  justify-content: flex-end;
-  text-transform: uppercase;
-
-  > button:not(:first-child) {
-    margin-left: 20px;
-  }
-}
