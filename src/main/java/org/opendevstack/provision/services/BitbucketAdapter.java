@@ -41,11 +41,13 @@ import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.bitbucket.Webhook;
 import org.opendevstack.provision.properties.ScmGlobalProperties;
 import org.opendevstack.provision.util.GitUrlWrangler;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -182,12 +184,15 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
       return preconditionFailures;
 
-    } catch (Exception e) {
-      logger.error(
-          "Unexpected error when checking precondition for creation of project '{}'",
-          newProject.projectKey,
-          e);
+    } catch (AdapterException e) {
       throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, e);
+    } catch (Exception e) {
+      String message =
+          String.format(
+              "Unexpected error when checking precondition for creation of project '%s'",
+              newProject.projectKey);
+      logger.error(message, e);
+      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, message);
     }
   }
 
@@ -204,7 +209,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       logger.info("checking if user '{}' exists!", user);
 
       if (!checkUserExists(user)) {
-        preconditionFailures.add(String.format("user '%s' does not exists!", user));
+        preconditionFailures.add(
+            String.format("user '%s' does not exists in %s!", user, ADAPTER_NAME));
       }
 
       return preconditionFailures;
@@ -235,7 +241,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                 logger.debug("checking if group '{}' exists", group);
                 try {
                   if (!checkGroupExists(group)) {
-                    preconditionFailures.add(String.format("group '%s' does not exists!", group));
+                    preconditionFailures.add(
+                        String.format("group '%s' does not exists in %s!", group, ADAPTER_NAME));
                   }
                 } catch (IOException e) {
                   throw new AdapterException(e);
@@ -254,14 +261,28 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
     String url = String.format(BITBUCKET_API_ADMIN_USERS_PATTERN, bitbucketUri, bitbucketApiPath);
     try {
-      String response =
-          getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
-      Assert.notNull(response, "Response is null for '" + username + "'");
+
+      String response = null;
+      try {
+        response =
+            getRestClient()
+                .execute(httpGet().url(url).queryParams(params).returnType(String.class));
+        Assert.notNull(response, "Response is null for '" + username + "'");
+      } catch (HttpException e) {
+        if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+          logger.debug("User '{}' was not found in {}!", username, ADAPTER_NAME, e);
+          return false;
+        } else {
+          logger.warn("Unexpected method trying to get user '{}'!", username, e);
+          throw e;
+        }
+      }
+
       JsonNode json = new ObjectMapper().readTree(response);
 
       return containsUser(json, username);
 
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new AdapterException(e);
     }
   }
@@ -280,9 +301,21 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
     String url = String.format(BITBUCKET_API_GROUPS_PATTERN, bitbucketUri, bitbucketApiPath);
 
-    String response =
-        getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
-    Assert.notNull(response, "Response is null for '" + groupName + "'");
+    String response = null;
+    try {
+      response =
+          getRestClient().execute(httpGet().url(url).queryParams(params).returnType(String.class));
+      Assert.notNull(response, "Response is null for '" + groupName + "'");
+    } catch (HttpException e) {
+      if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+        logger.debug("Group '{}' was not found in {}!", groupName, ADAPTER_NAME, e);
+        return false;
+      } else {
+        logger.warn("Unexpected method trying to get group '{}'!", groupName, e);
+        throw e;
+      }
+    }
+
     JsonNode json = new ObjectMapper().readTree(response);
 
     return containsGroup(json, groupName);
@@ -314,7 +347,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
         return preconditionFailures;
 
-      } catch (Exception e) {
+      } catch (IOException e) {
         logger.error(
             "failed to check if user '{}' have project create global permission", username, e);
         throw new AdapterException(e);

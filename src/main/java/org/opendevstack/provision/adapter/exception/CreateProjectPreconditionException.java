@@ -21,8 +21,14 @@ public class CreateProjectPreconditionException extends Exception {
   private final String projectKey;
 
   public CreateProjectPreconditionException(
-      String adapterName, String projectKey, Exception cause) {
+      String adapterName, String projectKey, AdapterException cause) {
     super(CreateProjectPreconditionException.buildMessage(adapterName, projectKey, cause), cause);
+    this.adapterName = adapterName;
+    this.projectKey = projectKey;
+  }
+
+  public CreateProjectPreconditionException(String adapterName, String projectKey, String cause) {
+    super(cause);
     this.adapterName = adapterName;
     this.projectKey = projectKey;
   }

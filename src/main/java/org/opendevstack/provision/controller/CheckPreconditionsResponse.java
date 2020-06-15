@@ -65,7 +65,9 @@ public class CheckPreconditionsResponse {
   public static String failedAsJson(JobStage jobStage, String error) {
 
     try {
-      return new FailedResponse(jobStage, List.of(error)).asJson();
+      List<String> errors = new ArrayList();
+      errors.add(error);
+      return new FailedResponse(jobStage, errors).asJson();
     } catch (JsonProcessingException e) {
       logger.warn("This should never happen, returning empty json payload!", e);
       return "{}";
