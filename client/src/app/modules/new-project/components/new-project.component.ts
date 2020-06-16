@@ -195,7 +195,7 @@ export class NewProjectComponent extends FormBaseComponent
         .get('user')
         .get('group').value,
       bugtrackerSpace: this.form.get('optInJira').value,
-      platformRuntime: true
+      platformRuntime: this.form.get('optInODS').value
     };
   }
 
