@@ -225,3 +225,7 @@ A. the provision application is deployed on openshift, in both `prov-dev` and `p
 A. Within the Openshift `pod` of the provision app (in ``project``dev/test, namely in `/opt/provision/history/logs` a logfile is created per `project`)
 . Where is the real configuration of the provision application? +
 A. The base configuration in the the `application.properties` in the codebase, the setup specific one is in a config map deployed within the `prov-dev/test` project.
+. What is the default permission schema in Jira? +
+A. the default permission schema in Jira is named `Default Permission Scheme`
+. Which role is missing in Jira default permission schema if the project creator cannot access it? +
+A. The default permission schema named `Default Permission Scheme` needs the role `owner` to be added to permission `Browser Projects`. Otherwise the project creator (role `owner`) will not be able to access the project.
