@@ -9,14 +9,13 @@
     <p>{{ confirmationConfig.text.info }}</p>
     <p>Are you really sure?</p>
     <ng-container *ngIf="confirmationConfig.verify" [formGroup]="form">
-      <p>Then please type in the <strong>{{ confirmationConfig.verify.inputLabel | lowercase }}</strong> to confirm</p>
+      <p>Then please type in the <strong>{{ confirmationConfig.verify.inputLabel | lowercase }}</strong> to confirm.</p>
       <mat-form-field class="formfield__input">
         <mat-label>{{ confirmationConfig.verify.inputLabel }}</mat-label>
         <input
           matInput
           placeholder="{{ confirmationConfig.verify.inputLabel }}"
           formControlName="verify"
-          uppercase
           autofocus
           pattern="{{ confirmationConfig.verify.compareValue }}"
           required />

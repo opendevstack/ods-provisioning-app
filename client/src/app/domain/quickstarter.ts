@@ -36,9 +36,13 @@ export interface ProjectQuickstarterComponent {
   componentDescription: string;
 }
 
+export interface ProjectQuickStarterComponentDeleteObj {
+  id: string;
+  type: string;
+}
+
 export interface ProjectQuickstarter {
   description: string;
   type: string;
   ids: ProjectQuickstarterComponent[];
-  isNewComponentPossible?: boolean;
 }

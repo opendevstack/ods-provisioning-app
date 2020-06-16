@@ -57,6 +57,8 @@
           <ng-template #showQuickstarterList>
             <project-quickstarter-list
               [projectQuickstarters]="projectQuickstarters"
+              [projectKey]="project.projectKey"
+              (triggerLoadProjectData)="loadProjectData(project.projectKey)"
               (onActivateEditMode)="editMode.enabled = true"></project-quickstarter-list>
           </ng-template>
         </div>

@@ -96,11 +96,15 @@ export class ProjectPageComponent extends FormBaseComponent
       } else {
         projectKey = param.key;
       }
-      this.isLoading = true;
-      this.cdr.detectChanges();
-      this.initializeDataRetrieval(projectKey);
-      this.initializeFormGroup();
+      this.loadProjectData(projectKey);
     });
+  }
+
+  loadProjectData(projectKey: string) {
+    this.isLoading = true;
+    this.cdr.detectChanges();
+    this.initializeDataRetrieval(projectKey);
+    this.initializeFormGroup();
   }
 
   openNotification(text: string, reload?: boolean) {
