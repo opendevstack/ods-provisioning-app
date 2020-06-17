@@ -1,16 +1,19 @@
 body {
-  display: grid;
-  grid-template-areas: 'header' 'main' 'footer';
-  grid-template-rows: auto 1fr auto;
-  @include media-breakpoint-up(lg) {
-    overflow: hidden;
-  }
   background: $color-white;
   font-size: 16px;
 }
 
-footer {
-  padding: 15px 35px;
+.container {
+  @include media-breakpoint-up(lg) {
+    display: grid;
+    grid-template-areas:
+      'header header'
+      'sidebar content'
+      'footer footer';
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+  }
 }
 
 header {
@@ -36,50 +39,41 @@ header {
   }
 }
 
+footer {
+  grid-area: footer;
+  padding: 15px 35px;
+}
+
 /* TODO fixme */
 .mat-list-item-content {
   padding: 10px !important;
 }
 
-.main {
-  grid-area: main;
-  background: $color-white-light;
-  padding: $main-container-padding;
+app-root {
+  display: contents;
+
+  > .empty-content {
+    grid-area: content;
+  }
+
+  .sidebar,
+  .content {
+    padding: $spacer;
+    background: #f8f8f8;
+  }
 
   @include media-breakpoint-up(lg) {
-    height: calc(100vh - #{$header-footer-offset});
-  }
-}
+    .sidebar,
+    .content {
+      overflow: hidden;
+    }
 
-app-root {
-  @include make-row();
+    .sidebar {
+      grid-area: sidebar;
+    }
 
-  .sidebar {
-    @include make-col-ready();
-    display: block;
-
-    @include media-breakpoint-up(lg) {
-      @include make-col(4);
-      height: calc(
-        100vh - #{$header-footer-offset} - (#{$main-container-padding} * 2)
-      );
+    .content {
+      grid-area: content;
     }
   }
-
-  .content {
-    @include make-col-ready();
-    display: block;
-    padding: 0 $space;
-
-    @include media-breakpoint-up(lg) {
-      @include make-col(8);
-      height: calc(
-        100vh - #{$header-footer-offset} - #{$sidebar-header-height}
-      );
-    }
-  }
-}
-
-footer {
-  grid-area: footer;
 }
