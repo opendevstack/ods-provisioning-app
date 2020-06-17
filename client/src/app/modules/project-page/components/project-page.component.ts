@@ -183,7 +183,6 @@ export class ProjectPageComponent extends FormBaseComponent
 
   private initializeFormGroup(): void {
     this.form = this.formBuilder.group({
-      existingComponentsForm: this.formBuilder.group({}),
       newComponentsForm: this.formBuilder.group({})
     });
   }
@@ -232,34 +231,12 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   private createUpdateProjectRequestData(): UpdateProjectRequest {
-    let allComponentsData;
-
     const newComponentsControls = (this.newComponentsForm.get(
       'newComponent'
     ) as FormArray).controls;
-
-    const existingComponentsControlsTmp = this.existingComponentsForm.get(
-      'newComponent'
-    ) as FormArray;
-
-    if (existingComponentsControlsTmp) {
-      const existingComponentsControls = existingComponentsControlsTmp.controls.filter(
-        control => control.get('componentName').value !== ''
-      );
-
-      allComponentsData = [
-        ...ProjectPageComponent.mapFormValuesToBackendModel(
-          existingComponentsControls
-        ),
-        ...ProjectPageComponent.mapFormValuesToBackendModel(
-          newComponentsControls
-        )
-      ];
-    } else {
-      allComponentsData = ProjectPageComponent.mapFormValuesToBackendModel(
-        newComponentsControls
-      );
-    }
+    const allComponentsData = ProjectPageComponent.mapFormValuesToBackendModel(
+      newComponentsControls
+    );
 
     return {
       projectKey: this.project.projectKey,
