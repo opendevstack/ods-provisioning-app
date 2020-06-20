@@ -9,25 +9,28 @@
   @include overlay();
   display: block;
   @include media-breakpoint-up(lg) {
-    height: calc(
-      100vh - #{$header-footer-offset} - #{$main-container-padding} - 58px
-    ); // TODO calculate where 58px come from
+    display: grid;
+    grid-template-areas: 'sidebar-header' 'sidebar-content';
+    grid-template-rows: min-content auto;
+    height: 100%;
   }
 }
 
 mat-card {
-  display: block;
-  height: 100%;
-  overflow-y: hidden;
-  padding: 0;
+  @include media-breakpoint-up(lg) {
+    grid-area: sidebar-content;
+    overflow-y: auto;
+  }
 }
 
 .sidebar__header {
-  width: 100%;
   display: flex;
   align-items: center;
   padding: 0 0 5px 15px;
-  max-height: $sidebar-header-height;
+
+  @include media-breakpoint-up(lg) {
+    grid-area: sidebar-header;
+  }
 
   .sidebar__header--count {
     flex: 1;
@@ -43,7 +46,6 @@ mat-card {
   padding: 15px 15px 0 15px;
   margin-bottom: -1px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  max-height: $searchbar-height;
 
   .searchbar__input {
     width: 100%;
@@ -51,14 +53,6 @@ mat-card {
 }
 
 .nav__list {
-  @include media-breakpoint-up(lg) {
-    height: calc(
-      100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$searchbar-height} -
-        (#{$main-container-padding} * 2)
-    );
-    overflow-y: auto;
-  }
-
   mat-nav-list {
     padding-top: 0;
   }

@@ -16,6 +16,8 @@
   </ng-container>
 
   <ng-container *ngIf="canDisplayContent()">
+    <div class="page__notifications"></div>
+
     <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()" id="form">
       <mat-card>
         <div class="page__header">

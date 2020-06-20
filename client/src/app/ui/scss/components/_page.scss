@@ -1,47 +1,61 @@
 .page {
   @include media-breakpoint-up(lg) {
-    height: 100%;
-  }
-
-  mat-card {
     display: grid;
-    grid-template-areas: 'page-header' 'page-content' 'page-footer';
-    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      'page-notifications'
+      'page-main-content';
+    grid-template-rows: min-content auto;
+    height: 100%;
 
-    padding: 0;
-    margin-top: calc(#{$sidebar-header-height} - 10px); // TODO calc number
+    form {
+      display: contents;
+    }
 
-    @include media-breakpoint-up(lg) {
-      height: calc(
-        100vh - #{$header-footer-offset} - #{$sidebar-header-height} - #{$main-container-padding} -
-          12px
-      ); // TODO calc number
+    mat-card {
+      grid-area: page-main-content;
+      overflow-y: auto;
+      display: grid;
+      grid-template-areas: 'page-header' 'page-content' 'page-footer';
+      grid-template-rows: auto 1fr auto;
+      height: 100%;
     }
   }
 }
 
 .page__notifications {
-  position: absolute;
-  top: 0;
   color: red;
   font-size: 0.85rem;
+  line-height: 37px;
+
+  @include media-breakpoint-up(lg) {
+    grid-area: page-notifications;
+    height: 37px;
+  }
 }
 
 .page__header {
-  grid-area: page-header;
   padding: 30px;
   border-bottom: 1px solid $color-gray;
+
+  @include media-breakpoint-up(lg) {
+    grid-area: page-header;
+  }
 }
 
 .page__content {
-  grid-area: page-content;
-  overflow-y: auto;
+  @include media-breakpoint-up(lg) {
+    grid-area: page-content;
+    overflow-y: auto;
+  }
 }
 
 .page__footer {
-  grid-area: page-footer;
   padding: 30px;
   border-top: 1px solid $color-gray;
+
+  @include media-breakpoint-up(lg) {
+    grid-area: page-footer;
+  }
 }
 
 .page__action {
