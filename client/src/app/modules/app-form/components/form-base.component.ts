@@ -7,10 +7,6 @@ export abstract class FormBaseComponent {
 
   protected constructor() {}
 
-  get existingComponentsForm(): FormGroup {
-    return this.form.get('existingComponentsForm') as FormGroup;
-  }
-
   get newComponentsForm(): FormGroup {
     return this.form.get('newComponentsForm') as FormGroup;
   }
