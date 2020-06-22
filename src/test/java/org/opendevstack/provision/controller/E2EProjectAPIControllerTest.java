@@ -107,7 +107,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
-@ActiveProfiles("utest")
+@ActiveProfiles("utest,quickstarters")
 public class E2EProjectAPIControllerTest {
 
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
