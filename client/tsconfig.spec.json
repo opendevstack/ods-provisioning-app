@@ -4,6 +4,8 @@
     "outDir": "./out-tsc/spec",
     "types": ["jest", "node"],
     "module": "commonjs",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "allowJs": true
   },
