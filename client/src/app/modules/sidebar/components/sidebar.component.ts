@@ -32,14 +32,10 @@ export class SidebarComponent {
   }
 
   private filterProjects(value: string): ProjectData[] {
-    return this.projects.filter(
-      project =>
-        project.projectKey.toLowerCase().indexOf(value.toLowerCase().trim()) >=
-          0 ||
-        project.projectName.toLowerCase().indexOf(value.toLowerCase().trim()) >=
-          0 ||
-        project.description.toLowerCase().indexOf(value.toLowerCase().trim()) >=
-          0
+    return this.projects.filter(project =>
+      [project.projectKey, project.projectName, project.description].some(
+        str => str?.toLowerCase().indexOf(value?.toLowerCase().trim()) >= 0
+      )
     );
   }
 }
