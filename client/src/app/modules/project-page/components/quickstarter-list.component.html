@@ -1,4 +1,4 @@
-<table class="qs-table" *ngIf="projectQuickstarters; else emptyContent">
+<table class="qs-table" *ngIf="projectQuickstarters; else emptyContent" data-test-qs-list>
   <thead>
     <tr>
       <th>Quickstarter</th>
@@ -60,7 +60,7 @@
   </tbody>
 </table>
 <ng-template #emptyContent>
-  <div class="empty-content">
+  <div class="empty-content" data-test-qs-list-empty>
     <div class="infobox">
       <div class="infobox__img">
         <img src="assets/icons/quickstarter-not-found.svg" alt="No quickstarters applied yet" />
@@ -72,7 +72,7 @@
         color="primary"
         class="mini-icon-button mat-elevation-z0"
         (click)="emitActivateEditMode()"
-        data-test-edit-project-btn>
+        data-test-add-qs-btn>
         <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Add'"></mat-icon>
         <span>Add</span>
       </button>

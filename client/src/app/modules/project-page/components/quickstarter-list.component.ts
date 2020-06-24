@@ -14,7 +14,6 @@ import { Subject } from 'rxjs';
   styleUrls: ['./quickstarter-list.component.scss']
 })
 export class QuickstarterListComponent implements OnDestroy {
-  @Input() editMode: boolean;
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Output() onActivateEditMode = new EventEmitter<boolean>();
   destroy$ = new Subject<boolean>();
