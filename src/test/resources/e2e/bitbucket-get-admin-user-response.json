@@ -4,12 +4,12 @@
 	"isLastPage": true,
 	"values": [
 		{
-			"name": "cd_user",
-			"emailAddress": "cd_user@domain.com",
+			"name": "CD_user",
+			"emailAddress": "CD_user@domain.com",
 			"id": 152,
 			"displayName": "Test User",
 			"active": true,
-			"slug": "cd_user",
+			"slug": "CD_user",
 			"type": "NORMAL",
 			"directoryName": "Domain directory",
 			"deletable": false,
@@ -19,7 +19,7 @@
 			"links": {
 				"self": [
 					{
-						"href": "https://domain.com/users/cd_user"
+						"href": "https://domain.com/users/CD_user"
 					}
 				]
 			}

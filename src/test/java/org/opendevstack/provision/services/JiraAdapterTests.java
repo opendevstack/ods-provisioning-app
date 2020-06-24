@@ -482,7 +482,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     String user = jiraAdapter.resolveProjectAdminUser(project);
 
     String response =
-        fileReader.readFileContent("jira-get-user-template").replace("<%USERNAME%>", user);
+        fileReader
+            .readFileContent("jira-get-user-template")
+            .replace("<%USERNAME%>", user.toUpperCase());
 
     Function<List<String>, List<String>> checkUser =
         spyAdapter.createProjectAdminUserExistsCheck(user);
@@ -564,14 +566,16 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     // Case no error, group exists!
     String group = jiraAdapter.getGlobalKeyuserRoleName();
     String response =
-        fileReader.readFileContent("jira-get-group-template").replace("<%GROUP%>", group);
+        fileReader
+            .readFileContent("jira-get-group-template")
+            .replace("<%GROUP%>", group.toUpperCase());
 
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<String> newResult = checkGroupExists.apply(result);
     Assert.assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
-    String thisGroupDoesNotExists = "this_group_does_not_exists";
+    String thisGroupDoesNotExists = "this_group_does_not_exists".toUpperCase();
     checkGroupExists = spyAdapter.createProjectAdminUserExistsCheck(thisGroupDoesNotExists);
     newResult = checkGroupExists.apply(result);
     Assert.assertEquals(1, newResult.size());
@@ -612,7 +616,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     }
 
     // Case have and not permission!
-    String group = jiraAdapter.getGlobalKeyuserRoleName();
     List.of("true", "false")
         .forEach(
             expected -> {

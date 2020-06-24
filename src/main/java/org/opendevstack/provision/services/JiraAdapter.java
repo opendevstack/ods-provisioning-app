@@ -729,7 +729,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         return false;
       }
 
-      return group.equals(haveGroup.asText());
+      return group.equalsIgnoreCase(haveGroup.asText());
 
     } catch (IOException e) {
       throw new AdapterException(e);
@@ -826,7 +826,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public static BiPredicate<String, String> createFindPathAndCompare(JsonNode json) {
     return (path, value) -> {
       JsonNode key = json.findPath(path);
-      return key != null && key.asText().equals(value);
+      return key != null && key.asText().equalsIgnoreCase(value);
     };
   }
 
