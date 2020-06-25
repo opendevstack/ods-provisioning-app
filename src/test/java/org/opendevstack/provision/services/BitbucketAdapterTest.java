@@ -337,7 +337,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
         .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("groups"), any());
 
     verify(spyAdapter)
-        .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("users"), any());
+        .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     assertEquals(expected, actual);

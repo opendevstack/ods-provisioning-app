@@ -598,7 +598,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
               repo.getName(), projectKey));
     }
     setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
-    setRepositoryAdminPermissions(data, projectKey, ID_USERS, technicalUser);
+    setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
     if (grantRepositoryWriteToAllOpenDevStackUsers) {
       logger.info(
           "Grant write to every member of {} to repository {}",
@@ -639,6 +639,13 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       throws IOException {
     setRepositoryPermissions(
         data.getSlug(), key, userOrGroup, userOrGroupName, REPOSITORY_PERMISSIONS.REPO_ADMIN);
+  }
+
+  protected void setRepositoryWritePermissions(
+      RepositoryData data, String key, String userOrGroup, String userOrGroupName)
+      throws IOException {
+    setRepositoryPermissions(
+        data.getSlug(), key, userOrGroup, userOrGroupName, REPOSITORY_PERMISSIONS.REPO_WRITE);
   }
 
   private void setRepositoryPermissions(
