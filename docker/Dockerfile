@@ -14,4 +14,10 @@ VOLUME /config
 VOLUME /opt/provision/ca_cert
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["java", "-jar", "app.jar", "--spring.config.location=file:/config/,file:/quickstarters/quickstarters.properties"]
+
+# Note:
+# spring.config.additional-location allows to override the defaults
+# which are defined in classpath:/application.properties
+# for details refert to Spring boot documention:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config
+CMD ["java", "-jar", "app.jar", "--spring.config.additional-location=/quickstarters/quickstarters.properties,/config/*/"]

@@ -65,7 +65,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-@ActiveProfiles("utest")
+@ActiveProfiles("utest,quickstarters")
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Value("${openshift.jenkins.project.webhookproxy.events}")
