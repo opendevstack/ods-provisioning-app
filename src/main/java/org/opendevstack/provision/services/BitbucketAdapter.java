@@ -365,11 +365,11 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
     List<String> users =
         json.get("values").findValues("name").stream()
-            .map(jsonNode -> jsonNode.asText())
-            .filter(value -> username.equals(value))
+            .map(jsonNode -> jsonNode.asText().toLowerCase())
+            .filter(value -> username.equalsIgnoreCase(value))
             .collect(Collectors.toList());
 
-    if (users.isEmpty() || users.size() > 1 || !users.contains(username)) {
+    if (users.isEmpty() || users.size() > 1 || !users.contains(username.toLowerCase())) {
       return false;
     }
 
@@ -383,7 +383,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       return false;
     }
 
-    return group.equals(json.get("values").get(0).asText());
+    return group.equalsIgnoreCase(json.get("values").get(0).asText());
   }
 
   @SuppressWarnings("squid:S3776")

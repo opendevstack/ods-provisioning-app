@@ -469,7 +469,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
-  public void testWhenCheckUser() throws IOException {
+  public void testUserExistsCheck() throws IOException {
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
     spyAdapter.setRestClient(restClient);
@@ -515,7 +515,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
-    project.cdUser = "this_cd_user_not_exist";
+    project.cdUser = "this_cd_user_not_exist".toUpperCase();
     checkUser = spyAdapter.createCheckUser(project);
     newResult = checkUser.apply(result);
     assertEquals(1, newResult.size());
