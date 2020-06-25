@@ -17,7 +17,7 @@ odsPipeline(
   podContainers: [
     containerTemplate(
       name: 'jnlp',
-      image: "${dockerRegistry}/cd/jenkins-slave-maven:${odsImageTag}",
+      image: "${dockerRegistry}/ods/jenkins-slave-maven:${odsImageTag}",
       workingDir: '/tmp',
       alwaysPullImage: true,
       args: '${computer.jnlpmac} ${computer.name}',
@@ -25,7 +25,7 @@ odsPipeline(
     ),
     containerTemplate(
       name: 'nodejs10',
-      image: "${dockerRegistry}/cd/jenkins-slave-nodejs10-angular:${odsImageTag}",
+      image: "${dockerRegistry}/ods/jenkins-slave-nodejs10-angular:${odsImageTag}",
       workingDir: '/tmp',
       alwaysPullImage: true,
       ttyEnabled: true,
