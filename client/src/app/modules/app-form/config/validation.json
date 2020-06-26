@@ -17,10 +17,10 @@
   },
   "quickstarters": {
     "componentName": {
-      "regex": "(([A-Za-z][-A-Za-z_]*)?[A-Za-z]){3,40}",
+      "regex": "(([A-Za-z][-A-Za-z]*)?[A-Za-z]){3,40}",
       "errorMessages": [
         "Please enter 3-40 characters",
-        "Please use letters, dash and underscore"
+        "Please use letters and dashes (optional)"
       ]
     }
   }
