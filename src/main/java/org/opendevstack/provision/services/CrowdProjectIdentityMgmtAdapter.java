@@ -20,6 +20,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,7 +146,7 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
   }
 
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
     throw new UnsupportedOperationException("not implemented yet!");
   }

@@ -32,6 +32,7 @@ import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
 import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
@@ -164,7 +165,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   }
 
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
     try {
@@ -174,7 +175,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
-      List<String> preconditionFailures =
+      List<CheckPreconditionFailure> preconditionFailures =
           createUserHaveProjectCreateGlobalPermissionCheck(getUserName())
               .andThen(createCheckGroupsExist(newProject))
               .andThen(createCheckUser(newProject))
@@ -197,7 +198,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     }
   }
 
-  public Function<List<String>, List<String>> createCheckUser(OpenProjectData project) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> createCheckUser(
+      OpenProjectData project) {
     return preconditionFailures -> {
 
       // define cd user
@@ -210,15 +212,16 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       logger.info("checking if user '{}' exists!", user);
 
       if (!checkUserExists(user)) {
-        preconditionFailures.add(
-            String.format("user '%s' does not exists in %s!", user, ADAPTER_NAME));
+        String message = String.format("user '%s' does not exists in %s!", user, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
       }
 
       return preconditionFailures;
     };
   }
 
-  public Function<List<String>, List<String>> createCheckGroupsExist(OpenProjectData project) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createCheckGroupsExist(OpenProjectData project) {
     return preconditionFailures -> {
 
       // check if groups exist
@@ -242,8 +245,10 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                 logger.debug("checking if group '{}' exists", group);
                 try {
                   if (!checkGroupExists(group)) {
+                    String message =
+                        String.format("group '%s' does not exists in %s!", group, ADAPTER_NAME);
                     preconditionFailures.add(
-                        String.format("group '%s' does not exists in %s!", group, ADAPTER_NAME));
+                        CheckPreconditionFailure.getUnexistantGroupInstance(message));
                   }
                 } catch (IOException e) {
                   throw new AdapterException(e);
@@ -323,8 +328,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   }
 
   /** https://127.0.0.1/rest/api/1.0/users?filter={{user}}&permission=PROJECT_CREATE */
-  public Function<List<String>, List<String>> createUserHaveProjectCreateGlobalPermissionCheck(
-      final String username) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createUserHaveProjectCreateGlobalPermissionCheck(final String username) {
     return preconditionFailures -> {
       try {
         logger.info("checking user '{}' have project create global permission", username);
@@ -342,8 +347,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
         if (!containsUser(json, username)) {
           preconditionFailures.add(
-              String.format(
-                  "user '%s' does not have create project global permissions!", username));
+              CheckPreconditionFailure.getGlobalCreateProjectBitBucketPermissionMissingInstance(
+                  String.format(
+                      "user '%s' does not have create project global permissions!", username)));
         }
 
         return preconditionFailures;

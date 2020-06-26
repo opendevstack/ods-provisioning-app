@@ -30,6 +30,7 @@ import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.*;
 import org.opendevstack.provision.util.exception.HttpException;
@@ -348,7 +349,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
    * if a user has the 'create project permission'.
    */
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
     try {
@@ -358,7 +359,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
-      List<String> preconditionFailures =
+      List<CheckPreconditionFailure> preconditionFailures =
           createRequiredGroupExistsCheck(newProject)
               .andThen(createCheckUser(newProject))
               .apply(new ArrayList<>());
@@ -380,8 +381,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     }
   }
 
-  public Function<List<String>, List<String>> createRequiredGroupExistsCheck(
-      OpenProjectData newProject) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createRequiredGroupExistsCheck(OpenProjectData newProject) {
     return preconditionFailures -> {
 
       // get groups required based from permission template file
@@ -396,8 +397,10 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
           group -> {
             try {
               if (!checkGroupExists(group)) {
+                String message =
+                    String.format("Group '%s' does not exists in %s!", group, ADAPTER_NAME);
                 preconditionFailures.add(
-                    String.format("Group '%s' does not exists in %s!", group, ADAPTER_NAME));
+                    CheckPreconditionFailure.getUnexistantGroupInstance(message));
               }
             } catch (IOException e) {
               throw new AdapterException(e);
@@ -475,7 +478,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     return Collections.unmodifiableSet(groupsRequired);
   }
 
-  public Function<List<String>, List<String>> createCheckUser(OpenProjectData project) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> createCheckUser(
+      OpenProjectData project) {
     return preconditionFailures -> {
       Set<String> usersToCheck = new HashSet<>();
 
@@ -493,8 +497,10 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
           username -> {
             try {
               if (!checkUserExists(username)) {
+                String message =
+                    String.format("User '%s' does not exists in %s!", username, ADAPTER_NAME);
                 preconditionFailures.add(
-                    String.format("User '%s' does not exists in %s!", username, ADAPTER_NAME));
+                    CheckPreconditionFailure.getUnexistantUserInstance(message));
               }
             } catch (IOException e) {
               throw new AdapterException(e);

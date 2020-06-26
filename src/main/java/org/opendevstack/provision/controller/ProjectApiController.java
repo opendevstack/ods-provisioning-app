@@ -180,7 +180,7 @@ public class ProjectApiController {
         }
       }
 
-      List<String> preconditionsFailures = new ArrayList<>();
+      List<CheckPreconditionFailure> preconditionsFailures = new ArrayList<>();
 
       // TODO: move this block to check preconditions in projectIdentityMgmtAdapter
       if (newProject.specialPermissionSet) {
@@ -192,7 +192,8 @@ public class ProjectApiController {
           try {
             projectIdentityMgmtAdapter.validateIdSettingsOfProject(newProject);
           } catch (IdMgmtException e) {
-            preconditionsFailures.add(e.getMessage());
+            preconditionsFailures.add(
+                CheckPreconditionFailure.getUnexistantGroupInstance(e.getMessage()));
           }
         }
       }
@@ -204,7 +205,7 @@ public class ProjectApiController {
       if (!preconditionsFailures.isEmpty()) {
 
         String body =
-            CheckPreconditionsResponse.failed(
+            CheckPreconditionsResponse.checkPreconditionFailed(
                 contentType, CHECK_PRECONDITIONS, preconditionsFailures);
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -293,9 +294,9 @@ public class ProjectApiController {
    */
   public static String formatError(String contentType, JobStage jobStage, String error) {
     if (CheckPreconditionsResponse.isJsonContentType(contentType)) {
-      error = CheckPreconditionsResponse.failedAsJson(jobStage, error);
+      return CheckPreconditionsResponse.failedAsJson(jobStage, error);
     }
-    return error;
+    return error.toString();
   }
 
   /**
@@ -304,7 +305,7 @@ public class ProjectApiController {
    * @throws CreateProjectPreconditionException if an exception was captured while checking the
    *     preconditions
    */
-  private List<String> checkPreconditions(OpenProjectData newProject)
+  private List<CheckPreconditionFailure> checkPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
     if (!isCheckPreconditionsEnabled()) {
@@ -315,7 +316,7 @@ public class ProjectApiController {
       return new ArrayList<>();
     }
 
-    List<String> results = new ArrayList<>();
+    List<CheckPreconditionFailure> results = new ArrayList<>();
 
     if (newProject.bugtrackerSpace) {
 
@@ -332,7 +333,6 @@ public class ProjectApiController {
     }
 
     if (newProject.platformRuntime) {
-
       results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
     }
 

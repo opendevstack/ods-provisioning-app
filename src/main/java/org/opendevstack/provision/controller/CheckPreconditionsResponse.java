@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +47,14 @@ public class CheckPreconditionsResponse {
 
   private CheckPreconditionsResponse() {}
 
-  public static String failed(
-      String contentType, JobStage jobStage, List<String> preconditionsFailures)
+  public static String checkPreconditionFailed(
+      String contentType, JobStage jobStage, List<CheckPreconditionFailure> preconditionsFailures)
       throws JsonProcessingException {
 
     if (isJsonContentType(contentType)) {
-      return new FailedResponse(jobStage, preconditionsFailures).asJson();
+      return new CheckPreconditionFailedResponse(jobStage, preconditionsFailures).asJson();
     } else {
-      return new FailedResponse(jobStage, preconditionsFailures).asText();
+      return new CheckPreconditionFailedResponse(jobStage, preconditionsFailures).asText();
     }
   }
 
@@ -65,7 +66,9 @@ public class CheckPreconditionsResponse {
   public static String failedAsJson(JobStage jobStage, String error) {
 
     try {
-      return new FailedResponse(jobStage, List.of(error)).asJson();
+      return new CheckPreconditionFailedResponse(
+              jobStage, List.of(CheckPreconditionFailure.getExceptionInstance(error)))
+          .asJson();
     } catch (JsonProcessingException e) {
       logger.warn("This should never happen, returning empty json payload!", e);
       return "{}";
@@ -124,12 +127,13 @@ public class CheckPreconditionsResponse {
     }
   }
 
-  private static class FailedResponse extends JobResponse {
+  private static class CheckPreconditionFailedResponse extends JobResponse {
 
     @JsonProperty("errors")
-    private List<String> errorDetails = new ArrayList<>();
+    private List<CheckPreconditionFailure> errorDetails = new ArrayList<>();
 
-    private FailedResponse(JobStage jobStage, List<String> preconditionsFailures) {
+    private CheckPreconditionFailedResponse(
+        JobStage jobStage, List<CheckPreconditionFailure> preconditionsFailures) {
       super(jobStage, JobStatus.FAILED);
       errorDetails.addAll(preconditionsFailures);
     }
@@ -139,7 +143,7 @@ public class CheckPreconditionsResponse {
       StringBuffer sb = new StringBuffer();
       sb.append(getStage() + KEY_VALUE_SEPARATOR + getStatus()).append(System.lineSeparator());
       sb.append(ERRORS_KEY + KEY_VALUE_SEPARATOR)
-          .append(String.join(ERRORS_DELIMITER, errorDetails))
+          .append(String.join(ERRORS_DELIMITER, Arrays.toString(errorDetails.toArray())))
           .append(System.lineSeparator());
 
       return sb.toString();

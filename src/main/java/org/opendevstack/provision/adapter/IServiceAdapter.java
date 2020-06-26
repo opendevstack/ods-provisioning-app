@@ -17,6 +17,7 @@ package org.opendevstack.provision.adapter;
 import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
@@ -78,6 +79,6 @@ public interface IServiceAdapter {
    * @param newProject
    * @return
    */
-  List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException;
 }
