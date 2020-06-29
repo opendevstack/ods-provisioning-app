@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -51,6 +52,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(classes = SpringBoot.class)
 @DirtiesContext
 @WithMockUser(username = "test")
+@ActiveProfiles("crowd")
 public class DefaultControllerTest {
 
   private MockMvc mockMvc;
