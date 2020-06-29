@@ -21,7 +21,6 @@ odsPipeline(
       workingDir: '/tmp',
       alwaysPullImage: true,
       args: '${computer.jnlpmac} ${computer.name}',
-      serviceAccount: 'jenkins'
     ),
     containerTemplate(
       name: 'nodejs10',
