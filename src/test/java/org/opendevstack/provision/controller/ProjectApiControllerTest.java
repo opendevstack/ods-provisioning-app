@@ -336,9 +336,9 @@ public class ProjectApiControllerTest {
 
     data.platformRuntime = true;
 
-    List<String> preconditionFailures = new ArrayList<>();
-    preconditionFailures.add("failure1");
-    preconditionFailures.add("failure2");
+    List<CheckPreconditionFailure> preconditionFailures = new ArrayList<>();
+    preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance("failure1"));
+    preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance("failure2"));
 
     StringBuffer expectedBody = new StringBuffer();
     expectedBody
@@ -351,7 +351,9 @@ public class ProjectApiControllerTest {
         .append(
             CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS
                 + CheckPreconditionsResponse.KEY_VALUE_SEPARATOR
-                + String.join(CheckPreconditionsResponse.ERRORS_DELIMITER, preconditionFailures))
+                + String.join(
+                    CheckPreconditionsResponse.ERRORS_DELIMITER,
+                    Arrays.toString(preconditionFailures.toArray())))
         .append(System.lineSeparator());
 
     when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
@@ -368,7 +370,7 @@ public class ProjectApiControllerTest {
         .andExpect(
             MockMvcResultMatchers.content()
                 .string(
-                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"failure1\",\"failure2\"]}"));
+                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[{\"error-code\":\"UNEXISTANT_USER\",\"error-message\":\"failure1\"},{\"error-code\":\"UNEXISTANT_USER\",\"error-message\":\"failure2\"}]}"));
 
     verifyAddProjectAdapterCalls(times(0));
 
@@ -402,13 +404,7 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print())
         .andExpect(
             MockMvcResultMatchers.content()
-                .string(
-                    "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":"
-                        + "[\"class org.opendevstack.provision.adapter.exception.AdapterException was thrown in "
-                        + "adapter 'bitbucket' while executing check preconditions for project 'KEY'. "
-                        + "[message=java.lang.RuntimeException: "
-                        + errorMessage
-                        + "]\"]}"));
+                .string(CoreMatchers.containsString("\"error-code\":\"EXCEPTION\"")));
 
     verifyAddProjectAdapterCalls(times(0));
 

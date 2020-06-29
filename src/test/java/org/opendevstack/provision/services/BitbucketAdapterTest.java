@@ -43,6 +43,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.*;
 import org.opendevstack.provision.util.TestDataFileReader;
@@ -478,10 +479,11 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     OpenProjectData project = new OpenProjectData();
 
-    Function<List<String>, List<String>> checkUser = spyAdapter.createCheckUser(project);
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkUser =
+        spyAdapter.createCheckUser(project);
     assertNotNull(checkUser);
 
-    List<String> result = new ArrayList<>();
+    List<CheckPreconditionFailure> result = new ArrayList<>();
 
     // Case one, an exception happens
     try {
@@ -495,8 +497,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     // Rest API return http error 404
     HttpException notFound = new HttpException(404, "not found");
     when(restClient.execute(isNotNull())).thenThrow(notFound);
-    List<String> failures = checkUser.apply(result);
-    assertTrue(failures.get(0).contains(spyAdapter.getTechnicalUser()));
+    List<CheckPreconditionFailure> failures = checkUser.apply(result);
+    assertTrue(failures.get(0).toString().contains(spyAdapter.getTechnicalUser()));
 
     // Rest API return other http error than 404
     try {
@@ -511,7 +513,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     // Case no error, user exists!
     result = new ArrayList<>();
     when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkUser.apply(result);
+    List<CheckPreconditionFailure> newResult = checkUser.apply(result);
     assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
@@ -519,7 +521,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     checkUser = spyAdapter.createCheckUser(project);
     newResult = checkUser.apply(result);
     assertEquals(1, newResult.size());
-    assertTrue(newResult.get(0).contains(project.cdUser));
+    assertTrue(newResult.get(0).toString().contains(project.cdUser));
   }
 
   @Test

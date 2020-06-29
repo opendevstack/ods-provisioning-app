@@ -27,6 +27,7 @@ import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.config.Quickstarter;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -567,7 +568,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
     throw new UnsupportedOperationException("not implemented yet!");
   }

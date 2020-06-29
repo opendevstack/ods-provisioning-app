@@ -55,6 +55,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.Link;
 import org.opendevstack.provision.model.bitbucket.RepositoryData;
@@ -486,11 +487,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
             .readFileContent("jira-get-user-template")
             .replace("<%USERNAME%>", user.toUpperCase());
 
-    Function<List<String>, List<String>> checkUser =
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkUser =
         spyAdapter.createProjectAdminUserExistsCheck(user);
     assertNotNull(checkUser);
 
-    List<String> result = new ArrayList<>();
+    List<CheckPreconditionFailure> result = new ArrayList<>();
 
     // Case one, an exception happens
     try {
@@ -513,7 +514,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     // Case no error, user exists!
     when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkUser.apply(result);
+    List<CheckPreconditionFailure> newResult = checkUser.apply(result);
     Assert.assertEquals(0, newResult.size());
 
     // Case no error, username in json response is different than key but equals to emailAddress,
@@ -527,7 +528,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     checkUser = spyAdapter.createProjectAdminUserExistsCheck(thisUserDoesNotExists);
     newResult = checkUser.apply(result);
     Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).contains(thisUserDoesNotExists));
+    Assert.assertTrue(newResult.get(0).toString().contains(thisUserDoesNotExists));
   }
 
   @Test
@@ -538,11 +539,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     OpenProjectData project = new OpenProjectData();
 
-    Function<List<String>, List<String>> checkGroupExists =
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkGroupExists =
         spyAdapter.createRequiredGroupExistsCheck(project);
     assertNotNull(checkGroupExists);
 
-    List<String> result = new ArrayList<>();
+    List<CheckPreconditionFailure> result = new ArrayList<>();
 
     // Case one, an exception happens
     try {
@@ -571,7 +572,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
             .replace("<%GROUP%>", group.toUpperCase());
 
     when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = checkGroupExists.apply(result);
+    List<CheckPreconditionFailure> newResult = checkGroupExists.apply(result);
     Assert.assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
@@ -579,7 +580,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     checkGroupExists = spyAdapter.createProjectAdminUserExistsCheck(thisGroupDoesNotExists);
     newResult = checkGroupExists.apply(result);
     Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).contains(thisGroupDoesNotExists));
+    Assert.assertTrue(newResult.get(0).toString().contains(thisGroupDoesNotExists));
   }
 
   @Test
@@ -590,11 +591,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     //    OpenProjectData project = new OpenProjectData();
 
-    Function<List<String>, List<String>> check =
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> check =
         spyAdapter.createUserCanCreateProjectCheck(jiraAdapter.getUserName());
     assertNotNull(check);
 
-    List<String> result = new ArrayList<>();
+    List<CheckPreconditionFailure> result = new ArrayList<>();
 
     // Case one, an exception happens
     try {
@@ -626,7 +627,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                         .replace("<%HAVE_PERMISSION%>", expected);
 
                 when(restClient.execute(isNotNull())).thenReturn(response);
-                List<String> newResult = check.apply(new ArrayList<>());
+                List<CheckPreconditionFailure> newResult = check.apply(new ArrayList<>());
 
                 Assert.assertEquals("true".equals(expected) ? 0 : 1, newResult.size());
 
@@ -643,7 +644,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
             .replace("<%HAVE_PERMISSION%>", "false");
 
     when(restClient.execute(isNotNull())).thenReturn(response);
-    List<String> newResult = check.apply(new ArrayList<>());
+    List<CheckPreconditionFailure> newResult = check.apply(new ArrayList<>());
     Assert.assertEquals(1, newResult.size());
   }
 }

@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import java.util.*;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.IStorage;
@@ -160,7 +161,7 @@ public class StorageAdapter implements IServiceAdapter {
   }
 
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
     throw new UnsupportedOperationException("not implemented yet!");
   }

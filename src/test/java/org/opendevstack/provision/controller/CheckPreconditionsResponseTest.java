@@ -32,7 +32,7 @@ public class CheckPreconditionsResponseTest {
   public void failedResponseAsJson() {
 
     String expectedJson =
-        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CREATE_PROJECT\",\"status\":\"FAILED\",\"errors\":[\"error1\"]}";
+        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CREATE_PROJECT\",\"status\":\"FAILED\",\"errors\":[{\"error-code\":\"EXCEPTION\",\"error-message\":\"error1\"}]}";
 
     Assert.assertEquals(
         expectedJson,
@@ -43,24 +43,24 @@ public class CheckPreconditionsResponseTest {
   @Test
   public void failedResponse() throws JsonProcessingException {
 
-    List<String> errors = new ArrayList<>();
-    errors.add("failure1");
-    errors.add("failure2");
+    List<CheckPreconditionFailure> errors = new ArrayList<>();
+    errors.add(CheckPreconditionFailure.getUnexistantGroupInstance("failure1"));
+    errors.add(CheckPreconditionFailure.getUnexistantUserInstance("failure2"));
 
     Assert.assertEquals(
         "CHECK_PRECONDITIONS=FAILED"
             + System.lineSeparator()
-            + "ERRORS=failure1,failure2"
+            + "ERRORS=[CheckPreconditionFailure{error-code='UNEXISTANT_GROUP', detail='failure1'}, CheckPreconditionFailure{error-code='UNEXISTANT_USER', detail='failure2'}]"
             + System.lineSeparator(),
-        CheckPreconditionsResponse.failed(
+        CheckPreconditionsResponse.checkPreconditionFailed(
             null, CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS, errors));
 
     String expectedJson =
-        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[\"failure1\",\"failure2\"]}";
+        "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[{\"error-code\":\"UNEXISTANT_GROUP\",\"error-message\":\"failure1\"},{\"error-code\":\"UNEXISTANT_USER\",\"error-message\":\"failure2\"}]}";
 
     Assert.assertEquals(
         expectedJson,
-        CheckPreconditionsResponse.failed(
+        CheckPreconditionsResponse.checkPreconditionFailed(
             MediaType.APPLICATION_JSON_VALUE,
             CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS,
             errors));

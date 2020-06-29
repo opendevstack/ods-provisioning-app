@@ -21,6 +21,7 @@ import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.Component;
 import org.opendevstack.provision.model.jira.FullJiraProject;
@@ -638,7 +639,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   @Override
-  public List<String> checkCreateProjectPreconditions(OpenProjectData newProject)
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
       throws CreateProjectPreconditionException {
 
     try {
@@ -648,7 +649,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
-      List<String> preconditionFailures =
+      List<CheckPreconditionFailure> preconditionFailures =
           createProjectAdminUserExistsCheck(resolveProjectAdminUser(newProject))
               .andThen(createUserCanCreateProjectCheck(getUserName()))
               .andThen(createRequiredGroupExistsCheck(newProject))
@@ -671,8 +672,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
   }
 
-  public Function<List<String>, List<String>> createRequiredGroupExistsCheck(
-      OpenProjectData newProject) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createRequiredGroupExistsCheck(OpenProjectData newProject) {
     return preconditionFailures -> {
       List<String> groups = new ArrayList<>();
 
@@ -685,7 +686,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       groups.forEach(
           group -> {
             if (!checkGroupExists(group)) {
-              preconditionFailures.add(String.format("Group '%s' does not exists in Jira!", group));
+              String message = String.format("Group '%s' does not exists in Jira!", group);
+              preconditionFailures.add(
+                  CheckPreconditionFailure.getUnexistantGroupInstance(message));
             }
           });
 
@@ -736,20 +739,22 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
   }
 
-  public Function<List<String>, List<String>> createProjectAdminUserExistsCheck(String user) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createProjectAdminUserExistsCheck(String user) {
     return preconditionFailures -> {
       logger.info("checking if user '{}' exists!", user);
 
       if (!checkUserExists(user)) {
-        preconditionFailures.add(
-            String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME));
+        String message = String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
       }
 
       return preconditionFailures;
     };
   }
 
-  public Function<List<String>, List<String>> createUserCanCreateProjectCheck(String username) {
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createUserCanCreateProjectCheck(String username) {
     return preconditionFailures -> {
       logger.info("checking if user '{}' has permissions to create project in Jira!", username);
 
@@ -769,12 +774,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
         if (MissingNode.class.isInstance(havePermission)) {
           logger.warn("Missing node for '{}'!", PERMISSIONS_ADMINISTER_JSON_PATH);
-          preconditionFailures.add(failureMessage);
+          preconditionFailures.add(
+              CheckPreconditionFailure.getCreateProjectPermissionMissingInstance(failureMessage));
           return preconditionFailures;
 
         } else if (!havePermission.asBoolean()) {
           logger.debug(failureMessage);
-          preconditionFailures.add(failureMessage);
+          preconditionFailures.add(
+              CheckPreconditionFailure.getCreateProjectPermissionMissingInstance(failureMessage));
           return preconditionFailures;
         }
 
