@@ -20,8 +20,7 @@ odsPipeline(
       image: "${dockerRegistry}/ods/jenkins-slave-maven:${odsImageTag}",
       workingDir: '/tmp',
       alwaysPullImage: true,
-      args: '${computer.jnlpmac} ${computer.name}',
-      serviceAccount: 'jenkins'
+      args: '${computer.jnlpmac} ${computer.name}'
     ),
     containerTemplate(
       name: 'nodejs10',
