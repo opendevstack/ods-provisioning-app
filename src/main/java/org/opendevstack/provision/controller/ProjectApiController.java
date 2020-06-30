@@ -339,7 +339,7 @@ public class ProjectApiController {
     }
 
     logger.info(
-        "done with all create project preconditions checks for project '{}', {}!",
+        "done with all create project preconditions checks for project '{}'. {}!",
         newProject.projectKey,
         results.isEmpty() ? "Successfully passed all checks!" : "Some checks failed!!");
 
