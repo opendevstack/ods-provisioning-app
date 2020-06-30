@@ -708,7 +708,12 @@ public class E2EProjectAPIControllerTest {
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
     String prefix = createdProjectIncludingQuickstarters.quickstarters.get(0).get("component_id");
-    mockExecuteAdminJob("testp-cd", "delete-components", prefix);
+
+    mockExecuteDeleteComponentAdminJob(
+        "testp-cd",
+        "delete-components",
+        prefix,
+        createdProjectIncludingQuickstarters.webhookProxySecret);
 
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
@@ -730,6 +735,23 @@ public class E2EProjectAPIControllerTest {
 
     String jenkinsJobPath =
         createJenkinsJobPath(namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix);
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(jenkinsJobPath))
+                .bodyMatches(instanceOf(Execution.class))
+                .method(HttpMethod.POST))
+        .thenReturn(configuredResponse);
+  }
+
+  private void mockExecuteDeleteComponentAdminJob(
+      String namespace, String jobName, String prefix, String secret) throws IOException {
+    CreateProjectResponse configuredResponse =
+        CreateProjectResponseUtil.buildDummyCreateProjectResponse(namespace, "build-config", 1);
+
+    String jenkinsJobPath =
+        createJenkinsJobPathForDeleteComponentAdminJob(
+            namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix, secret);
     mockHelper
         .mockExecute(
             matchesClientCall()
@@ -955,6 +977,18 @@ public class E2EProjectAPIControllerTest {
     return "https://webhook-proxy-"
         + namespace
         + ".192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+        + jenkinsfilePath
+        + "&component="
+        + component;
+  }
+
+  private String createJenkinsJobPathForDeleteComponentAdminJob(
+      String namespace, String jenkinsfilePath, String component, String secret) {
+    return "https://webhook-proxy-"
+        + namespace
+        + ".192.168.56.101.nip.io/build?trigger_secret="
+        + secret
+        + "&jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;

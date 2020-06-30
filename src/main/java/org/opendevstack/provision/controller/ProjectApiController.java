@@ -872,6 +872,9 @@ public class ProjectApiController {
       return ResponseEntity.notFound().build();
     }
 
+    // Quick fix to pass the webhook proxy secret from project
+    deletableComponents.webhookProxySecret = project.webhookProxySecret;
+
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, deletableComponents);
 

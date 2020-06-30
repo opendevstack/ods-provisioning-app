@@ -210,7 +210,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + componentId;
 
     String actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
+        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
             job, componentId, job.getId(), webhookProxySecret, webhookHost, true);
     assertEquals(expectedUrl, actualUrl);
 
@@ -226,7 +226,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + job.getId();
 
     actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrlAdminJob(
+        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
             job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
     assertEquals(expectedUrl, actualUrl);
   }
