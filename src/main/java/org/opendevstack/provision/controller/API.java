@@ -14,7 +14,9 @@
 package org.opendevstack.provision.controller;
 
 /** @author Sebastian Titakis */
-public interface ProjectAPI extends API {
+public interface API {
 
-  String API_V2_PROJECT = API_ROOT_V2 + "/" + "project";
+  String API_ROOT = "api";
+
+  String API_ROOT_V2 = API_ROOT + "/" + "v2";
 }

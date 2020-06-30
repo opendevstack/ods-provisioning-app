@@ -17,6 +17,7 @@ package org.opendevstack.provision.config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.opendevstack.provision.authentication.UserRolesHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,5 +47,10 @@ public class AppConfig {
   @Bean(name = "projectTemplateKeyNames")
   public List<String> globalProjectKeys() {
     return new ArrayList<>(Arrays.asList(projectTemplateKeyNames));
+  }
+
+  @Bean
+  public UserRolesHolder userRolesHolder() {
+    return new UserRolesHolder();
   }
 }

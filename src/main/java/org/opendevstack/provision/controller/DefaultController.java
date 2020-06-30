@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -130,7 +129,6 @@ public class DefaultController {
     if (!isAuthenticated()) {
       return LOGIN_REDIRECT;
     }
-    final Set<String> userRoles = getUserRoles();
 
     model.addAttribute("classActiveAbout", ACTIVE);
     model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
@@ -153,17 +151,6 @@ public class DefaultController {
     model.addAttribute("email", manager.getUserEmail());
     model.addAttribute("username", manager.getUserName());
     return "about";
-  }
-
-  public static Set<String> getUserRoles() {
-    SecurityContext securityContext = SecurityContextHolder.getContext();
-    Authentication authentication = securityContext.getAuthentication();
-    Set<String> roles = new HashSet<>();
-
-    if (null != authentication) {
-      authentication.getAuthorities().forEach(e -> roles.add(e.getAuthority()));
-    }
-    return roles;
   }
 
   @RequestMapping(value = "/logout", method = RequestMethod.GET)

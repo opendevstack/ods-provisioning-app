@@ -14,7 +14,17 @@
 package org.opendevstack.provision.controller;
 
 /** @author Sebastian Titakis */
-public interface ProjectAPI extends API {
+public interface ApplicationInfoAPI extends API {
 
-  String API_V2_PROJECT = API_ROOT_V2 + "/" + "project";
+  String ENDPOINT_APPINFO = "appinfo";
+
+  String ENDPOINT_ABOUT = "about";
+
+  String ENDPOINT_HISTORY = "history";
+
+  String APP_INFO_API_V2 = API_ROOT_V2 + "/" + ENDPOINT_APPINFO;
+
+  String ABOUT_APP_INFO_API_V2 = APP_INFO_API_V2 + "/" + ENDPOINT_ABOUT;
+
+  String HISTORY_APP_INFO_API_V2 = APP_INFO_API_V2 + "/" + ENDPOINT_HISTORY;
 }
