@@ -1,3 +1,18 @@
+// Reset 'workaround' in node_modules/bootstrap/scss/_reboot.scss:387 which overrides Angular Material focus behaviour
+button:focus {
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  text-transform: uppercase;
+
+  > button:not(:first-child) {
+    margin-left: 20px;
+  }
+}
+
 .mini-icon-button {
   &.mat-stroked-button {
     border-color: $color-blue !important; // TODO remove important and apply material design

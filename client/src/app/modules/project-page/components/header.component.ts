@@ -14,7 +14,7 @@ export class ProjectHeaderComponent implements OnInit {
   @Input() aggregatedProjectLinks: string;
 
   @Output() onActivateEditMode = new EventEmitter<boolean>();
-  @Output() onOpenDialog = new EventEmitter<string>();
+  @Output() onOpenNotification = new EventEmitter<string>();
 
   constructor() {}
 
@@ -24,7 +24,7 @@ export class ProjectHeaderComponent implements OnInit {
     this.onActivateEditMode.emit(flag);
   }
 
-  emitOpenDialog(text) {
-    this.onOpenDialog.emit(text);
+  emitOpenNotification(text) {
+    this.onOpenNotification.emit(text);
   }
 }
