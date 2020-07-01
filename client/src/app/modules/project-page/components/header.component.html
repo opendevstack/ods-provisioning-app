@@ -46,7 +46,7 @@
           [ngClass]="!projectLink.url ? 'disabled' : ''"
           matTooltip="{{ projectLink.iconLabel }}">
           <ng-container *ngIf="projectLink.url; else iconOnly">
-            <a href="{{ projectLink.url }}" target="_blank">
+            <a href="{{ projectLink.url }}" target="_blank" data-test-project-link-url>
               <mat-icon
                 svgIcon="{{ projectLink.iconName }}"
                 aria-hidden="false"
@@ -65,6 +65,7 @@
         mat-icon-button
         color="primary"
         title="Copy URLs to clipboard"
+        data-test-copy-to-clipboard-btn
         [cdkCopyToClipboard]="this.aggregatedProjectLinks"
         (cdkCopyToClipboardCopied)="emitOpenNotification('Success, URLs copied to clipboard!')"
         *ngIf="this.aggregatedProjectLinks">
