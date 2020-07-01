@@ -17,14 +17,11 @@ public class JenkinsPipelineProperties {
 
   private final Map<String, Quickstarter> quickstarter = new HashMap<>();
   private final Map<String, Quickstarter> adminjobs = new HashMap<>();
-  public final String QUICKSTARTER_CREATE_PROJECTS = "create-projects";
-  public final String QUICKSTARTER_DELETE_PROJECTS = "delete-projects";
+  public final String CREATE_PROJECTS = "create-projects";
+  public final String DELETE_PROJECTS = "delete-projects";
   public final String QUICKSTARTER_DELETE_COMPONENTS = "delete-components";
   public final List<String> adminJobs =
-      Arrays.asList(
-          QUICKSTARTER_CREATE_PROJECTS,
-          QUICKSTARTER_DELETE_PROJECTS,
-          QUICKSTARTER_DELETE_COMPONENTS);
+      Arrays.asList(CREATE_PROJECTS, DELETE_PROJECTS, QUICKSTARTER_DELETE_COMPONENTS);
 
   @PostConstruct
   public void setNameInAllQuickstarters() {
@@ -63,11 +60,11 @@ public class JenkinsPipelineProperties {
   }
 
   public Quickstarter getCreateProjectQuickstarter() {
-    return getAdminjob(QUICKSTARTER_CREATE_PROJECTS);
+    return getAdminjob(CREATE_PROJECTS);
   }
 
   public Quickstarter getDeleteProjectsQuickstarter() {
-    return getAdminjob(QUICKSTARTER_DELETE_PROJECTS);
+    return getAdminjob(DELETE_PROJECTS);
   }
 
   public Quickstarter getDeleteComponentsQuickstarter() {

@@ -72,7 +72,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   protected String projectWebhookProxyHostPattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
-  private String projectOpenshiftJenkinsTriggerSecret;
+  private String openshiftJenkinsTriggerSecret;
 
   @Value("${artifact.group.pattern}")
   protected String groupPattern;
@@ -189,7 +189,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         String triggerSecret =
             project.webhookProxySecret != null
                 ? project.webhookProxySecret
-                : projectOpenshiftJenkinsTriggerSecret;
+                : openshiftJenkinsTriggerSecret;
 
         final Job job =
             getQuickstarterJobs().stream()
@@ -280,7 +280,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
           prepareAndExecuteJob(
               new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),
               options,
-              projectOpenshiftJenkinsTriggerSecret);
+              openshiftJenkinsTriggerSecret);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -386,7 +386,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       boolean deleteComponentJob = jenkinsPipelineProperties.isDeleteComponentJob(job.getId());
       String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
       String url =
-          buildExecutionUrlAdminJob(
+          buildAdminJobExecutionUrl(
               job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
       execution.url = url;
       execution.branch = job.branch;
@@ -432,7 +432,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         + job.jenkinsfilePath;
   }
 
-  public static String buildExecutionUrlAdminJob(
+  public static String buildAdminJobExecutionUrl(
       Job job,
       String componentId,
       String projID,
@@ -492,10 +492,17 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupWholeProjects(OpenProjectData project) {
     if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
       String componentId = project.projectKey.toLowerCase();
-      Quickstarter adminQuickstarter = jenkinsPipelineProperties.getDeleteProjectsQuickstarter();
+      Quickstarter deleteProjectAdminJob =
+          jenkinsPipelineProperties.getDeleteProjectsQuickstarter();
 
       CLEANUP_LEFTOVER_COMPONENTS objectType = CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT;
-      return runAdminJob(adminQuickstarter, project, componentId, objectType);
+      // Note: the secret passed here is the corresponding to the ODS CD webhook proxy
+      return runDeleteAdminJob(
+          deleteProjectAdminJob,
+          project.projectKey,
+          openshiftJenkinsTriggerSecret,
+          componentId,
+          objectType);
     }
 
     logger.debug("Project {} not affected from cleanup", project.projectKey);
@@ -510,9 +517,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .map(q1 -> q1.get(OpenProjectData.COMPONENT_ID_KEY))
             .map(
                 component ->
-                    runAdminJob(
+                    runDeleteAdminJob(
                         jenkinsPipelineProperties.getDeleteComponentsQuickstarter(),
-                        project,
+                        project.projectKey,
+                        project.webhookProxySecret, // Note: the secret passed here is the
+                        // corresponding to the project CD webhook proxy
                         component,
                         CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER))
             .filter(m -> !m.isEmpty())
@@ -528,26 +537,26 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     }
   }
 
-  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> runAdminJob(
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> runDeleteAdminJob(
       Quickstarter adminQuickstarter,
-      OpenProjectData project,
+      String projectKey,
+      String webhookProxySecret,
       String componentId,
       CLEANUP_LEFTOVER_COMPONENTS objectType) {
-    String projectId = project.projectKey.toLowerCase();
+    String projectId = projectKey.toLowerCase();
     Map<String, String> options = buildAdminJobOptions(projectId, componentId);
     Job job = new Job(adminQuickstarter, odsGitRef);
     try {
 
-      logger.debug("Calling job {} for project {}", job.getId(), project.projectKey);
-      ExecutionsData data =
-          prepareAndExecuteJob(job, options, projectOpenshiftJenkinsTriggerSecret);
+      logger.debug("Calling job {} for project {}", job.getId(), projectKey);
+      ExecutionsData data = prepareAndExecuteJob(job, options, webhookProxySecret);
       logger.info("Result of cleanup: {}", data.toString());
       return Collections.emptyMap();
     } catch (RuntimeException | IOException e) {
       logger.debug(
           "Could not start job {} for project {}/component {} : {}",
           job.getId(),
-          project.projectKey,
+          projectKey,
           componentId,
           e.getMessage());
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
