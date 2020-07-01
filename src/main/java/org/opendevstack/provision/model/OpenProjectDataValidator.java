@@ -27,16 +27,13 @@ import java.util.regex.Pattern;
  */
 public class OpenProjectDataValidator {
   /**
-   * This regex matches kubernetes label naming definition.
-   *
-   * <p>Valid name starts with Alphanumeric and dashes, with dashes (-), underscores (_), dots (.),
-   * and alphanumerics between
+   * Valid name starts with alpha chars and only dashes (-) in between are allowed. It is more
+   * restrictive than kubernetes label syntax
    *
    * @see <a href="kubernetes label syntax and character
    *     set">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set</a>
    */
-  public static final String COMPONENT_NAME_VALIDATOR_REGEX =
-      "^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$";
+  public static final String COMPONENT_NAME_VALIDATOR_REGEX = "^(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
 
   public static final String VALIDATION_ERROR_MESSAGE_SEPARATOR = "//";
 
@@ -85,8 +82,7 @@ public class OpenProjectDataValidator {
             COMPONENT_ID_KEY
                 + " '"
                 + componentId
-                + "' is not valid name (only alphanumeric chars are allowed with with dashes (-), "
-                + "underscores (_), dots (.), and alphanumerics between)");
+                + "' is not valid name (only alpha chars are allowed with dashes (-) allowed in between.");
       }
 
       if (!errors.isEmpty()) {
