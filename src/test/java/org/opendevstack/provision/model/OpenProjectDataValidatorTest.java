@@ -148,37 +148,45 @@ public class OpenProjectDataValidatorTest {
     data.quickstarters.forEach(validator);
   }
 
-  /**
-   * Valid name starts with Alphanumeric and dashes, with dashes (-), underscores (_), dots (.), and
-   * alphanumerics between
-   */
+  /** Valid name starts with chars and can have dashes and alphanumerics in between */
   @Test
   public void validComponentIdName() {
 
     Consumer<Map<String, String>> validator = createComponentIdValidator();
 
-    // case component id name cannot start with dash, dot or underscore
-    String notValidName = "_.doNotStartsWithAlphanumericChar";
-    try {
-      data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValidName);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("not valid name"));
-    }
+    // case component id name cannot contains dot or underscore
+    List.of("contains.dot", "contains_underscore", "Contains-123-numbers")
+        .forEach(
+            notValid -> {
+              try {
+                data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
+                data.quickstarters.forEach(validator);
+                Assert.fail(notValid + " is a not valid component id!");
+              } catch (IllegalArgumentException e) {
+                Assert.assertTrue(e.getMessage().contains("not valid name"));
+              }
+            });
 
     // case component id name cannot end with dash, dot or underscore
-    notValidName = "doNotEndsWithWithAlphanumericChar_.";
-    try {
-      data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValidName);
-      data.quickstarters.forEach(validator);
-    } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("not valid name"));
-    }
+    List.of("Ends-with-dash-", "-starts-with-dash")
+        .forEach(
+            notValid -> {
+              try {
+                data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
+                data.quickstarters.forEach(validator);
+                Assert.fail(notValid + " is a not valid component id!");
+              } catch (IllegalArgumentException e) {
+                Assert.assertTrue(e.getMessage().contains("not valid name"));
+              }
+            });
 
     // case component valid name
-    String validName = "starts.WithAlphChar_With-_And.Dots";
-    data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validName);
-    data.quickstarters.forEach(validator);
+    List.of("valid-name", "valid-valid-NAME")
+        .forEach(
+            validName -> {
+              data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validName);
+              data.quickstarters.forEach(validator);
+            });
   }
 
   public Consumer<Map<String, String>> createComponentIdValidator() {
