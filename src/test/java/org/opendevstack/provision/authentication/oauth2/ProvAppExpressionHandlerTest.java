@@ -19,6 +19,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.opendevstack.provision.authentication.authorization.ProvAppExpressionHandler;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.Authentication;

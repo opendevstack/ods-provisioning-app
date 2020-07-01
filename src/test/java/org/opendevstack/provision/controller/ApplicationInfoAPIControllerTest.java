@@ -54,7 +54,6 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
-// @EnableAutoConfiguration(exclude= SecurityAutoConfiguration.class)
 @ActiveProfiles("utest")
 public class ApplicationInfoAPIControllerTest {
 
