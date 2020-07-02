@@ -164,15 +164,8 @@ objects:
       # idmanager
       idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
       idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
-
-      # crowd properties
-      crowd.application.password=${PROV_APP_CROWD_PASSWORD}
-      crowd.server.url=${CROWD_URL}/services/
-      crowd.cookie.domain=${OPENSHIFT_APPS_BASEDOMAIN}
-
-      # openshift properties
-      openshift.apps.basedomain=${OPENSHIFT_APPS_BASEDOMAIN}
-      openshift.console.uri=${OPENSHIFT_CONSOLE_HOST}/console/project/
+      provision.auth.provider=crowd
+      spring.profiles.active=crowd
 
       # allow /or disallow a jira only project to be upgraded to a full OCP project
       openshift.project.upgrade=false
@@ -192,25 +185,8 @@ objects:
       openshift.jenkins.project.name.pattern=jenkins-%s-cd%s
       openshift.jenkins.project.webhookproxy.host.pattern=webhook-proxy-%s-cd%s
 
-      # list of supported webhook events
-      openshift.jenkins.project.webhookproxy.events=repo:refs_changed,pr:merged,pr:declined,pr:deleted
-
-      openshift.jenkins.trigger.secret=${PROV_APP_PIPELINE_TRIGGER_SECRET}
-
-      artifact.group.pattern=${PROV_APP_PACKAGE_PREFIX}.%s
-
-
-      # Cookie Domain
-      atlassian.domain=${PROV_APP_ATLASSIAN_DOMAIN}
-
       # Data for confluence space creation
       confluence.blueprint.key=com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint
-
-      # idmanager
-      provision.auth.provider=crowd
-      spring.profiles.active=crowd
-      idmanager.group.opendevstack-users=${PROV_APP_CROWD_USER_GROUP}
-      idmanager.group.opendevstack-administrators=${PROV_APP_CROWD_ADMIN_GROUP}
 
       # crowd properties
       crowd.local.directory=LocalDirectory
