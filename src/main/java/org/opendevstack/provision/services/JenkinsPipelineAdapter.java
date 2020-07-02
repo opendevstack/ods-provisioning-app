@@ -61,9 +61,17 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               OpenProjectDataValidator.COMPONENT_ID_MIN_LENGTH,
               OpenProjectDataValidator.COMPONENT_ID_MAX_LENGTH));
 
+  public static final List<Consumer<Map<String, String>>> PROJECT_ID_VALIDATOR_LIST =
+      Arrays.asList(
+          OpenProjectDataValidator.createProjectIdValidator(
+              OpenProjectDataValidator.COMPONENT_ID_MIN_LENGTH,
+              OpenProjectDataValidator.COMPONENT_ID_MAX_LENGTH));
+
   public static final String PROJECT_ID_KEY = "PROJECT_ID";
 
   public static final String OPTION_KEY_GIT_SERVER_URL = "GIT_SERVER_URL";
+  public static final String CREATE_PROJECTS_JOB_ID = JenkinsPipelineProperties.CREATE_PROJECTS;
+  public static final String DELETE_PROJECTS_JOB_ID = JenkinsPipelineProperties.DELETE_PROJECTS;
 
   @Value("${openshift.jenkins.admin.webhookproxy.host}")
   protected String adminWebhookProxyHost;
@@ -226,7 +234,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     Map<String, String> options = new HashMap<>();
     Preconditions.checkNotNull(project, "Cannot create null project");
-    validateQuickstarters(
+    validateComponentNames(
         OpenProjectDataValidator.API_COMPONENT_ID_VALIDATOR_LIST, project.getQuickstarters());
 
     //    init webhook secret
@@ -443,7 +451,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     String componentName =
         EXECUTION_URL_ADMIN_JOB_COMP_PREFIX + "-" + (deleteComponentJob ? componentId : projID);
     // yes, validating component name before calling jenkins
-    validateComponentName(COMPONENT_ID_VALIDATOR_LIST, componentName);
+    if (job.id.equals(CREATE_PROJECTS_JOB_ID)) {
+      validateComponentName(PROJECT_ID_VALIDATOR_LIST, componentName);
+    }
     return baseUrl + "&component=" + componentName;
   }
 
@@ -456,22 +466,23 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     return baseUrl + "&component=" + componentName;
   }
 
-  private static void validateQuickstarters(
-      List<Consumer<Map<String, String>>> validators, List<Map<String, String>> quickstarters) {
+  private static void validateComponentNames(
+      List<Consumer<Map<String, String>>> validators, List<Map<String, String>> componentNames) {
 
     validators.forEach(
         validator -> {
-          quickstarters.stream().forEach(validator);
+          componentNames.stream().forEach(validator);
         });
   }
 
+  // In this context/method component names could be a project name or quickstarter name
   private static void validateComponentName(
       List<Consumer<Map<String, String>>> validators, String componentName) {
 
-    HashMap<String, String> quickstarters = new HashMap();
-    quickstarters.put(OpenProjectData.COMPONENT_ID_KEY, componentName);
+    HashMap<String, String> components = new HashMap();
+    components.put(OpenProjectData.COMPONENT_ID_KEY, componentName);
 
-    validateQuickstarters(validators, Arrays.asList(quickstarters));
+    validateComponentNames(validators, Arrays.asList(components));
   }
 
   @Override

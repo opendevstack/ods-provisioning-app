@@ -17,10 +17,10 @@ public class JenkinsPipelineProperties {
 
   private final Map<String, Quickstarter> quickstarter = new HashMap<>();
   private final Map<String, Quickstarter> adminjobs = new HashMap<>();
-  public final String CREATE_PROJECTS = "create-projects";
-  public final String DELETE_PROJECTS = "delete-projects";
-  public final String QUICKSTARTER_DELETE_COMPONENTS = "delete-components";
-  public final List<String> adminJobs =
+  public static final String CREATE_PROJECTS = "create-projects";
+  public static final String DELETE_PROJECTS = "delete-projects";
+  public static final String QUICKSTARTER_DELETE_COMPONENTS = "delete-components";
+  public static final List<String> adminJobs =
       Arrays.asList(CREATE_PROJECTS, DELETE_PROJECTS, QUICKSTARTER_DELETE_COMPONENTS);
 
   @PostConstruct
