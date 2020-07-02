@@ -13,7 +13,7 @@ The APIs exposed for direct usage, and also for the UI are in the https://github
 The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
 
 == How to develop locally
-. Make sure that you have installed GIT and JAVA ( >= 8 ).
+. Make sure that you have installed GIT and JAVA ( >= 11 ).
 . Clone the project out of Github
 
 ```
