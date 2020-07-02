@@ -91,11 +91,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     JenkinsPipelineProperties jenkinsPipelineProperties = new JenkinsPipelineProperties();
     jenkinsPipelineProperties.addQuickstarter(
         adminjobQuickstarter(
-            "create-projects",
+            JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID,
             "ods-core.git",
             "internal quickstarter for creating new initiatives",
             Optional.of("production"),
-            Optional.of("create-projects/Jenkinsfile")));
+            Optional.of(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID + "/Jenkinsfile")));
     jenkinsPipelineProperties.addQuickstarter(
         componentQuickstarter(
             JOB_1_NAME, JOB_1_REPO, "dummy description", Optional.empty(), Optional.empty(), true));
@@ -184,18 +184,62 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
-  public void testBuildExecutionUrlAdminJob() {
+  public void testBuildExecutionUrlAdminCreateProjectJob() {
 
     String webhookProxySecret = "secret101";
     String webhookHost = "localhost";
 
     String odsGitRef = "production";
-    Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
+    Job job =
+        new Job(
+            JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID,
+            JOB_1_REPO,
+            Optional.empty(),
+            Optional.empty(),
+            odsGitRef);
 
-    String componentId = "be-acc-service";
+    String componentId = "be-project-name-with-numbers-123";
 
     Map<String, String> testjob = new HashMap<>();
     testjob.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
+    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
+
+    // Case: do not delete component job
+    String expectedUrl =
+        "https://"
+            + webhookHost
+            + "/build?trigger_secret="
+            + webhookProxySecret
+            + "&jenkinsfile_path="
+            + job.jenkinsfilePath
+            + "&component=ods-corejob-"
+            + job.getId();
+
+    String actualUrl =
+        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
+            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+    assertEquals(expectedUrl, actualUrl);
+  }
+
+  @Test
+  public void testBuildExecutionUrlAdminDeleteProjectJob() {
+
+    String webhookProxySecret = "secret101";
+    String webhookHost = "localhost";
+
+    String odsGitRef = "production";
+    Job job =
+        new Job(
+            JenkinsPipelineAdapter.DELETE_PROJECTS_JOB_ID,
+            JOB_1_REPO,
+            Optional.empty(),
+            Optional.empty(),
+            odsGitRef);
+
+    String projectId = "be-acc-service-with-123-numbers";
+
+    Map<String, String> testjob = new HashMap<>();
+    testjob.put(OpenProjectData.COMPONENT_ID_KEY, projectId);
     testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
 
     // Case: delete component job
@@ -207,27 +251,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "&jenkinsfile_path="
             + job.jenkinsfilePath
             + "&component=ods-corejob-"
-            + componentId;
+            + projectId;
 
     String actualUrl =
         JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
-            job, componentId, job.getId(), webhookProxySecret, webhookHost, true);
-    assertEquals(expectedUrl, actualUrl);
-
-    // Case: do not delete component job
-    expectedUrl =
-        "https://"
-            + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
-            + job.jenkinsfilePath
-            + "&component=ods-corejob-"
-            + job.getId();
-
-    actualUrl =
-        JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
-            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+            job, projectId, job.getId(), webhookProxySecret, webhookHost, true);
     assertEquals(expectedUrl, actualUrl);
   }
 
@@ -296,7 +324,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.projectKey = projectKey;
 
     Job job1 = new Job();
-    job1.setName("create-projects");
+    job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
     Job job2 = new Job();
     job2.setName("name2");
 
@@ -322,7 +350,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void createOpenshiftProjectsWithPassedAdminAndRoles() throws Exception {
 
     Job job1 = new Job();
-    job1.setName("create-projects");
+    job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
     Job job2 = new Job();
     job2.setName("name2");
 

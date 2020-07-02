@@ -151,21 +151,35 @@ public class OpenProjectDataValidatorTest {
   /** Valid name starts with chars and can have dashes and alphanumerics in between */
   @Test
   public void validComponentIdName() {
+    validateIdName(
+        createComponentIdValidator(),
+        List.of(
+            "invalid-contains.dot", "invalid-contains_underscore", "invalid-Contains-123-numbers"),
+        List.of("valid-name", "valid-valid-NAME"));
+  }
 
-    Consumer<Map<String, String>> validator = createComponentIdValidator();
+  @Test
+  public void validProjectIdName() {
+    validateIdName(
+        createProjectIdValidator(),
+        List.of("invalid-contains.dot", "invalid-contains_underscore"),
+        List.of("valid-name", "valid-valid-NAME", "valid-23432-NAME", "valid-234-NAME323"));
+  }
+
+  public void validateIdName(
+      Consumer<Map<String, String>> validator, List<String> invalidNames, List<String> validNames) {
 
     // case component id name cannot contains dot or underscore
-    List.of("contains.dot", "contains_underscore", "Contains-123-numbers")
-        .forEach(
-            notValid -> {
-              try {
-                data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
-                data.quickstarters.forEach(validator);
-                Assert.fail(notValid + " is a not valid component id!");
-              } catch (IllegalArgumentException e) {
-                Assert.assertTrue(e.getMessage().contains("not valid name"));
-              }
-            });
+    invalidNames.forEach(
+        notValid -> {
+          try {
+            data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
+            data.quickstarters.forEach(validator);
+            Assert.fail(notValid + " is a not valid component id!");
+          } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("not valid name"));
+          }
+        });
 
     // case component id name cannot end with dash, dot or underscore
     List.of("Ends-with-dash-", "-starts-with-dash")
@@ -180,17 +194,21 @@ public class OpenProjectDataValidatorTest {
               }
             });
 
-    // case component valid name
-    List.of("valid-name", "valid-valid-NAME")
-        .forEach(
-            validName -> {
-              data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validName);
-              data.quickstarters.forEach(validator);
-            });
+    validNames.forEach(
+        validName -> {
+          data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validName);
+          data.quickstarters.forEach(validator);
+        });
   }
 
   public Consumer<Map<String, String>> createComponentIdValidator() {
     return OpenProjectDataValidator.createComponentIdValidator(
+        OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MIN_LENGTH,
+        OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH);
+  }
+
+  public Consumer<Map<String, String>> createProjectIdValidator() {
+    return OpenProjectDataValidator.createProjectIdValidator(
         OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MIN_LENGTH,
         OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH);
   }

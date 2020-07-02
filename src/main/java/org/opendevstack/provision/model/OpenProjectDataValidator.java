@@ -33,11 +33,22 @@ public class OpenProjectDataValidator {
    * @see <a href="kubernetes label syntax and character
    *     set">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set</a>
    */
-  public static final String COMPONENT_NAME_VALIDATOR_REGEX = "^(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
+  public static final String COMPONENT_ID_VALIDATOR_REGEX = "^(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
+
+  public static final String PROJECT_ID_VALIDATOR_REGEX =
+      "^(([A-Za-z][-A-Za-z0-9]*)?[A-Za-z0-9])?$";
 
   public static final String VALIDATION_ERROR_MESSAGE_SEPARATOR = "//";
 
-  private static final Pattern componentNameRegex = Pattern.compile(COMPONENT_NAME_VALIDATOR_REGEX);
+  private static final PatternErrorMessage componentIdRegex =
+      new PatternErrorMessage(
+          Pattern.compile(COMPONENT_ID_VALIDATOR_REGEX),
+          " is not valid name (only alpha chars are allowed with dashes (-) allowed in between.");
+
+  private static final PatternErrorMessage projectIdRegex =
+      new PatternErrorMessage(
+          Pattern.compile(PROJECT_ID_VALIDATOR_REGEX),
+          " is not valid name (only alpha chars are allowed with dashes (-) and numbers allowed in between. Numbers at the end are allowed too!");
 
   public static final int COMPONENT_ID_MIN_LENGTH = 3;
   public static final int COMPONENT_ID_MAX_LENGTH = 63;
@@ -57,6 +68,16 @@ public class OpenProjectDataValidator {
 
   public static Consumer<Map<String, String>> createComponentIdValidator(
       int minLength, int maxLength) {
+    return createIdValidator(componentIdRegex, minLength, maxLength);
+  }
+
+  public static Consumer<Map<String, String>> createProjectIdValidator(
+      int minLength, int maxLength) {
+    return createIdValidator(projectIdRegex, minLength, maxLength);
+  }
+
+  private static Consumer<Map<String, String>> createIdValidator(
+      PatternErrorMessage pattern, int minLength, int maxLength) {
 
     return quickstarter -> {
       String componentId = quickstarter.get(COMPONENT_ID_KEY);
@@ -77,12 +98,8 @@ public class OpenProjectDataValidator {
             COMPONENT_ID_KEY + " '" + componentId + "' is longer than " + maxLength + " chars!");
       }
 
-      if (!componentNameRegex.matcher(componentId).find()) {
-        errors.add(
-            COMPONENT_ID_KEY
-                + " '"
-                + componentId
-                + "' is not valid name (only alpha chars are allowed with dashes (-) allowed in between.");
+      if (!pattern.getPattern().matcher(componentId).find()) {
+        errors.add(COMPONENT_ID_KEY + " '" + componentId + "' " + pattern.getErrorMessage());
       }
 
       if (!errors.isEmpty()) {
@@ -111,5 +128,25 @@ public class OpenProjectDataValidator {
                 + "'!");
       }
     };
+  }
+
+  private static class PatternErrorMessage {
+
+    private final Pattern pattern;
+
+    private final String errorMessage;
+
+    public PatternErrorMessage(Pattern pattern, String errorMessage) {
+      this.pattern = pattern;
+      this.errorMessage = errorMessage;
+    }
+
+    public Pattern getPattern() {
+      return pattern;
+    }
+
+    public String getErrorMessage() {
+      return errorMessage;
+    }
   }
 }
