@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
@@ -109,7 +110,7 @@ public class ProjectApiController {
   @Value("${provision.cleanup.incomplete.projects:true}")
   private boolean cleanupAllowed;
 
-  @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":false}")
+  @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":true}")
   private boolean checkPreconditionsEnabled;
 
   private String projectTemplateKeysAsJson;
@@ -117,7 +118,8 @@ public class ProjectApiController {
   @Value("${adapters.confluence.enabled:true}")
   private boolean confluenceAdapterEnable;
 
-  public ProjectApiController() {
+  @PostConstruct
+  public void postConstruct() {
     logger.info(
         "Enable check preconditions = {} [{}={}]",
         checkPreconditionsEnabled,
@@ -316,7 +318,7 @@ public class ProjectApiController {
       return new ArrayList<>();
     }
 
-    List<CheckPreconditionFailure> results = new ArrayList<>();
+    final List<CheckPreconditionFailure> results = new ArrayList<>();
 
     if (newProject.bugtrackerSpace) {
 
@@ -335,6 +337,11 @@ public class ProjectApiController {
     if (newProject.platformRuntime) {
       results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
     }
+
+    logger.info(
+        "done with all create project preconditions checks for project '{}'. {}!",
+        newProject.projectKey,
+        results.isEmpty() ? "Successfully passed all checks!" : "Some checks failed!!");
 
     return Collections.unmodifiableList(results);
   }
