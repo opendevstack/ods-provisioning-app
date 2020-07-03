@@ -10,53 +10,66 @@ import org.springframework.security.core.GrantedAuthority;
 
 public class TestAuthentication implements Authentication {
 
+  private String username = "clemens";
+  private String credentials;
+  private GrantedAuthority[] authorities;
+  private boolean authenticated;
+
   public TestAuthentication() {}
+
+  public TestAuthentication(String username, String credentials, GrantedAuthority[] authorities) {
+    this.username = username;
+    this.credentials = credentials;
+    this.authorities = authorities;
+  }
 
   @Override
   public String getName() {
-    // TODO Auto-generated method stub
-    return null;
+    return username;
   }
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    List<GrantedAuthority> auths = new ArrayList<>();
-    auths.add(new TestAuthority());
-    return auths;
+    if (authorities != null) {
+      return List.of(authorities);
+    } else {
+      List<GrantedAuthority> auths = new ArrayList<>();
+      auths.add(new TestAuthority());
+      return auths;
+    }
   }
 
   @Override
   public Object getCredentials() {
-    // TODO Auto-generated method stub
-    return null;
+    return credentials;
   }
 
   @Override
   public Object getDetails() {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Object getPrincipal() {
-    SOAPPrincipal principal = new SOAPPrincipal();
-    principal.setName("clemens");
 
-    CrowdUserDetails details =
-        new CrowdUserDetails(principal, getAuthorities().toArray(new GrantedAuthority[] {}));
-    return details;
+    SOAPPrincipal principal = new SOAPPrincipal();
+    principal.setName(username);
+
+    if (authorities != null) {
+      return new CrowdUserDetails(principal, authorities);
+    } else {
+      return new CrowdUserDetails(principal, getAuthorities().toArray(new GrantedAuthority[] {}));
+    }
   }
 
   @Override
   public boolean isAuthenticated() {
-    // TODO Auto-generated method stub
-    return false;
+    return authenticated;
   }
 
   @Override
   public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-    // TODO Auto-generated method stub
-
+    this.authenticated = isAuthenticated;
   }
 
   public class TestAuthority implements GrantedAuthority {

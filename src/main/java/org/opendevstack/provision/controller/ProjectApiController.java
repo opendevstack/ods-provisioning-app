@@ -100,12 +100,10 @@ public class ProjectApiController {
 
   @Autowired private StorageAdapter filteredStorage;
 
-  // open for testing
-  @Autowired IODSAuthnzAdapter manager;
+  @Autowired private IODSAuthnzAdapter manager;
 
-  // open for testing
   @Value("${openshift.project.upgrade}")
-  boolean ocUpgradeAllowed;
+  private boolean ocUpgradeAllowed;
 
   @Value("${provision.cleanup.incomplete.projects:true}")
   private boolean cleanupAllowed;
@@ -970,5 +968,13 @@ public class ProjectApiController {
 
   public void setCheckPreconditionsEnabled(boolean checkPreconditionsEnabled) {
     this.checkPreconditionsEnabled = checkPreconditionsEnabled;
+  }
+
+  public boolean isOcUpgradeAllowed() {
+    return ocUpgradeAllowed;
+  }
+
+  public void setOcUpgradeAllowed(boolean ocUpgradeAllowed) {
+    this.ocUpgradeAllowed = ocUpgradeAllowed;
   }
 }

@@ -32,29 +32,34 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.adapter.IBugtrackerAdapter;
-import org.opendevstack.provision.adapter.ICollaborationAdapter;
-import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.ISCMAdapter;
+import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.authentication.TestAuthentication;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthSecurityTestConfig;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
-import org.opendevstack.provision.services.*;
+import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.storage.IStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -62,47 +67,80 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Torsten Jaeschke
  * @author utschig
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = SpringBoot.class)
-@DirtiesContext
-@ActiveProfiles("crowd")
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = SpringBoot.class)
+@AutoConfigureMockMvc
+@ActiveProfiles("crowd,utestcrowd,quickstarters")
 public class ProjectApiControllerTest {
 
-  @Mock private IBugtrackerAdapter jiraAdapter;
-  @Mock private ICollaborationAdapter confluenceAdapter;
-  @Mock private ISCMAdapter bitbucketAdapter;
-  @Mock private IJobExecutionAdapter jenkinsPipelineAdapter;
-  @Mock private MailAdapter mailAdapter;
-  @Mock private IStorage storage;
-  @Mock private StorageAdapter filteredStorage;
+  private static Logger logger = LoggerFactory.getLogger(ProjectApiControllerTest.class);
 
-  @Mock private CrowdProjectIdentityMgmtAdapter idm;
+  @MockBean private IBugtrackerAdapter jiraAdapter;
 
-  @InjectMocks @Autowired private ProjectApiController apiController;
+  @MockBean private ICollaborationAdapter confluenceAdapter;
+
+  @MockBean private ISCMAdapter bitbucketAdapter;
+
+  @MockBean private IJobExecutionAdapter jenkinsPipelineAdapter;
+
+  @MockBean private MailAdapter mailAdapter;
+
+  @MockBean private IStorage storage;
+
+  @MockBean private StorageAdapter storageAdapter;
+
+  @MockBean private CrowdProjectIdentityMgmtAdapter idm;
+
+  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
+
+  @Autowired private ProjectApiController apiController;
+
+  @Autowired private List<String> projectTemplateKeyNames;
+
+  @Autowired private WebApplicationContext context;
+
+  @Autowired private ApplicationContext applicationContext;
+
+  @Value("${idmanager.group.opendevstack-users}")
+  private String roleUser;
+
+  @Value("${idmanager.group.opendevstack-administrators}")
+  private String roleAdmin;
 
   private MockMvc mockMvc;
 
   private OpenProjectData data;
 
-  @Value("${project.template.key.names}")
-  private String projectKeys;
-
-  @Autowired private List<String> projectTemplateKeyNames;
-
-  @Autowired private JiraAdapter realJiraAdapter;
-
-  @Autowired ConfluenceAdapter realConfluenceAdapter;
-
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
+
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+    GrantedAuthority auth =
+        new GrantedAuthority() {
+          @Override
+          public String getAuthority() {
+            return roleAdmin;
+          }
+        };
+
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new TestAuthentication(
+                CrowdAuthSecurityTestConfig.TEST_ADMIN_USERNAME,
+                CrowdAuthSecurityTestConfig.TEST_VALID_CREDENTIAL,
+                List.of(auth).toArray(GrantedAuthority[]::new)));
+
     initOpenProjectData();
+
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
 
     apiController.setCheckPreconditionsEnabled(true);
@@ -583,7 +621,7 @@ public class ProjectApiControllerTest {
     copy.projectKey = copy.projectKey + 2;
     projects.put(copy.projectKey, copy);
 
-    when(filteredStorage.getProjects()).thenReturn(projects);
+    when(storageAdapter.getProjects()).thenReturn(projects);
 
     ResultActions resultActions =
         mockMvc
@@ -607,7 +645,7 @@ public class ProjectApiControllerTest {
   @Test
   public void givenGetAllProjects_whenException_thenInternalServerErrorResponse() throws Exception {
 
-    when(filteredStorage.getProjects()).thenReturn(null);
+    when(storageAdapter.getProjects()).thenReturn(null);
 
     mockMvc
         .perform(get("/api/v2/project").accept(MediaType.APPLICATION_JSON))
@@ -626,7 +664,7 @@ public class ProjectApiControllerTest {
 
     data.projectKey = "1";
 
-    when(filteredStorage.getFilteredSingleProject("1")).thenReturn(data);
+    when(storageAdapter.getFilteredSingleProject("1")).thenReturn(data);
 
     mockMvc
         .perform(get("/api/v2/project/1").accept(MediaType.APPLICATION_JSON))
@@ -685,9 +723,26 @@ public class ProjectApiControllerTest {
 
   @Test
   public void getProjectTypeTemplatesForKey() throws Exception {
-    apiController.jiraAdapter = realJiraAdapter;
-    apiController.setConfluenceAdapter(realConfluenceAdapter);
 
+    // setup mocks
+    Map<IServiceAdapter.PROJECT_TEMPLATE, String> jiraTemplates = new HashMap<>();
+    jiraTemplates.put(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY, "software");
+    jiraTemplates.put(
+        IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY,
+        "com.pyxis.greenhopper.jira:gh-scrum-template");
+    when(jiraAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(
+            any(OpenProjectData.class)))
+        .thenReturn(jiraTemplates);
+
+    Map<IServiceAdapter.PROJECT_TEMPLATE, String> confluenceTemplates = new HashMap<>();
+    confluenceTemplates.put(
+        IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY,
+        "com.atlassian.confluence.plugins.confluence-space-blueprints:documentation-space-blueprint");
+    when(confluenceAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(
+            any(OpenProjectData.class)))
+        .thenReturn(confluenceTemplates);
+
+    // trigger requests
     mockMvc
         .perform(get("/api/v2/project/template/default").accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
@@ -768,7 +823,7 @@ public class ProjectApiControllerTest {
     OpenProjectData upgrade = new OpenProjectData();
     upgrade.projectKey = data.projectKey;
     upgrade.platformRuntime = true;
-    apiController.ocUpgradeAllowed = true;
+    apiController.setOcUpgradeAllowed(true);
 
     mockMvc
         .perform(
@@ -787,7 +842,7 @@ public class ProjectApiControllerTest {
     when(storage.getProject(anyString())).thenReturn(data);
     upgrade.platformRuntime = true;
 
-    apiController.ocUpgradeAllowed = false;
+    apiController.setOcUpgradeAllowed(false);
     mockMvc
         .perform(
             put("/api/v2/project")
@@ -832,7 +887,7 @@ public class ProjectApiControllerTest {
   @Test
   public void updateProjectWithQSAdditionOnly() throws Exception {
     // allow upgrade
-    apiController.ocUpgradeAllowed = true;
+    apiController.setOcUpgradeAllowed(true);
 
     data.platformRuntime = false;
     data.quickstarters = null;
@@ -868,7 +923,7 @@ public class ProjectApiControllerTest {
   public void updateProjectWithValidAndInvalidComponentId() throws Exception {
 
     // allow upgrade
-    apiController.ocUpgradeAllowed = true;
+    apiController.setOcUpgradeAllowed(true);
 
     data.platformRuntime = false;
     data.quickstarters = null;

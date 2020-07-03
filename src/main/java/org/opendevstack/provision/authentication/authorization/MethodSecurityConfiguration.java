@@ -12,12 +12,11 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication.oauth2;
+package org.opendevstack.provision.authentication.authorization;
 
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -26,7 +25,6 @@ import org.springframework.security.config.annotation.method.configuration.Globa
 /** @author Sebastian Titakis */
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 public class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
 
   @Value("${idmanager.group.opendevstack-users}")
