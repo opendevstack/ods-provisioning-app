@@ -1,4 +1,4 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
@@ -12,7 +12,8 @@ import { ProjectData, ProjectStorage } from './domain/project';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
   isLoading = true;
@@ -22,13 +23,13 @@ export class AppComponent implements OnInit {
   projects: ProjectData[] = [];
 
   constructor(
+    public editMode: EditModeService,
+    public router: Router,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
-    public editMode: EditModeService,
     private projectService: ProjectService,
-    private storageService: StorageService,
-    private router: Router
+    private storageService: StorageService
   ) {
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
