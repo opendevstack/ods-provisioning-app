@@ -1,4 +1,5 @@
 .page {
+
   @include media-breakpoint-up(lg) {
     display: grid;
     grid-template-areas:
@@ -10,8 +11,14 @@
     form {
       display: contents;
     }
+  }
 
-    mat-card {
+  .box {
+    background: var(--box-background-color);
+    box-shadow: 0 0 5px var(--box-shadow-color);
+    border-radius: 5px;
+
+    @include media-breakpoint-up(lg) {
       grid-area: page-main-content;
       overflow-y: auto;
       display: grid;
@@ -23,19 +30,19 @@
 }
 
 .page__notifications {
-  color: red;
+  color: var(--warn-color);
   font-size: 0.85rem;
-  line-height: 37px;
+  line-height: 47px;
 
   @include media-breakpoint-up(lg) {
     grid-area: page-notifications;
-    height: 37px;
+    height: 47px;
   }
 }
 
 .page__header {
   padding: 30px;
-  border-bottom: 1px solid $color-gray;
+  border-bottom: 1px solid var(--primary-lighter-color);
 
   @include media-breakpoint-up(lg) {
     grid-area: page-header;
@@ -51,7 +58,7 @@
 
 .page__footer {
   padding: 30px;
-  border-top: 1px solid $color-gray;
+  border-top: 1px solid var(--primary-lighter-color);
 
   @include media-breakpoint-up(lg) {
     grid-area: page-footer;

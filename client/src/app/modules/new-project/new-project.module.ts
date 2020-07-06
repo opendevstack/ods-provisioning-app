@@ -4,7 +4,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
-import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { NotificationModule } from '../notification/notification.module';
@@ -32,7 +31,6 @@ import { httpInterceptorProviders } from '../http-interceptors';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCardModule,
     MatTooltipModule,
     MatButtonModule,
     NotificationModule,

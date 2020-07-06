@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { API_PROJECT_URL, API_PROJECT_DETAIL_URL } from '../../../tokens';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
@@ -29,7 +28,6 @@ describe('ProjectPageComponent', () => {
       MatIconModule,
       MatFormFieldModule,
       MatInputModule,
-      MatCardModule,
       MatTooltipModule,
       MatButtonModule,
       MatTableModule,

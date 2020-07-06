@@ -1,5 +1,13 @@
+.custom-dialog-panel {
+  background: var(--dialog-background-color);
+
+  .mat-dialog-container {
+    padding: 0;
+  }
+}
+
 .dialog {
-  padding: 2 * $space;
+  padding: 40px;
 }
 
 .dialog-header {

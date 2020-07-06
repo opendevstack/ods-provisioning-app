@@ -1,5 +1,4 @@
 @import '../../../ui/scss/mixins';
-@import '../../../ui/scss/variables';
 
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
@@ -16,7 +15,11 @@
   }
 }
 
-mat-card {
+.box {
+  background: var(--box-background-color);
+  border-radius: 5px;
+  box-shadow: 0 0 5px var(--box-shadow-color);
+
   @include media-breakpoint-up(lg) {
     grid-area: sidebar-content;
     overflow-y: auto;
@@ -26,7 +29,7 @@ mat-card {
 .sidebar__header {
   display: flex;
   align-items: center;
-  padding: 0 0 5px 15px;
+  padding: 0 0 15px 15px;
 
   @include media-breakpoint-up(lg) {
     grid-area: sidebar-header;
@@ -44,8 +47,7 @@ mat-card {
 
 .searchbar {
   padding: 15px 15px 0 15px;
-  margin-bottom: -1px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--primary-lighter-color);
 
   .searchbar__input {
     width: 100%;
@@ -53,6 +55,7 @@ mat-card {
 }
 
 .nav__list {
+
   mat-nav-list {
     padding-top: 0;
   }
@@ -60,12 +63,18 @@ mat-card {
   .nav__list--item {
     display: block;
     height: auto;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid var(--primary-lighter-color);
+    border-left: 5px solid transparent;
+    padding-right: 5px;
 
     &.active {
-      border-left: 5px solid $color-blue;
-      background: $color-blue-light;
+      border-left-color: var(--primary-color);
     }
+
+    &:first-child {
+      border-top: 0;
+    }
+
   }
 }
 
@@ -85,6 +94,7 @@ mat-card {
   }
 
   .project__key {
+    color: var(--text-lighter-color);
     margin-left: 10px;
     text-align: right;
   }

@@ -10,7 +10,7 @@
       <ng-container *ngIf="editMode; else showEditButton">
         <a
           mat-icon-button
-          color="primary"
+          color="accent"
           title="Close editing"
           (click)="emitActivateEditMode(false)"
           data-test-close-edit-project-btn>
@@ -20,7 +20,7 @@
       <ng-template #showEditButton>
         <a
           mat-icon-button
-          color="primary"
+          color="accent"
           title="Start editing"
           (click)="emitActivateEditMode(true)"
           [disabled]="isQuickstartersError"
@@ -63,7 +63,7 @@
       </ul>
       <a
         mat-icon-button
-        color="primary"
+        color="accent"
         title="Copy URLs to clipboard"
         data-test-copy-to-clipboard-btn
         [cdkCopyToClipboard]="this.aggregatedProjectLinks"

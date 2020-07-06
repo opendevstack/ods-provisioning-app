@@ -35,7 +35,7 @@
     </div>
 
     <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
-      <mat-card>
+      <div class="box">
         <div class="page__header">
           <project-header
             [project]="project"
@@ -68,13 +68,13 @@
             </div>
             <div class="col-12 col-lg">
               <div class="button-group">
-                <button mat-raised-button (click)="editMode.enabled = false">Cancel</button>
-                <button type="submit" mat-raised-button color="primary" [disabled]="!form.valid">Start</button>
+                <button mat-button (click)="editMode.enabled = false">Cancel</button>
+                <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Start</button>
               </div>
             </div>
           </div>
         </div>
-      </mat-card>
+      </div>
     </form>
   </ng-container>
 

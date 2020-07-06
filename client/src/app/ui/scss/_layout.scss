@@ -1,5 +1,6 @@
 body {
-  background: $color-white;
+  background: var(--body-background-color);
+  color: var(--text-color);
   font-size: 16px;
 }
 
@@ -18,11 +19,11 @@ body {
 
 header {
   grid-area: header;
-  background: $color-gradient-start;
+  background: var(--header-gradient-start-color);
   background: linear-gradient(
     90deg,
-    $color-gradient-start 0%,
-    $color-gradient-end 100%
+    var(--header-gradient-start-color) 0%,
+    var(--header-gradient-end-color) 100%
   );
 
   .logo {
@@ -34,14 +35,14 @@ header {
       font-weight: normal;
       margin-bottom: 0;
       padding: 15px 30px 15px 75px;
-      color: $color-white;
+      color: var(--header-text-color);
     }
   }
 }
 
 footer {
   grid-area: footer;
-  padding: 15px 35px;
+  padding: 0 35px 15px 35px;
 }
 
 /* TODO fixme */
@@ -58,8 +59,8 @@ app-root {
 
   .sidebar,
   .content {
-    padding: $spacer;
-    background: #f8f8f8;
+    padding: 20px;
+    background: var(--app-container-background-color);
   }
 
   @include media-breakpoint-up(lg) {

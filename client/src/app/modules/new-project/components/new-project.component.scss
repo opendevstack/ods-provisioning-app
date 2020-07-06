@@ -1,5 +1,3 @@
-@import '../../../ui/scss/variables';
-
 .page__content,
 .page__footer {
   padding: 30px;
@@ -10,6 +8,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--primary-lighter-color);
+
+  h3 {
+    margin-bottom: 0;
+  }
 }
 
 .editmode-button {
@@ -17,15 +20,14 @@
 }
 
 .page__footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-h3 {
-  color: $color-black-light; // TODO apply material design
-  margin-bottom: 0;
+  border-top: 1px solid var(--primary-lighter-color);
 }
 
 mat-form-field,
 mat-checkbox {
   display: block;
+}
+
+h3 {
+  padding-top: 20px;
 }

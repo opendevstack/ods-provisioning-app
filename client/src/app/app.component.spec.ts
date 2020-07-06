@@ -3,7 +3,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { MatListModule } from '@angular/material/list';
 import { LoadingIndicatorModule } from './modules/loading-indicator/loading-indicator.module';
-import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { SidebarModule } from './modules/sidebar/sidebar.module';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -16,7 +15,6 @@ describe('AppComponent', () => {
       HttpClientTestingModule,
       RouterTestingModule,
       MatListModule,
-      MatCardModule,
       LoadingIndicatorModule,
       SidebarModule
     ],

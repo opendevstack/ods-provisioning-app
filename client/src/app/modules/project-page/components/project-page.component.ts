@@ -117,6 +117,9 @@ export class ProjectPageComponent extends FormBaseComponent
   intendRemoveProject() {
     const dialogConfig = new MatDialogConfig();
     dialogConfig.data = this.buildConfirmationConfig();
+    dialogConfig.maxWidth = '600px';
+    dialogConfig.width = '100';
+    dialogConfig.panelClass = 'custom-dialog-panel';
     const dialogRef = this.dialog.open(ConfirmationComponent, dialogConfig);
     dialogRef.afterClosed().subscribe(submitRequest => {
       if (submitRequest) {
