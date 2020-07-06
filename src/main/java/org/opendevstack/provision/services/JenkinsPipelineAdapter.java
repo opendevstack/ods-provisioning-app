@@ -111,11 +111,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.opendevstack.project}")
   protected String bitbucketOdsProject;
 
+  @Value("${ods.namespace}")
+  protected String odsNamespace;
+
   @Value("${ods.image-tag}")
-  private String odsImageTag;
+  protected String odsImageTag;
 
   @Value("${ods.git-ref}")
-  private String odsGitRef;
+  protected String odsGitRef;
 
   private List<Job> quickstarterJobs;
 
@@ -191,6 +194,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("GROUP_ID", groupId);
         options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
+        options.put("ODS_NAMESPACE", odsNamespace);
         options.put("ODS_IMAGE_TAG", odsImageTag);
         options.put("ODS_GIT_REF", odsGitRef);
 
@@ -280,6 +284,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("PROJECT_ADMIN", getUserName());
       }
 
+      options.put("ODS_NAMESPACE", odsNamespace);
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
       options.put(OPTION_KEY_GIT_SERVER_URL, bitbucketUri);
@@ -582,6 +587,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     options.put(PROJECT_ID_KEY, projectId);
     options.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
+    options.put("ODS_NAMESPACE", odsNamespace);
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;

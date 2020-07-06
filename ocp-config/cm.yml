@@ -1,6 +1,8 @@
 apiVersion: v1
 kind: Template
 parameters:
+- name: ODS_NAMESPACE
+  required: true
 - name: ODS_IMAGE_TAG
   required: true
 - name: ODS_GIT_REF
@@ -140,6 +142,7 @@ objects:
       scm.global.readablerepos.opendevstack=${READABLE_OPENDEVSTACK_REPOS}
 
       # ODS properties
+      ods.namespace=${ODS_NAMESPACE}
       ods.image-tag=${ODS_IMAGE_TAG}
       ods.git-ref=${ODS_GIT_REF}
 
