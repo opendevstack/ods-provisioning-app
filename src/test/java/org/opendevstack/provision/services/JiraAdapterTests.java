@@ -302,7 +302,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     scheme.setId("permScheme1");
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(scheme);
-    int updates = mocked.createSpecialPermissions(apiInput);
+    int updates = mocked.createSpecialPermissionsAndUpdateProject(apiInput);
 
     verifyExecute(
         matchesClientCall()

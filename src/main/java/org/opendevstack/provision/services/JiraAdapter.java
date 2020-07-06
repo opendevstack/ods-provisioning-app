@@ -62,6 +62,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
+  public static final String JIRA_TEMPLATE_PERMISSION_SCHEMA_SUFFIX =
+      "jira.project.template.permission-scheme-name.";
 
   // Pattern to use for project with id
   public static final String JIRA_API_PROJECTS = "projects";
@@ -124,6 +126,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Autowired
   private List<String> projectTemplateKeyNames;
 
+  public JiraPermissionSchemeIdResolver permissionSchemeIdResolver =
+      new JiraPermissionSchemeIdResolver();
+
   public JiraAdapter() {
     super(ADAPTER_NAME);
   }
@@ -169,9 +174,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
    * Create permission set for jira project
    *
    * @param project the project
+   * @param permissionScheme
    * @return the number of created permission sets
    */
-  public int createSpecialPermissions(OpenProjectData project) {
+  public int createSpecialPermissionsAndUpdateProject(OpenProjectData project) {
     if (!isSpecialPermissionSchemeEnabled()) {
       logger.info(
           "Do not create special permission set for project {}, "
@@ -227,15 +233,11 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
                 .url(path)
                 .body(singleScheme)
                 .returnTypeReference(new TypeReference<PermissionScheme>() {});
-        singleScheme = getRestClient().execute(call);
 
-        // update jira project
-        path =
-            String.format(
-                "%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
-        PermissionScheme small = new PermissionScheme();
-        small.setId(singleScheme.getId());
-        getRestClient().execute(httpPut().body(small).url(path).returnType(null));
+        PermissionScheme newPermissionScheme = getRestClient().execute(call);
+
+        updateProjectWithPermissionId(project, newPermissionScheme);
+
         updatedPermissions++;
       }
     } catch (Exception createPermissions) {
@@ -249,31 +251,148 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     return updatedPermissions;
   }
 
-  public FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData s) {
+  public void updateProjectWithPermissionId(OpenProjectData project, PermissionScheme singleScheme)
+      throws IOException {
+    // update jira project
+    String updateProjectPath =
+        String.format("%s%s/project/%s/permissionscheme", jiraUri, jiraApiPath, project.projectKey);
+    PermissionScheme small = new PermissionScheme();
+    small.setId(singleScheme.getId());
+    getRestClient().execute(httpPut().body(small).url(updateProjectPath).returnType(null));
+  }
+
+  /**
+   * Create permission set for jira project
+   *
+   * @param project the project
+   * @param permissionScheme
+   * @return the number of created permission sets
+   */
+  public void grantPermissionsToSpecialGroups(OpenProjectData project, String permissionSchemeId) {
+    if (!isSpecialPermissionSchemeEnabled()) {
+      logger.info(
+              "Do not create special permission set for project {}, "
+                      + "since property jira.specialpermissionschema.enabled=false",
+              project.projectKey);
+      return;
+    }
+    PathMatchingResourcePatternResolver pmrl =
+            new PathMatchingResourcePatternResolver(Thread.currentThread().getContextClassLoader());
+
+    try {
+      Resource[] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
+
+      logger.debug("Found permissionsets: {}", permissionFiles.length);
+
+      for (Resource permissionFile : permissionFiles) {
+        PermissionScheme singleScheme =
+                new ObjectMapper().readValue(permissionFile.getInputStream(), PermissionScheme.class);
+
+        // replace group with real group
+        for (Permission permission : singleScheme.getPermissions()) {
+          String group = permission.getHolder().getParameter();
+
+          if ("adminGroup".equals(group)) {
+            permission.getHolder().setParameter(project.projectAdminGroup);
+          } else if ("userGroup".equals(group)) {
+            permission.getHolder().setParameter(project.projectUserGroup);
+          } else if ("readonlyGroup".equals(group)) {
+            permission.getHolder().setParameter(project.projectReadonlyGroup);
+          } else if ("keyuserGroup".equals(group)) {
+            permission.getHolder().setParameter(globalKeyuserRoleName);
+          }
+        }
+        logger.debug(
+                "Grant permission to group in permissionScheme {} location: {}",
+                permissionSchemeId,
+                permissionFile.getFilename());
+
+        // TODO iterate over permission and grant each one
+        singleScheme.getPermissions().forEach(permission -> {
+          String path = String.format("%s%s/permissionscheme/" + permissionSchemeId + "/permission", jiraUri, jiraApiPath);
+          RestClientCall call =
+                  httpPost()
+                          .url(path)
+                          .body(permission)
+                          .returnTypeReference(new TypeReference<PermissionScheme>() {});
+        });
+
+      }
+    } catch (Exception createPermissions) {
+      // continue - we are ok if permissions fail, because the admin has access, and
+      // can create / link the set
+      logger.error(
+              "Could not grant group permission to permissionScheme: {} Exception: {} ",
+              permissionSchemeId,
+              createPermissions.getMessage());
+    }
+    return;
+  }
+
+
+  public FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData projectData) {
     String templateKey =
-        calculateJiraProjectTypeAndTemplateFromProjectType(
-            s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
+        calculateJiraProjectTemplateProjectAndReturnValue(
+            projectData, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
 
     String templateType =
-        calculateJiraProjectTypeAndTemplateFromProjectType(
-            s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+        calculateJiraProjectTemplateProjectAndReturnValue(
+            projectData, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+
+    String permissionSchemeName =
+        calculateJiraProjectTemplateProjectAndReturnValue(
+            projectData, JIRA_TEMPLATE_PERMISSION_SCHEMA_SUFFIX, jiraTemplateKey);
+
+    String permissionSchemeId = null;
+    if (null != permissionSchemeName) {
+      permissionSchemeId = permissionSchemeIdResolver.resolve(permissionSchemeName);
+    } else {
+      logger.info("No permission scheme was setup for {}!", jiraTemplateKey);
+    }
 
     if (jiraTemplateKey.equals(templateKey)) {
       // TODO: fix this... it is a side effect that could be difficult to find and debug!
-      s.projectType = defaultProjectKey;
+      projectData.projectType = defaultProjectKey;
     }
 
-    logger.debug("Creating project of type: {} for project: {}", templateKey, s.projectKey);
+    logger.debug(
+        "Creating project of type: {} for project: {}", templateKey, projectData.projectKey);
 
     return new FullJiraProject(
         null,
-        s.projectKey,
-        s.projectName,
-        s.description,
-        s.projectAdminUser,
+        projectData.projectKey,
+        projectData.projectName,
+        projectData.description,
+        projectData.projectAdminUser,
         templateKey,
         templateType,
-        jiraNotificationSchemeId);
+        jiraNotificationSchemeId,
+        permissionSchemeId);
+  }
+
+  public static class JiraPermissionSchemeIdResolver {
+
+    private Map<String, String> ids = new HashMap<>(10);
+
+    public String resolve(String permissionSchemeName) {
+
+      String id = ids.get(permissionSchemeName);
+      if (null == id) {
+        id = queryForPermissionId(permissionSchemeName);
+        if (null == id) {
+          logger.warn("");
+        } else {
+          logger.info("Found and saving...");
+          ids.put(permissionSchemeName, id);
+        }
+      }
+
+      return id;
+    }
+
+    private String queryForPermissionId(String permissionSchemeName) {
+      return null;
+    }
   }
 
   public String buildProjectKey(String name) {
@@ -391,7 +510,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     return createdShortcuts;
   }
 
-  public String calculateJiraProjectTypeAndTemplateFromProjectType(
+  public String calculateJiraProjectTemplateProjectAndReturnValue(
       OpenProjectData project, String templatePrefix, String defaultValue) {
     Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
     Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
@@ -437,13 +556,20 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       FullJiraProject toBeCreated = buildJiraProjectPojoFromApiProject(project);
 
+      // TODO: this set the permission scheme id
+      // TODO: if yes, do we need to add the special roles to it!
       LeanJiraProject created = createProjectInJira(project, toBeCreated);
 
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
 
       if (project.specialPermissionSet) {
-        createSpecialPermissions(project);
+        if (created.hasPermissionSchemeId()) {
+          // TODO add permission to the permission scheme using the groups defined
+          grantPermissionsToSpecialGroups(project, created.getPermissionScheme());
+        } else {
+          createSpecialPermissionsAndUpdateProject(project);
+        }
       }
 
       return project;
@@ -470,12 +596,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     template.put(
         PROJECT_TEMPLATE.TEMPLATE_KEY,
-        calculateJiraProjectTypeAndTemplateFromProjectType(
+        calculateJiraProjectTemplateProjectAndReturnValue(
             project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
 
     template.put(
         PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
-        calculateJiraProjectTypeAndTemplateFromProjectType(
+        calculateJiraProjectTemplateProjectAndReturnValue(
             project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
 
     return template;

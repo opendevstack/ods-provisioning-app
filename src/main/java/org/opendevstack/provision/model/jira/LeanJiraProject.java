@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.model.jira;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -50,6 +51,9 @@ public class LeanJiraProject {
   @JsonProperty("notificationScheme")
   public String notificationScheme; // the notificationSchemeId
 
+  @JsonProperty("permissionScheme")
+  private String permissionScheme;
+
   @JsonProperty("self")
   public URI self;
 
@@ -62,10 +66,12 @@ public class LeanJiraProject {
       String description,
       String projectTemplateKey,
       String projectTypeKey,
-      String notificationSchemeId) {
+      String notificationSchemeId,
+      String permissionSchemeId) {
     this.projectTemplateKey = projectTemplateKey;
     this.projectTypeKey = projectTypeKey;
     this.notificationScheme = notificationSchemeId;
+    this.permissionScheme = permissionSchemeId;
     this.key = key;
     this.name = name;
     this.description = description;
@@ -79,4 +85,15 @@ public class LeanJiraProject {
   public String getName() {
     return name;
   }
+
+  @JsonIgnore
+  public boolean hasPermissionSchemeId() {
+    return permissionScheme != null;
+  }
+
+  @JsonIgnore
+  public String getPermissionScheme() {
+    return permissionScheme;
+  }
+
 }

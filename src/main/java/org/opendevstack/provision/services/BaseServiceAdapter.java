@@ -15,7 +15,6 @@ package org.opendevstack.provision.services;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import java.util.List;
 import javax.annotation.PostConstruct;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.authentication.MissingCredentialsInfoException;
@@ -26,7 +25,6 @@ import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 
 public class BaseServiceAdapter {
@@ -43,10 +41,6 @@ public class BaseServiceAdapter {
   @Autowired private Environment environment;
 
   @Autowired private RestClient restClient;
-
-  @Qualifier("projectTemplateKeyNames")
-  @Autowired
-  private List<String> projectTemplateKeyNames;
 
   public BaseServiceAdapter(String configurationPrefix) {
     this.configurationPrefix = configurationPrefix;
