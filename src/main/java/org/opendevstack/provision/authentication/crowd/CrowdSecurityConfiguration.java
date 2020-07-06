@@ -38,6 +38,8 @@ import java.util.Properties;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
+import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
+import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,6 +83,9 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
 
+  @Value("${provision.auth.provider.basic-auth.activate-beside-crowd}")
+  private boolean isBasicAuthEnabled;
+
   /**
    * Configure the security for the spring application
    *
@@ -89,31 +94,41 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
    */
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.authenticationProvider(crowdAuthenticationProvider())
-        .headers()
-        .httpStrictTransportSecurity()
-        .disable()
-        .and()
-        .cors()
-        .disable()
-        .csrf()
-        .disable()
-        .addFilter(crowdSSOAuthenticationProcessingFilter())
+
+    HttpSecurity sec =
+        http.authenticationProvider(crowdAuthenticationProvider())
+            .headers()
+            .httpStrictTransportSecurity()
+            .disable()
+            .and()
+            .cors()
+            .disable()
+            .csrf()
+            .disable();
+
+    if (isBasicAuthEnabled) {
+      logger.info("Added Basic Auth entry point!");
+      sec.httpBasic().realmName(crowdApplicationName);
+    }
+
+    sec.addFilter(crowdSSOAuthenticationProcessingFilter())
         .authorizeRequests()
         .antMatchers(
             "/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico", "/login")
         .permitAll()
         .anyRequest()
         .authenticated()
-        .and()
-        .formLogin()
+        .and();
+
+    sec.formLogin()
         .loginPage("/login")
         .permitAll()
         .defaultSuccessUrl("/home")
         .and()
         .logout()
         .addLogoutHandler(crowdLogoutHandler())
-        .permitAll();
+        .permitAll()
+        .and();
   }
 
   /**
@@ -159,6 +174,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter() throws Exception {
     SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
+    filter.setBasicAuthHandlerStrategy(ssoFilterBasicAuthHandlerStrategy());
     filter.setHttpAuthenticator(httpAuthenticator());
     filter.setAuthenticationManager(authenticationManager());
     filter.setFilterProcessesUrl("/j_security_check");
@@ -167,6 +183,11 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     filter.setUsernameParameter("username");
     filter.setPasswordParameter("password");
     return filter;
+  }
+
+  @Bean
+  public SSOAuthProcessingFilterBasicAuthStrategy ssoFilterBasicAuthHandlerStrategy() {
+    return new SSOAuthProcessingFilterBasicAuthHandler(isBasicAuthEnabled);
   }
 
   /**

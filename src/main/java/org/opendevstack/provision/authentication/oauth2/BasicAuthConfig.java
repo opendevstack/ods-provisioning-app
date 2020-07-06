@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication.basic;
+package org.opendevstack.provision.authentication.oauth2;
 
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;

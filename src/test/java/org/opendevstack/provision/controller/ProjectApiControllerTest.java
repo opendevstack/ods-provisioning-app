@@ -52,10 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
@@ -77,7 +75,6 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
-@AutoConfigureMockMvc
 @ActiveProfiles("crowd,utestcrowd,quickstarters")
 public class ProjectApiControllerTest {
 
@@ -106,11 +103,6 @@ public class ProjectApiControllerTest {
   @Autowired private List<String> projectTemplateKeyNames;
 
   @Autowired private WebApplicationContext context;
-
-  @Autowired private ApplicationContext applicationContext;
-
-  @Value("${idmanager.group.opendevstack-users}")
-  private String roleUser;
 
   @Value("${idmanager.group.opendevstack-administrators}")
   private String roleAdmin;
