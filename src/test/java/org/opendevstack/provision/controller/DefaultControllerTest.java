@@ -49,9 +49,6 @@ import org.springframework.web.context.WebApplicationContext;
 /** Created by TJA on 29.06.2017. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-// @DirtiesContext
-// @DirtiesContext
-// @WithMockUser(username = "test")
 @ActiveProfiles("crowd,utestcrowd,quickstarters")
 public class DefaultControllerTest {
 
@@ -65,8 +62,6 @@ public class DefaultControllerTest {
 
   @Autowired private WebApplicationContext context;
 
-  //  @Autowired private IJobExecutionAdapter realJobExecutionAdapter;
-
   @Autowired private ISCMAdapter realBitbucketAdapter;
 
   @Autowired private IBugtrackerAdapter realJiraAdapter;
@@ -76,12 +71,10 @@ public class DefaultControllerTest {
   private MockMvc mockMvc;
 
   @Before
-  public void setUp() throws Exception {
-    //    MockitoAnnotations.initMocks(this);
+  public void setUp() {
 
     mockMvc =
         MockMvcBuilders.webAppContextSetup(context)
-            // .apply(SecurityMockMvcConfigurers.springSecurity())
             .build();
   }
 
