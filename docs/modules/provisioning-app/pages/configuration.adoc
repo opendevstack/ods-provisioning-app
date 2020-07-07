@@ -8,7 +8,7 @@ toc::[]
 
 Available quickstarters can be provided in the container via `/quickstarters/quickstarters.properties`. In the context of OpenShift, this file is supplied by the `ConfigMap` `quickstarters.properties`. The quickstarters defined there will be displayed to the users in the UI when they modify an existing project.
 
-NOTE: When the provisioning app is installed for the first time, a default set of quickstarters (from the `ods-quickstarters` repository) is seeded. As each installation can configure the available quickstarters differently, the `quickstarter.properties` `ConfigMap` is not updated automatically when updating ODS.
+NOTE: When the provisioning app is installed for the first time, a default set of quickstarters (from the `ods-quickstarters` repository) is seeded. As each installation can configure the available quickstarters differently, the `quickstarters.properties` `ConfigMap` is not updated automatically when updating ODS.
 
 A quickstarter needs to have two mandatory entries:
 [source%nowrap,bash]
