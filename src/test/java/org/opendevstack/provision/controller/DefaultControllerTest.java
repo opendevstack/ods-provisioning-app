@@ -73,9 +73,7 @@ public class DefaultControllerTest {
   @Before
   public void setUp() {
 
-    mockMvc =
-        MockMvcBuilders.webAppContextSetup(context)
-            .build();
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
   }
 
   @Test
