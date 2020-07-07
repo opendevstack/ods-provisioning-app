@@ -22,9 +22,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -36,9 +34,10 @@ import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,35 +48,36 @@ import org.springframework.web.context.WebApplicationContext;
 
 /** Created by TJA on 29.06.2017. */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = SpringBoot.class)
-@DirtiesContext
-@WithMockUser(username = "test")
-@ActiveProfiles("crowd")
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+// @DirtiesContext
+// @DirtiesContext
+// @WithMockUser(username = "test")
+@ActiveProfiles("crowd,utestcrowd,quickstarters")
 public class DefaultControllerTest {
 
-  private MockMvc mockMvc;
+  @MockBean private IJobExecutionAdapter jobExecutionAdapter;
 
-  @Autowired DefaultController defaultController;
+  @MockBean private StorageAdapter storageAdapter;
 
-  @Mock IJobExecutionAdapter jobExecutionAdapter;
+  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
 
-  @Mock CrowdAuthenticationManager crowdAuthenticationManager;
-
-  @Mock StorageAdapter storageAdapter;
+  @Autowired private DefaultController defaultController;
 
   @Autowired private WebApplicationContext context;
 
-  @Autowired IJobExecutionAdapter realJobExecutionAdapter;
+  //  @Autowired private IJobExecutionAdapter realJobExecutionAdapter;
 
-  @Autowired ISCMAdapter realBitbucketAdapter;
+  @Autowired private ISCMAdapter realBitbucketAdapter;
 
-  @Autowired IBugtrackerAdapter realJiraAdapter;
+  @Autowired private IBugtrackerAdapter realJiraAdapter;
 
-  @Autowired ICollaborationAdapter realConfluenceAdapter;
+  @Autowired private ICollaborationAdapter realConfluenceAdapter;
+
+  private MockMvc mockMvc;
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    //    MockitoAnnotations.initMocks(this);
 
     mockMvc =
         MockMvcBuilders.webAppContextSetup(context)
