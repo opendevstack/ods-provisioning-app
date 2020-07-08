@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
+import org.opendevstack.provision.authentication.crowd.ProvAppSimpleCachingGroupMembershipManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,8 +112,8 @@ public class BasicAuthConfig {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
     cusd.setGroupMembershipManager(
-        new SimpleCachingGroupMembershipManager(
-            securityServerClient(), userManager(), groupManager(), getCache()));
+        new ProvAppSimpleCachingGroupMembershipManager(
+            securityServerClient(), userManager(), groupManager(), getCache(), true));
     cusd.setAuthorityPrefix("");
     return cusd;
   }

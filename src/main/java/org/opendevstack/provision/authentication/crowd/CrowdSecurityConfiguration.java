@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthStrategy;
@@ -328,8 +327,8 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
     cusd.setGroupMembershipManager(
-        new SimpleCachingGroupMembershipManager(
-            securityServerClient(), userManager(), groupManager(), getCache()));
+        new ProvAppSimpleCachingGroupMembershipManager(
+            securityServerClient(), userManager(), groupManager(), getCache(), true));
     cusd.setAuthorityPrefix("");
     return cusd;
   }
@@ -341,7 +340,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
    * @throws IOException
    */
   @Bean
-  RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
+  public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
         crowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
   }
