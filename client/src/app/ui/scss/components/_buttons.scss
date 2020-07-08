@@ -13,6 +13,7 @@ button:focus {
 }
 
 .mini-icon-button {
+
   &.mat-stroked-button {
     border-color: var(--accent-color) !important; // TODO remove brutal override here
     line-height: 1;
@@ -22,6 +23,9 @@ button:focus {
     height: 20px;
     width: 20px;
     margin: 0 5px 0 -5px;
+  }
+  &:hover {
+    text-decoration: none;
   }
 }
 

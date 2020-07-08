@@ -33,6 +33,11 @@ const routes: Routes = [
       import('../about-page/about-page.module').then(m => m.AboutPageModule)
   },
   {
+    path: 'logout',
+    loadChildren: () =>
+      import('../logout/logout.module').then(m => m.LogoutModule)
+  },
+  {
     path: '',
     redirectTo: 'project',
     pathMatch: 'full'
