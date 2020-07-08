@@ -83,7 +83,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
 
-  @Value("${provision.auth.provider.basic-auth.activate-beside-crowd}")
+  @Value("${provision.auth.basic-auth.enabled:true}")
   private boolean isBasicAuthEnabled;
 
   /**

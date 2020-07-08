@@ -34,7 +34,7 @@ import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipMan
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,14 +42,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 @Configuration
-@ConditionalOnProperty(
-    name = "provision.auth.provider.basic-auth.activate-beside-oauth2",
-    havingValue = "true")
+@ConditionalOnExpression(
+    "'${provision.auth.basic-auth.enabled}'=='true' && '${provision.auth.provider}'=='oauth2'")
 public class BasicAuthConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(BasicAuthConfig.class);
 
-  @Value("${idmanager.realm}")
+  @Value("${idmanager.realm:provision}")
   private String idManagerRealm;
 
   @Value("${crowd.application.name}")
