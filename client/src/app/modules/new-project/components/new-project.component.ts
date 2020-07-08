@@ -129,6 +129,7 @@ export class NewProjectComponent extends FormBaseComponent
       cdUser: null,
       template: [null, Validators.required],
       description: null,
+      optInODS: null,
       optInJira: null,
       permissionSet: this.formBuilder.group({
         admin: this.formBuilder.group(
