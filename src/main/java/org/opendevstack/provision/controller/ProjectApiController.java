@@ -105,7 +105,8 @@ public class ProjectApiController {
   @Value("${openshift.project.upgrade}")
   private boolean ocUpgradeAllowed;
 
-  @Value("${provision.cleanup.incomplete.projects:true}")
+  // Explicity set to false to document default value
+  @Value("${provision.cleanup.incomplete.projects:false}")
   private boolean cleanupAllowed;
 
   @Value("${" + CONFIG_PROVISION_ADD_PROJECT_CHECK_PRECONDITIONS + ":true}")
