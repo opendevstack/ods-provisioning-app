@@ -150,45 +150,114 @@ The process for new operations to be called is:
 
 == Consuming REST APIs via curl
 
+Basic Auth authentication is the recommended way to consume REST API. How to enable Basic Auth authentication is explained xref:provisioning-app:configuration.adoc:Authentication Crowd Configuration[here].
+
+Following a sample script that uses Basic Auth to send a request to provision a new project.
+It return an error code or the response body in json format.
 [source,bash]
 ----
-PROVISION_API_HOST=<host name>
+#!/usr/bin/env bash
 
-curl -D headers.txt -k -H "Content-Type: application/x-www-form-urlencoded" \
--X POST ${PROVISION_API_HOST}/j_security_check \
--d username=<username> -d password=<password>
+set -eu
 
-# grab the login status, and exit if error
-login_status=$(cat headers.txt | grep ${PROVISION_API_HOST}/login?error)
+# Setup this variables
+# PROVISION_API_HOST=<protocol>://<hostname>:<port>
+# BASIC_AUTH_CREDENTIAL=<USERNAME>:<PASSWORD>
+# PROVISION_FILE=provision-new-project-payload.json
 
-if [[ $login_status != "" ]]; then echo "Login Error"; exit 1; fi;
+echo
+echo "Started provision new project script!"
+echo
+echo "... encoding basic auth credentials in base64 format"
+BASE64_CREDENTIALS=$(echo -n $BASIC_AUTH_CREDENTIAL | base64)
+echo
+echo "... new project request payload loaded from '"$PROVISION_FILE"'"
+echo
+echo "... displaying payload file content:"
+cat $PROVISION_FILE
+echo
+echo "... sending request to '"$PROVISION_API_HOST"' (output will be saved in file './response.txt' and headers in file './headers.txt')"
+echo
+http_resp_code=$(curl --fail --silent --location --request POST "${PROVISION_API_HOST}/api/v2/project" \
+--header "Authorization: Basic ${BASE64_CREDENTIALS}" \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data @"$PROVISION_FILE" \
+--dump-header headers.txt -o response.txt -w "%{http_code}" )
+exit_status=$?
+if [ $exit_status != 0 ]
+  then
+    echo "something went wrong... curl request failed [status="$exit_status"]!!!"
+    exit $exit_status
+fi
 
-# grab the needed IDs and bake the cookies
-JSESSION_ID=$(cat headers.txt | grep "Set-Cookie: JSESSION" | cut -d ';' -f1 | cut -d ":" -f2)";"
-CROWD_COOKIE=$(cat headers.txt | grep "Set-Cookie: crowd" | cut -d ';' -f1 | cut -d ":" -f2)
+echo "curl request successful..."
+echo
+echo "... displaying HTTP response body (content from './response.txt'):"
+cat response.txt
+echo
+echo "... displaying HTTP response code"
+echo "http_resp_code=${http_resp_code}"
+echo
+if [ $http_resp_code != 200 ]
+  then
+    echo "something went wrong... endpoint responded with error code [HTTP CODE="$http_resp_code"] (expected was 200)"
+    exit 1
+fi
+echo "provision new project request completed successfully!!!"
 
-COOKIES=${JSESSION_ID}${CROWD_COOKIE}
-
-# sample provision file >> create.txt
-{
-  "name" : "<Mandatory name>",
-  "key" : "<Mandatory key>",
-  "createpermissionset" : true,
-  "jiraconfluencespace" : true,
-  "admin" : "<admin user>",
-  "adminGroup" : "<admin group>",
-  "userGroup" : "<user group>",
-  "readonlyGroup" : "<readonly group>",
-  "openshiftproject" : false
-}
-
-provisionfile=create.txt
-
-# invoke the provision API to create a new project
-curl -k -X POST --cookie "$COOKIES" -d @"$provisionfile" \
--H "Content-Type: application/json; charset=utf-8" -v ${PROVISION_API_HOST}/api/v2/project
+cat response.txt
 ----
 
+=== Pre Flight Checks
+
+The provisioning of new project requires the creation of project in different servers (jira, bitbucket, confluence, openshift, etc...)
+In case of an exception happens this process will be interrupted.
+This will leave the provision of a new project as incomplete.
+To avoid this situation a series of checks called "Pre Flight Checks" were implemented.
+These checks verify that all required conditions are given in the target system (jira, bitbucket, confluence) before provision a new project.
+
+==== Response examples:
+Following some samples of response of the provision new project endpoint `POST api/v2/project`
+
+Pre Flight Check failed:
+----
+HTTP CODE: 503 Service Unavailable
+{"endpoint":"ADD_PROJECT","stage":"CHECK_PRECONDITIONS","status":"FAILED","errors":[{"error-code":"UNEXISTANT_USER","error-message":"user 'cd_user_wrong_cd_user' does not exists in bitbucket!"}]}
+----
+
+Pre Flight Check due an exception:
+----
+HTTP CODE: 503 Service Unavailable
+{"endpoint":"ADD_PROJECT","stage":"CHECK_PRECONDITIONS","status":"FAILED","errors":[{"error-code":"EXCEPTION","error-message":"Unexpected error when checking precondition for creation of project 'PROJECTNAME'"}]}
+----
+
+Pre Flight Check successfully passed and project was created:
+----
+HTTP CODE: 200 OK
+{
+    "projectName": "MYPROJECT",
+    "description": "My new project",
+    "projectKey": "MYPROJECT",
+    ...
+}
+----
+
+Failed Response due to exception after Pre Flight Checks succesfully passed:
+----
+HTTP CODE: 500 Internal Server Error
+
+An error occured while creating project [PROJECTNAME
+], reason [component_id 'ods-myproject-component106' is not valid name (only alpha chars are allowed with dashes (-) allowed in between.
+] - but all cleaned up!
+----
+
+==== Option "onlyCheckPreconditions=TRUE":
+
+The provision new project endpoint `POST api/v2/project` accepts a url parameter called `onlyCheckPreconditions`.
+By setting this parameter to true (`POST api/v2/project?onlyCheckPreconditions=TRUE`) only the Pre Flight Checks will be executed.
+This could be usefull for the development of new Pre Flight Checks or for integration scenarios.
+In this later case one could imagine to set this parameter to TRUE to verify all preconditions before creating a project.
 
 == Link collection
 
