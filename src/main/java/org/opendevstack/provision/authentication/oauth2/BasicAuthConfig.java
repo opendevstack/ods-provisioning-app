@@ -12,7 +12,7 @@
  * the License.
  */
 
-package org.opendevstack.provision.authentication.basic;
+package org.opendevstack.provision.authentication.oauth2;
 
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
@@ -30,11 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.SimpleCachingGroupMembershipManager;
+import org.opendevstack.provision.authentication.crowd.ProvAppSimpleCachingGroupMembershipManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,14 +42,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 @Configuration
-@ConditionalOnProperty(
-    name = "provision.auth.provider.basic-auth.activate-beside-oauth2",
-    havingValue = "true")
+@ConditionalOnExpression(
+    "'${provision.auth.basic-auth.enabled}'=='true' && '${provision.auth.provider}'=='oauth2'")
 public class BasicAuthConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(BasicAuthConfig.class);
 
-  @Value("${idmanager.realm}")
+  @Value("${idmanager.realm:provision}")
   private String idManagerRealm;
 
   @Value("${crowd.application.name}")
@@ -113,8 +112,8 @@ public class BasicAuthConfig {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
     cusd.setUserManager(userManager());
     cusd.setGroupMembershipManager(
-        new SimpleCachingGroupMembershipManager(
-            securityServerClient(), userManager(), groupManager(), getCache()));
+        new ProvAppSimpleCachingGroupMembershipManager(
+            securityServerClient(), userManager(), groupManager(), getCache(), true));
     cusd.setAuthorityPrefix("");
     return cusd;
   }

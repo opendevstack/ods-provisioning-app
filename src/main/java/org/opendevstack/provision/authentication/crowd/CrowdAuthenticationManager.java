@@ -54,6 +54,15 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
 
   @Autowired private SessionAwarePasswordHolder userPassword;
 
+  /**
+   * Constructor with secure SOAP restClient for crowd authentication
+   *
+   * @param securityServerClient
+   */
+  public CrowdAuthenticationManager(SecurityServerClient securityServerClient) {
+    this.securityServerClient = securityServerClient;
+  }
+
   /** @see IODSAuthnzAdapter#getUserPassword() */
   public String getUserPassword() {
     return userPassword.getPassword();
@@ -94,15 +103,6 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   /** open for testing */
   public void setUserName(String userName) {
     this.userPassword.setUsername(userName);
-  }
-
-  /**
-   * Constructor with secure SOAP restClient for crowd authentication
-   *
-   * @param securityServerClient
-   */
-  public CrowdAuthenticationManager(SecurityServerClient securityServerClient) {
-    this.securityServerClient = securityServerClient;
   }
 
   /**

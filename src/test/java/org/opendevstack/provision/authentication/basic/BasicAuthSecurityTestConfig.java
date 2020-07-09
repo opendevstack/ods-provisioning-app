@@ -39,9 +39,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
  * @author Sebastian Titakis
  */
 @Configuration
-@ConditionalOnProperty(
-    name = "provision.auth.provider.basic-auth.activate-beside-oauth2",
-    havingValue = "utest")
+@ConditionalOnProperty(name = "provision.auth.basic-auth.enabled", havingValue = "utest")
 public class BasicAuthSecurityTestConfig {
 
   public static final String TEST_USER_USERNAME = "user";

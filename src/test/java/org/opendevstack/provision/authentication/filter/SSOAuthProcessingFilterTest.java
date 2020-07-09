@@ -16,6 +16,8 @@ package org.opendevstack.provision.authentication.filter;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
@@ -24,40 +26,32 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.opendevstack.provision.SpringBoot;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
-@DirtiesContext
-@ActiveProfiles("crowd")
 public class SSOAuthProcessingFilterTest {
 
-  @Mock HttpAuthenticator authenticator;
+  @MockBean private HttpAuthenticator httpAuthenticator;
 
-  @Autowired @InjectMocks SSOAuthProcessingFilter filter;
+  @MockBean private HttpServletRequest request;
+
+  @MockBean private HttpServletResponse response;
+
+  @MockBean private SSOAuthProcessingFilterBasicAuthStrategy basicAuthStrategy;
+
+  private SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
 
   @Before
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    filter.setBasicAuthHandlerStrategy(basicAuthStrategy);
+    filter.setHttpAuthenticator(httpAuthenticator);
   }
 
   @Test
-  public void storeCrowdToken() throws Exception {
+  public void storeCrowdToken() {
     CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
-
-    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-    HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
     assertTrue(filter.storeTokenIfCrowd(request, response, token));
     assertFalse(filter.storeTokenIfCrowd(request, response, null));
@@ -65,11 +59,19 @@ public class SSOAuthProcessingFilterTest {
 
   @Test
   public void testSuccessfullAuth() throws Exception {
-    HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-    HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-
     CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
 
     filter.successfulAuthentication(request, response, null, token);
+  }
+
+  @Test
+  public void whenRequiresAuthentication_callsBasicAuthStrategy() {
+
+    // case basic auth authentication exists
+    when(basicAuthStrategy.requiresAuthentication(
+            any(HttpServletRequest.class), any(HttpServletResponse.class)))
+        .thenReturn(Boolean.FALSE);
+
+    assertFalse(filter.requiresAuthentication(request, response));
   }
 }
