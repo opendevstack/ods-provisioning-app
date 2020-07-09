@@ -109,7 +109,7 @@ export class ProjectPageComponent extends FormBaseComponent
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
     if (reload) {
       dialogRef.afterClosed().subscribe(() => {
-        this.router.navigateByUrl('/');
+        window.location.href = document.querySelector('base').href;
       });
     }
   }

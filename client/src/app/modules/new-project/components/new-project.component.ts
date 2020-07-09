@@ -61,7 +61,7 @@ export class NewProjectComponent extends FormBaseComponent
 
   leavePage() {
     this.editMode.enabled = false;
-    this.router.navigateByUrl('/');
+    window.location.href = document.querySelector('base').href;
   }
 
   ngOnDestroy(): void {
@@ -103,9 +103,7 @@ export class NewProjectComponent extends FormBaseComponent
     const dialogRef = this.dialog.open(NotificationComponent, dialogConfig);
     if (reload) {
       dialogRef.afterClosed().subscribe(() => {
-        // workaround until https://jira.bix-digital.com/browse/PANFE-43 is done
-        window.location.href =
-          document.querySelector('base').href + 'index.html';
+        window.location.href = document.querySelector('base').href;
       });
     }
   }
