@@ -78,4 +78,11 @@
       }
     }
   }
+
+  .qs-component__action {
+    display: flex;
+    justify-content: flex-end;
+    margin: 10px 0 30px 0;
+  }
+
 }

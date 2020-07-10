@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { API_ALL_QUICKSTARTERS_URL } from '../../../tokens';
+import { API_ALL_QUICKSTARTERS_URL, API_PROJECT_URL } from '../../../tokens';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import {
@@ -9,6 +9,7 @@ import {
   ProjectQuickstarterComponentsData,
   QuickstarterData
 } from '../../../domain/quickstarter';
+import { DeleteComponentRequest } from '../../../domain/project';
 
 @Injectable({
   providedIn: 'root'
@@ -94,7 +95,8 @@ export class QuickstarterService {
 
   constructor(
     private httpClient: HttpClient,
-    @Inject(API_ALL_QUICKSTARTERS_URL) private apiAllQuickstartersUrl: string
+    @Inject(API_ALL_QUICKSTARTERS_URL) private apiAllQuickstartersUrl: string,
+    @Inject(API_PROJECT_URL) private projectUrl: string
   ) {}
 
   getAllQuickstarters(): Observable<QuickstarterData[]> {
@@ -120,5 +122,13 @@ export class QuickstarterService {
     return QuickstarterService.sortProjectQuickstartersByDescription(
       groupedProjectQuickstarters
     );
+  }
+
+  deleteQuickstarterComponent(
+    componentDeleteObj: DeleteComponentRequest
+  ): Observable<DeleteComponentRequest> {
+    return this.httpClient
+      .put<DeleteComponentRequest>(this.projectUrl, componentDeleteObj)
+      .pipe(catchError(QuickstarterService.handleError));
   }
 }

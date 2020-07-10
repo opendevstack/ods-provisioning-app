@@ -36,6 +36,11 @@ export interface UpdateProjectRequest {
   quickstarters: UpdateProjectQuickstartersData[];
 }
 
+export interface DeleteComponentRequest {
+  projectKey: string;
+  quickstarters: UpdateProjectQuickstartersData[];
+}
+
 export interface UpdateProjectQuickstartersData {
   component_type: string;
   component_id: string;

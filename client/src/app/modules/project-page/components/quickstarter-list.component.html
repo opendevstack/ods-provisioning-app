@@ -53,6 +53,17 @@
                 <ng-template #empty>-</ng-template>
               </dl>
             </div>
+
+            <div class="qs-component__action">
+              <button
+                mat-button
+                color="warn"
+                (click)="intendDeleteComponent({
+                  id: id.componentId,
+                  type: id.componentType
+                }); $event.preventDefault();"
+                data-test-delete-component>Remove component</button>
+            </div>
           </mat-expansion-panel>
         </mat-accordion>
       </td>
