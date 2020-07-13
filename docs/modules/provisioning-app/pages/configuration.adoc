@@ -97,6 +97,7 @@ There are to separate authentication options to authenticated a user for the pro
 
 * CROWD (default)
 * OAUTH2
+* Basic Auth
 
 :tip-caption: pass:[&#128161;]
 [TIP]
@@ -115,10 +116,10 @@ spring.profiles.active=crowd # <2>
 <1> configures crowd authentication provider
 <2> include crowd profile per default.
 
-The crowd specific configuration is done in the included profile _crowd_, see property documentation inside the profile file _application-crowd.properties_. The provided example configuration is appropriate for a locally installed OpenDevStack environment.
+The crowd specific configuration is done in the included profile _crowd_, see property documentation inside the profile file https://github.com/opendevstack/ods-provisioning-app/blob/master/src/test/resources/application-crowd.properties[application-crowd.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment.
 
 === Authentication OAUTH2 Configuration
-An example of plain oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-outh2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
+An example of plain oauth2 configuration is given in spring boot profile https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application-oauth2.properties[application-oauth2.properties]. The provided example configuration is appropriate for a locally installed OpenDevStack environment, when the _idmanager_ vagrant box is used.
 
 [source%nowrap,bash]
 .application-oauth2.properties
@@ -194,6 +195,31 @@ idmanager.disable-logout-from-idm=true # <9>
 <7> configure to use email claim as username
 <8> configure name of the ProvApp realm
 <9> instruct ProvApp to not logout from identity management provider
+
+=== Basic Auth authentication
+
+This option can be enabled to activate basic auth as additional authentication when using `crowd` or `oauth2` as authentication provider.
+
+To enable basic auth this properties needs to be configured:
+[source%nowrap,bash]
+.application-azure.properties
+----
+provision.auth.basic-auth.enabled=true
+----
+
+The basic auth authentication needs to connect to an identity manager to authenticate users.
+Currently only `crowd` is supported for this purpouse.
+If you have've chosen to use `oauth2` as provider you can even enable basic auth to connect to crowd server.
+For that you will need to add these properties to your configuration:
+[source%nowrap,bash]
+----
+# crowd properties (needed for basic auth)
+crowd.local.directory=~/dev/temp
+crowd.application.name=<APPLICATION_NAME>
+crowd.application.password=<PASSWORD>
+crowd.server.url=<CROWD_HOST>
+crowd.cookie.domain=<COOKIE_DOMAIN>
+----
 
 === Authentication to third party apps via technical users
 The rest api calles use HTTP _basic access authentication_ to communicate with Jira, Confluence and Bitbucket. The used credentials are read from a pair of properties. For Example, _bitbucket.admin_password_ and _bitbucket.admin_user_ properties are used for Bitbucket, _confluence.admin_user_ and _confluence.admin_password_ are used for Confluence, etc.
