@@ -174,7 +174,7 @@ dependencies {
 bootJar {
     doFirst {
         copy {
-            println 'bootJar: Copy New Front End files!!!'
+            println 'bootJar: copy new frond end artifacts to resources folder!'
             from 'client/dist/client/nfe'
             into 'build/resources/main/static/nfe'
         }
