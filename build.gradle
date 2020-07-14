@@ -172,6 +172,13 @@ dependencies {
 }
 
 bootJar {
+    doFirst {
+        copy {
+            println 'bootJar: Copy New Front End files!!!'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
+        }
+    }
     launchScript()
     archiveName "app.jar"
     destinationDir file("$buildDir/../docker")
@@ -179,6 +186,19 @@ bootJar {
 
 test {
     finalizedBy jacocoTestReport
+}
+
+bootRun {
+    doFirst {
+        copy {
+            println 'bootRun: Copy New Front End files!!!'
+            from 'client/dist/client/nfe'
+            into 'build/resources/main/static/nfe'
+        }
+    }
+    args = [
+            '--spring.config.location=file:./build/resources/main/application-local.properties'
+    ]
 }
 
 jacoco {
@@ -197,3 +217,16 @@ spotless {
         indentWithSpaces(2)
     }
 }
+
+task yarnBuild(type:Exec) {
+
+    workingDir 'client'
+
+    //on windows:
+    commandLine 'cmd', '/c', 'yarn', 'build'
+
+    //on linux
+    commandLine 'yarn', 'build'
+}
+
+bootRun.dependsOn yarnBuild

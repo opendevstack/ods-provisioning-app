@@ -1,0 +1,92 @@
+<table class="qs-table" *ngIf="projectQuickstarters; else emptyContent" data-test-qs-list>
+  <thead>
+    <tr>
+      <th>Quickstarter</th>
+      <th>IDs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let qs of projectQuickstarters;">
+      <td>
+        <div class="qs-id">{{ qs.description }}</div>
+      </td>
+      <td class="qs-components">
+
+        <mat-accordion [displayMode]="'flat'" [togglePosition]="'before'">
+          <mat-expansion-panel *ngFor="let id of qs.ids" class="mat-elevation-z0">
+            <mat-expansion-panel-header [collapsedHeight]="'*'" [expandedHeight]="'*'">
+              <mat-panel-title>{{ id.componentId }}</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div class="qs-component__data">
+              <dl>
+                <dt>ODS Image Tag</dt>
+                <dd>{{ id.odsImageTag || '-' }}</dd>
+              </dl>
+              <dl>
+                <dt>Package Name</dt>
+                <dd matTooltip="{{ id.packageName }}">{{ id.packageName || '-' }}</dd>
+              </dl>
+              <dl>
+                <dt>OSD Git Ref</dt>
+                <dd>{{ id.odsGitRef || '-' }}</dd>
+              </dl>
+              <dl>
+                <dt>Group ID</dt>
+                <dd>{{ id.groupId || '-' }}</dd>
+              </dl>
+              <dl>
+                <dt>GIT HTTP</dt>
+                <dd matTooltip="{{ id.gitUrlHttp }}">
+                  <ng-container *ngIf="id.gitUrlHttp; else empty">
+                    <a href="{{ id.gitUrlHttp }}" target="_blank">{{ id.gitUrlHttp }}</a>
+                  </ng-container>
+                </dd>
+              </dl>
+              <dl>
+                <dt>GIT SSH</dt>
+                <dd matTooltip="{{ id.gitUrlSsh }}">
+                  <ng-container *ngIf="id.gitUrlHttp; else empty">
+                    <a href="{{ id.gitUrlSsh }}" target="_blank">{{ id.gitUrlSsh }}</a>
+                  </ng-container>
+                </dd>
+                <ng-template #empty>-</ng-template>
+              </dl>
+            </div>
+
+            <div class="qs-component__action">
+              <button
+                mat-button
+                color="warn"
+                (click)="intendDeleteComponent({
+                  id: id.componentId,
+                  type: id.componentType
+                }); $event.preventDefault();"
+                data-test-delete-component>Remove component</button>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<ng-template #emptyContent>
+  <div class="empty-content" data-test-qs-list-empty>
+    <div class="infobox">
+      <div class="infobox__img">
+        <img src="assets/icons/quickstarter-not-found.svg" alt="No quickstarters applied yet" />
+      </div>
+      <div class="infobox__headline">No quickstarters applied yet</div>
+      <div class="infobox__subline">Add new components to your project</div>
+      <button
+        mat-stroked-button
+        color="accent"
+        class="mini-icon-button mat-elevation-z0"
+        (click)="emitActivateEditMode()"
+        data-test-add-qs-btn>
+        <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Add'"></mat-icon>
+        <span>Add</span>
+      </button>
+    </div>
+  </div>
+</ng-template>
