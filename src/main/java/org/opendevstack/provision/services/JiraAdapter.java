@@ -1,8 +1,10 @@
 package org.opendevstack.provision.services;
 
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.jira.Shortcut;
 import org.opendevstack.provision.util.exception.HttpException;
+import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +65,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
-  public static final String JIRA_TEMPLATE_PERMISSION_SCHEMA_SUFFIX =
+  public static final String JIRA_TEMPLATE_PERMISSION_SCHEMA_NAME_SUFFIX =
       "jira.project.template.permission-scheme-name.";
 
   // Pattern to use for project with id
@@ -70,6 +73,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public static final String JIRA_API_GROUPS_PICKER = "groups/picker";
   public static final String JIRA_API_USERS = "user";
   public static final String JIRA_API_MYPERMISSIONS = "mypermissions";
+  public static final String JIRA_API_PERMISSION_SCHEME = "permissionscheme";
 
   public static final String BASE_PATTERN = "%s%s/";
   public static final String JIRA_API_PROJECTS_PATTERN = BASE_PATTERN + JIRA_API_PROJECTS;
@@ -77,6 +81,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public static final String JIRA_API_GROUPS_PICKER_PATTERN = BASE_PATTERN + JIRA_API_GROUPS_PICKER;
   public static final String JIRA_API_USER_PATTERN = BASE_PATTERN + JIRA_API_USERS;
   public static final String JIRA_API_MYPERMISSIONS_PATTERN = BASE_PATTERN + JIRA_API_MYPERMISSIONS;
+  public static final String JIRA_API_PERMISSION_SCHEME_PATTERN = BASE_PATTERN + JIRA_API_PERMISSION_SCHEME;
 
   public static final String PERMISSIONS_ADMINISTER_JSON_PATH =
       "/permissions/ADMINISTER/havePermission";
@@ -126,8 +131,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Autowired
   private List<String> projectTemplateKeyNames;
 
-  public JiraPermissionSchemeIdResolver permissionSchemeIdResolver =
-      new JiraPermissionSchemeIdResolver();
+  private JiraPermissionSchemeIdResolver permissionSchemeIdResolver;
+
+  public JiraPermissionSchemeIdResolver getPermissionSchemeIdResolver() {
+    if (null == permissionSchemeIdResolver) {
+      permissionSchemeIdResolver = new JiraPermissionSchemeIdResolver(jiraUri, jiraApiPath);
+    }
+    return permissionSchemeIdResolver;
+  }
 
   public JiraAdapter() {
     super(ADAPTER_NAME);
@@ -261,74 +272,25 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     getRestClient().execute(httpPut().body(small).url(updateProjectPath).returnType(null));
   }
 
-  /**
-   * Create permission set for jira project
-   *
-   * @param project the project
-   * @param permissionScheme
-   * @return the number of created permission sets
-   */
-  public void grantPermissionsToSpecialGroups(OpenProjectData project, String permissionSchemeId) {
-    if (!isSpecialPermissionSchemeEnabled()) {
-      logger.info(
-              "Do not create special permission set for project {}, "
-                      + "since property jira.specialpermissionschema.enabled=false",
-              project.projectKey);
-      return;
-    }
-    PathMatchingResourcePatternResolver pmrl =
-            new PathMatchingResourcePatternResolver(Thread.currentThread().getContextClassLoader());
-
-    try {
-      Resource[] permissionFiles = pmrl.getResources(jiraPermissionFilePattern);
-
-      logger.debug("Found permissionsets: {}", permissionFiles.length);
-
-      for (Resource permissionFile : permissionFiles) {
-        PermissionScheme singleScheme =
-                new ObjectMapper().readValue(permissionFile.getInputStream(), PermissionScheme.class);
-
-        // replace group with real group
-        for (Permission permission : singleScheme.getPermissions()) {
-          String group = permission.getHolder().getParameter();
-
-          if ("adminGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectAdminGroup);
-          } else if ("userGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectUserGroup);
-          } else if ("readonlyGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectReadonlyGroup);
-          } else if ("keyuserGroup".equals(group)) {
-            permission.getHolder().setParameter(globalKeyuserRoleName);
-          }
-        }
-        logger.debug(
-                "Grant permission to group in permissionScheme {} location: {}",
-                permissionSchemeId,
-                permissionFile.getFilename());
-
-        // TODO iterate over permission and grant each one
-        singleScheme.getPermissions().forEach(permission -> {
-          String path = String.format("%s%s/permissionscheme/" + permissionSchemeId + "/permission", jiraUri, jiraApiPath);
-          RestClientCall call =
-                  httpPost()
-                          .url(path)
-                          .body(permission)
-                          .returnTypeReference(new TypeReference<PermissionScheme>() {});
-        });
-
-      }
-    } catch (Exception createPermissions) {
-      // continue - we are ok if permissions fail, because the admin has access, and
-      // can create / link the set
-      logger.error(
-              "Could not grant group permission to permissionScheme: {} Exception: {} ",
-              permissionSchemeId,
-              createPermissions.getMessage());
-    }
-    return;
-  }
-
+  //  private void associateProjectToPermissionScheme(String projectKey, String permissionSchemeId)
+  // {
+  //
+  //    try {
+  //
+  //      Map<String,String> bodyMap = new HashMap();
+  //      bodyMap.put("permissionScheme", permissionSchemeId);
+  //
+  //      String path = String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath,
+  // projectKey);
+  //      RestClientCall call = httpPost().url(path).body(bodyMap).returnType(Shortcut.class);
+  //      getRestClient().execute(call);
+  //
+  //    } catch (IOException ex) {
+  //      String message = String.format("Could not add project '%s' to permissionScheme '%s'!",
+  // projectKey, permissionSchemeId);
+  //      throw new RuntimeException(message, ex);
+  //    }
+  //  }
 
   public FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData projectData) {
     String templateKey =
@@ -341,13 +303,20 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     String permissionSchemeName =
         calculateJiraProjectTemplateProjectAndReturnValue(
-            projectData, JIRA_TEMPLATE_PERMISSION_SCHEMA_SUFFIX, jiraTemplateKey);
+            projectData, JIRA_TEMPLATE_PERMISSION_SCHEMA_NAME_SUFFIX, jiraTemplateKey);
 
     String permissionSchemeId = null;
     if (null != permissionSchemeName) {
-      permissionSchemeId = permissionSchemeIdResolver.resolve(permissionSchemeName);
+      logger.info(
+              "Setting permission scheme id {} for new project '{}' !",
+              permissionSchemeId,
+              projectData.projectKey);
+      permissionSchemeId = getPermissionSchemeIdResolver().resolve(getRestClient(), httpGet(), permissionSchemeName);
     } else {
-      logger.info("No permission scheme was setup for {}!", jiraTemplateKey);
+      logger.info(
+          "No permission scheme was setup for new project '{}' of project type '{}' !",
+          projectData.projectKey,
+          jiraTemplateKey);
     }
 
     if (jiraTemplateKey.equals(templateKey)) {
@@ -372,13 +341,22 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   public static class JiraPermissionSchemeIdResolver {
 
-    private Map<String, String> ids = new HashMap<>(10);
+    private final String jiraUri;
+    private final String jiraApiPath;
 
-    public String resolve(String permissionSchemeName) {
+    private Map<String, String> ids = new HashMap<>(10);
+    private ObjectMapper jsonMapper = new ObjectMapper();
+
+    public JiraPermissionSchemeIdResolver(String jiraUri, String jiraApiPath) {
+      this.jiraUri = jiraUri;
+      this.jiraApiPath = jiraApiPath;
+    }
+
+    public String resolve(RestClient restClient, RestClientCall httpGet, String permissionSchemeName) {
 
       String id = ids.get(permissionSchemeName);
       if (null == id) {
-        id = queryForPermissionId(permissionSchemeName);
+        id = retrievePermissionId(restClient, httpGet, permissionSchemeName);
         if (null == id) {
           logger.warn("");
         } else {
@@ -390,9 +368,39 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       return id;
     }
 
-    private String queryForPermissionId(String permissionSchemeName) {
-      return null;
-    }
+    private String retrievePermissionId(RestClient restClient, RestClientCall httpGet, String permissionSchemeName) {
+        try {
+          String path = String.format(JIRA_API_PERMISSION_SCHEME_PATTERN, jiraUri, jiraApiPath);
+          RestClientCall call = httpGet.url(path).returnType(String.class);
+          Object execute = restClient.execute(call);
+
+          JsonNode json = jsonMapper.readTree((String)execute);
+
+          ArrayNode permissionSchemes = (ArrayNode)json.get("permissionSchemes");
+
+          for (JsonNode permissionScheme : permissionSchemes) {
+            if (permissionSchemeName.equalsIgnoreCase(permissionScheme.get("name").asText())) {
+              return permissionScheme.get("id").asText();
+            }
+          }
+
+//          JsonNode haveGroup = json.("$.permissionSchemes.name." + permissionSchemeName);
+
+//          if (MissingNode.class.isInstance(haveGroup)) {
+//            logger.warn("Missing node for '{}'!", json);
+//            return false;
+//          }
+//
+          return "10100";
+
+        } catch (IOException ex) {
+//          String message = String.format("Could not add project '%s' to permissionScheme '%s'!", projectKey, permissionSchemeId);
+//          throw new RuntimeException(message, ex);
+          throw new RuntimeException(ex);
+        }
+
+      }
+
   }
 
   public String buildProjectKey(String name) {
@@ -556,20 +564,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       FullJiraProject toBeCreated = buildJiraProjectPojoFromApiProject(project);
 
-      // TODO: this set the permission scheme id
-      // TODO: if yes, do we need to add the special roles to it!
-      LeanJiraProject created = createProjectInJira(project, toBeCreated);
+      // This create a project with permission scheme id if any
+      LeanJiraProject newJiraProject = createProjectInJira(project, toBeCreated);
 
-      logger.debug("Created project: {}", created);
-      project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
+      logger.debug("Created project: {}", newJiraProject);
+      project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, newJiraProject.getKey());
 
-      if (project.specialPermissionSet) {
-        if (created.hasPermissionSchemeId()) {
-          // TODO add permission to the permission scheme using the groups defined
-          grantPermissionsToSpecialGroups(project, created.getPermissionScheme());
-        } else {
-          createSpecialPermissionsAndUpdateProject(project);
-        }
+      if (!newJiraProject.hasPermissionSchemeId() && project.specialPermissionSet) {
+        createSpecialPermissionsAndUpdateProject(project);
       }
 
       return project;

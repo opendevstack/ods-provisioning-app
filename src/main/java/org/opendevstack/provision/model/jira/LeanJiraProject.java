@@ -95,5 +95,4 @@ public class LeanJiraProject {
   public String getPermissionScheme() {
     return permissionScheme;
   }
-
 }

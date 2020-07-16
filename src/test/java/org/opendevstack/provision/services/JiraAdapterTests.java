@@ -428,7 +428,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   private LeanJiraProject getReturnProject() {
     return new LeanJiraProject(
-        URI.create("http://localhost"), "TESTP", null, null, null, null, null);
+        URI.create("http://localhost"), "TESTP", null, null, null, null, null, null);
   }
 
   @Test
