@@ -1,0 +1,14 @@
+.status-editmode-active {
+
+  @include media-breakpoint-down(lg) {
+    .sidebar {
+      display: none;
+    }
+  }
+
+  @include media-breakpoint-up(lg) {
+    .sidebar {
+      display: block;
+    }
+  }
+}

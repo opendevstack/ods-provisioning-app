@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +74,13 @@ public class DefaultControllerTest {
   @Before
   public void setUp() {
 
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(context)
+            // .apply(SecurityMockMvcConfigurers.springSecurity())
+            .build();
+
+    // reset to default value
+    defaultController.setSpafrontendEnabled(false);
   }
 
   @Test
@@ -190,5 +197,65 @@ public class DefaultControllerTest {
   public void aboutWithoutAuth() throws Exception {
     Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
     mockMvc.perform(get("/about")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
+  }
+
+  @Test
+  public void testNFERouting() throws Exception {
+
+    // All routes should serve nfe/index.html when spaFrontEndEnabled equals true
+    defaultController.setSpafrontendEnabled(true);
+
+    List<String> routes =
+        new ArrayList<>(
+            List.of(
+                DefaultController.ROUTE_HOME,
+                DefaultController.ROUTE_HOME,
+                DefaultController.ROUTE_NEWFRONTEND,
+                DefaultController.ROUTE_PROVISION,
+                DefaultController.ROUTE_LOGIN,
+                DefaultController.ROUTE_HISTORY,
+                DefaultController.ROUTE_ABOUT,
+                DefaultController.ROUTE_LOGOUT));
+
+    routes.forEach(
+        route -> {
+          try {
+            mockMvc
+                .perform(get(route))
+                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+                .andExpect(MockMvcResultMatchers.redirectedUrl(DefaultController.ROUTE_ROOT));
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        });
+
+    // negative cases -> not spa all routes should redirect to login by default if user not
+    // authenticated
+    defaultController.setSpafrontendEnabled(false);
+
+    routes.remove(DefaultController.ROUTE_LOGIN);
+    routes.remove(DefaultController.ROUTE_LOGOUT);
+
+    routes.forEach(
+        route -> {
+          try {
+            mockMvc
+                .perform(get(route))
+                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+                .andExpect(MockMvcResultMatchers.redirectedUrl(DefaultController.ROUTE_LOGIN));
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        });
+
+    mockMvc
+        .perform(get(DefaultController.ROUTE_LOGOUT))
+        .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
+        .andExpect(
+            MockMvcResultMatchers.redirectedUrl(DefaultController.ROUTE_LOGIN_WITH_LOGOUT_OPTION));
+
+    mockMvc
+        .perform(get(DefaultController.ROUTE_LOGIN))
+        .andExpect(MockMvcResultMatchers.status().isOk());
   }
 }

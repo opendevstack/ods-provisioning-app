@@ -1,0 +1,203 @@
+<div class="page">
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
+
+  <ng-container *ngIf="isProjectTemplatesError && !isLoading">
+    <div class="empty-content">
+      <div class="infobox">
+        <div class="infobox__img">
+          <img src="assets/icons/project-empty.svg" alt="Project template data could not be retrieved" />
+        </div>
+        <div class="infobox__headline">Project template data could not be retrieved</div>
+        <div class="infobox__subline">Please try again soon</div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="canDisplayContent()">
+    <div class="page__notifications"></div>
+
+    <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()" id="form">
+      <div class="box">
+        <div class="page__header">
+          <h3 class="mat-h3">Create new project</h3>
+          <div class="editmode-button">
+            <a
+              mat-icon-button
+              color="accent"
+              title="Cancel"
+              (click)="leavePage()"
+              data-test-close-create-project-btn>
+              <mat-icon svgIcon="close" aria-hidden="false" aria-label="'Cancel'"></mat-icon>
+            </a>
+          </div>
+        </div>
+        <div class="page__content">
+          <div class="row">
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Name</mat-label>
+                <input
+                  matInput
+                  placeholder="Name"
+                  formControlName="name"
+                  removeWhitespaces
+                  maxlength="80"
+                  required
+                  (blur)="generateProjectKey()" />
+              </mat-form-field>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('name'), 'required')">
+                Project name is required
+              </mat-error>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('name'), 'pattern')">
+                <ul>
+                  <li *ngFor="let message of validationConfig.project.name.errorMessages">{{ message }}</li>
+                </ul>
+              </mat-error>
+            </div>
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Key</mat-label>
+                <input
+                  matInput
+                  placeholder="Key"
+                  formControlName="key"
+                  uppercase
+                  removeWhitespaces
+                  maxlength="10"
+                  required />
+              </mat-form-field>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('key'), 'required')">
+                Key is required
+              </mat-error>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('key'), 'pattern')">
+                <ul>
+                  <li *ngFor="let message of validationConfig.project.key.errorMessages">{{ message }}</li>
+                </ul>
+              </mat-error>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="formfield-wrapper">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Project specific CD user</mat-label>
+                  <input
+                    matInput
+                    placeholder="Project specific CD user"
+                    formControlName="cdUser"
+                    removeWhitespaces
+                  />
+                </mat-form-field>
+                <mat-icon
+                  svgIcon="information"
+                  aria-hidden="false"
+                  aria-label="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                    After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
+                  matTooltip="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                    After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
+                  matTooltipClass="formfield__tooltip"
+                ></mat-icon>
+              </div>
+            </div>
+            <div class="col">
+              <mat-form-field>
+                <mat-label>Project template</mat-label>
+                <select matNativeControl required formControlName="template">
+                  <option value="">Select project template</option>
+                  <option [value]="template.key" *ngFor="let template of projectTemplates">{{ template.name }}</option>
+                </select>
+              </mat-form-field>
+              <mat-error class="formfield__error" *ngIf="hasErrorByType(form.get('template'), 'required')">
+                Project template is required
+              </mat-error>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <mat-form-field class="formfield__input">
+                <mat-label>Description</mat-label>
+                <textarea
+                  matInput
+                  placeholder="Description"
+                  formControlName="description"
+                  rows="3"
+                  maxlength="100"></textarea>
+              </mat-form-field>
+            </div>
+            <div class="col">
+              <mat-checkbox formControlName="optInJira">Create JIRA / Confluence spaces</mat-checkbox>
+              <mat-checkbox formControlName="optInODS">Create OpenShift Project</mat-checkbox>
+            </div>
+          </div>
+
+          <ng-container formGroupName="permissionSet">
+            <div class="row">
+              <div class="col">
+                <h3 class="mat-h3">Create special permission set</h3>
+              </div>
+            </div>
+
+            <div class="row" formGroupName="admin">
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Admin user</mat-label>
+                  <input matInput placeholder="Admin user" formControlName="name" removeWhitespaces />
+                </mat-form-field>
+              </div>
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Admin group</mat-label>
+                  <input matInput placeholder="Admin group" formControlName="group" removeWhitespaces
+                  />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <mat-error
+              class="formfield__error"
+              *ngIf="hasErrorByType(form.get('permissionSet').get('admin'),'isPermissionSetGroupMandatory')">
+              Please enter values for both fields
+            </mat-error>
+
+            <div class="row" formGroupName="user">
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>User group</mat-label>
+                  <input matInput placeholder="User group" formControlName="name" removeWhitespaces />
+                </mat-form-field>
+              </div>
+              <div class="col">
+                <mat-form-field class="formfield__input">
+                  <mat-label>Readonly user group</mat-label>
+                  <input matInput placeholder="Readonly user group" formControlName="group" removeWhitespaces />
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-error
+              class="formfield__error"
+              *ngIf="hasErrorByType(form.get('permissionSet').get('user'), 'isPermissionSetGroupMandatory')">
+              Please enter values for both fields
+            </mat-error>
+          </ng-container>
+        </div>
+        <div class="page__footer">
+          <div class="button-group">
+            <button mat-button (click)="leavePage()">Cancel</button>
+            <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Create new project</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </ng-container>
+</div>

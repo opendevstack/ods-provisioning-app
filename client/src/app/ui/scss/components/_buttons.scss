@@ -1,0 +1,35 @@
+// Reset 'workaround' in node_modules/bootstrap/scss/_reboot.scss:387 which overrides Angular Material focus behaviour
+button:focus {
+  outline: none;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+
+  > button:not(:first-child) {
+    margin-left: 20px;
+  }
+}
+
+.mini-icon-button {
+
+  &.mat-stroked-button {
+    border-color: var(--accent-color) !important; // TODO remove brutal override here
+    line-height: 1;
+    padding: 5px 15px;
+  }
+  mat-icon {
+    height: 20px;
+    width: 20px;
+    margin: 0 5px 0 -5px;
+  }
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.editmode-button {
+  display: flex;
+  justify-content: flex-end;
+}

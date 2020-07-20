@@ -1,0 +1,23 @@
+.infobox {
+  text-align: center;
+}
+
+.infobox__img {
+  margin-bottom: 15px;
+
+  img {
+    width: 240px;
+  }
+}
+
+.infobox__headline {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.infobox__subline {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+  color: var(--text-lighter-color);
+}

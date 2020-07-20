@@ -1,0 +1,83 @@
+<div class="page">
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
+
+  <ng-container *ngIf="isProjectError && !isLoading">
+    <div class="empty-content">
+      <div class="infobox" *ngIf="errorType === 'NOT_FOUND'">
+        <div class="infobox__img">
+          <img src="assets/icons/project-not-found.svg" alt="Project was not found" />
+        </div>
+        <div class="infobox__headline">Project was not found</div>
+        <div class="infobox__subline">Please check URL or select another project</div>
+      </div>
+      <div class="infobox" *ngIf="errorType === 'NO_PROJECT_KEY'">
+        <div class="infobox__img">
+          <img src="assets/icons/project-empty.svg" alt="No project selected" />
+        </div>
+        <div class="infobox__headline">No project selected</div>
+        <div class="infobox__subline">Select or create a project to see more detail</div>
+      </div>
+      <div class="infobox" *ngIf="errorType === 'UNKNOWN'">
+        <div class="infobox__img">
+          <img src="assets/icons/project-empty.svg" alt="General error" />
+        </div>
+        <div class="infobox__headline">General error</div>
+        <div class="infobox__subline">Please try again soon</div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="canDisplayContent()">
+    <div class="page__notifications">
+      <div class="error" *ngIf="isQuickstartersError">Technical error - editing not possible</div>
+    </div>
+
+    <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
+      <div class="box">
+        <div class="page__header">
+          <project-header
+            [project]="project"
+            [projectLinks]="projectLinks"
+            [editMode]="editMode.enabled"
+            [isQuickstartersError]="isQuickstartersError"
+            [aggregatedProjectLinks]="aggregatedProjectLinks"
+            (onActivateEditMode)="editMode.enabled = $event"
+            (onOpenNotification)="openNotification($event)"></project-header>
+        </div>
+
+        <div class="page__content" [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''">
+          <ng-container *ngIf="editMode.enabled; else showQuickstarterList">
+            <project-quickstarter-add
+              [projectQuickstarters]="projectQuickstarters"
+              [allQuickstarters]="allQuickstarters"
+              [form]="newComponentsForm"></project-quickstarter-add>
+          </ng-container>
+          <ng-template #showQuickstarterList>
+            <project-quickstarter-list
+              [projectQuickstarters]="projectQuickstarters"
+              [projectKey]="project.projectKey"
+              (triggerLoadProjectData)="loadProjectData(project.projectKey)"
+              (onActivateEditMode)="editMode.enabled = true"></project-quickstarter-list>
+          </ng-template>
+        </div>
+
+        <div class="page__footer" *ngIf="editMode.enabled">
+          <div class="row">
+            <div class="col-12 col-lg">
+              <button mat-button color="warn" (click)="intendRemoveProject()">Remove project</button>
+            </div>
+            <div class="col-12 col-lg">
+              <div class="button-group">
+                <button mat-button (click)="editMode.enabled = false">Cancel</button>
+                <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Start</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </ng-container>
+
+</div>
