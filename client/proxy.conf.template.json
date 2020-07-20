@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": {
+      "host": "<Your Host>",
+      "protocol": "https:"
+    },
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info",
+    "headers": {
+      "Authorization": "Basic <Your Authorization Key>"
+    }
+  }
+}

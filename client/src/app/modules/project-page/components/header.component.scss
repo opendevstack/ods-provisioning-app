@@ -1,0 +1,60 @@
+@import '../../../ui/scss/mixins';
+
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/mixins/breakpoints';
+
+.project__name {
+  margin-bottom: 10px;
+
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
+.project__key {
+  color: var(--text-lighter-color);
+}
+
+.project__links {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+
+  ul {
+    display: flex;
+    margin-right: 20px;
+  }
+}
+
+.project__description {
+  font-size: 0.9rem;
+  line-height: 1.2rem;
+  margin-bottom: 20px;
+  @include media-breakpoint-up(lg) {
+    @include truncate(2, 1.2rem);
+    margin-bottom: 0;
+  }
+}
+
+.quicklink__item {
+  margin-left: 10px;
+
+  &.disabled {
+    opacity: 0.5;
+
+    .mat-icon {
+      filter: grayscale(1);
+    }
+  }
+
+  .mat-icon {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 5px;
+    display: block;
+    border: 1px solid var(--accent-color);
+    padding: 5px;
+  }
+}

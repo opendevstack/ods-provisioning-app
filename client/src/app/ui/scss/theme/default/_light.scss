@@ -1,0 +1,72 @@
+body {
+  --primary-color: #336699;
+  --primary-lighter-color: #c2d1e0;
+  --primary-darker-color: #20497c;
+  --text-color: #212121;
+  --text-lighter-color: #555555;
+
+  --body-background-color: #ffffff;
+  --app-container-background-color: #f8f8f8;
+  --header-gradient-start-color: #336699;
+  --header-gradient-end-color: #003366;
+  --header-text-color: #ffffff;
+  --box-background-color: #ffffff;
+  --dialog-background-color: #ffffff;
+  --box-shadow-color: #999999;
+  --quickstarter-table-header-color: #999999;
+}
+
+$mat-light-primary: (
+  main: #336699,
+  lighter: #c2d1e0,
+  darker: #20497c,
+  contrast: (
+    main: #555555,
+    lighter: #555555,
+    darker: #555555
+  )
+);
+$light-theme-primary: mat-palette($mat-light-primary, main, lighter, darker);
+
+body {
+  --accent-color: #2770d2;
+  --accent-lighter-color: #bed4f2;
+  --accent-darker-color: #1753c1;
+}
+
+$mat-light-accent: (
+  main: #2770d2,
+  lighter: #bed4f2,
+  darker: #1753c1,
+  contrast: (
+    main: #ffffff,
+    lighter: #ffffff,
+    darker: #ffffff
+  )
+
+);
+$light-theme-accent: mat-palette($mat-light-accent, main, lighter, darker);
+
+body {
+  --warn-color: #c31e18;
+  --warn-lighter-color: #edbcba;
+  --warn-darker-color: #ae120e;
+}
+
+$mat-light-warn: (
+  main: #c31e18,
+  lighter: #edbcba,
+  darker: #ae120e,
+  contrast: (
+    main: #ffffff,
+    lighter: #ffffff,
+    darker: #ffffff
+  )
+);
+$light-theme-warn: mat-palette($mat-light-warn, main, lighter, darker);;
+
+$light-theme: mat-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
+
+body {
+  @include angular-material-theme($light-theme);
+}

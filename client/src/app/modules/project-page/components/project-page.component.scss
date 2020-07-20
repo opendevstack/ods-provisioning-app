@@ -1,0 +1,23 @@
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/mixins/breakpoints';
+
+app-loading-indicator {
+  display: block;
+  padding-top: 20px;
+  @include media-breakpoint-up(lg) {
+    padding-top: 0;
+  }
+}
+
+.page__content {
+  &.empty-quickstarters {
+    project-quickstarter-list {
+      padding: 0;
+    }
+  }
+}
+
+form {
+  display: contents;
+}
