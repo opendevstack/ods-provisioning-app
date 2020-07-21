@@ -27,10 +27,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class SSOAuthProcessingFilterTest {
 
   @MockBean private HttpAuthenticator httpAuthenticator;

@@ -89,6 +89,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -108,6 +109,7 @@ import org.springframework.web.context.WebApplicationContext;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
 @ActiveProfiles("utest,quickstarters")
+@DirtiesContext
 public class E2EProjectAPIControllerTest {
 
   private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);

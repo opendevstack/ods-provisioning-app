@@ -13,9 +13,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.test.context.TestSecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class Oauth2AuthenticationManagerTest {
 
   @MockBean private DefaultOidcUser defaultOidcUser;

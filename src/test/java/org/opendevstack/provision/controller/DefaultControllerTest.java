@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,6 +51,7 @@ import org.springframework.web.context.WebApplicationContext;
 /** Created by TJA on 29.06.2017. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@DirtiesContext
 @ActiveProfiles("crowd,utestcrowd,quickstarters")
 public class DefaultControllerTest {
 

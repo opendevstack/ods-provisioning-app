@@ -23,10 +23,12 @@ import org.junit.runner.RunWith;
 import org.opendevstack.provision.authentication.TestAuthentication;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.TestSecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Sebastian Titakis */
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class SSOAuthProcessingFilterBasicAuthHandlerTest {
 
   @MockBean private HttpServletRequest request;

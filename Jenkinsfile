@@ -10,7 +10,7 @@ node {
 library("ods-jenkins-shared-library@${odsGitRef}")
 
 odsComponentPipeline(
-  imageStreamTag: "${odsNamespace}/jenkins-slave-maven:${odsImageTag}",
+  imageStreamTag: "${odsNamespace}/jenkins-agent-maven:${odsImageTag}",
   branchToEnvironmentMapping: [
     "${odsGitRef}": 'test',
     '*': 'dev'

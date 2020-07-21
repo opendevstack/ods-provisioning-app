@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,6 +56,7 @@ import org.springframework.web.context.WebApplicationContext;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
 @ActiveProfiles("utest")
+@DirtiesContext
 public class ApplicationInfoAPIControllerTest {
 
   private MockMvc mockMvc;
