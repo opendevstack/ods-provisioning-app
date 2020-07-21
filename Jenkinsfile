@@ -29,7 +29,7 @@ def stageBuild(def context) {
   if (springBootEnv.contains('-dev')) {
     springBootEnv = 'dev'
   }
-  stage('Build') {
+  stage('Build and Unit Test') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
       if (status != 0) {
@@ -40,7 +40,7 @@ def stageBuild(def context) {
 }
 
 def stageTagImageWithBranch(def context) {
-  stage('Tag created image with branch') {
+  stage('Tag created image') {
     def targetImageTag = context.gitBranch.replace('/','_').replace('-','_')
     sh(
       script: "oc -n ${context.targetProject} tag ${context.componentId}:${context.shortGitCommit} ${context.componentId}:${targetImageTag}",
