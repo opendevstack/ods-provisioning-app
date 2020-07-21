@@ -19,6 +19,7 @@ odsComponentPipeline(
   stageBuild(context)
   odsComponentStageScanWithSonar(context, [branch: '*'])
   odsComponentStageBuildOpenShiftImage(context)
+  stageTagImageWithBranch(context)
 }
 
 def stageBuild(def context) {
@@ -35,5 +36,15 @@ def stageBuild(def context) {
         error "Build failed!"
       }
     }
+  }
+}
+
+def stageTagImageWithBranch(def context) {
+  stage('Tag created image with branch') {
+    def targetImageTag = context.gitBranch.replace('/','_').replace('-','_')
+    sh(
+      script: "oc -n ${context.targetProject} tag ${context.componentId}:${context.shortGitCommit} ${context.componentId}:${targetImageTag}",
+      label: "Set tag '${targetImageTag}' on is/${context.componentId}"
+    )
   }
 }
