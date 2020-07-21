@@ -1,13 +1,17 @@
 apiVersion: v1
 kind: Template
+parameters:
+- name: PROJECT
+  required: true
+- name: COMPONENT
+  required: true
 objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
     labels:
-      app: prov-app
-    name: prov-app
+      app: ${PROJECT}-${COMPONENT}
+    name: ${COMPONENT}
   spec:
-    dockerImageRepository: prov-app
     lookupPolicy:
       local: false
