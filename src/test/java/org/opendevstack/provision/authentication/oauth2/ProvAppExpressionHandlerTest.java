@@ -23,10 +23,12 @@ import org.opendevstack.provision.authentication.authorization.ProvAppExpression
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /** @author Sebastian Titakis */
 @RunWith(SpringRunner.class)
+@DirtiesContext
 public class ProvAppExpressionHandlerTest {
 
   @MockBean private Authentication authentication;

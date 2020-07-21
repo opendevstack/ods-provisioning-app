@@ -58,6 +58,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -76,6 +77,7 @@ import org.springframework.web.context.WebApplicationContext;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringBoot.class)
 @ActiveProfiles("crowd,utestcrowd,quickstarters")
+@DirtiesContext
 public class ProjectApiControllerTest {
 
   private static Logger logger = LoggerFactory.getLogger(ProjectApiControllerTest.class);
