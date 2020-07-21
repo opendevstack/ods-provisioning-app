@@ -18,8 +18,7 @@ odsComponentPipeline(
 ) { context ->
   stageBuild(context)
   odsComponentStageScanWithSonar(context, [branch: '*'])
-  odsComponentStageBuildOpenShiftImage(context, [resourceName: 'prov-app'])
-  odsComponentStageRolloutOpenShiftDeployment(context, [resourceName: 'prov-app'])
+  odsComponentStageBuildOpenShiftImage(context)
 }
 
 def stageBuild(def context) {
