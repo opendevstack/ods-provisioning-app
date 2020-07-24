@@ -113,6 +113,17 @@ public class OpenProjectData {
     return quickstarters == null ? Collections.emptyList() : quickstarters;
   }
 
+  public List<Map<String, String>> removeQuickstartersFromProject(
+      List<Map<String, String>> quickstartersToRemove) {
+    if (quickstartersToRemove == null) {
+      return this.quickstarters;
+    }
+    for (Map<String, String> quickstarter : quickstartersToRemove) {
+      quickstarters.remove(quickstarter);
+    }
+    return quickstarters;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
