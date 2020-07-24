@@ -1,4 +1,4 @@
-# ODS Provisioning App Frontend Client
+# ODS Provisioning App Frontend
 
 ## Status
 
