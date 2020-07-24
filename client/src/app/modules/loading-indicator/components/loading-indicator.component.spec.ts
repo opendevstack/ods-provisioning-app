@@ -1,18 +1,23 @@
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { LoadingIndicatorComponent } from './loading-indicator.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
-import { CommonModule } from '@angular/common';
 
 describe('LoadingIndicatorComponent', () => {
-  const createComponent = createComponentFactory({
-    component: LoadingIndicatorComponent,
-    imports: [CommonModule, MatProgressBarModule]
-  });
-  let component: any;
-  let spectator: Spectator<LoadingIndicatorComponent>;
+  let component: LoadingIndicatorComponent;
+  let fixture: ComponentFixture<LoadingIndicatorComponent>;
+
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      imports: [MatProgressBarModule],
+      declarations: [LoadingIndicatorComponent]
+    }).compileComponents();
+  }));
+
   beforeEach(() => {
-    spectator = createComponent();
-    component = spectator.component;
+    fixture = TestBed.createComponent(LoadingIndicatorComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -20,14 +25,11 @@ describe('LoadingIndicatorComponent', () => {
   });
 
   it('should add class "is-loading" to body on init', () => {
-    spectator.component.ngOnInit();
-    const body = spectator.query('body', { root: true });
-    expect(body).toHaveClass('is-loading');
+    expect(document.body.classList).toContain('is-loading');
   });
 
   it('should remove class "is-loading" from body on destroy', () => {
-    spectator.component.ngOnDestroy();
-    const body = spectator.query('body', { root: true });
-    expect(body).not.toHaveClass('is-loading');
+    component.ngOnDestroy();
+    expect(document.body.classList).not.toContain('is-loading');
   });
 });
