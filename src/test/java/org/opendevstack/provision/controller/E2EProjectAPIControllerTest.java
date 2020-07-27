@@ -680,9 +680,19 @@ public class E2EProjectAPIControllerTest {
     toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
 
     mockExecuteAdminJob("ods", "delete-projects", "testp");
+
+    // verify project is there ..
+    mockMvc
+        .perform(
+            get("/api/v2/project/" + toClean.projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isOk());
+
     // delete whole projects (-cd, -dev and -test), calls
     // org.opendevstack.provision.controller.ProjectApiController.deleteProject
-
     mockMvc
         .perform(
             delete("/api/v2/project/" + toClean.projectKey)
@@ -691,6 +701,16 @@ public class E2EProjectAPIControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
+
+    // verify project really deleted - and not found
+    mockMvc
+        .perform(
+            get("/api/v2/project/" + toClean.projectKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .accept(MediaType.APPLICATION_JSON))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.status().isNotFound());
   }
 
   /** Test positive new quickstarter and delete single component afterwards */
@@ -711,6 +731,15 @@ public class E2EProjectAPIControllerTest {
 
     String prefix = createdProjectIncludingQuickstarters.quickstarters.get(0).get("component_id");
 
+    int currentQuickstarterSize = toClean.quickstarters.size();
+    e2eLogger.info(
+        "4 delete, current Quickstarters: "
+            + currentQuickstarterSize
+            + " project: "
+            + toClean.projectKey
+            + "\n"
+            + toClean.quickstarters);
+
     mockExecuteDeleteComponentAdminJob(
         "testp-cd",
         "delete-components",
@@ -719,15 +748,48 @@ public class E2EProjectAPIControllerTest {
 
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
-    mockMvc
-        .perform(
-            delete("/api/v2/project/")
-                .content(ProjectApiControllerTest.asJsonString(toClean))
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
-                .accept(MediaType.APPLICATION_JSON))
-        .andDo(MockMvcResultHandlers.print())
-        .andExpect(MockMvcResultMatchers.status().isOk());
+    MvcResult resultProjectGetResponse =
+        mockMvc
+            .perform(
+                delete("/api/v2/project/")
+                    .content(ProjectApiControllerTest.asJsonString(toClean))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
+
+    e2eLogger.info(
+        "Delete response: " + resultProjectGetResponse.getResponse().getContentAsString());
+
+    OpenProjectData resultProject =
+        new ObjectMapper()
+            .readValue(
+                resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+
+    assertTrue(resultProject.getQuickstarters().size() == (currentQuickstarterSize - 1));
+
+    // retrieve the project thru the get endpoint - to ensure we have the right data stored
+    resultProjectGetResponse =
+        mockMvc
+            .perform(
+                get("/api/v2/project/" + toClean.projectKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
+
+    resultProject =
+        new ObjectMapper()
+            .readValue(
+                resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
+
+    assertEquals(toClean.projectKey, resultProject.projectKey);
+    assertTrue(resultProject.getQuickstarters().size() == (currentQuickstarterSize - 1));
+    assertTrue(resultProject.getQuickstarters().isEmpty());
   }
 
   private void mockExecuteAdminJob(String namespace, String jobName, String prefix)

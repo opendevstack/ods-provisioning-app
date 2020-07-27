@@ -891,7 +891,9 @@ public class ProjectApiController {
               project.projectKey, leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
-      return ResponseEntity.ok().build();
+      project.removeQuickstartersFromProject(deletableComponents.getQuickstarters());
+      this.directStorage.updateStoredProject(project);
+      return ResponseEntity.ok(project);
     }
   }
 
