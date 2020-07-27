@@ -1,31 +1,69 @@
-# Client
+# ODS Provisioning App Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.0.1.
+## Status
 
-## Development server
+This first version of the new frontend stack was introduced as an experimental feature within OpenDevStack 3.x ([original issue](https://github.com/opendevstack/ods-provisioning-app/issues/518)). It can be activated for users with a `frontend.spa.enabled` feature flag in Spring Boot.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+OpenDevStack NEXT will include this new frontend activated by default (without featue flag).
 
-## Proxy to the API
+To contribute to the further development, see section "Contributions welcome!" further down.
 
-In order to get real data from the API: Copy the content from `proxy.conf.template.json` into a new `proxy.conf.json` file and adapt it to your needs. With `yarn start:dev` you then can use it for local development.
+## Stack
 
-## Code scaffolding
+- [Angular](https://angular.io/) as single page application framework
+- [Jest](https://jestjs.io/) as unit testing framework
+- [Prettier](https://prettier.io/) as pre-commit-hook
+- [SASS Lint](https://github.com/sasstools/sass-lint) to check scss files
+- [Yarn](https://yarnpkg.com/) as package manager
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+See package.json for up-to-date version information.
 
-## Build
+## Getting started
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+### 1. Install dependencies
 
-## Running unit tests
+- Install YARN globally: `npm install -g yarn`
+- Run `yarn`, this will install all dependencies
 
-Run `ng test` to execute the unit tests via [Jest](https://jestjs.io/).
+### 2. Configure API access from localhost
 
-## Running end-to-end tests
+The easiest way to run the Provisioning App frontend locally and using real data is to configure an API proxy:
 
-At this moment E2E-Tests are not set up yet. Later Cypress will be used instead of Protractor.
+Copy the content from `proxy.conf.template.json` into a new `proxy.conf.json` file (which is gitignored) and adapt it to your needs.
 
-## Further help
+Doing this there's no need to run Spring Boot locally.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+### 3. Test the setup
+
+Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app will automatically reload if you change any of the source files.
+
+## Development
+
+### Dev Server
+
+`yarn start:dev`: Starts a live reload dev server on `http://localhost:4200/`
+
+### Build
+
+`yarn build`: The build artifacts will be stored in the `dist/` directory. `yarn build:prod` will be used for the pipeline.
+
+### Tests
+
+- Unittests: `yarn test` / `yarn test:watch`
+- E2E (Cypress): TODO
+
+### Linting
+
+- `yarn lint`: Linting for Typescript and SCSS files.
+
+### Prettier
+
+Prettier is used as a pre-commit hook to format js, json, md, ts files. Formatting of html files has been temporarily removed due to inflexibility in context of Angular component markup.
+
+## Contributions welcome!
+
+We're happy if you'd like to contribute to the further development of the new frontend client. Feel free to check the [existing issues tagged with "frontend-spa"](https://github.com/opendevstack/ods-provisioning-app/labels/frontend-spa) or add a new issue there.
+
+## Usage of Angular CLI
+
+`ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
