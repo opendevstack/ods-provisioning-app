@@ -81,7 +81,7 @@ describe('ProjectHeaderComponent', () => {
       physicalLocation: null
     };
     jest.spyOn(component.onActivateEditMode, 'emit');
-    jest.spyOn(component.onOpenDialog, 'emit');
+    jest.spyOn(component.onOpenNotification, 'emit');
     fixture.detectChanges();
   });
 
@@ -180,7 +180,7 @@ describe('ProjectHeaderComponent', () => {
       );
       copyToClipboardBtn.click();
       /* then */
-      expect(component.onOpenDialog.emit).toHaveBeenCalled();
+      expect(component.onOpenNotification.emit).toHaveBeenCalled();
     });
 
     it('with applied urls, should show link to click on', () => {
@@ -252,6 +252,32 @@ describe('ProjectHeaderComponent', () => {
         '[data-test-copy-to-clipboard-btn]'
       );
       expect(copyToClipboardBtn).toBeNull();
+    });
+  });
+
+  describe('checking platformRuntime', () => {
+    it('with platformRuntime in project, should be able to click on editmode button', () => {
+      /* given */
+      component.project = { platformRuntime: true } as any;
+      fixture.detectChanges();
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
+        '[data-test-start-edit-project-btn]'
+      );
+      /* when */
+      /* then */
+      expect(startEditProjectBtn.hasAttribute('disabled')).toBe(false);
+    });
+
+    it('without platformRuntime in project, should not be able to click on editmode button', () => {
+      /* given */
+      component.project = { platformRuntime: false } as any;
+      fixture.detectChanges();
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
+        '[data-test-start-edit-project-btn]'
+      );
+      /* when */
+      /* then */
+      expect(startEditProjectBtn.hasAttribute('disabled')).toBe(true);
     });
   });
 });
