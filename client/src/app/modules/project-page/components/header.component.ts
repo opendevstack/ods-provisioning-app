@@ -27,4 +27,8 @@ export class ProjectHeaderComponent implements OnInit {
   emitOpenNotification(text) {
     this.onOpenNotification.emit(text);
   }
+
+  isEditingPossible(): boolean {
+    return this.project.platformRuntime && !this.isQuickstartersError;
+  }
 }

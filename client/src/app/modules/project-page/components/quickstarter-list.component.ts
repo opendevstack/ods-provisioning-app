@@ -25,6 +25,7 @@ import { ConfirmationConfig } from '../../confirmation/domain/confirmation-confi
 export class QuickstarterListComponent implements OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() projectKey: string;
+  @Input() hasPlatformRuntime: boolean;
   @Output() onActivateEditMode = new EventEmitter<boolean>();
   @Output() triggerLoadProjectData = new EventEmitter<boolean>();
   destroy$ = new Subject<boolean>();
