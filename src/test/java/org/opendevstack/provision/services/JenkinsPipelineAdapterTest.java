@@ -84,6 +84,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.userName = "maier";
     jenkinsPipelineAdapter.generalCdUser = "cd_user";
     jenkinsPipelineAdapter.odsNamespace = "ods";
+    jenkinsPipelineAdapter.bitbucketOdsProject = "opendevstack";
     jenkinsPipelineAdapter.odsImageTag = "latest";
     jenkinsPipelineAdapter.odsGitRef = "master";
     jenkinsPipelineAdapter.init();
@@ -289,6 +290,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             new Option("PROJECT_ID", projectData.projectKey),
             new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
             new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.odsNamespace),
+            new Option("ODS_BITBUCKET_PROJECT", jenkinsPipelineAdapter.bitbucketOdsProject),
             new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.odsImageTag),
             new Option("ODS_GIT_REF", jenkinsPipelineAdapter.odsGitRef));
 
@@ -392,6 +394,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
     Assertions.assertThat(actualBody.getOptionValue("ODS_NAMESPACE"))
         .isEqualTo(jenkinsPipelineAdapter.odsNamespace);
+    Assertions.assertThat(actualBody.getOptionValue("ODS_BITBUCKET_PROJECT"))
+        .isEqualTo(jenkinsPipelineAdapter.bitbucketOdsProject);
     Assertions.assertThat(actualBody.getOptionValue("ODS_IMAGE_TAG"))
         .isEqualTo(jenkinsPipelineAdapter.odsImageTag);
     Assertions.assertThat(actualBody.getOptionValue("ODS_GIT_REF"))
