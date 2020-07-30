@@ -102,7 +102,9 @@ make install-provisioning-app
 
 == Frontend Code
 
-The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js)
+The frontend is based on jquery and thymeleaf. All https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/static/js/client.js[posting to the API] happens out of java script (client.js).
+
+ODS 3.x contains a new single page app UI (based on Angular) as an experimental feature located in the `client` folder. In order to use the UI a feature flag `frontend.spa.enabled` must be set to `true` in `application.proprties`. Please refer to https://github.com/opendevstack/ods-provisioning-app/blob/master/client/README.md[client README] on how to setup local development for the frontend code.
 
 == Backend Code
 
