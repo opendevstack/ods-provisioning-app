@@ -64,7 +64,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
 
   // Pattern to use for project with id
-  public static final String JIRA_API_PROJECTS = "projects";
+  public static final String JIRA_API_PROJECTS = "project";
   public static final String JIRA_API_GROUPS_PICKER = "groups/picker";
   public static final String JIRA_API_USERS = "user";
   public static final String JIRA_API_MYPERMISSIONS = "mypermissions";
@@ -743,7 +743,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
     createProjectKeyExistsCheck(String projectKey) {
     return preconditionFailures -> {
-      logger.info("checking if projectKey '{}' exists in Jira!", projectKey);
+      logger.info("Checking if projectKey '{}' exists in Jira!", projectKey);
       try {
         String path = String.format("%s%s/project/%s", jiraUri, jiraApiPath, projectKey);
         getRestClient().execute(httpGet().url(path));
@@ -768,18 +768,18 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
-  createProjectAdminUserExistsCheck(String user) {
-return preconditionFailures -> {
-  logger.info("checking if user '{}' exists!", user);
+      createProjectAdminUserExistsCheck(String user) {
+    return preconditionFailures -> {
+      logger.info("checking if user '{}' exists!", user);
 
-  if (!checkUserExists(user)) {
-    String message = String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME);
-    preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
+      if (!checkUserExists(user)) {
+        String message = String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
+      }
+
+      return preconditionFailures;
+    };
   }
-
-  return preconditionFailures;
-};
-}
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
       createUserCanCreateProjectCheck(String username) {

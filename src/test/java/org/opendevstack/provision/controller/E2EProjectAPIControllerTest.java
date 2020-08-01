@@ -248,7 +248,7 @@ public class E2EProjectAPIControllerTest {
 
     data.specialPermissionSet = specialPermissionSet;
 
-    // jira server get project response
+    // jira server get project response - 404, project does not exists
     HttpException projectNotFoundException = new HttpException(404, "project not found");
     mockHelper
         .mockExecute(
