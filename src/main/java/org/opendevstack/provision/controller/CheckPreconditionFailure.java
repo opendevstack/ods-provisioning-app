@@ -14,7 +14,8 @@ public class CheckPreconditionFailure {
     UNEXISTANT_USER,
     CREATE_PROJECT_PERMISSION_MISSING,
     GLOBAL_CREATE_PROJECT_BITBUCKET_PERMISSION_MISSING,
-    EXCEPTION
+    EXCEPTION,
+    PROJECT_EXISTS
   }
 
   public CheckPreconditionFailure(ExceptionCodes code, String detail) {
@@ -41,6 +42,10 @@ public class CheckPreconditionFailure {
   public static CheckPreconditionFailure getGlobalCreateProjectBitBucketPermissionMissingInstance(
       String message) {
     return new CheckPreconditionFailure(ExceptionCodes.UNEXISTANT_USER, message);
+  }
+
+  public static CheckPreconditionFailure getProjectExistsInstance(String message) {
+    return new CheckPreconditionFailure(ExceptionCodes.PROJECT_EXISTS, message);
   }
 
   @Override

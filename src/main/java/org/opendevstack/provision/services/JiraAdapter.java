@@ -653,6 +653,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
           createProjectAdminUserExistsCheck(resolveProjectAdminUser(newProject))
               .andThen(createUserCanCreateProjectCheck(getUserName()))
               .andThen(createRequiredGroupExistsCheck(newProject))
+              .andThen(createProjectKeyExistsCheck(newProject.projectKey))
               .apply(new ArrayList<>());
 
       logger.info(
@@ -740,18 +741,45 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
-      createProjectAdminUserExistsCheck(String user) {
+    createProjectKeyExistsCheck(String projectKey) {
     return preconditionFailures -> {
-      logger.info("checking if user '{}' exists!", user);
-
-      if (!checkUserExists(user)) {
-        String message = String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME);
-        preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
+      logger.info("checking if projectKey '{}' exists in Jira!", projectKey);
+      try {
+        String path = String.format("%s%s/project/%s", jiraUri, jiraApiPath, projectKey);
+        getRestClient().execute(httpGet().url(path));
+        String message = String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
+      } catch (HttpException exception) {
+        if (exception.getResponseCode() == 404) {
+          logger.debug(String.format("Could not find JIRA project %s", projectKey));
+        } else {
+          String message = String.format("Could not query JIRA for project key '%s' : '%s'!",
+              projectKey, ADAPTER_NAME);
+          preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
+        }
+      } catch (IOException ioEx) {
+        String message = String.format("Could not query JIRA for project key '%s' : '%s'!",
+            projectKey, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
       }
 
       return preconditionFailures;
     };
   }
+
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+  createProjectAdminUserExistsCheck(String user) {
+return preconditionFailures -> {
+  logger.info("checking if user '{}' exists!", user);
+
+  if (!checkUserExists(user)) {
+    String message = String.format("User '%s' does not exists in '%s'!", user, ADAPTER_NAME);
+    preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
+  }
+
+  return preconditionFailures;
+};
+}
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
       createUserCanCreateProjectCheck(String username) {
