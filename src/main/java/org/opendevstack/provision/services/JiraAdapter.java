@@ -741,25 +741,28 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
-    createProjectKeyExistsCheck(String projectKey) {
+      createProjectKeyExistsCheck(String projectKey) {
     return preconditionFailures -> {
       logger.info("Checking if projectKey '{}' exists in Jira!", projectKey);
       try {
         String path = String.format("%s%s/project/%s", jiraUri, jiraApiPath, projectKey);
         getRestClient().execute(httpGet().url(path));
-        String message = String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
+        String message =
+            String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
         preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
       } catch (HttpException exception) {
         if (exception.getResponseCode() == 404) {
           logger.debug(String.format("Could not find JIRA project %s", projectKey));
         } else {
-          String message = String.format("Could not query JIRA for project key '%s' : '%s'!",
-              projectKey, ADAPTER_NAME);
+          String message =
+              String.format(
+                  "Could not query JIRA for project key '%s' : '%s'!", projectKey, ADAPTER_NAME);
           preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
         }
       } catch (IOException ioEx) {
-        String message = String.format("Could not query JIRA for project key '%s' : '%s'!",
-            projectKey, ADAPTER_NAME);
+        String message =
+            String.format(
+                "Could not query JIRA for project key '%s' : '%s'!", projectKey, ADAPTER_NAME);
         preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
       }
 
