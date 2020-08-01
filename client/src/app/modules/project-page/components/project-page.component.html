@@ -58,6 +58,7 @@
             <project-quickstarter-list
               [projectQuickstarters]="projectQuickstarters"
               [projectKey]="project.projectKey"
+              [hasPlatformRuntime]="project.platformRuntime"
               (triggerLoadProjectData)="loadProjectData(project.projectKey)"
               (onActivateEditMode)="editMode.enabled = true"></project-quickstarter-list>
           </ng-template>

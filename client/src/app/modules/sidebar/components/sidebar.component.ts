@@ -28,7 +28,7 @@ export class SidebarComponent {
   }
 
   canDisplayContent(): boolean {
-    return !this.isLoading && !this.isError;
+    return this.projects && !this.isLoading && !this.isError;
   }
 
   private filterProjects(value: string): ProjectData[] {

@@ -7,6 +7,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { Component, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { MatDialogModule } from '@angular/material/dialog';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { API_ALL_QUICKSTARTERS_URL, API_PROJECT_URL } from '../../../tokens';
 
 @Component({
   selector: 'mat-icon',
@@ -26,11 +29,17 @@ describe('QuickstarterListComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
+        HttpClientTestingModule,
         MatIconModule,
         MatTooltipModule,
-        MatExpansionModule
+        MatExpansionModule,
+        MatDialogModule
       ],
-      declarations: [QuickstarterListComponent]
+      declarations: [QuickstarterListComponent],
+      providers: [
+        { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
+        { provide: API_PROJECT_URL, useValue: '/api/mock' }
+      ]
     })
       .overrideModule(MatIconModule, {
         remove: {
@@ -74,19 +83,49 @@ describe('QuickstarterListComponent', () => {
     expect(qsListEmptyElement).toBeNull();
   });
 
-  it('given no project quickstarters, should display message', () => {
-    /* given */
-    component.projectQuickstarters = null;
-    /* when */
-    fixture.detectChanges();
-    /* then */
-    const qsListElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list]')
-    );
-    const qsListEmptyElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list-empty]')
-    );
-    expect(qsListElement).toBeNull();
-    expect(qsListEmptyElement).toBeDefined();
+  describe('given no project quickstarters', () => {
+    beforeEach(() => {
+      component.projectQuickstarters = null;
+    });
+
+    it('when platform runtime is existing, should display message + button to add quickstarters', () => {
+      /* given */
+      component.hasPlatformRuntime = true;
+      /* when */
+      fixture.detectChanges();
+      /* then */
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
+        By.css('[data-test-qs-list-platform-runtime-yes]')
+      );
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
+        By.css('[data-test-qs-list-platform-runtime-no]')
+      );
+      const addQsButtonElement = fixture.debugElement.query(
+        By.css('[data-test-add-qs-btn]')
+      );
+      expect(qsListWithPlatformRuntimeElement).toBeDefined();
+      expect(qsListWithoutPlatformRuntimeElement).toBeNull();
+      expect(addQsButtonElement).toBeDefined();
+    });
+
+    it('when platform runtime is not existing, should display message without add button', () => {
+      /* given */
+      component.hasPlatformRuntime = false;
+      /* when */
+      fixture.detectChanges();
+      /* then */
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
+        By.css('[data-test-qs-list-platform-runtime-yes]')
+      );
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
+        By.css('[data-test-qs-list-platform-runtime-no]')
+      );
+      const addQsButtonElement = fixture.debugElement.query(
+        By.css('[data-test-add-qs-btn]')
+      );
+      expect(qsListWithPlatformRuntimeElement).toBeNull();
+      expect(qsListWithoutPlatformRuntimeElement).toBeDefined();
+      expect(addQsButtonElement).toBeNull();
+    });
   });
 });

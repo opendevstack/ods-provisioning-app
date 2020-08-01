@@ -195,6 +195,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
         options.put("PACKAGE_NAME", packageName);
         options.put("ODS_NAMESPACE", odsNamespace);
+        options.put("ODS_BITBUCKET_PROJECT", bitbucketOdsProject);
         options.put("ODS_IMAGE_TAG", odsImageTag);
         options.put("ODS_GIT_REF", odsGitRef);
 
@@ -285,6 +286,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       }
 
       options.put("ODS_NAMESPACE", odsNamespace);
+      options.put("ODS_BITBUCKET_PROJECT", bitbucketOdsProject);
       options.put("ODS_IMAGE_TAG", odsImageTag);
       options.put("ODS_GIT_REF", odsGitRef);
       options.put(OPTION_KEY_GIT_SERVER_URL, bitbucketUri);
@@ -588,6 +590,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put(PROJECT_ID_KEY, projectId);
     options.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
     options.put("ODS_NAMESPACE", odsNamespace);
+    options.put("ODS_BITBUCKET_PROJECT", bitbucketOdsProject);
     options.put("ODS_IMAGE_TAG", odsImageTag);
     options.put("ODS_GIT_REF", odsGitRef);
     return options;

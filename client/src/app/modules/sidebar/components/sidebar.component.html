@@ -2,13 +2,13 @@
   <app-loading-indicator></app-loading-indicator>
 </ng-container>
 
-<ng-container *ngIf="isError">
+<ng-container *ngIf="isError" data-test-error>
   <div class="error">The project list could not be loaded currently</div>
 </ng-container>
 
 <ng-container *ngIf="canDisplayContent()">
   <div class="sidebar__header">
-    <div class="sidebar__header--count">
+    <div class="sidebar__header--count" data-test-sidebar-project-count>
       <span>Projects</span> ({{ (filteredProjects | async).length }})
     </div>
     <div class="sidebar__header--action">
@@ -33,6 +33,7 @@
           removeWhitespaces
           placeholder="Search in name, key, description"
           aria-label="Search in name, key, description"
+          data-test-search-input
           [formControl]="searchControl" />
       </mat-form-field>
     </div>

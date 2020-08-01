@@ -23,7 +23,7 @@
           color="accent"
           title="Start editing"
           (click)="emitActivateEditMode(true)"
-          [disabled]="isQuickstartersError"
+          [disabled]="!isEditingPossible()"
           data-test-start-edit-project-btn>
           <mat-icon svgIcon="edit" aria-hidden="false" aria-label="'Start editing'"></mat-icon>
         </a>
