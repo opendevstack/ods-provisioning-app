@@ -71,7 +71,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   public static final String BASE_PATTERN = "%s%s/";
   public static final String JIRA_API_PROJECTS_PATTERN = BASE_PATTERN + JIRA_API_PROJECTS;
-  public static final String JIRA_API_PROJECTS_FILTER_PATTERN = JIRA_API_PROJECTS_PATTERN + "/%";
+  public static final String JIRA_API_PROJECTS_FILTER_PATTERN = JIRA_API_PROJECTS_PATTERN + "/%s";
   public static final String JIRA_API_GROUPS_PICKER_PATTERN = BASE_PATTERN + JIRA_API_GROUPS_PICKER;
   public static final String JIRA_API_USER_PATTERN = BASE_PATTERN + JIRA_API_USERS;
   public static final String JIRA_API_MYPERMISSIONS_PATTERN = BASE_PATTERN + JIRA_API_MYPERMISSIONS;
@@ -558,7 +558,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       return leftovers;
     }
     String jiraProjectPath =
-        String.format("%s%s/project/%s", jiraUri, jiraApiPath, project.projectKey);
+        String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath, project.projectKey);
 
     logger.debug(
         "Cleaning up bugtracker space: {} with url {}", project.projectKey, project.bugtrackerUrl);
@@ -745,7 +745,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     return preconditionFailures -> {
       logger.info("Checking if projectKey '{}' exists in Jira!", projectKey);
       try {
-        String path = String.format("%s%s/project/%s", jiraUri, jiraApiPath, projectKey);
+        String path =
+            String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath, projectKey);
         getRestClient().execute(httpGet().url(path));
         String message =
             String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
