@@ -75,6 +75,7 @@ import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.TestDataFileReader;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientMockHelper;
 import org.slf4j.Logger;
@@ -246,6 +247,15 @@ public class E2EProjectAPIControllerTest {
     OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
     data.specialPermissionSet = specialPermissionSet;
+
+    // jira server get project response - 404, project does not exists
+    HttpException projectNotFoundException = new HttpException(404, "project not found");
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
+                .method(HttpMethod.GET))
+        .thenThrow(projectNotFoundException);
 
     // jira server create project response
     LeanJiraProject jiraProject =

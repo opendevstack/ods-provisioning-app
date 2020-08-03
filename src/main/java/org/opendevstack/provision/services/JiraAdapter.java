@@ -64,14 +64,14 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
 
   // Pattern to use for project with id
-  public static final String JIRA_API_PROJECTS = "projects";
+  public static final String JIRA_API_PROJECTS = "project";
   public static final String JIRA_API_GROUPS_PICKER = "groups/picker";
   public static final String JIRA_API_USERS = "user";
   public static final String JIRA_API_MYPERMISSIONS = "mypermissions";
 
   public static final String BASE_PATTERN = "%s%s/";
   public static final String JIRA_API_PROJECTS_PATTERN = BASE_PATTERN + JIRA_API_PROJECTS;
-  public static final String JIRA_API_PROJECTS_FILTER_PATTERN = JIRA_API_PROJECTS_PATTERN + "/%";
+  public static final String JIRA_API_PROJECTS_FILTER_PATTERN = JIRA_API_PROJECTS_PATTERN + "/%s";
   public static final String JIRA_API_GROUPS_PICKER_PATTERN = BASE_PATTERN + JIRA_API_GROUPS_PICKER;
   public static final String JIRA_API_USER_PATTERN = BASE_PATTERN + JIRA_API_USERS;
   public static final String JIRA_API_MYPERMISSIONS_PATTERN = BASE_PATTERN + JIRA_API_MYPERMISSIONS;
@@ -558,7 +558,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       return leftovers;
     }
     String jiraProjectPath =
-        String.format("%s%s/project/%s", jiraUri, jiraApiPath, project.projectKey);
+        String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath, project.projectKey);
 
     logger.debug(
         "Cleaning up bugtracker space: {} with url {}", project.projectKey, project.bugtrackerUrl);
@@ -653,6 +653,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
           createProjectAdminUserExistsCheck(resolveProjectAdminUser(newProject))
               .andThen(createUserCanCreateProjectCheck(getUserName()))
               .andThen(createRequiredGroupExistsCheck(newProject))
+              .andThen(createProjectKeyExistsCheck(newProject.projectKey))
               .apply(new ArrayList<>());
 
       logger.info(
@@ -737,6 +738,37 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     } catch (IOException e) {
       throw new AdapterException(e);
     }
+  }
+
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createProjectKeyExistsCheck(String projectKey) {
+    return preconditionFailures -> {
+      logger.info("Checking if projectKey '{}' exists in Jira!", projectKey);
+      try {
+        String path =
+            String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath, projectKey);
+        getRestClient().execute(httpGet().url(path));
+        String message =
+            String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
+      } catch (HttpException exception) {
+        if (exception.getResponseCode() == 404) {
+          logger.debug(String.format("Could not find JIRA project %s", projectKey));
+        } else {
+          String message =
+              String.format(
+                  "Could not query JIRA for project key '%s' : '%s'!", projectKey, ADAPTER_NAME);
+          preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
+        }
+      } catch (IOException ioEx) {
+        String message =
+            String.format(
+                "Could not query JIRA for project key '%s' : '%s'!", projectKey, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getExceptionInstance(message));
+      }
+
+      return preconditionFailures;
+    };
   }
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
