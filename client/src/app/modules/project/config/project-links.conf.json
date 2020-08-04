@@ -1,8 +1,13 @@
 [
   {
     "urlKey": "collaborationSpaceUrl",
+    "iconName": "confluence",
+    "iconLabel": "Confluence"
+  },
+  {
+    "urlKey": "bugtrackerUrl",
     "iconName": "jira",
-    "iconLabel": "Jira / Confluence"
+    "iconLabel": "Jira"
   },
   {
     "urlKey": "scmvcsUrl",

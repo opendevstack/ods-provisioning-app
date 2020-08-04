@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
     );
     this.matIconRegistry.addSvgIconSet(
       this.domSanitizer.bypassSecurityTrustResourceUrl(
-        'assets/icons/bi-stack.svg'
+        'assets/icons/tech-stack.svg'
       )
     );
   }

@@ -58,6 +58,12 @@ body {
 
 footer {
   padding: 0 35px 15px 35px;
+
+  .trademark {
+    color: var(--text-lighter-color);
+    font-size: 12px;
+    margin-top: 5px;
+  }
 }
 
 /* TODO fixme */
