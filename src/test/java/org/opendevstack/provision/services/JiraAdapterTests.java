@@ -371,7 +371,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                         .getResourceAsStream("data/repositoryTestData.txt"),
                     reference);
 
-    String repoName = "ai00000001-fe-angular";
+    String repoName = "ai00000001-fe-angular-ai00000001";
 
     RepositoryData legacyRepoData = new RepositoryData();
     legacyRepoData.setName(repoName);
@@ -397,8 +397,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     assertEquals(1, created.size());
     Map.Entry<String, String> entry = created.entrySet().iterator().next();
 
-    assertEquals("Technology-fe-angular", entry.getKey());
-    assertTrue(entry.getValue().contains("https://bb/projects/test/repos/test-fe-angular/browse"));
+    assertEquals("Technology-fe-angular-ai00000001", entry.getKey());
+    assertTrue(
+        entry
+            .getValue()
+            .contains("https://bb/projects/test/repos/test-fe-angular-ai00000001/browse"));
 
     // test with uppercase projects
     apiInput = getTestProject("Ai00000001");
@@ -408,11 +411,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
     assertEquals(1, created.size());
     entry = created.entrySet().iterator().next();
-    assertEquals("Technology-fe-angular", entry.getKey());
+    assertEquals("Technology-fe-angular-ai00000001", entry.getKey());
 
     // test with exclude
     List<String> excludes = new ArrayList<>();
-    excludes.add("ai00000001-fe-angular");
+    excludes.add("ai00000001-fe-angular-ai00000001");
     created = mocked.createComponentsForProjectRepositories(apiInput, excludes);
     assertEquals(0, created.size());
 
@@ -420,7 +423,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     created = mocked.createComponentsForProjectRepositories(apiInput, null);
     assertEquals(1, created.size());
     entry = created.entrySet().iterator().next();
-    assertEquals("Technology-fe-angular", entry.getKey());
+    assertEquals("Technology-fe-angular-ai00000001", entry.getKey());
 
     // test with component creation == false
     mocked.setCreateJiraComponents(false);

@@ -514,7 +514,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         Component component = new Component();
         component.setName(
             String.format(
-                "Technology%s", repo.getKey().replace(data.projectKey.toLowerCase(), "")));
+                "Technology%s", repo.getKey().replaceFirst(data.projectKey.toLowerCase(), "")));
         component.setProject(data.projectKey);
         component.setDescription(
             String.format("Technology component %s stored at %s", repo.getKey(), href));

@@ -1,15 +1,15 @@
 {
-    "ai00000001-fe-angular" : {
+    "ai00000001-fe-angular-ai00000001" : {
       "clone" : [ {
         "name" : "ssh",
-        "href" : "ssh://git@bb:7999/test/test-fe-angular.git"
+        "href" : "ssh://git@bb:7999/test/test-fe-angular-ai00000001.git"
       }, {
         "name" : "http",
-        "href" : "https://bb/scm/test/test-fe-angular.git"
+        "href" : "https://bb/scm/test/test-fe-angular-ai00000001.git"
       } ],
       "self" : [ {
         "name" : null,
-        "href" : "https://bb/projects/test/repos/test-fe-angular/browse"
+        "href" : "https://bb/projects/test/repos/test-fe-angular-ai00000001/browse"
       } ]
     }
 }
