@@ -1,0 +1,17 @@
+:toc: macro
+
+= Syncing your Technical User With ODS Components
+
+When you create a new project, the provisioning app triggers a Jenkins pipeline. This pipeline adds `CD_USER_ID` as the name and `CD_USER_B64` as the encoded password to the secrets of your newly generated Openshift cd project. This is the technical user for your project. Every time a (cd) project is generated, these parameters are added to the secrets of your Openshift project. At this point however, you're still not ready to push some code into your repository or succesfully generate a new quickstarter using ods-shared-library. In order to achieve the two, you would manually need to add this same technical user to the repository settings of the two ODS repositories: `ods-jenkins-shared-library` and `ods-quickstarters`. Hence you have a technical user that will have read access to your project. 
+
+== Setting Your Project Specific CD User
+
+Keep in mind that at this point, we assume you've already created at least two ODS projects that use the same technical user and you'd like to change one of them. When you make this change, you need to have this new technical user be in sync in three places:
+
+. Openshift cd project name and password
+. Bitbucket project setting 
+. `ods-jenkins-shared-library` and `ods-quickstarters` repositories of your ODS fork
+
+
+ODS intentionally doesn't enforce the use of any user management system. By design, it offers companies the flexibility to make their own picks. 
+It is noteworthy to mention that how you keep your technical user information doesn't have any impact on the communication with ODS components.
