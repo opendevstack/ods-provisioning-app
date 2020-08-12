@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## [3.0] - 2020-08-11
+
 ### Added
 - Provide modern SPA user interface to improve UX ([#518](https://github.com/opendevstack/ods-provisioning-app/issues/518))
 - Release the provisioning app as docker image ([#337](https://github.com/opendevstack/ods-provisioning-app/issues/337))
