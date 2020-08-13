@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
+
 ### Added
 
 - Provide modern SPA user interface to improve UX ([#518](https://github.com/opendevstack/ods-provisioning-app/issues/518))
@@ -34,7 +36,6 @@
 
 ### Fixed
 
-- logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
 - delete components api does not remove deleted components from projects storage ([#547](https://github.com/opendevstack/ods-provisioning-app/issues/547))
 - numbers in project name causes project provision to fail ([#495](https://github.com/opendevstack/ods-provisioning-app/issues/495))
 - underscore in component name causes provision failure ([#465](https://github.com/opendevstack/ods-provisioning-app/issues/465))
