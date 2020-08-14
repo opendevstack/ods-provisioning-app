@@ -78,7 +78,7 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
   private Collection<GrantedAuthority> extractAuthorities(
       OidcUserRequest userRequest, boolean keepOnlyOpendevstackRoles) {
     JsonNode token = objectMapper.convertValue(userRequest.getIdToken(), JsonNode.class);
-    LOG.debug("Begin extractRoles at path '{}' from idToken jwt = {}", userRolesExpression, token);
+    LOG.debug("Begin extractRoles at path '{}' from idToken jwt", userRolesExpression);
 
     try {
       List<String> roles = extractRoles(token, userRolesExpression, convertRolesToLowerCase);
@@ -87,8 +87,6 @@ public class RoleAwareOAuth2UserService implements OAuth2UserService<OidcUserReq
           keepOnlyOpendevstackRoles
               ? extractOnlyOpendevstackRoles(roles, opendevstackRoles)
               : roles;
-
-      LOG.debug("Roles extracted from jwt = {}", roles);
 
       if (roles.isEmpty()) {
         LOG.warn(
