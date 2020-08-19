@@ -26,7 +26,10 @@ jobs:
         env:
           NO_NEXUS: true
           SNYK_TOKEN: ${{ secrets.ODS_PROVISIONING_APP_GH_SNYK_TOKEN }}
-        command: auth ${{ secrets.ODS_PROVISIONING_APP_GH_SNYK_TOKEN }}
+        with:
+          command: auth
+          args: ${{ secrets.ODS_PROVISIONING_APP_GH_SNYK_TOKEN }}
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/gradle-jdk11@master
         env:
