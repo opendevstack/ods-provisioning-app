@@ -1,0 +1,13 @@
+name: "Vulnerable 3rd party dependencies scanning - action"
+
+on:
+  push:
+
+jobs:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@master
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/gradle-jdk11@master
+      env:
+        SNYK_TOKEN: ${{ secrets.ODS_PROVISIONING_APP_GH_SNYK_TOKEN }}
