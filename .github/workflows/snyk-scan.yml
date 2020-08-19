@@ -24,9 +24,10 @@ jobs:
         run: curl -LO https://github.com/snyk/snyk/releases/download/v1.379.2/snyk-linux && chmod +x snyk-linux && echo "snyk version = $(./snyk-linux -version)"
 
       - name: authorize snyk
+        shell: bash
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: ./snyk-linux auth ${SNYK_TOKEN}
+        run: ./snyk-linux auth "$SNYK_TOKEN"
 
       - name: snyk monitor
         env:
