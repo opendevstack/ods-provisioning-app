@@ -28,6 +28,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
+          echo SNYK_TOKEN="$SNYK_TOKEN" && \
           ./snyk-linux auth && \
           ./snyk-linux monitor --org="ods-gh" --file=build.gradle --all-sub-projects && \
           ./snyk-linux test --org="ods-gh" --file=build.gradle --all-sub-projects
