@@ -21,17 +21,8 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
 
       # Snyk scanning
-      - name: Run Snyk authentication
-        uses: snyk/actions/gradle-jdk11@master
-        env:
-          NO_NEXUS: true
-          SNYK_TOKEN: ${{ secrets.SnykToken }}
-        with:
-          command: auth
-          args: ${{ secrets.SnykToken }}
-
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/gradle-jdk11@master
         env:
           NO_NEXUS: true
-          SNYK_TOKEN: ${{ secrets.SnykToken }}
+          SNYK_TOKEN: ${{ secrets.SnykAuthToken }}
