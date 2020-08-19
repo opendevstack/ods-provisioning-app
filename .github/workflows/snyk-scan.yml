@@ -21,15 +21,19 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
 
       - name: download snyk
-        run: curl -LO https://github.com/snyk/snyk/releases/download/v1.379.2/snyk-linux && chmod +x snyk-linux && ./snyk-linux -version
+        run: curl -LO https://github.com/snyk/snyk/releases/download/v1.379.2/snyk-linux && chmod +x snyk-linux && echo "snyk version = $(./snyk-linux -version)"
 
       - name: authorize snyk
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: ./snyk-linux auth "$SNYK_TOKEN"
+        run: ./snyk-linux auth ${SNYK_TOKEN}
 
       - name: snyk monitor
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: ./snyk-linux monitor --org="ods-gh" --file=build.gradle --all-sub-projects
 
       - name: snyk test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: ./snyk-linux test --org="ods-gh" --file=build.gradle --all-sub-projects
