@@ -2,6 +2,7 @@ name: "Vulnerable 3rd party dependencies scanning - action"
 
 on:
   push:
+  pull_request:
 
 jobs:
   runs-on: ubuntu-latest
