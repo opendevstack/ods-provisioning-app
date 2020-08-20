@@ -27,6 +27,9 @@ public class RestClient {
   @Value("${restClient.read.timeout:60}")
   private int readTimeout;
 
+  @Value("${restClient.trust-all-certificates:false}")
+  private boolean trustAllCertificates;
+
   private OkHttpClient client;
 
   @PostConstruct
@@ -41,9 +44,6 @@ public class RestClient {
       client = standardClient();
     }
   }
-
-  @Value("${restClient.trust-all-certificates:false}")
-  private boolean trustAllCertificates;
 
   public <T> T execute(RestClientCall call) throws IOException {
 
