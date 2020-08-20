@@ -301,7 +301,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       // direct
       // access link to openshift app domain
       project.platformBuildEngineUrl =
-          //          "http://"
           "https://"
               + String.format(
                   projectOpenshiftJenkinsProjectPattern,
@@ -440,7 +439,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   private static String buildExecutionBaseUrl(
       Job job, String webhookProxySecret, String webhookProxyHost) {
-    //    return "http://"
     return "https://"
         + webhookProxyHost
         + "/build?trigger_secret="

@@ -1,10 +1,6 @@
 package org.opendevstack.provision.util.rest;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.net.ssl.*;
@@ -34,8 +30,7 @@ public class RestClient {
   private OkHttpClient client;
 
   @PostConstruct
-  public void afterPropertiesSet()
-      throws NoSuchAlgorithmException, UnknownHostException, KeyManagementException {
+  public void afterPropertiesSet() {
 
     if (trustAllCertificates) {
       LOG.warn(
@@ -47,7 +42,7 @@ public class RestClient {
     }
   }
 
-  @Value("${restClient.trust-all-certificates:true}")
+  @Value("${restClient.trust-all-certificates:false}")
   private boolean trustAllCertificates;
 
   public <T> T execute(RestClientCall call) throws IOException {
@@ -157,23 +152,19 @@ public class RestClient {
 
   private static class TrustAllCertifatestClientFactory {
 
-    public static OkHttpClient createClient()
-        throws UnknownHostException, NoSuchAlgorithmException, KeyManagementException {
+    public static OkHttpClient createClient() {
 
       try {
-        // Create a trust manager that does not validate certificate chains
         final TrustManager[] trustAllCerts =
             new TrustManager[] {
               new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(
-                    java.security.cert.X509Certificate[] chain, String authType)
-                    throws CertificateException {}
+                    java.security.cert.X509Certificate[] chain, String authType) {}
 
                 @Override
                 public void checkServerTrusted(
-                    java.security.cert.X509Certificate[] chain, String authType)
-                    throws CertificateException {}
+                    java.security.cert.X509Certificate[] chain, String authType) {}
 
                 @Override
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -182,10 +173,8 @@ public class RestClient {
               }
             };
 
-        // Install the all-trusting trust manager
         final SSLContext sslContext = SSLContext.getInstance("SSL");
         sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-        // Create an ssl socket factory with our all-trusting manager
         final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -198,8 +187,8 @@ public class RestClient {
               }
             });
 
-        OkHttpClient okHttpClient = builder.build();
-        return okHttpClient;
+        OkHttpClient httpClient = builder.build();
+        return httpClient;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

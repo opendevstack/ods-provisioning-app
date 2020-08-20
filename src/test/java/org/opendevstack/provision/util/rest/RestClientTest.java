@@ -21,9 +21,6 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
@@ -59,8 +56,7 @@ public class RestClientTest {
   @Autowired CrowdAuthenticationManager manager;
 
   @Before
-  public void setUp()
-      throws NoSuchAlgorithmException, UnknownHostException, KeyManagementException {
+  public void setUp() {
     client = new RestClient();
     client.setConnectTimeout(5);
     client.setReadTimeout(5);
