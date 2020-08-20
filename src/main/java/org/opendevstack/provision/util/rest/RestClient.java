@@ -1,8 +1,13 @@
 package org.opendevstack.provision.util.rest;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
+import javax.net.ssl.*;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
@@ -18,20 +23,32 @@ import org.springframework.stereotype.Component;
 @Component
 public class RestClient {
 
+  private static final Logger LOG = LoggerFactory.getLogger(RestClient.class);
+
   @Value("${restClient.connect.timeout:30}")
-  int connectTimeout;
+  private int connectTimeout;
 
   @Value("${restClient.read.timeout:60}")
-  int readTimeout;
+  private int readTimeout;
 
-  OkHttpClient client;
+  private OkHttpClient client;
 
   @PostConstruct
-  public void afterPropertiesSet() {
-    client = standardClient();
+  public void afterPropertiesSet()
+      throws NoSuchAlgorithmException, UnknownHostException, KeyManagementException {
+
+    if (trustAllCertificates) {
+      LOG.warn(
+          "Trust all certificates. Only set this property to true in development environment! [restClient.trust-all-certificates={}]",
+          trustAllCertificates);
+      client = TrustAllCertifatestClientFactory.createClient();
+    } else {
+      client = standardClient();
+    }
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(RestClient.class);
+  @Value("${restClient.trust-all-certificates:true}")
+  private boolean trustAllCertificates;
 
   public <T> T execute(RestClientCall call) throws IOException {
 
@@ -136,5 +153,60 @@ public class RestClient {
     } catch (final IOException e) {
       return "did not work";
     }
+  }
+
+  private static class TrustAllCertifatestClientFactory {
+
+    public static OkHttpClient createClient()
+        throws UnknownHostException, NoSuchAlgorithmException, KeyManagementException {
+
+      try {
+        // Create a trust manager that does not validate certificate chains
+        final TrustManager[] trustAllCerts =
+            new TrustManager[] {
+              new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(
+                    java.security.cert.X509Certificate[] chain, String authType)
+                    throws CertificateException {}
+
+                @Override
+                public void checkServerTrusted(
+                    java.security.cert.X509Certificate[] chain, String authType)
+                    throws CertificateException {}
+
+                @Override
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                  return new java.security.cert.X509Certificate[] {};
+                }
+              }
+            };
+
+        // Install the all-trusting trust manager
+        final SSLContext sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+        // Create an ssl socket factory with our all-trusting manager
+        final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
+        builder.hostnameVerifier(
+            new HostnameVerifier() {
+              @Override
+              public boolean verify(String hostname, SSLSession session) {
+                return true;
+              }
+            });
+
+        OkHttpClient okHttpClient = builder.build();
+        return okHttpClient;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public OkHttpClient getClient() {
+    return client;
   }
 }
