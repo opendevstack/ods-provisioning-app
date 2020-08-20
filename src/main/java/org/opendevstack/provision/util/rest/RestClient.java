@@ -39,7 +39,7 @@ public class RestClient {
       LOG.warn(
           "Trust all certificates. Only set this property to true in development environment! [restClient.trust-all-certificates={}]",
           trustAllCertificates);
-      client = TrustAllCertifatestClientFactory.createClient();
+      client = TrustAllCertificatesClientFactory.createClient();
     } else {
       client = standardClient();
     }
@@ -150,7 +150,7 @@ public class RestClient {
     }
   }
 
-  private static class TrustAllCertifatestClientFactory {
+  private static class TrustAllCertificatesClientFactory {
 
     public static OkHttpClient createClient() {
 
