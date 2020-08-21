@@ -152,6 +152,8 @@ public class RestClient {
 
   private static class TrustAllCertificatesClientFactory {
 
+    public static final String TLSV_1_3 = "TLSv1.3";
+
     public static OkHttpClient createClient() {
 
       try {
@@ -173,7 +175,7 @@ public class RestClient {
               }
             };
 
-        final SSLContext sslContext = SSLContext.getInstance("SSL");
+        final SSLContext sslContext = SSLContext.getInstance(TLSV_1_3);
         sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
         final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
