@@ -31,5 +31,6 @@ jobs:
           NO_NEXUS: true
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          args: "--project-name=ods-provisioning-app --org=ods-gh"
           command: monitor
 
