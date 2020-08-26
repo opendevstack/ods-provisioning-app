@@ -28,10 +28,9 @@ jobs:
       - name: Run snyk monitor to check for vulnerabilities
         uses: snyk/actions/gradle-jdk11@master
         env:
-          BRANCH: "master"
           NO_NEXUS: true
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: "--project-name=ods-provisioning-app_$BRANCH --org=ods-gh"
+          args: "--project-name=ods-provisioning-app --org=ods-gh"
           command: monitor
 
