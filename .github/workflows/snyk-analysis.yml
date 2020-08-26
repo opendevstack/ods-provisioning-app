@@ -24,5 +24,6 @@ jobs:
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/gradle-jdk11@master
         env:
+          NO_NEXUS: true
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
