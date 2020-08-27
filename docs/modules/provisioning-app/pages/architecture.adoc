@@ -12,12 +12,19 @@ Jenkins (for openshift interaction).
 The APIs exposed for direct usage, and also for the UI are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/controller[controller package].
 The connectors to the various tools to create resources are in the https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/services[services package]
 
-== How to develop locally
+== How to develop and run it locally
 . Make sure that you have installed GIT and JAVA ( >= 11 ).
 . Clone the project out of Github
 
 ```
 $ git clone https://github.com/opendevstack/ods-provisioning-app.git
+```
+
+To run it locally two spring profiles are provided: `odsbox` and odsbox_quickstarters`. The profile `odsbox` configures the application to connect to the ODS development environment (ODSBOX).
+
+Use this command to start it from the command-line:
+```
+./gradlew bootRun --args='--spring.profiles.active=odsbox,odsbox_quickstarters'
 ```
 
 [arabic, start=3]
