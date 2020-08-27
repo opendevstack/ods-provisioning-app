@@ -1,0 +1,36 @@
+name: "Vulnerable 3rd party dependencies scanning - action"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          # We must fetch at least the immediate parents so that if this is
+          # a pull request then we can checkout the head.
+          fetch-depth: 2
+
+      # If this run was triggered by a pull request event, then checkout
+      # the head of the pull request instead of the merge commit.
+      - run: git checkout HEAD^2
+        if: ${{ github.event_name == 'pull_request' }}
+
+      # Snyk monitor
+      # Note: just monitoring at the moment. Once we upgrade the fixable vulnerabilities we can add/switch to snyk test
+      # Ref. links:
+      #  actions: https://github.com/snyk/actions
+      #  cli: https://support.snyk.io/hc/en-us/articles/360003812578-CLI-reference
+      - name: Run snyk monitor to check for vulnerabilities
+        uses: snyk/actions/gradle-jdk11@master
+        env:
+          NO_NEXUS: true
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: "--project-name=ods-provisioning-app --org=ods-gh"
+          command: monitor
+
