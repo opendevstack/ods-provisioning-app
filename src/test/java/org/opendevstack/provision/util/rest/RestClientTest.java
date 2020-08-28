@@ -65,7 +65,7 @@ public class RestClientTest {
 
   @Test
   public void getClient() {
-    Assert.assertThat(client.client, instanceOf(OkHttpClient.class));
+    Assert.assertThat(client.getClient(), instanceOf(OkHttpClient.class));
   }
 
   @Test
