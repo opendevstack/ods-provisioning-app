@@ -17,6 +17,8 @@ package org.opendevstack.provision.controller;
 import java.io.IOException;
 import java.util.List;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.authentication.PreAuthorizeAllRoles;
+import org.opendevstack.provision.authentication.PreAuthorizeOnlyAdministrator;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
@@ -43,6 +45,7 @@ public class QuickstarterApiController {
    *
    * @return JSON string
    */
+  @PreAuthorizeAllRoles
   @RequestMapping(
       produces = {"application/json"},
       method = RequestMethod.GET)
@@ -50,6 +53,7 @@ public class QuickstarterApiController {
     return ResponseEntity.ok().body(jobExecutionAdapter.getQuickstarterJobs());
   }
 
+  @PreAuthorizeOnlyAdministrator
   @RequestMapping(
       value = "/provision",
       produces = {"application/json"},

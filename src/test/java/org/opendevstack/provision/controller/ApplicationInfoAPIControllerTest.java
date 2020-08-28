@@ -14,6 +14,7 @@
 package org.opendevstack.provision.controller;
 
 import static org.mockito.Mockito.when;
+import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 import java.util.HashMap;
@@ -29,7 +30,6 @@ import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.authentication.UserRolesHolder;
-import org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,15 +85,8 @@ public class ApplicationInfoAPIControllerTest {
   @Value("${idmanager.group.opendevstack-administrators}")
   private String idmanagerAdminGroup;
 
-  public static final String TEST_ADMIN_USERNAME = "testUserName";
-  private static final String TEST_ADMIN_EMAIL = "testUserName@example.com";
-  public static final String TEST_VALID_CREDENTIAL =
-      BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
-
   @Before
   public void setup() {
-
-    testUsersAndRoles.put(TEST_ADMIN_USERNAME, idmanagerAdminGroup);
 
     mockMvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
