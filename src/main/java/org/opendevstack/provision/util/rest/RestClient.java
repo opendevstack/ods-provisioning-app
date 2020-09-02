@@ -24,7 +24,7 @@ public class RestClient {
   @Value("${restClient.connect.timeout:30}")
   private int connectTimeout;
 
-  @Value("${restClient.read.timeout:60}")
+  @Value("${restClient.read.timeout:180}")
   private int readTimeout;
 
   @Value("${restClient.trust-all-certificates:false}")
@@ -39,7 +39,7 @@ public class RestClient {
       LOG.warn(
           "Trust all certificates. Only set this property to true in development environment! [restClient.trust-all-certificates={}]",
           trustAllCertificates);
-      client = TrustAllCertificatesClientFactory.createClient();
+      client = TrustAllCertificatesClientFactory.createClient(connectTimeout, readTimeout);
     } else {
       client = standardClient();
     }
@@ -154,7 +154,7 @@ public class RestClient {
 
     public static final String TLSV_1_3 = "TLSv1.3";
 
-    public static OkHttpClient createClient() {
+    public static OkHttpClient createClient(int connectTimeout, int readTimeout) {
 
       try {
         final TrustManager[] trustAllCerts =
@@ -189,7 +189,12 @@ public class RestClient {
               }
             });
 
-        OkHttpClient httpClient = builder.build();
+        OkHttpClient httpClient = builder
+                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
+                .build();
+
+
         return httpClient;
       } catch (Exception e) {
         throw new RuntimeException(e);
