@@ -2,13 +2,13 @@ package org.opendevstack.provision.services;
 
 import java.io.IOException;
 import org.junit.Before;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientMockHelper;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 /**
  * Base class for all AdapterTests the provide basic functionality for mocking calls to {@link
@@ -16,7 +16,7 @@ import org.opendevstack.provision.util.rest.RestClientMockHelper;
  */
 public abstract class AbstractBaseServiceAdapterTest {
 
-  @Mock RestClient restClient;
+  @MockBean protected RestClient restClient;
 
   private RestClientMockHelper mockHelper;
 

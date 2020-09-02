@@ -20,10 +20,9 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -31,25 +30,19 @@ import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServi
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
@@ -62,6 +55,9 @@ import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.services.jira.JiraProjectTypePropertyCalculator;
+import org.opendevstack.provision.services.jira.WebhookProxyJiraPropertyUpdater;
+import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
@@ -73,7 +69,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.env.Environment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -100,18 +96,30 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   private static TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
 
+  @Value("${jira.project.template.key}")
+  public String jiraTemplateKey;
+
+  @Value("${jira.project.template.type}")
+  public String jiraTemplateType;
+
   @MockBean private IODSAuthnzAdapter authnzAdapter;
 
-  @Mock private CrowdUserDetailsService service;
+  @MockBean private CrowdUserDetailsService service;
 
-  @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+  @MockBean private JiraProjectTypePropertyCalculator jiraProjectTypePropertyCalculator;
+
+  @MockBean private WebhookProxyJiraPropertyUpdater webhookProxyJiraPropertyUpdater;
+
+  //  @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  @Autowired @InjectMocks private JiraAdapter jiraAdapter;
+  @Autowired private JiraAdapter jiraAdapter;
 
-  @Autowired private Environment env;
+  //  @Autowired private Environment env;
+
+  @Autowired private ConfigurableEnvironment environment;
 
   @Autowired
   @Qualifier("projectTemplateKeyNames")
@@ -136,6 +144,10 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     String name = "TestProject";
     String crowdCookieValue = "xyz";
 
+    OpenProjectData project = getTestProject(name);
+    project.projectType = "default";
+    project.webhookProxySecret = UUID.randomUUID().toString();
+
     CrowdUserDetails details = mock(CrowdUserDetails.class);
     Authentication authentication = mock(Authentication.class);
 
@@ -143,6 +155,12 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     // get authentication mock
     when(authentication.getPrincipal()).thenReturn(details);
+
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            project.getProjectType(),
+            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+            Boolean.FALSE.toString()))
+        .thenReturn(Boolean.TRUE.toString());
 
     when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
 
@@ -155,8 +173,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 .bodyMatches(Matchers.instanceOf(FullJiraProject.class)))
         .thenReturn(getReturnProject());
 
-    OpenProjectData createdProject =
-        spyAdapter.createBugtrackerProjectForODSProject(getTestProject(name));
+    OpenProjectData createdProject = spyAdapter.createBugtrackerProjectForODSProject(project);
 
     assertEquals(getTestProject(name).projectKey, createdProject.projectKey);
     assertEquals(getTestProject(name).projectName, createdProject.projectName);
@@ -168,14 +185,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     templateProject.projectType = "newTemplate";
 
     projectTemplateKeyNames.add("newTemplate");
-    spyAdapter
-        .getEnvironment()
-        .getSystemProperties()
-        .put("jira.project.template.key.newTemplate", "templateKey");
-    spyAdapter
-        .getEnvironment()
-        .getSystemProperties()
-        .put("jira.project.template.type.newTemplate", "templateType");
+    //        spyAdapter
+    //            .getEnvironment()
+    //        environment.getSystemProperties().put("jira.project.template.key.newTemplate",
+    //     "templateKey");
+    //        spyAdapter
+    //            .getEnvironment()
+    //        environment.getSystemProperties().put("jira.project.template.type.newTemplate",
+    //     "templateType");
 
     OpenProjectData createdProjectWithNewTemplate =
         spyAdapter.createBugtrackerProjectForODSProject(templateProject);
@@ -183,6 +200,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     assertEquals(templateProject.projectKey, createdProjectWithNewTemplate.projectKey);
     assertEquals(templateProject.projectName, createdProjectWithNewTemplate.projectName);
     assertEquals("newTemplate", createdProjectWithNewTemplate.projectType);
+    verify(webhookProxyJiraPropertyUpdater, times(1))
+        .addWebhookProxyProperty(
+            spyAdapter, project.projectKey, project.projectType, project.webhookProxySecret);
 
     HttpException thrownEx = null;
     try {
@@ -249,36 +269,39 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     OpenProjectData apiInput = getTestProject("TestProject");
     apiInput.projectKey = "TestP";
 
+    // default or null template
+    apiInput.projectType = null;
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
+        .thenReturn(jiraTemplateKey);
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
+        .thenReturn(jiraTemplateType);
+
     FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
 
     assertEquals(apiInput.projectName, fullJiraProject.getName());
     assertEquals(apiInput.projectKey, fullJiraProject.getKey());
-    assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
-    assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
+    assertEquals(jiraTemplateKey, fullJiraProject.projectTemplateKey);
+    assertEquals(jiraTemplateType, fullJiraProject.projectTypeKey);
+    assertEquals(apiInput.projectType, defaultProjectKey);
 
-    apiInput.projectType = "notFound";
-    fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
-    assertEquals(env.getProperty("jira.project.template.key"), fullJiraProject.projectTemplateKey);
-    assertEquals(env.getProperty("jira.project.template.type"), fullJiraProject.projectTypeKey);
+    // not default template
+    apiInput.projectType = "not-default";
+    String notDefaultTemplateKey = "projectTypeNotDefaultTemplateKey";
+    String notDefaultTemplateType = "projectTypeNotDefaultTemplateType";
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
+        .thenReturn(notDefaultTemplateKey);
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
+        .thenReturn(notDefaultTemplateType);
 
-    apiInput.projectType = "newTemplate";
-
-    // set them adhoc
-    projectTemplateKeyNames.add("newTemplate");
-
-    jiraAdapter
-        .getEnvironment()
-        .getSystemProperties()
-        .put("jira.project.template.key.newTemplate", "template");
-    jiraAdapter
-        .getEnvironment()
-        .getSystemProperties()
-        .put("jira.project.template.type.newTemplate", "templateType");
-    fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
-    assertEquals("template", fullJiraProject.projectTemplateKey);
-    assertEquals("templateType", fullJiraProject.projectTypeKey);
-
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    assertEquals(apiInput.projectName, fullJiraProject.getName());
+    assertEquals(apiInput.projectKey, fullJiraProject.getKey());
+    assertEquals(jiraTemplateKey, fullJiraProject.projectTemplateKey);
+    assertEquals(jiraTemplateType, fullJiraProject.projectTypeKey);
+    assertNotEquals(apiInput.projectType, defaultProjectKey);
   }
 
   @Test
@@ -651,5 +674,59 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = check.apply(new ArrayList<>());
     Assert.assertEquals(1, newResult.size());
+  }
+
+  @Test
+  public void givenAddWebhookProxyUrlToJiraProject_whenProjectTypeNotEnabled_doNotAddProperty()
+      throws IOException {
+
+    String projectType = "type";
+    String projectKey = "projectKey";
+    String secret = "secret";
+
+    // case: configured property can be parse to "false"
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            projectType,
+            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+            Boolean.FALSE.toString()))
+        .thenReturn(Boolean.FALSE.toString());
+
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+
+    verify(webhookProxyJiraPropertyUpdater, never())
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
+
+    // case: configured property can not be parse to "false"
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            projectType,
+            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+            Boolean.FALSE.toString()))
+        .thenReturn("can-be-not-parsed-to-boolean");
+
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+
+    verify(webhookProxyJiraPropertyUpdater, never())
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
+  }
+
+  @Test
+  public void givenAddWebhookProxyUrlToJiraProject_whenProjectTypeIsEnabled_addProperty()
+      throws IOException {
+
+    String projectType = "type";
+    String projectKey = "projectKey";
+    String secret = "secret";
+
+    // case: configured property can be parse to "false"
+    when(jiraProjectTypePropertyCalculator.calculateProperty(
+            projectType,
+            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+            Boolean.FALSE.toString()))
+        .thenReturn(Boolean.TRUE.toString());
+
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+
+    verify(webhookProxyJiraPropertyUpdater, times(1))
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
   }
 }
