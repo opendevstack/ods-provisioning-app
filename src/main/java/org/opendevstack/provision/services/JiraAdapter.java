@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,6 +63,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   public static final String JIRA_TEMPLATE_KEY_PREFIX = "jira.project.template.key.";
   public static final String JIRA_TEMPLATE_TYPE_PREFIX = "jira.project.template.type.";
+  public static final String JIRA_TEMPLATE_ADD_PROJECT_PROPERTY_PREFIX =
+      "jira.project.template.add-project-property.";
+  public static final String JIRA_TEMPLATE_PROJECT_PROPERTY_ENDPOINT_TEMPLATE_PREFIX =
+      "jira.project.template.project-property-endpoint-template.";
+  public static final String JIRA_TEMPLATE_PROJECT_PROPERTY_PAYLOAD_TEMPLATE_PREFIX =
+      "jira.project.template.project-property-payload-template.";
 
   // Pattern to use for project with id
   public static final String JIRA_API_PROJECTS = "project";
@@ -116,6 +123,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
+  @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
+  private String projectOpenshiftJenkinsWebhookProxyNamePattern;
+
+  @Value("${openshift.apps.basedomain}")
+  private String projectOpenshiftBaseDomain;
+
   @Autowired private IODSAuthnzAdapter manager;
 
   @Autowired private ConfigurableEnvironment environment;
@@ -163,6 +176,67 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     LeanJiraProject created = getRestClient().execute(clientCall);
 
     return created;
+  }
+
+  private void setPropertyInJiraProjectIfEnabled(
+      LeanJiraProject project, String projectType, String webhooksecret) throws IOException {
+    String webhookProxyUrl = resolveWebhookProxyUrl(project.getKey(), webhooksecret);
+
+    String addProjectProperty =
+        calculateJiraProjectTypeAndTemplateFromProjectType(
+            projectType, JIRA_TEMPLATE_ADD_PROJECT_PROPERTY_PREFIX, "false");
+
+    if (!Boolean.valueOf(addProjectProperty)) {
+      logger.debug(
+          "Project type not configure to setup a jira project property [projectKey={}, projectType={}]",
+          project.key,
+          projectType);
+      return;
+    }
+
+    String endpointTemplate =
+        environment.getProperty(
+            JIRA_TEMPLATE_PROJECT_PROPERTY_ENDPOINT_TEMPLATE_PREFIX + projectType);
+
+    if (null == endpointTemplate) {
+      String message =
+          String.format(
+              "Add project property is enabled but no jira endpoint is defined to set the jira project property [projectKey=%s, projectType=%s]",
+              project.key, projectType);
+      throw new RemoteException(message);
+    }
+
+    String payloadTemplate =
+        environment.getProperty(
+            JIRA_TEMPLATE_PROJECT_PROPERTY_PAYLOAD_TEMPLATE_PREFIX + projectType);
+
+    if (null == payloadTemplate) {
+      String message =
+          String.format(
+              "Add project property is enabled but no jira endpoint payload is defined to set the jira project property [projectKey=%s, projectType=%s]",
+              project.key, projectType);
+      throw new RemoteException(message);
+    }
+
+    String payload = payloadTemplate.replace("%PROJECT_KEY%", project.getKey());
+    payload = payload.replace("%PROPERTY_KEY%", "NEW_WEBHOOK_PROXY.URL");
+    payload = payload.replace("%PROPERTY_VALUE%", "https://" + webhookProxyUrl);
+
+    String endpoint = String.format(endpointTemplate, jiraUri);
+
+    RestClientCall clientCall =
+        httpPost()
+            .url(endpoint)
+            .body(payload)
+            .header(Map.of("Content-Type", "application/json", "Accept", "application/json"));
+    getRestClient().execute(clientCall);
+  }
+
+  private String resolveWebhookProxyUrl(String projectKey, String webhookProxySecret) {
+    return String.format(
+        projectOpenshiftJenkinsWebhookProxyNamePattern + "?trigger_secret=" + webhookProxySecret,
+        projectKey,
+        projectOpenshiftBaseDomain);
   }
 
   /**
@@ -249,28 +323,29 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     return updatedPermissions;
   }
 
-  public FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData s) {
+  public FullJiraProject buildJiraProjectPojoFromApiProject(OpenProjectData projectData) {
     String templateKey =
         calculateJiraProjectTypeAndTemplateFromProjectType(
-            s, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
+            projectData.projectType, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
 
     String templateType =
         calculateJiraProjectTypeAndTemplateFromProjectType(
-            s, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+            projectData.projectType, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
 
     if (jiraTemplateKey.equals(templateKey)) {
       // TODO: fix this... it is a side effect that could be difficult to find and debug!
-      s.projectType = defaultProjectKey;
+      projectData.projectType = defaultProjectKey;
     }
 
-    logger.debug("Creating project of type: {} for project: {}", templateKey, s.projectKey);
+    logger.debug(
+        "Creating project of type: {} for project: {}", templateKey, projectData.projectKey);
 
     return new FullJiraProject(
         null,
-        s.projectKey,
-        s.projectName,
-        s.description,
-        s.projectAdminUser,
+        projectData.projectKey,
+        projectData.projectName,
+        projectData.description,
+        projectData.projectAdminUser,
         templateKey,
         templateType,
         jiraNotificationSchemeId);
@@ -392,7 +467,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   public String calculateJiraProjectTypeAndTemplateFromProjectType(
-      OpenProjectData project, String templatePrefix, String defaultValue) {
+      String projectType, String templatePrefix, String defaultValue) {
     Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
     Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
     /*
@@ -400,10 +475,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
      * also configured for jira (environment.containsProperty) - take it, if not fall back to
      * default
      */
-    return (project.projectType != null
-            && environment.containsProperty(templatePrefix + project.projectType)
-            && projectTemplateKeyNames.contains(project.projectType))
-        ? environment.getProperty(templatePrefix + project.projectType)
+    return (projectType != null
+            && environment.containsProperty(templatePrefix + projectType)
+            && projectTemplateKeyNames.contains(projectType))
+        ? environment.getProperty(templatePrefix + projectType)
         : defaultValue;
   }
 
@@ -439,6 +514,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       LeanJiraProject created = createProjectInJira(project, toBeCreated);
 
+      setPropertyInJiraProjectIfEnabled(
+          created, project.getProjectType(), project.webhookProxySecret);
+
       logger.debug("Created project: {}", created);
       project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, created.getKey());
 
@@ -471,12 +549,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     template.put(
         PROJECT_TEMPLATE.TEMPLATE_KEY,
         calculateJiraProjectTypeAndTemplateFromProjectType(
-            project, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
+            project.projectType, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
 
     template.put(
         PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
         calculateJiraProjectTypeAndTemplateFromProjectType(
-            project, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
+            project.projectType, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
 
     return template;
   }

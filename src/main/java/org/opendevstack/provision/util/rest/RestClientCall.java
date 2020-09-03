@@ -51,7 +51,7 @@ public class RestClientCall {
   private Object body;
   private String url;
   private Map<String, String> queryParams;
-  private Map<String, String> header = new HashMap<>();;
+  private Map<String, String> header = new HashMap<>();
 
   // Response information
   private Class returnType = null;

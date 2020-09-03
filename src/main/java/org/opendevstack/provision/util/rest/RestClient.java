@@ -189,11 +189,11 @@ public class RestClient {
               }
             });
 
-        OkHttpClient httpClient = builder
+        OkHttpClient httpClient =
+            builder
                 .connectTimeout(connectTimeout, TimeUnit.SECONDS)
                 .readTimeout(readTimeout, TimeUnit.SECONDS)
                 .build();
-
 
         return httpClient;
       } catch (Exception e) {
