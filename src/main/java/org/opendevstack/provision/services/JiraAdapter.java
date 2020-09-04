@@ -219,7 +219,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
 
     String payload = payloadTemplate.replace("%PROJECT_KEY%", project.getKey());
-    payload = payload.replace("%PROPERTY_KEY%", "NEW_WEBHOOK_PROXY.URL");
+    payload = payload.replace("%PROPERTY_KEY%", "WEBHOOK_PROXY.URL");
     payload = payload.replace("%PROPERTY_VALUE%", "https://" + webhookProxyUrl);
 
     String endpoint = String.format(endpointTemplate, jiraUri);
@@ -234,7 +234,10 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   private String resolveWebhookProxyUrl(String projectKey, String webhookProxySecret) {
     return String.format(
-        projectOpenshiftJenkinsWebhookProxyNamePattern + "?trigger_secret=" + webhookProxySecret,
+        projectOpenshiftJenkinsWebhookProxyNamePattern
+            + "/build"
+            + "?trigger_secret="
+            + webhookProxySecret,
         projectKey,
         projectOpenshiftBaseDomain);
   }
