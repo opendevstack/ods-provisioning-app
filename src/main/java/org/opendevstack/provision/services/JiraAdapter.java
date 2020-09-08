@@ -459,7 +459,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
 
     logger.info(
-        "Project type is not configured for the setup of webhook proxy url as jira project property [projectKey={}, projectType={}]",
+        "Project type is configured for the setup of webhook proxy url as jira project property [projectKey={}, projectType={}]",
         projectKey,
         projectType);
 
