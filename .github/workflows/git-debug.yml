@@ -1,0 +1,24 @@
+name: Debug GIT
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: GIT debug info
+      run: |
+        COMMIT_AUTHOR=$(git --no-pager show -s --format='%an (%ae)' $GITHUB_SHA)
+        COMMIT_MESSAGE=$(git log -1 --pretty=%B $GITHUB_SHA)
+        COMMIT_TIME=$(git show -s --format=%ci $GITHUB_SHA)
+        BUILD_TIME=$(date -u "+%Y-%m-%d %H:%M:%S %z")
+        echo "GITHUB_REF=$GITHUB_REF" \
+        echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" \
+        echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" \
+        echo "GITHUB_SHA=$GITHUB_SHA" \
+        echo "COMMIT_TIME=$COMMIT_TIME" \
+        echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY" \
+        echo "BUILD_TIME=$BUILD_TIME"
