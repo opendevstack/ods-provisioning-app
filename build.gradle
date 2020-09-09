@@ -1,7 +1,7 @@
 buildscript {
 
     ext {
-        springBootVersion = '2.2.4.RELEASE'
+        springBootVersion = '2.2.9.RELEASE'
         // fix for not set system variable
         nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
         nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
@@ -51,7 +51,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'org.springframework.boot' version '2.2.9.RELEASE'
     id 'java'
     id 'eclipse'
     id 'maven-publish'
@@ -132,11 +132,11 @@ dependencies {
 
     //frontend webjars
     implementation 'org.webjars:webjars-locator:0.37'
-    implementation 'org.webjars.bower:jquery:3.4.1'
-    implementation 'org.webjars.bower:bootstrap:3.3.7'
+    implementation 'org.webjars.bower:jquery:3.5.0'
+    implementation 'org.webjars.bower:bootstrap:3.5.0'
     implementation 'org.webjars.bower:react:16.1.0'
     implementation 'org.webjars.bower:font-awesome:4.7.0'
-    implementation 'org.webjars.bower:lodash:4.17.10'
+    implementation 'org.webjars.bower:lodash:4.17.15'
 
     //encryption library for properties
     implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.1'
@@ -162,7 +162,7 @@ dependencies {
         exclude group: 'com.google.guava', module: 'guava'
     }
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
-    implementation group: 'org.apache.struts', name: 'struts2-core', version: '2.5.20'
+    implementation group: 'org.apache.struts', name: 'struts2-core', version: '2.5.22'
     implementation group: 'org.apache.struts.xwork', name: 'xwork-core', version: '2.3.37'
     implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
     implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
