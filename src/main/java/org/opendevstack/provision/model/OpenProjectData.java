@@ -179,4 +179,8 @@ public class OpenProjectData {
 
     return Collections.unmodifiableSet(groups);
   }
+
+  public String getProjectType() {
+    return projectType;
+  }
 }

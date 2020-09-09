@@ -220,6 +220,9 @@ public class ProjectApiController {
             CheckPreconditionsResponse.successful(contentType, CHECK_PRECONDITIONS));
       }
 
+      // init webhook secret
+      newProject.webhookProxySecret = UUID.randomUUID().toString();
+
       if (newProject.bugtrackerSpace) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);

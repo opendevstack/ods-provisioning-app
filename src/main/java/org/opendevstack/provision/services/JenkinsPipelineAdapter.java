@@ -242,8 +242,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     validateComponentNames(
         OpenProjectDataValidator.API_COMPONENT_ID_VALIDATOR_LIST, project.getQuickstarters());
 
-    //    init webhook secret
-    project.webhookProxySecret = UUID.randomUUID().toString();
     options.put(
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
