@@ -42,6 +42,7 @@ jobs:
         echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" \
         echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" \
         echo "COMMIT_SHA=$COMMIT_SHA" \
+        echo "GITHUB_SHA=$GITHUB_SHA" \
         echo "COMMIT_TIME=$COMMIT_TIME" \
         echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY" \
         echo "BUILD_TIME=$BUILD_TIME"
