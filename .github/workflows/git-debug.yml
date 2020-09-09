@@ -11,13 +11,15 @@ jobs:
     - uses: actions/checkout@v1
     - name: GIT debug info
       run: |
-        COMMIT_AUTHOR=$(git --no-pager show -s --format='%an (%ae)' $GITHUB_SHA)
-        COMMIT_MESSAGE=$(git log -1 --pretty=%B $GITHUB_SHA)
-        COMMIT_TIME=$(git show -s --format=%ci $GITHUB_SHA)
+        COMMIT_SHA=$(git show --format="%H" --no-patch)
+        COMMIT_AUTHOR=$(git --no-pager show -s --format='%an (%ae)' $COMMIT_SHA)
+        COMMIT_MESSAGE=$(git log -1 --pretty=%B $COMMIT_SHA)
+        COMMIT_TIME=$(git show -s --format=%ci $COMMIT_SHA)
         BUILD_TIME=$(date -u "+%Y-%m-%d %H:%M:%S %z")
         echo "GITHUB_REF=$GITHUB_REF" \
         echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" \
         echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" \
+        echo "COMMIT_SHA=$COMMIT_SHA" \
         echo "GITHUB_SHA=$GITHUB_SHA" \
         echo "COMMIT_TIME=$COMMIT_TIME" \
         echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY" \
