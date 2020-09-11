@@ -527,6 +527,51 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
+  public void testProjectExistsCheck() throws IOException {
+
+    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    OpenProjectData project = new OpenProjectData();
+    project.setProjectKey("TESTP");
+
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkProjectExists =
+        spyAdapter.createProjectKeyExistsCheck(project.getProjectKey());
+    assertNotNull(checkProjectExists);
+
+    // Case one, an exception happens
+    try {
+      when(restClient.execute(isNotNull())).thenReturn(null);
+      checkProjectExists.apply(new ArrayList<>());
+      fail();
+    } catch (Exception e) {
+      assertTrue(IllegalArgumentException.class.isInstance(e));
+    }
+
+    // Rest API return other http error than 404
+    try {
+      when(restClient.execute(isNotNull()))
+          .thenThrow(new HttpException(500, "internal server error"));
+      checkProjectExists.apply(new ArrayList<>());
+      fail();
+    } catch (AdapterException e) {
+      assertTrue(e.getCause() instanceof HttpException);
+    }
+
+    // Case error, project exists!
+    String response = fileReader.readFileContent("bitbucket-get-project");
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    List<CheckPreconditionFailure> failures = checkProjectExists.apply(new ArrayList<>());
+    assertTrue(failures.get(0).toString().contains(project.getProjectKey()));
+
+    // Rest API return http error 404
+    HttpException notFound = new HttpException(404, "not found");
+    when(restClient.execute(isNotNull())).thenThrow(notFound);
+    failures = checkProjectExists.apply(new ArrayList<>());
+    assertEquals(0, failures.size());
+  }
+
+  @Test
   public void whenHandleExceptionWithinCheckCreateProjectPreconditionsThenException()
       throws IOException {
 

@@ -121,6 +121,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   public static final String BASE_PATTERN = "%s%s/";
   public static final String BITBUCKET_API_PROJECTS_PATTERN = BASE_PATTERN + BITBUCKET_API_PROJECTS;
+  public static final String BITBUCKET_API_PROJECT_PATTERN =
+      BASE_PATTERN + BITBUCKET_API_PROJECTS + "/%s";
   public static final String BITBUCKET_API_GROUPS_PATTERN = BASE_PATTERN + BITBUCKET_API_GROUPS;
   public static final String BITBUCKET_API_USERS_PATTERN = BASE_PATTERN + BITBUCKET_API_USERS;
   public static final String BITBUCKET_API_ADMIN_USERS_PATTERN =
@@ -176,7 +178,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
       List<CheckPreconditionFailure> preconditionFailures =
-          createUserHaveProjectCreateGlobalPermissionCheck(getUserName())
+          createProjectKeyExistsCheck(newProject.getProjectKey())
+              .andThen(createUserHaveProjectCreateGlobalPermissionCheck(getUserName()))
               .andThen(createCheckGroupsExist(newProject))
               .andThen(createCheckUser(newProject))
               .apply(new ArrayList<>());
@@ -196,6 +199,55 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       logger.error(message, e);
       throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, message);
     }
+  }
+
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createProjectKeyExistsCheck(String projectKey) {
+
+    return preconditionFailures -> {
+      logger.info("checking if project exists in bitbucket [projectKey={}]", projectKey);
+
+      try {
+        if (existsProject(projectKey)) {
+          String message =
+              String.format("project '%s' already exists in %s!", projectKey, ADAPTER_NAME);
+          preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
+        }
+      } catch (IOException e) {
+        throw new AdapterException(e);
+      }
+
+      return preconditionFailures;
+    };
+  }
+
+  private boolean existsProject(String projectKey) throws IOException {
+
+    JsonNode projectAsJson;
+    try {
+      projectAsJson = getProject(projectKey);
+    } catch (HttpException e) {
+      if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+        logger.debug("project '{}' was not found in {}!", projectKey, ADAPTER_NAME, e);
+        return false;
+      } else {
+        logger.warn("Unexpected method trying to get project '{}'!", projectKey, e);
+        throw e;
+      }
+    }
+
+    return projectKey.equalsIgnoreCase(projectAsJson.get("key").asText());
+  }
+
+  private JsonNode getProject(String projectKey) throws IOException {
+
+    String url =
+        String.format(BITBUCKET_API_PROJECT_PATTERN, bitbucketUri, bitbucketApiPath, projectKey);
+
+    String response = getRestClient().execute(httpGet().url(url).returnType(String.class));
+    Assert.notNull(response, "Response is null for '" + projectKey + "'");
+
+    return new ObjectMapper().readTree(response);
   }
 
   public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> createCheckUser(
