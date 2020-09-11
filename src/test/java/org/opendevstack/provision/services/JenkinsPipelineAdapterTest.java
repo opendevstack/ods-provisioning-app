@@ -330,6 +330,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public OpenProjectData createOpenProjectData(String projectKey) throws IOException {
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = projectKey;
+    projectData.webhookProxySecret = UUID.randomUUID().toString();
 
     Job job1 = new Job();
     job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
@@ -374,6 +375,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.projectAdminGroup = "agroup";
     projectData.projectUserGroup = "ugroup";
     projectData.projectReadonlyGroup = "rgroup";
+    projectData.webhookProxySecret = UUID.randomUUID().toString();
+
     mockJobsInServer(jobs);
 
     CreateProjectResponse response = buildDummyCreateProjectResponse();

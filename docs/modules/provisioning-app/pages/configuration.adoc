@@ -87,6 +87,30 @@ and add the new +++<name>+++from above to the existing property `project.templat
 project.template.key.names=default,<name>
 ----
 
+=== Add Webhook Proxy URL to jira project properties based on project type
+It is possible to configure the Provisioning App to add to jira project the Webhook Proxy URL as project property.
+Jira provides an REST API for this purpose (https://docs.atlassian.com/software/jira/docs/api/REST/8.5.3/#api/2/project/{projectIdOrKey}/properties-setProperty)[Jira Properties API]
+
+This functionality can be configured for each project type.
+To enable this you will need to:
+
+- Enable this capability for a given project type add the a property like:
+```
+jira.project.template.add-webhook-proxy-url-as-project-property.<name>=true
+```
+
+- Define the jira endpoint as template by adding this property:
+```
+jira.project.template.webhook-proxy-url-endpoint-template.<name>=/api/2/project/%PROJECT_KEY%/properties/WEBHOOK_PROXY.URL
+```
+These 2 template keys `%PROJECT_KEY%` and `%PROPERTY_VALUE%` can be defined and will be replaced will real values.
+
+- Define the jira endpoint payload as template that will be added to the set jira property endpoint call
+```
+jira.project.template.webhook-proxy-url-payload-template.<name>={\"WEBHOOK_PROXY.URL\", \"%PROPERTY_VALUE%\"}
+```
+For the payload template also these 2 template keys `%PROJECT_KEY%` and `%PROPERTY_VALUE%` can be defined and will be replaced will real values.
+
 == Error Handling
 
 Up to (and including) _v1.1.x_ when provisioning failed, corrupt and inconsistent states where left in the bugtracker system, bitbucket etc. which had do be cleaned up _manually_ based on logs. This is rectified and a the new `default` behavior is to see every post to the API as `atomic` unit of work, which in case of failure is tried to be cleaned up (alike functional rollback). This behavior can be turned _off_ by specifying the new property
