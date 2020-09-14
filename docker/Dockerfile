@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:ubi-minimal-jre
+FROM adoptopenjdk/openjdk11:ubi-jre
  
 COPY files/entrypoint.sh /usr/local/bin/
 COPY app.jar app.jar
