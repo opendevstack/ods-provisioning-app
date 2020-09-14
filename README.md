@@ -1,6 +1,7 @@
 # OpenDevStack Provisioning Application
 
 ![](https://github.com/opendevstack/ods-provisioning-app/workflows/Provisioning%20App%20Build/badge.svg?branch=master)
+![](https://4e53c33a6387.ngrok.io/images/provapptestsoutcome_master.svg)
 
 ## Introduction
 This application creates new OpenDevStack projects. It is the central entrypoint to get started with a new project / or provision new components based on [quickstarters](https://github.com/opendevstack/ods-quickstarters).
