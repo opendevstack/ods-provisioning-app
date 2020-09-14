@@ -183,4 +183,12 @@ public class OpenProjectData {
   public String getProjectType() {
     return projectType;
   }
+
+  public String getProjectKey() {
+    return projectKey;
+  }
+
+  public void setProjectKey(String projectKey) {
+    this.projectKey = projectKey;
+  }
 }
