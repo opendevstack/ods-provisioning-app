@@ -425,6 +425,19 @@ public class E2EProjectAPIControllerTest {
         .mockExecute(
             matchesClientCall()
                 .url(
+                    containsStringIgnoringCase(
+                        realBitbucketAdapter.getAdapterRootApiUri()
+                            + "/"
+                            + BitbucketAdapter.BITBUCKET_API_PROJECTS
+                            + "/"
+                            + data.getProjectKey()))
+                .method(HttpMethod.GET))
+        .thenThrow(new HttpException(404, "not found"));
+
+    mockHelper
+        .mockExecute(
+            matchesClientCall()
+                .url(
                     containsString(
                         realBitbucketAdapter.getAdapterRootApiUri()
                             + "/"

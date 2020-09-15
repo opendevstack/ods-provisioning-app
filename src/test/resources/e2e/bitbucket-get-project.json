@@ -1,0 +1,14 @@
+{
+	"key": "TESTP",
+	"id": 343,
+	"name": "TESTP",
+	"public": false,
+	"type": "NORMAL",
+	"links": {
+		"self": [
+			{
+				"href": "http://bitbucket.odsbox.lan:7990/projects/TESTP"
+			}
+		]
+	}
+}
