@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendevstack.provision.services.rest;
+package org.opendevstack.provision.services;
 
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientCall;
@@ -21,5 +21,9 @@ public interface RestService {
 
   RestClientCall httpPost();
 
+  RestClientCall httpGet();
+
   RestClient getRestClient();
+
+  RestClientCall httpPut();
 }

@@ -15,7 +15,10 @@ public class CheckPreconditionFailure {
     CREATE_PROJECT_PERMISSION_MISSING,
     GLOBAL_CREATE_PROJECT_BITBUCKET_PERMISSION_MISSING,
     EXCEPTION,
-    PROJECT_EXISTS
+    PROJECT_EXISTS,
+    PERMISSION_SCHEME_EXISTS,
+    ROLE_EXISTS,
+    ROLE_NOT_DEFINED;
   }
 
   public CheckPreconditionFailure(ExceptionCodes code, String detail) {
@@ -46,6 +49,18 @@ public class CheckPreconditionFailure {
 
   public static CheckPreconditionFailure getProjectExistsInstance(String message) {
     return new CheckPreconditionFailure(ExceptionCodes.PROJECT_EXISTS, message);
+  }
+
+  public static CheckPreconditionFailure getUnexistantPermissionScheme(String message) {
+    return new CheckPreconditionFailure(ExceptionCodes.PERMISSION_SCHEME_EXISTS, message);
+  }
+
+  public static CheckPreconditionFailure getUnexistanRole(String message) {
+    return new CheckPreconditionFailure(ExceptionCodes.ROLE_EXISTS, message);
+  }
+
+  public static CheckPreconditionFailure getNotDefinedRole(String message) {
+    return new CheckPreconditionFailure(ExceptionCodes.ROLE_NOT_DEFINED, message);
   }
 
   @Override

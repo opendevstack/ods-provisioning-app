@@ -55,9 +55,11 @@ import org.opendevstack.provision.model.bitbucket.RepositoryData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
+import org.opendevstack.provision.services.jira.FullJiraProjectFactory;
 import org.opendevstack.provision.services.jira.JiraProjectTypePropertyCalculator;
+import org.opendevstack.provision.services.jira.JiraRestService;
+import org.opendevstack.provision.services.jira.JiraSpecialPermissioner;
 import org.opendevstack.provision.services.jira.WebhookProxyJiraPropertyUpdater;
-import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
@@ -109,12 +111,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   @MockBean private WebhookProxyJiraPropertyUpdater webhookProxyJiraPropertyUpdater;
 
-  //  @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
   @Autowired private JiraAdapter jiraAdapter;
+
+  @Autowired private JiraSpecialPermissioner jiraSpecialPermissioner;
+
+  @Autowired private FullJiraProjectFactory fullJiraProjectFactory;
 
   @Autowired
   @Qualifier("projectTemplateKeyNames")
@@ -151,10 +155,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     // get authentication mock
     when(authentication.getPrincipal()).thenReturn(details);
 
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            project.getProjectType(),
-            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
-            Boolean.FALSE.toString()))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                project.getProjectType(),
+                JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+                Boolean.FALSE.toString()))
         .thenReturn(Boolean.TRUE.toString());
 
     when(service.loadUserByToken(crowdCookieValue)).thenReturn(details);
@@ -258,14 +263,17 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     // default or null template
     apiInput.projectType = null;
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
         .thenReturn(jiraTemplateKey);
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
         .thenReturn(jiraTemplateType);
 
-    FullJiraProject fullJiraProject = jiraAdapter.buildJiraProjectPojoFromApiProject(apiInput);
+    FullJiraProject fullJiraProject =
+        fullJiraProjectFactory.buildJiraProjectPojoFromApiProject(apiInput);
 
     assertEquals(apiInput.projectName, fullJiraProject.getName());
     assertEquals(apiInput.projectKey, fullJiraProject.getKey());
@@ -277,11 +285,13 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     apiInput.projectType = "not-default";
     String notDefaultTemplateKey = "projectTypeNotDefaultTemplateKey";
     String notDefaultTemplateType = "projectTypeNotDefaultTemplateType";
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
         .thenReturn(notDefaultTemplateKey);
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
         .thenReturn(notDefaultTemplateType);
 
     assertEquals(apiInput.projectName, fullJiraProject.getName());
@@ -314,7 +324,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     scheme.setId("permScheme1");
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(scheme);
-    int updates = mocked.createSpecialPermissions(apiInput);
+    jiraSpecialPermissioner.setupProjectSpecialPermissions(mocked, apiInput);
 
     verifyExecute(
         matchesClientCall()
@@ -327,7 +337,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
             .url(containsString("/rest/api/latest/project/TESTP/permissionscheme"))
             .method(HttpMethod.PUT);
     verifyExecute(wantedArgument);
-    assertEquals(1, updates);
   }
 
   @Test
@@ -443,7 +452,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   private LeanJiraProject getReturnProject() {
     return new LeanJiraProject(
-        URI.create("http://localhost"), "TESTP", null, null, null, null, null);
+        URI.create("http://localhost"), "TESTP", null, null, null, null, null, null);
   }
 
   @Test
@@ -544,6 +553,145 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     newResult = checkUser.apply(result);
     Assert.assertEquals(1, newResult.size());
     Assert.assertTrue(newResult.get(0).toString().contains(thisUserDoesNotExists));
+  }
+
+  @Test
+  public void testPermissionSchemeExistsCheck() throws IOException {
+
+    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    OpenProjectData project = new OpenProjectData();
+    project.setSpecialPermissionSchemeId(Integer.valueOf(10100));
+    project.setSpecialPermissionSet(true);
+
+    String response = fileReader.readFileContent("jira-get-permission-scheme-by-id");
+
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkPermissionScheme =
+        spyAdapter.createSpecialPermissionSchemeIdCheck(project);
+    assertNotNull(checkPermissionScheme);
+
+    List<CheckPreconditionFailure> result;
+
+    // Case one, an exception happens
+    try {
+      when(restClient.execute(isNotNull())).thenReturn(null);
+      checkPermissionScheme.apply(new ArrayList<>());
+      fail();
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+    }
+
+    // Case IOException throw from rest client!
+    IOException ioException = new IOException();
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      checkPermissionScheme.apply(new ArrayList<>());
+      fail();
+    } catch (AdapterException e) {
+      Assert.assertEquals(ioException, e.getCause());
+    }
+
+    // Case no error, permission scheme id exists!
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    result = checkPermissionScheme.apply(new ArrayList<>());
+    Assert.assertEquals(0, result.size());
+
+    // Case project is not enabled with special permission set
+    project.setSpecialPermissionSet(false);
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    result = checkPermissionScheme.apply(new ArrayList<>());
+    Assert.assertEquals(0, result.size());
+
+    // Case error, permission schemed does not exists!
+    project.setSpecialPermissionSet(true);
+    Integer unexistantSchemeId = Integer.valueOf(99999);
+    project.setSpecialPermissionSchemeId(unexistantSchemeId);
+    when(restClient.execute(isNotNull()))
+        .thenThrow(
+            new HttpException(
+                404,
+                "Permission scheme " + project.getSpecialPermissionSchemeId() + " does not exist"));
+    result = checkPermissionScheme.apply(new ArrayList<>());
+    Assert.assertEquals(1, result.size());
+    Assert.assertTrue(result.get(0).toString().contains(unexistantSchemeId.toString()));
+  }
+
+  @Test
+  public void testRoleExistsCheck() throws IOException {
+
+    JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    OpenProjectData project = new OpenProjectData();
+    project.setProjectKey("TEST");
+    project.setSpecialPermissionSchemeId(Integer.valueOf(10100));
+    project.setProjectRoleForAdminGroup("10100");
+    project.setProjectRoleForUserGroup("10100");
+    project.setProjectRoleForReadonlyGroup("10100");
+    project.setSpecialPermissionSet(true);
+
+    String response = fileReader.readFileContent("jira-get-role");
+
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkRole =
+        spyAdapter.createRoleExistsCheck(project);
+    assertNotNull(checkRole);
+
+    List<CheckPreconditionFailure> result;
+
+    // Case one, an exception happens
+    try {
+      when(restClient.execute(isNotNull())).thenReturn(null);
+      checkRole.apply(new ArrayList<>());
+      fail();
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+    }
+
+    // Case IOException throw from rest client!
+    IOException ioException = new IOException();
+    try {
+      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      checkRole.apply(new ArrayList<>());
+      fail();
+    } catch (AdapterException e) {
+      Assert.assertEquals(ioException, e.getCause());
+    }
+
+    // Case no error, project role id exists!
+    reset(restClient);
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    result = checkRole.apply(new ArrayList<>());
+    Assert.assertEquals(0, result.size());
+    verify(restClient, times(3)).execute(isNotNull());
+
+    // Case project is not enabled with special permission set
+    project.setSpecialPermissionSet(false);
+    when(restClient.execute(isNotNull())).thenReturn(response);
+    result = checkRole.apply(new ArrayList<>());
+    Assert.assertEquals(0, result.size());
+
+    // Case error: project roles does not exists
+    project.setSpecialPermissionSet(true);
+    project.setProjectRoleForAdminGroup(null);
+    project.setProjectRoleForUserGroup(null);
+    project.setProjectRoleForReadonlyGroup(null);
+    result = checkRole.apply(new ArrayList<>());
+    Assert.assertEquals(3, result.size());
+    Assert.assertTrue(
+        result
+            .toArray()[0]
+            .toString()
+            .contains(CheckPreconditionFailure.ExceptionCodes.ROLE_NOT_DEFINED.toString()));
+
+    // Case: using project roles from utest configuration
+    project.setSpecialPermissionSet(true);
+    project.setProjectRoleForAdminGroup("99999");
+    project.setProjectRoleForUserGroup("99999");
+    project.setProjectRoleForReadonlyGroup("99999");
+    when(restClient.execute(isNotNull())).thenThrow(new HttpException(404, "Not found!"));
+    result = checkRole.apply(new ArrayList<>());
+    Assert.assertEquals(3, result.size());
   }
 
   @Test
@@ -672,10 +820,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     String secret = "secret";
 
     // case: configured property can be parse to "false"
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            projectType,
-            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
-            Boolean.FALSE.toString()))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                projectType,
+                JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+                Boolean.FALSE.toString()))
         .thenReturn(Boolean.FALSE.toString());
 
     jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
@@ -684,10 +833,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
         .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
 
     // case: configured property can not be parse to "false"
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            projectType,
-            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
-            Boolean.FALSE.toString()))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                projectType,
+                JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+                Boolean.FALSE.toString()))
         .thenReturn("can-be-not-parsed-to-boolean");
 
     jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
@@ -705,10 +855,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     String secret = "secret";
 
     // case: configured property can be parse to "false"
-    when(jiraProjectTypePropertyCalculator.calculateProperty(
-            projectType,
-            JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
-            Boolean.FALSE.toString()))
+    when(jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                projectType,
+                JiraAdapter.ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY,
+                Boolean.FALSE.toString()))
         .thenReturn(Boolean.TRUE.toString());
 
     jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
