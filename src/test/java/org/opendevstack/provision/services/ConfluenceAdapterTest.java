@@ -235,7 +235,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     IOException ioException = new IOException("throw in unit test");
     try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(ioException);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();
@@ -248,7 +248,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
     try {
-      when(restClient.execute(isNotNull())).thenThrow(npe);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(npe);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();
@@ -274,7 +274,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Case one, an exception happens
     try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(null);
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
@@ -284,7 +284,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     // Case IOException throw from rest client!
     IOException ioException = new IOException();
     try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(ioException);
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (AdapterException e) {
@@ -297,7 +297,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
             .readFileContent("confluence-get-space-template")
             .replace("<%SPACE%>", project.getProjectKey().toUpperCase());
 
-    when(restClient.execute(isNotNull())).thenReturn(response);
+    when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = checkProjectKeyExists.apply(new ArrayList<>());
     Assert.assertEquals(1, newResult.size());
     Assert.assertTrue(

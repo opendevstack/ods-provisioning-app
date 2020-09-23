@@ -574,7 +574,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
             String.format(
                 CONFLUENCE_API_SPACE_PATTERN, confluenceUri, confluenceApiPath, projectKey);
 
-        response = getRestClient().execute(httpGet().url(url).returnType(String.class));
+        response = getRestClient().execute(httpGet().url(url).returnType(String.class), true);
         Assert.notNull(response, "Response is null for '" + projectKey + "'");
       } catch (HttpException e) {
         if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {

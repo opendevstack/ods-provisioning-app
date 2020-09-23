@@ -212,6 +212,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
           String message =
               String.format("project '%s' already exists in %s!", projectKey, ADAPTER_NAME);
           preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
+          logger.info(message);
         }
       } catch (IOException e) {
         throw new AdapterException(e);
@@ -244,7 +245,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     String url =
         String.format(BITBUCKET_API_PROJECT_PATTERN, bitbucketUri, bitbucketApiPath, projectKey);
 
-    String response = getRestClient().execute(httpGet().url(url).returnType(String.class));
+    String response = getRestClient().execute(httpGet().url(url).returnType(String.class), true);
     Assert.notNull(response, "Response is null for '" + projectKey + "'");
 
     return new ObjectMapper().readTree(response);
