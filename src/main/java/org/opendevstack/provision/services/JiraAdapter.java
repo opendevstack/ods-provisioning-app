@@ -120,6 +120,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
+  @Value("${adapters.confluence.enabled:true}")
+  private boolean confluenceAdapterEnable;
+
   @Autowired private WebhookProxyJiraPropertyUpdater webhookProxyJiraPropertyUpdater;
 
   @Autowired private JiraProjectTypePropertyCalculator jiraProjectTypePropertyCalculator;
@@ -329,12 +332,18 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     int id = 1;
     int createdShortcuts = 0;
 
-    Shortcut shortcutConfluence = new Shortcut();
-    shortcutConfluence.setId("" + id++);
-    shortcutConfluence.setName("Confluence: " + data.projectKey);
-    shortcutConfluence.setUrl(data.collaborationSpaceUrl);
-    shortcutConfluence.setIcon("");
-    shortcuts.add(shortcutConfluence);
+    if (confluenceAdapterEnable) {
+      Shortcut shortcutConfluence = new Shortcut();
+      shortcutConfluence.setId("" + id++);
+      shortcutConfluence.setName("Confluence: " + data.projectKey);
+      shortcutConfluence.setUrl(data.collaborationSpaceUrl);
+      shortcutConfluence.setIcon("");
+      shortcuts.add(shortcutConfluence);
+    } else {
+      logger.debug(
+          "Skipping creation of confluence shortcut because confluence adapter is disabled by configuration! [adapters.confluence.enabled={}]",
+          confluenceAdapterEnable);
+    }
 
     if (data.platformRuntime) {
       Shortcut shortcutBB = new Shortcut();
