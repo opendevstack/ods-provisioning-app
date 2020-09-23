@@ -541,7 +541,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Case one, an exception happens
     try {
-      when(restClient.execute(isNotNull())).thenReturn(null);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(null);
       checkProjectExists.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
@@ -550,7 +550,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Rest API return other http error than 404
     try {
-      when(restClient.execute(isNotNull()))
+      when(restClient.execute(isNotNull(), anyBoolean()))
           .thenThrow(new HttpException(500, "internal server error"));
       checkProjectExists.apply(new ArrayList<>());
       fail();
@@ -560,13 +560,13 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // Case error, project exists!
     String response = fileReader.readFileContent("bitbucket-get-project");
-    when(restClient.execute(isNotNull())).thenReturn(response);
+    when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(response);
     List<CheckPreconditionFailure> failures = checkProjectExists.apply(new ArrayList<>());
     assertTrue(failures.get(0).toString().contains(project.getProjectKey()));
 
     // Rest API return http error 404
     HttpException notFound = new HttpException(404, "not found");
-    when(restClient.execute(isNotNull())).thenThrow(notFound);
+    when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(notFound);
     failures = checkProjectExists.apply(new ArrayList<>());
     assertEquals(0, failures.size());
   }
@@ -588,7 +588,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     IOException ioException = new IOException("throw in unit test");
 
     try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(ioException);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();
@@ -601,7 +601,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
     try {
-      when(restClient.execute(isNotNull())).thenThrow(npe);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(npe);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();

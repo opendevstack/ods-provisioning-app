@@ -761,7 +761,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       try {
         String path =
             String.format(JIRA_API_PROJECTS_FILTER_PATTERN, jiraUri, jiraApiPath, projectKey);
-        getRestClient().execute(httpGet().url(path));
+        getRestClient().execute(httpGet().url(path), true);
         String message =
             String.format("ProjectKey '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
         preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
