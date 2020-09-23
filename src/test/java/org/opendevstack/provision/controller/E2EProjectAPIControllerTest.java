@@ -342,6 +342,24 @@ public class E2EProjectAPIControllerTest {
             matchesClientCall().url(containsString("dialog/web-items")).method(HttpMethod.GET))
         .thenReturn(blList);
 
+    String confluenceSpaceTemplate = fileReader.readFileContent("confluence-get-space-template");
+    try {
+      mockHelper
+          .mockExecute(
+              matchesClientCall()
+                  .url(
+                      containsString(
+                          realConfluenceAdapter.getAdapterApiUri()
+                              + "/"
+                              + ConfluenceAdapter.CONFLUENCE_API_SPACE
+                              + "/"
+                              + data.getProjectKey().toUpperCase()))
+                  .method(HttpMethod.GET))
+          .thenThrow(new HttpException(404, "not found"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     String confluenceUserTemplate = fileReader.readFileContent("confluence-get-user-template");
     HashSet<String> confluenceUsers = new HashSet<>();
     confluenceUsers.add(data.projectAdminUser);
