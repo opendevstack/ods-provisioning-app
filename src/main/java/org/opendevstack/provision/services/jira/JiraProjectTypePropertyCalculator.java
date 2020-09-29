@@ -31,7 +31,8 @@ public class JiraProjectTypePropertyCalculator {
   @Autowired
   private List<String> projectTemplateKeyNames;
 
-  public String calculateProperty(String projectType, String templatePrefix, String defaultValue) {
+  public String readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+      String projectType, String templatePrefix, String defaultValue) {
     Preconditions.checkNotNull(templatePrefix, "no template prefix passed");
     Preconditions.checkNotNull(defaultValue, "no defaultValue passed");
     /*
@@ -44,5 +45,13 @@ public class JiraProjectTypePropertyCalculator {
             && projectTemplateKeyNames.contains(projectType))
         ? environment.getProperty(templatePrefix + projectType)
         : defaultValue;
+  }
+
+  public boolean isPropertyAvailable(String projectType, String templatePrefix) {
+    return environment.containsProperty(templatePrefix + projectType);
+  }
+
+  public String readProperty(String projectType, String templatePrefix) {
+    return environment.getProperty(templatePrefix + projectType);
   }
 }

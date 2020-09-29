@@ -11,7 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendevstack.provision.services.rest;
+package org.opendevstack.provision.services.jira;
+
+import org.opendevstack.provision.services.RestService;
 
 /** author Sebastian Titakis */
 public interface JiraRestService extends RestService {}

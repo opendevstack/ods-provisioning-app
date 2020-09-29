@@ -16,18 +16,13 @@ package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
+import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.TEST_ADMIN_EMAIL;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -67,11 +62,7 @@ import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.services.*;
-import org.opendevstack.provision.services.BitbucketAdapter;
-import org.opendevstack.provision.services.ConfluenceAdapter;
-import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.MailAdapter;
+import org.opendevstack.provision.services.jira.JiraRestApi;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
@@ -274,7 +265,7 @@ public class E2EProjectAPIControllerTest {
     mockHelper
         .mockExecute(
             matchesClientCall()
-                .url(containsString(JiraAdapter.JIRA_API_USERS))
+                .url(containsString(JiraRestApi.JIRA_API_USERS))
                 .method(HttpMethod.GET))
         .thenReturn(getUserResponse);
 
@@ -286,7 +277,7 @@ public class E2EProjectAPIControllerTest {
     mockHelper
         .mockExecute(
             matchesClientCall()
-                .url(containsString(JiraAdapter.JIRA_API_MYPERMISSIONS))
+                .url(containsString(JiraRestApi.JIRA_API_MYPERMISSIONS))
                 .method(HttpMethod.GET))
         .thenReturn(getUserMyPermissionsResponse);
 
@@ -305,7 +296,7 @@ public class E2EProjectAPIControllerTest {
             mockHelper
                 .mockExecute(
                     matchesClientCall()
-                        .url(containsString(JiraAdapter.JIRA_API_GROUPS_PICKER))
+                        .url(containsString(JiraRestApi.JIRA_API_GROUPS_PICKER))
                         .queryParam("query", group)
                         .method(HttpMethod.GET))
                 .thenReturn(getGroup.replace("<%GROUP%>", group));
