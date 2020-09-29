@@ -1,0 +1,19 @@
+{
+	"id": 12313213,
+	"key": "<%SPACE%>",
+	"name": "<%SPACE%>",
+	"type": "global",
+	"_links": {
+		"webui": "/display/<%SPACE%>",
+		"collection": "/rest/api/space",
+		"base": "https://confluence.odsbox.lan",
+		"context": "",
+		"self": "https://confluence.odsbox.lan/rest/api/space/<%SPACE%>"
+	},
+	"_expandable": {
+		"metadata": "",
+		"icon": "",
+		"description": "",
+		"homepage": "/rest/api/content/3833886"
+	}
+}

@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,12 +39,15 @@ import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
+import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
+import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.TestDataFileReader;
+import org.opendevstack.provision.util.exception.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,7 +235,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     IOException ioException = new IOException("throw in unit test");
     try {
-      when(restClient.execute(isNotNull())).thenThrow(ioException);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(ioException);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();
@@ -244,7 +248,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
     try {
-      when(restClient.execute(isNotNull())).thenThrow(npe);
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(npe);
 
       spyAdapter.checkCreateProjectPreconditions(project);
       fail();
@@ -253,5 +257,61 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       Assert.assertTrue(e.getMessage().contains("Unexpected error"));
       Assert.assertTrue(e.getMessage().contains(project.projectKey));
     }
+  }
+
+  @Test
+  public void testProjectKeyExistCheck() throws IOException {
+
+    ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    OpenProjectData project = new OpenProjectData();
+    project.setProjectKey("TESTP");
+
+    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> checkProjectKeyExists =
+        spyAdapter.createProjectKeyExistsCheck(project.getProjectKey());
+    assertNotNull(checkProjectKeyExists);
+
+    // Case one, an exception happens
+    try {
+      when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(null);
+      checkProjectKeyExists.apply(new ArrayList<>());
+      fail();
+    } catch (Exception e) {
+      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+    }
+
+    // Case IOException throw from rest client!
+    IOException ioException = new IOException();
+    try {
+      when(restClient.execute(isNotNull(), anyBoolean())).thenThrow(ioException);
+      checkProjectKeyExists.apply(new ArrayList<>());
+      fail();
+    } catch (AdapterException e) {
+      Assert.assertEquals(ioException, e.getCause());
+    }
+
+    // Case error, project key exists!
+    String response =
+        fileReader
+            .readFileContent("confluence-get-space-template")
+            .replace("<%SPACE%>", project.getProjectKey().toUpperCase());
+
+    when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(response);
+    List<CheckPreconditionFailure> newResult = checkProjectKeyExists.apply(new ArrayList<>());
+    Assert.assertEquals(1, newResult.size());
+    Assert.assertTrue(
+        newResult
+            .get(0)
+            .toString()
+            .contains(CheckPreconditionFailure.ExceptionCodes.PROJECT_EXISTS.toString()));
+
+    // Case project key does not exists -> all ok
+    String thisProjectKeyNotExists = "UNEXISTANT_PROJECT_KEY".toUpperCase();
+    HttpException notFound = new HttpException(404, "not found");
+    when(restClient.execute(isNotNull())).thenThrow(notFound);
+    checkProjectKeyExists = spyAdapter.createProjectKeyExistsCheck(thisProjectKeyNotExists);
+    newResult = checkProjectKeyExists.apply(new ArrayList<>());
+    Assert.assertEquals(0, newResult.size());
   }
 }
