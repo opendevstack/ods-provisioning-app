@@ -86,6 +86,8 @@ public class OpenProjectData {
   /** Create a permission set within the spaces / projects / repositories */
   public boolean specialPermissionSet = false;
 
+  private Integer specialPermissionSchemeId;
+
   /**
    * The last jobs that where triggered by {@link
    * IJobExecutionAdapter#createPlatformProjects(OpenProjectData)} or {@link
@@ -99,6 +101,10 @@ public class OpenProjectData {
 
   /** The storage path location */
   public String physicalLocation = null;
+
+  private String projectRoleForAdminGroup;
+  private String projectRoleForUserGroup;
+  private String projectRoleForReadonlyGroup;
 
   @Override
   public int hashCode() {
@@ -190,5 +196,77 @@ public class OpenProjectData {
 
   public void setProjectKey(String projectKey) {
     this.projectKey = projectKey;
+  }
+
+  public void setSpecialPermissionSchemeId(Integer permissionSchemeId) {
+    this.specialPermissionSchemeId = permissionSchemeId;
+  }
+
+  public Integer getSpecialPermissionSchemeId() {
+    return specialPermissionSchemeId;
+  }
+
+  public String getProjectRoleForAdminGroup() {
+    return projectRoleForAdminGroup;
+  }
+
+  public void setProjectRoleForAdminGroup(String projectRoleForAdminGroup) {
+    this.projectRoleForAdminGroup = projectRoleForAdminGroup;
+  }
+
+  public String getProjectRoleForUserGroup() {
+    return projectRoleForUserGroup;
+  }
+
+  public void setProjectRoleForUserGroup(String projectRoleForUserGroup) {
+    this.projectRoleForUserGroup = projectRoleForUserGroup;
+  }
+
+  public String getProjectRoleForReadonlyGroup() {
+    return projectRoleForReadonlyGroup;
+  }
+
+  public void setProjectRoleForReadonlyGroup(String projectRoleForReadonlyGroup) {
+    this.projectRoleForReadonlyGroup = projectRoleForReadonlyGroup;
+  }
+
+  public String getProjectAdminGroup() {
+    return projectAdminGroup;
+  }
+
+  public void setProjectAdminGroup(String projectAdminGroup) {
+    this.projectAdminGroup = projectAdminGroup;
+  }
+
+  public String getProjectUserGroup() {
+    return projectUserGroup;
+  }
+
+  public void setProjectUserGroup(String projectUserGroup) {
+    this.projectUserGroup = projectUserGroup;
+  }
+
+  public String getProjectAdminUser() {
+    return projectAdminUser;
+  }
+
+  public void setProjectAdminUser(String projectAdminUser) {
+    this.projectAdminUser = projectAdminUser;
+  }
+
+  public String getProjectReadonlyGroup() {
+    return projectReadonlyGroup;
+  }
+
+  public void setProjectReadonlyGroup(String projectReadonlyGroup) {
+    this.projectReadonlyGroup = projectReadonlyGroup;
+  }
+
+  public boolean isSpecialPermissionSet() {
+    return specialPermissionSet;
+  }
+
+  public void setSpecialPermissionSet(boolean specialPermissionSet) {
+    this.specialPermissionSet = specialPermissionSet;
   }
 }

@@ -15,7 +15,6 @@ package org.opendevstack.provision.services.jira;
 
 import java.io.IOException;
 import java.net.URL;
-import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.services.webhookproxy.WebhookProxyUrlFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
