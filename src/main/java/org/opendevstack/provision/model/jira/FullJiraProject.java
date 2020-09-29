@@ -36,7 +36,7 @@ public class FullJiraProject extends LeanJiraProject {
   public String lead;
 
   public FullJiraProject() {
-    super(null, null, null, null, null, null, null);
+    super(null, null, null, null, null, null, null, null);
   }
 
   public FullJiraProject(
@@ -47,8 +47,17 @@ public class FullJiraProject extends LeanJiraProject {
       String lead,
       String projectTemplateKey,
       String projectTypeKey,
-      String notificationSchemeId) {
-    super(self, key, name, description, projectTemplateKey, projectTypeKey, notificationSchemeId);
+      String notificationSchemeId,
+      String permissionSchemeId) {
+    super(
+        self,
+        key,
+        name,
+        description,
+        projectTemplateKey,
+        projectTypeKey,
+        notificationSchemeId,
+        permissionSchemeId);
     this.lead = lead;
   }
 }

@@ -17,7 +17,6 @@ package org.opendevstack.provision.services.jira;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.util.rest.RestClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

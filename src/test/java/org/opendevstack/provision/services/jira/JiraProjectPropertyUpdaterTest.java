@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.opendevstack.provision.SpringBoot;
-import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientCall;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +25,10 @@ public class JiraProjectPropertyUpdaterTest {
       "jira.project.template.key.example.endpoint.";
   public static final String UTEST_JIRA_PROPERTY_EXAMPLE_PAYLOAD =
       "jira.project.template.key.example.payload.";
-  public static final String PROJECT_TYPE = "utest-template";
+  public static final String PROJECT_TEMPLATE_NAME = "utest-project-template";
 
   @Value("${jira.uri}")
   private String jiraUri;
-
-  @Value("jira.project.template.key.example.endpoint.utest-template")
-  private String endpointTemplate;
-
-  @Value("jira.project.template.key.example.payload.utest-template")
-  private String payloadTemplate;
 
   @Autowired private JiraProjectPropertyUpdater projectPropertyUpdater;
 
@@ -52,7 +45,7 @@ public class JiraProjectPropertyUpdaterTest {
       projectPropertyUpdater.setPropertyInJiraProject(
           jiraRestService,
           projectKey,
-          PROJECT_TYPE,
+          PROJECT_TEMPLATE_NAME,
           "VALUE",
           "not-valid-config-property.",
           UTEST_JIRA_PROPERTY_EXAMPLE_PAYLOAD);
@@ -65,7 +58,7 @@ public class JiraProjectPropertyUpdaterTest {
       projectPropertyUpdater.setPropertyInJiraProject(
           jiraRestService,
           projectKey,
-          PROJECT_TYPE,
+          PROJECT_TEMPLATE_NAME,
           "VALUE",
           UTEST_JIRA_PROPERTY_EXAMPLE_ENDPOINT,
           "not-valid-config-property.");
@@ -93,7 +86,7 @@ public class JiraProjectPropertyUpdaterTest {
     projectPropertyUpdater.setPropertyInJiraProject(
         jiraRestService,
         projectKey,
-        PROJECT_TYPE,
+        PROJECT_TEMPLATE_NAME,
         "VALUE",
         UTEST_JIRA_PROPERTY_EXAMPLE_ENDPOINT,
         UTEST_JIRA_PROPERTY_EXAMPLE_PAYLOAD);

@@ -51,14 +51,16 @@ public class JiraProjectTypePropertyCalculatorTest {
   public void givenTemplatePrefixOrDefaultValue_whenOneIsNull_ThenException() {
 
     try {
-      propertyCalculator.calculateProperty(null, null, "not-null");
+      propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+          null, null, "not-null");
       fail();
     } catch (Exception e) {
       assertTrue(e.getMessage().contains("template prefix"));
     }
 
     try {
-      propertyCalculator.calculateProperty(null, "not-null", null);
+      propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+          null, "not-null", null);
       fail();
     } catch (Exception e) {
       assertTrue(e.getMessage().contains("defaultValue"));
@@ -73,7 +75,7 @@ public class JiraProjectTypePropertyCalculatorTest {
     // then should return property "template prefix + project type"
     String kanban = KANBAN;
     String value =
-        propertyCalculator.calculateProperty(
+        propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
             kanban, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
     assertEquals(environment.getProperty(JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX + kanban), value);
   }
@@ -85,7 +87,7 @@ public class JiraProjectTypePropertyCalculatorTest {
     // of the available template key
     String unknownProjectType = UNKNOWN_PROJECT_TYPE;
     String value =
-        propertyCalculator.calculateProperty(
+        propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
             unknownProjectType, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
     assertEquals(DEFAULT_VALUE, value);
 
@@ -93,7 +95,7 @@ public class JiraProjectTypePropertyCalculatorTest {
     // available template key
     String disabledTemplate = DISABLED_TEMPLATE;
     value =
-        propertyCalculator.calculateProperty(
+        propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
             disabledTemplate, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
     assertEquals(DEFAULT_VALUE, value);
   }
