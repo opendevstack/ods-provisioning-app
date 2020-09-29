@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.services.jira;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.services.JiraAdapter;
-import org.opendevstack.provision.services.rest.JiraRestService;
 import org.opendevstack.provision.services.webhookproxy.WebhookProxyUrlFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,7 +79,7 @@ public class WebhookProxyJiraPropertyUpdaterTest {
       throws IOException {
 
     String projectKey = "testPropect";
-    String projectType = "utest-template";
+    String projectType = "utest-project-template";
     String webhookSecret = "secret";
 
     URL webhookProxyUrl = new URL("https://ods.lan?secret=" + webhookSecret);

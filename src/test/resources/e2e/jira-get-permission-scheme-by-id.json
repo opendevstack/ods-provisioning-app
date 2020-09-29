@@ -1,0 +1,7 @@
+{
+	"expand": "permissions,user,group,projectRole,field,all",
+	"id": 10100,
+	"self": "http://jira.odsbox.lan:8080/rest/api/2/permissionscheme/10100",
+	"name": "Permission-Scheme-1",
+	"description": "Description"
+}

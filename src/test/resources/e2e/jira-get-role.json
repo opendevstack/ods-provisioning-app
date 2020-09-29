@@ -1,0 +1,13 @@
+{
+	"self": "http://jira.odsbox.lan:8080/rest/api/2/role/10100",
+	"name": "Developers",
+	"id": 10100,
+	"actors": [
+		{
+			"id": 12609,
+			"displayName": "bitbucket-administrators",
+			"type": "atlassian-group-role-actor",
+			"name": "bitbucket-administrators"
+		}
+	]
+}
