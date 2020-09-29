@@ -63,6 +63,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   public static final String ADAPTER_NAME = "confluence";
 
+  public static final String CONFLUENCE_API_SPACE = "api/space";
   public static final String CONFLUENCE_API_USER = "api/user";
   public static final String CONFLUENCE_API_GROUP = "api/group";
   public static final String CONFLUENCE_API_CREATE_DIALOG_SPACE_BLUEPRINT =
@@ -80,6 +81,9 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       BASE_PATTERN + "addPermissionsToSpace";
   public static final String CONFLUENCE_API_JIRA_SERVER_PATTERN =
       BASE_PATTERN + "jiraanywhere/1.0/servers";
+
+  public static final String CONFLUENCE_API_SPACE_PATTERN =
+      BASE_PATTERN + CONFLUENCE_API_SPACE + "/%s";
 
   public static final String SPACE_GROUP_KEY = "SPACE_GROUP";
   public static final String SPACE_NAME_KEY = "SPACE_NAME";
@@ -360,7 +364,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
       List<CheckPreconditionFailure> preconditionFailures =
-          createRequiredGroupExistsCheck(newProject)
+          createProjectKeyExistsCheck(newProject.getProjectKey())
+              .andThen(createRequiredGroupExistsCheck(newProject))
               .andThen(createCheckUser(newProject))
               .apply(new ArrayList<>());
 
@@ -495,15 +500,10 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
       usersToCheck.forEach(
           username -> {
-            try {
-              if (!checkUserExists(username)) {
-                String message =
-                    String.format("User '%s' does not exists in %s!", username, ADAPTER_NAME);
-                preconditionFailures.add(
-                    CheckPreconditionFailure.getUnexistantUserInstance(message));
-              }
-            } catch (IOException e) {
-              throw new AdapterException(e);
+            if (!checkUserExists(username)) {
+              String message =
+                  String.format("User '%s' does not exists in %s!", username, ADAPTER_NAME);
+              preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance(message));
             }
           });
 
@@ -511,7 +511,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     };
   }
 
-  private boolean checkUserExists(String username) throws IOException {
+  private boolean checkUserExists(String username) {
 
     Map<String, String> params = new HashMap<>();
     params.put(USERNAME_PARAM, username);
@@ -545,6 +545,58 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       }
 
       return username.equalsIgnoreCase(usernameNode.asText());
+
+    } catch (IOException e) {
+      throw new AdapterException(e);
+    }
+  }
+
+  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
+      createProjectKeyExistsCheck(String projectKey) {
+    return preconditionFailures -> {
+      if (checkProjectExists(projectKey)) {
+        String message =
+            String.format("Project/Space '%s' already exists in '%s'!", projectKey, ADAPTER_NAME);
+        preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
+      }
+
+      return preconditionFailures;
+    };
+  }
+
+  private boolean checkProjectExists(String projectKey) {
+
+    try {
+      String response = null;
+
+      try {
+        String url =
+            String.format(
+                CONFLUENCE_API_SPACE_PATTERN, confluenceUri, confluenceApiPath, projectKey);
+
+        response = getRestClient().execute(httpGet().url(url).returnType(String.class), true);
+        Assert.notNull(response, "Response is null for '" + projectKey + "'");
+      } catch (HttpException e) {
+        if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
+          logger.debug("Could not find space '{}' in '{}'", projectKey, ADAPTER_NAME, e);
+          return false;
+        } else {
+          logger.warn(
+              "Unexpected method trying to find space '{}' in '{}'!", projectKey, ADAPTER_NAME, e);
+          throw e;
+        }
+      }
+
+      JsonNode json = new ObjectMapper().readTree(response);
+
+      JsonNode key = json.findPath("key");
+
+      if (key == null || MissingNode.class.isInstance(key)) {
+        logger.warn("Missing node for '{}'!", json);
+        return false;
+      }
+
+      return projectKey.equalsIgnoreCase(key.asText());
 
     } catch (IOException e) {
       throw new AdapterException(e);

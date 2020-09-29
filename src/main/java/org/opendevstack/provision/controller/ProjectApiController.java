@@ -340,10 +340,16 @@ public class ProjectApiController {
       results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
     }
 
-    logger.info(
-        "done with all create project preconditions checks for project '{}'. {}!",
-        newProject.projectKey,
-        results.isEmpty() ? "Successfully passed all checks!" : "Some checks failed!!");
+    if (results.isEmpty()) {
+      logger.info(
+          "Done with all create project preconditions checks for project [project={}]!",
+          newProject.projectKey);
+    } else {
+      logger.info(
+          "Done with all create project preconditions checks for project but some checks failed! [project={}, failures={}]!",
+          newProject.getProjectKey(),
+          results);
+    }
 
     return Collections.unmodifiableList(results);
   }

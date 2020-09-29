@@ -235,13 +235,12 @@ public class E2EProjectAPIControllerTest {
     data.specialPermissionSet = specialPermissionSet;
 
     // jira server get project response - 404, project does not exists
-    HttpException projectNotFoundException = new HttpException(404, "project not found");
     mockHelper
-        .mockExecute(
+        .mockExecuteSuppressErrorLogging(
             matchesClientCall()
                 .url(containsString(realJiraAdapter.getAdapterApiUri() + "/project"))
                 .method(HttpMethod.GET))
-        .thenThrow(projectNotFoundException);
+        .thenThrow(new HttpException(404, "project not found"));
 
     // jira server create project response
     LeanJiraProject jiraProject =
@@ -333,6 +332,24 @@ public class E2EProjectAPIControllerTest {
             matchesClientCall().url(containsString("dialog/web-items")).method(HttpMethod.GET))
         .thenReturn(blList);
 
+    String confluenceSpaceTemplate = fileReader.readFileContent("confluence-get-space-template");
+    try {
+      mockHelper
+          .mockExecuteSuppressErrorLogging(
+              matchesClientCall()
+                  .url(
+                      containsString(
+                          realConfluenceAdapter.getAdapterApiUri()
+                              + "/"
+                              + ConfluenceAdapter.CONFLUENCE_API_SPACE
+                              + "/"
+                              + data.getProjectKey().toUpperCase()))
+                  .method(HttpMethod.GET))
+          .thenThrow(new HttpException(404, "not found"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     String confluenceUserTemplate = fileReader.readFileContent("confluence-get-user-template");
     HashSet<String> confluenceUsers = new HashSet<>();
     confluenceUsers.add(data.projectAdminUser);
@@ -408,7 +425,7 @@ public class E2EProjectAPIControllerTest {
 
     // bitbucket pre conditions checks
     mockHelper
-        .mockExecute(
+        .mockExecuteSuppressErrorLogging(
             matchesClientCall()
                 .url(
                     containsStringIgnoringCase(

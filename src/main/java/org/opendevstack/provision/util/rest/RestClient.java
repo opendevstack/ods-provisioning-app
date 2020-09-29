@@ -46,6 +46,11 @@ public class RestClient {
   }
 
   public <T> T execute(RestClientCall call) throws IOException {
+    return execute(call, false);
+  }
+
+  // If suppressErrorLogging is true then logging is suppressed
+  public <T> T execute(RestClientCall call, boolean suppressErrorLogging) throws IOException {
 
     if (call.getRequest() == null) {
       call.prepareRequest();
@@ -95,7 +100,13 @@ public class RestClient {
         return call.evaluateResponse();
       }
     } catch (IOException ex) {
-      LOG.error("Call failed: ", ex);
+      if (suppressErrorLogging) {
+        LOG.info(
+            "Call failed but suppressing logging of this expected http error code [message={}]",
+            ex.getMessage());
+      } else {
+        LOG.error("Call failed: ", ex);
+      }
       throw ex;
     }
   }

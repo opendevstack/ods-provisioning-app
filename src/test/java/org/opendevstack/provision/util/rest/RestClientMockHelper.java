@@ -1,5 +1,6 @@
 package org.opendevstack.provision.util.rest;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +29,11 @@ public class RestClientMockHelper {
   public OngoingStubbing<Object> mockExecute(RestClientCallArgumentMatcher call)
       throws IOException {
     return when(restClient.execute(argThat(call)));
+  }
+
+  public OngoingStubbing<Object> mockExecuteSuppressErrorLogging(RestClientCallArgumentMatcher call)
+      throws IOException {
+    return when(restClient.execute(argThat(call), anyBoolean()));
   }
 
   /**
