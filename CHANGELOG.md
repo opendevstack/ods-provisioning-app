@@ -15,6 +15,7 @@
 - Missing verification of bitbucket project already exists on project creation event ([#600](https://github.com/opendevstack/ods-provisioning-app/issues/600))
 - Github build failing due to git bad object ([#595](https://github.com/opendevstack/ods-provisioning-app/issues/595))
 - Missing unix basic commands on prov-app after deploying ODS 3 ([#588](https://github.com/opendevstack/ods-provisioning-app/issues/588))
+- Improve authorization of quickstarter endpoint ([#572](https://github.com/opendevstack/ods-provisioning-app/issues/572))
 - Unknown exception (e.g. existing JIRA project) raised in REST create project endpoint / addProject causes removal of existing projects ([#514](https://github.com/opendevstack/ods-provisioning-app/issues/514))
 - Logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
 
