@@ -19,6 +19,7 @@ import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
 import com.atlassian.crowd.integration.springsecurity.RemoteCrowdAuthenticationProvider;
 import com.atlassian.crowd.integration.springsecurity.UsernameStoringAuthenticationFailureHandler;
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
 import com.atlassian.crowd.service.AuthenticationManager;
@@ -34,7 +35,15 @@ import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Properties;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
@@ -52,6 +61,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
@@ -197,7 +208,32 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public AuthenticationSuccessHandler authenticationSuccessHandler() {
     SavedRequestAwareAuthenticationSuccessHandler successHandler =
-        new SavedRequestAwareAuthenticationSuccessHandler();
+        new SavedRequestAwareAuthenticationSuccessHandler() {
+
+          @Override
+          public void onAuthenticationSuccess(
+              HttpServletRequest request,
+              HttpServletResponse response,
+              Authentication authentication)
+              throws ServletException, IOException {
+
+            super.onAuthenticationSuccess(request, response, authentication);
+
+            try {
+              String username = null;
+
+              if (authentication.getPrincipal() instanceof CrowdUserDetails) {
+                CrowdUserDetails userDetails = (CrowdUserDetails) authentication.getPrincipal();
+                username = userDetails.getUsername();
+              }
+
+              logger.info("Successful authentication [username=" + username + "]");
+
+            } catch (Exception ex) {
+              logger.debug("Error trying to resolve username of expired session!", ex);
+            }
+          }
+        };
     successHandler.setDefaultTargetUrl("/home");
     successHandler.setUseReferer(true);
     successHandler.setAlwaysUseDefaultTargetUrl(true);
@@ -343,5 +379,47 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
         crowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
+  }
+
+  @Bean
+  public HttpSessionListener httpSessionListener() {
+
+    return new HttpSessionListener() {
+
+      @Override
+      public void sessionDestroyed(HttpSessionEvent se) {
+
+        try {
+          LocalDateTime creationTime =
+              LocalDateTime.ofInstant(
+                  Instant.ofEpochMilli(se.getSession().getCreationTime()), ZoneId.systemDefault());
+
+          LocalDateTime lastAccessedTime =
+              LocalDateTime.ofInstant(
+                  Instant.ofEpochMilli(se.getSession().getLastAccessedTime()),
+                  ZoneId.systemDefault());
+
+          SecurityContextImpl securityContext =
+              (SecurityContextImpl) se.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
+          Authentication authentication = securityContext.getAuthentication();
+          String username = null;
+          if (authentication.getPrincipal() instanceof CrowdUserDetails) {
+            CrowdUserDetails userDetails = (CrowdUserDetails) authentication.getPrincipal();
+            username = userDetails.getUsername();
+          }
+
+          logger.info(
+              "Session expired [id={}, username={}, creationTime={}, lastAccessedTime={}, currentTime={}, maxInterval={}secs]",
+              se.getSession().getId(),
+              username,
+              creationTime,
+              lastAccessedTime,
+              se.getSession().getMaxInactiveInterval());
+
+        } catch (Exception ex) {
+          logger.debug("Error trying to log session expired details!", ex.getMessage());
+        }
+      }
+    };
   }
 }
