@@ -13,8 +13,6 @@
  */
 package org.opendevstack.provision.authentication.oauth2;
 
-import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import java.util.function.Function;
 import javax.servlet.http.HttpSessionListener;
 import org.opendevstack.provision.authentication.ProvAppHttpSessionListener;
 import org.slf4j.Logger;
@@ -24,16 +22,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -128,27 +122,6 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Bean
   public HttpSessionListener httpSessionListener() {
-    return new ProvAppHttpSessionListener(createUsernameProvider());
-  }
-
-  public static Function<Authentication, String> createUsernameProvider() {
-    return authentication -> {
-      String username = null;
-      try {
-        // OIDC sso support
-        if (OAuth2AuthenticationToken.class.isInstance(authentication)) {
-          username =
-              ((DefaultOidcUser) ((OAuth2AuthenticationToken) authentication).getPrincipal())
-                  .getEmail();
-
-          // basic auth support
-        } else if (UsernamePasswordAuthenticationToken.class.isInstance(authentication)) {
-          username = ((CrowdUserDetails) authentication.getPrincipal()).getUsername();
-        }
-      } catch (Exception ex) {
-        LOG.debug("Extract username from authentication failed! [{}]", ex.getMessage());
-      }
-      return username;
-    };
+    return new ProvAppHttpSessionListener(ProvAppHttpSessionListener.createUsernameProvider());
   }
 }

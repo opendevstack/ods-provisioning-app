@@ -14,6 +14,7 @@
 
 package org.opendevstack.provision.authentication;
 
+import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,8 +23,11 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.util.Assert;
 
 /** @author Sebastian Titakis */
@@ -68,5 +72,26 @@ public class ProvAppHttpSessionListener implements HttpSessionListener {
     } catch (Exception ex) {
       logger.debug("Error trying to log session expired details!", ex.getMessage());
     }
+  }
+
+  public static Function<Authentication, String> createUsernameProvider() {
+    return authentication -> {
+      String username = null;
+      try {
+        // OIDC sso support
+        if (OAuth2AuthenticationToken.class.isInstance(authentication)) {
+          username =
+              ((DefaultOidcUser) ((OAuth2AuthenticationToken) authentication).getPrincipal())
+                  .getEmail();
+
+          // basic auth support
+        } else if (UsernamePasswordAuthenticationToken.class.isInstance(authentication)) {
+          username = ((CrowdUserDetails) authentication.getPrincipal()).getUsername();
+        }
+      } catch (Exception ex) {
+        logger.debug("Extract username from authentication failed! [{}]", ex.getMessage());
+      }
+      return username;
+    };
   }
 }
