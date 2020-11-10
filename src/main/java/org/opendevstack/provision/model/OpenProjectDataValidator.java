@@ -33,7 +33,7 @@ public class OpenProjectDataValidator {
    * @see <a href="kubernetes label syntax and character
    *     set">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set</a>
    */
-  public static final String COMPONENT_ID_VALIDATOR_REGEX = "^(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
+  public static final String COMPONENT_ID_VALIDATOR_REGEX = "^(?!tests)(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
 
   public static final String PROJECT_ID_VALIDATOR_REGEX =
       "^(([A-Za-z][-A-Za-z0-9]*)?[A-Za-z0-9])?$";
@@ -43,7 +43,7 @@ public class OpenProjectDataValidator {
   private static final PatternErrorMessage componentIdRegex =
       new PatternErrorMessage(
           Pattern.compile(COMPONENT_ID_VALIDATOR_REGEX),
-          " is not valid name (only alpha chars are allowed with dashes (-) allowed in between.");
+          " is not valid name (only alpha chars are allowed with dashes (-) allowed in between. Reserved keywords e.g, \"tests\" are not allowed.");
 
   private static final PatternErrorMessage projectIdRegex =
       new PatternErrorMessage(
