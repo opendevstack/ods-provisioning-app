@@ -33,7 +33,7 @@ public class OpenProjectDataValidator {
    * @see <a href="kubernetes label syntax and character
    *     set">https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set</a>
    */
-  public static final String COMPONENT_ID_VALIDATOR_REGEX = 
+  public static final String COMPONENT_ID_VALIDATOR_REGEX =
       "^(?!tests)(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$";
 
   public static final String PROJECT_ID_VALIDATOR_REGEX =
