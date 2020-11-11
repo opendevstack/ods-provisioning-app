@@ -20,7 +20,7 @@ export class ProjectModule {
     apiProjectUrl: string;
     apiProjectTemplatesUrl: string;
     apiGenerateProjectKeyUrl: string;
-  }): ModuleWithProviders {
+  }): ModuleWithProviders<ProjectModule> {
     return {
       ngModule: ProjectModule,
       providers: [
