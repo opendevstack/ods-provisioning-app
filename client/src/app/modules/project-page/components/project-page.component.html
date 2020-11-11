@@ -37,30 +37,30 @@
     <form [formGroup]="form" novalidate (ngSubmit)="intendFormSubmit()">
       <div class="box">
         <div class="page__header">
-          <project-header
+          <app-project-header
             [project]="project"
             [projectLinks]="projectLinks"
             [editMode]="editMode.enabled"
             [isQuickstartersError]="isQuickstartersError"
             [aggregatedProjectLinks]="aggregatedProjectLinks"
-            (onActivateEditMode)="editMode.enabled = $event"
-            (onOpenNotification)="openNotification($event)"></project-header>
+            (activateEditMode)="editMode.enabled = $event"
+            (openNotification)="openNotification($event)"></app-project-header>
         </div>
 
         <div class="page__content" [ngClass]="!projectQuickstarters ? 'empty-quickstarters' : ''">
           <ng-container *ngIf="editMode.enabled; else showQuickstarterList">
-            <project-quickstarter-add
+            <app-project-quickstarter-add
               [projectQuickstarters]="projectQuickstarters"
               [allQuickstarters]="allQuickstarters"
-              [form]="newComponentsForm"></project-quickstarter-add>
+              [form]="newComponentsForm"></app-project-quickstarter-add>
           </ng-container>
           <ng-template #showQuickstarterList>
-            <project-quickstarter-list
+            <app-project-quickstarter-list
               [projectQuickstarters]="projectQuickstarters"
               [projectKey]="project.projectKey"
               [hasPlatformRuntime]="project.platformRuntime"
               (triggerLoadProjectData)="loadProjectData(project.projectKey)"
-              (onActivateEditMode)="editMode.enabled = true"></project-quickstarter-list>
+              (activateEditMode)="editMode.enabled = true"></app-project-quickstarter-list>
           </ng-template>
         </div>
 

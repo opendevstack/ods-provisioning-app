@@ -18,7 +18,7 @@ import { DeleteComponentRequest } from '../../../domain/project';
 import { ConfirmationConfig } from '../../confirmation/domain/confirmation-config';
 
 @Component({
-  selector: 'project-quickstarter-list',
+  selector: 'app-project-quickstarter-list',
   templateUrl: './quickstarter-list.component.html',
   styleUrls: ['./quickstarter-list.component.scss']
 })
@@ -26,7 +26,7 @@ export class QuickstarterListComponent implements OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() projectKey: string;
   @Input() hasPlatformRuntime: boolean;
-  @Output() onActivateEditMode = new EventEmitter<boolean>();
+  @Output() activateEditMode = new EventEmitter<boolean>();
   @Output() triggerLoadProjectData = new EventEmitter<boolean>();
   destroy$ = new Subject<boolean>();
 
@@ -53,7 +53,7 @@ export class QuickstarterListComponent implements OnDestroy {
   ) {}
 
   emitActivateEditMode() {
-    this.onActivateEditMode.emit(true);
+    this.activateEditMode.emit(true);
   }
 
   intendDeleteComponent(
@@ -107,7 +107,7 @@ export class QuickstarterListComponent implements OnDestroy {
     return this.quickstarterService
       .deleteQuickstarterComponent(componentDeleteObj)
       .subscribe(
-        project => {
+        () => {
           this.openNotification(
             `${componentId} successfully deleted, reloading ...`,
             true

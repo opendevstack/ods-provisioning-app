@@ -1,5 +1,5 @@
 import { Component, DebugElement } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { RemoveWhitespacesDirective } from './remove-whitespaces.directive';
@@ -25,12 +25,14 @@ describe('RemoveWhitespacesDirective', () => {
   let nativeElement: HTMLInputElement;
   let eventObject: any;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
-      declarations: [TestComponent, RemoveWhitespacesDirective]
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [ReactiveFormsModule],
+        declarations: [TestComponent, RemoveWhitespacesDirective]
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);
@@ -49,7 +51,7 @@ describe('RemoveWhitespacesDirective', () => {
 
   it('should remove whitespaces', () => {
     /* given */
-    const control = component.formGroup.controls['formControl'];
+    const control = component.formGroup.controls.formControl;
     /* when */
     control.setValue('  v  a  l  u  e  ');
     debugElement.triggerEventHandler('blur', eventObject);
@@ -59,7 +61,7 @@ describe('RemoveWhitespacesDirective', () => {
 
   it('should not remove any character', () => {
     /* given */
-    const control = component.formGroup.controls['formControl'];
+    const control = component.formGroup.controls.formControl;
     /* when */
     control.setValue('values');
     debugElement.triggerEventHandler('blur', eventObject);

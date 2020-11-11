@@ -11,7 +11,7 @@ import { EditModeFlag } from '../domain/edit-mode';
   providedIn: 'root'
 })
 export class EditModeService {
-  @Output() onGetEditModeFlag = new EventEmitter<EditModeFlag>();
+  @Output() getEditModeFlag = new EventEmitter<EditModeFlag>();
 
   private _enabled = false;
   private _context = '';
@@ -48,6 +48,6 @@ export class EditModeService {
   }
 
   private emitEditModeFlag(flag: EditModeFlag) {
-    this.onGetEditModeFlag.emit(flag);
+    this.getEditModeFlag.emit(flag);
   }
 }

@@ -56,7 +56,7 @@ export class ProjectPageComponent extends FormBaseComponent
   allQuickstarters: QuickstarterData[];
   projectQuickstarters: ProjectQuickstarter[] = null;
 
-  @Output() onGetEditModeFlag = new EventEmitter<boolean>();
+  @Output() getEditModeFlag = new EventEmitter<boolean>();
 
   private static mapFormValuesToBackendModel(
     formArray: AbstractControl[]
@@ -77,8 +77,7 @@ export class ProjectPageComponent extends FormBaseComponent
     private quickstarterService: QuickstarterService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog,
-    private storageService: StorageService,
-    private router: Router
+    private storageService: StorageService
   ) {
     super();
     this.editMode.context = 'edit';
@@ -220,7 +219,7 @@ export class ProjectPageComponent extends FormBaseComponent
 
   private deleteProject() {
     return this.projectService.deleteProject(this.project.projectKey).subscribe(
-      project => {
+      () => {
         this.storageService.removeItem('project');
         this.openNotification(
           `${this.project.projectKey} successfully deleted, reloading ...`,

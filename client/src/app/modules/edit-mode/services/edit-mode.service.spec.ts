@@ -8,11 +8,11 @@ describe('EditModeService', () => {
     service: EditModeService
   });
 
-  let onGetEditModeFlagSpy: any;
+  let getEditModeFlagSpy: any;
 
   beforeEach(() => {
     spectator = createService();
-    onGetEditModeFlagSpy = spyOn(spectator.service.onGetEditModeFlag, 'emit');
+    getEditModeFlagSpy = spyOn(spectator.service.getEditModeFlag, 'emit');
   });
 
   it('should be created', () => {
@@ -24,7 +24,7 @@ describe('EditModeService', () => {
     /* when */
     spectator.service.enabled = true;
     /* then */
-    expect(onGetEditModeFlagSpy).toBeCalledWith(true);
+    expect(getEditModeFlagSpy).toBeCalledWith(true);
   });
 
   it('should emit editmode event with "false" flag to host component', () => {
@@ -32,6 +32,6 @@ describe('EditModeService', () => {
     /* when */
     spectator.service.enabled = false;
     /* then */
-    expect(onGetEditModeFlagSpy).toBeCalledWith(false);
+    expect(getEditModeFlagSpy).toBeCalledWith(false);
   });
 });
