@@ -23,7 +23,8 @@ import { CustomValidation } from '../../app-form/domain/custom-validation';
   styleUrls: ['./quickstarter-add.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuickstarterAddComponent extends FormBaseComponent
+export class QuickstarterAddComponent
+  extends FormBaseComponent
   implements OnInit, OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() allQuickstarters: QuickstarterData[];

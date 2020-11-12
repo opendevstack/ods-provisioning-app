@@ -41,7 +41,8 @@ type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
   styleUrls: ['./project-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectPageComponent extends FormBaseComponent
+export class ProjectPageComponent
+  extends FormBaseComponent
   implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
   project$ = new Subject<ProjectData>();

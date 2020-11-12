@@ -50,7 +50,10 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { enableTracing: false }),
+    RouterModule.forRoot(routes, {
+      enableTracing: false,
+      relativeLinkResolution: 'legacy'
+    }),
     BrowserModule,
     StorageModule.withOptions({
       storagePrefix: 'provapp_'

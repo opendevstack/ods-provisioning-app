@@ -25,7 +25,8 @@ import { default as validationConfig } from '../../app-form/config/validation.js
   styleUrls: ['./new-project.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NewProjectComponent extends FormBaseComponent
+export class NewProjectComponent
+  extends FormBaseComponent
   implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
   isLoading = true;
