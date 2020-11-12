@@ -18,7 +18,7 @@ import { default as validationConfig } from '../../app-form/config/validation.js
 import { CustomValidation } from '../../app-form/domain/custom-validation';
 
 @Component({
-  selector: 'project-quickstarter-add',
+  selector: 'app-project-quickstarter-add',
   templateUrl: './quickstarter-add.component.html',
   styleUrls: ['./quickstarter-add.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

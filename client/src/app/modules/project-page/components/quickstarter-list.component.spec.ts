@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { QuickstarterListComponent } from './quickstarter-list.component';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { API_ALL_QUICKSTARTERS_URL, API_PROJECT_URL } from '../../../tokens';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -25,34 +25,36 @@ describe('QuickstarterListComponent', () => {
   let component: QuickstarterListComponent;
   let fixture: ComponentFixture<QuickstarterListComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        HttpClientTestingModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatExpansionModule,
-        MatDialogModule
-      ],
-      declarations: [QuickstarterListComponent],
-      providers: [
-        { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
-        { provide: API_PROJECT_URL, useValue: '/api/mock' }
-      ]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [
+          CommonModule,
+          HttpClientTestingModule,
+          MatIconModule,
+          MatTooltipModule,
+          MatExpansionModule,
+          MatDialogModule
+        ],
+        declarations: [QuickstarterListComponent],
+        providers: [
+          { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
+          { provide: API_PROJECT_URL, useValue: '/api/mock' }
+        ]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(QuickstarterListComponent);

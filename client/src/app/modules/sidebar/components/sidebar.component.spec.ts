@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SidebarComponent } from './sidebar.component';
 import { CommonModule } from '@angular/common';
@@ -18,7 +18,7 @@ import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -61,37 +61,39 @@ describe('SidebarComponent', () => {
     );
   }
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [SidebarComponent],
-      imports: [
-        NoopAnimationsModule,
-        CommonModule,
-        RouterTestingModule,
-        ReactiveFormsModule,
-        AppFormModule,
-        MatCardModule,
-        LoadingIndicatorModule,
-        MatListModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatAutocompleteModule,
-        MatButtonModule,
-        MatIconModule
-      ]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [SidebarComponent],
+        imports: [
+          NoopAnimationsModule,
+          CommonModule,
+          RouterTestingModule,
+          ReactiveFormsModule,
+          AppFormModule,
+          MatCardModule,
+          LoadingIndicatorModule,
+          MatListModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatAutocompleteModule,
+          MatButtonModule,
+          MatIconModule
+        ]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SidebarComponent);

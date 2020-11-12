@@ -2,7 +2,7 @@ import { Directive, HostListener } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
-  selector: '[uppercase]'
+  selector: '[appUppercase]'
 })
 export class UppercaseDirective {
   constructor(private host: NgControl) {}

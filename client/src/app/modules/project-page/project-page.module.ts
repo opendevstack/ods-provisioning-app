@@ -56,7 +56,7 @@ import { ConfirmationModule } from '../confirmation/confirmation.module';
 export class ProjectPageModule {
   static withOptions(options: {
     apiAllQuickstartersUrl: string;
-  }): ModuleWithProviders {
+  }): ModuleWithProviders<ProjectPageModule> {
     return {
       ngModule: ProjectPageModule,
       providers: [

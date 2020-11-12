@@ -47,14 +47,14 @@ export class BrowserService {
     if (this.document.cookie.length > 0) {
       const pairs: string[] = this.document.cookie.split(';');
 
-      for (let i = 0; i < pairs.length; i++) {
-        if (pairs[i].length > 0) {
-          const pair = pairs[i].split('=');
+      pairs.forEach(item => {
+        if (item.length > 0) {
+          const pair = item.split('=');
           cookies[decodeURIComponent(pair[0].trim())] = decodeURIComponent(
             pair[1]
           );
         }
-      }
+      });
     }
 
     return cookies;

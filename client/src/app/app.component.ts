@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
@@ -49,7 +49,7 @@ export class AppComponent implements OnInit {
   }
 
   getEditModeStatus() {
-    this.editMode.onGetEditModeFlag.subscribe((editMode: EditModeFlag) => {
+    this.editMode.getEditModeFlag.subscribe((editMode: EditModeFlag) => {
       if (editMode.enabled) {
         this.renderer.addClass(document.body, 'status-editmode-active');
         if (editMode.context === 'new') {

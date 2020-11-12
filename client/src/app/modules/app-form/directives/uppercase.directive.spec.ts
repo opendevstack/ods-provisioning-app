@@ -1,5 +1,5 @@
 import { Component, DebugElement } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { RemoveWhitespacesDirective } from './remove-whitespaces.directive';
@@ -8,7 +8,7 @@ xdescribe('UppercaseDirective', () => {
   @Component({
     template: `
       <form [formGroup]="formGroup">
-        <input type="text" formControlName="formControl" uppercase />
+        <input type="text" formControlName="formControl" appUppercase />
       </form>
     `
   })
@@ -24,12 +24,14 @@ xdescribe('UppercaseDirective', () => {
   let nativeElement: HTMLInputElement;
   let eventObject: any;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
-      declarations: [TestComponent, RemoveWhitespacesDirective]
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [ReactiveFormsModule],
+        declarations: [TestComponent, RemoveWhitespacesDirective]
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);
@@ -48,7 +50,7 @@ xdescribe('UppercaseDirective', () => {
 
   it('should transform value to uppercase while typing', () => {
     /* given */
-    const control = component.formGroup.controls['formControl'];
+    const control = component.formGroup.controls.formControl;
     /* when */
     control.setValue('value');
     debugElement.triggerEventHandler('input', eventObject);

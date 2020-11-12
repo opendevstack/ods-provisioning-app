@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ProjectHeaderComponent } from './header.component';
 import { ProjectModule } from '../../project/project.module';
@@ -18,7 +18,7 @@ import { Component, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -31,37 +31,39 @@ describe('ProjectHeaderComponent', () => {
   let component: ProjectHeaderComponent;
   let fixture: ComponentFixture<ProjectHeaderComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        ProjectModule,
-        LoadingIndicatorModule,
-        MatIconModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatCardModule,
-        MatTooltipModule,
-        MatButtonModule,
-        ClipboardModule,
-        NotificationModule,
-        MatExpansionModule,
-        ReactiveFormsModule,
-        AppFormModule
-      ],
-      declarations: [ProjectHeaderComponent]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [
+          ProjectModule,
+          LoadingIndicatorModule,
+          MatIconModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatCardModule,
+          MatTooltipModule,
+          MatButtonModule,
+          ClipboardModule,
+          NotificationModule,
+          MatExpansionModule,
+          ReactiveFormsModule,
+          AppFormModule
+        ],
+        declarations: [ProjectHeaderComponent]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectHeaderComponent);
@@ -80,8 +82,8 @@ describe('ProjectHeaderComponent', () => {
       lastExecutionJobs: null,
       physicalLocation: null
     };
-    jest.spyOn(component.onActivateEditMode, 'emit');
-    jest.spyOn(component.onOpenNotification, 'emit');
+    jest.spyOn(component.activateEditMode, 'emit');
+    jest.spyOn(component.openNotification, 'emit');
     fixture.detectChanges();
   });
 
@@ -120,7 +122,7 @@ describe('ProjectHeaderComponent', () => {
       startEditProjectBtn.click();
       /* then */
       expect(closeEditProjectBtn).toBeDefined();
-      expect(component.onActivateEditMode.emit).toHaveBeenCalledWith(true);
+      expect(component.activateEditMode.emit).toHaveBeenCalledWith(true);
     });
   });
 
@@ -155,7 +157,7 @@ describe('ProjectHeaderComponent', () => {
       closeEditProjectBtn.click();
       /* then */
       expect(startEditProjectBtn).toBeDefined();
-      expect(component.onActivateEditMode.emit).toHaveBeenCalledWith(false);
+      expect(component.activateEditMode.emit).toHaveBeenCalledWith(false);
     });
   });
 
@@ -180,7 +182,7 @@ describe('ProjectHeaderComponent', () => {
       );
       copyToClipboardBtn.click();
       /* then */
-      expect(component.onOpenNotification.emit).toHaveBeenCalled();
+      expect(component.openNotification.emit).toHaveBeenCalled();
     });
 
     it('with applied urls, should show link to click on', () => {
