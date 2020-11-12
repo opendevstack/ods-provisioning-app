@@ -35,6 +35,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assert;
@@ -63,6 +64,7 @@ import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.services.jira.JiraRestApi;
+import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
@@ -121,6 +123,8 @@ public class E2EProjectAPIControllerTest {
 
   @MockBean private RestClient restClient;
 
+  @MockBean private OpenshiftClient openshiftClient;
+
   @MockBean private CrowdProjectIdentityMgmtAdapter crowdProjectIdentityMgmtAdapter;
 
   @Autowired private WebApplicationContext context;
@@ -144,6 +148,9 @@ public class E2EProjectAPIControllerTest {
 
   @Value("${idmanager.group.opendevstack-administrators}")
   private String adminGroup;
+
+  @Value("${openshift.apps.basedomain}")
+  protected String projectOpenshiftBaseDomain;
 
   private static TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
@@ -179,6 +186,8 @@ public class E2EProjectAPIControllerTest {
     when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
     when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
     when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
+
+    when(openshiftClient.projects()).thenReturn(Set.of("default", "ods"));
   }
 
   public static void initLocalStorage(LocalStorage realStorageAdapter, File resultsDir) {
@@ -672,8 +681,9 @@ public class E2EProjectAPIControllerTest {
     Assertions.assertThat(actualJob.getUrl())
         .contains(
             format(
-                "https://jenkins-%s.192.168.56.101.nip.io/job/%s/job/%s-%s/%s",
+                "https://jenkins-%s%s/job/%s/job/%s-%s/%s",
                 namespace,
+                projectOpenshiftBaseDomain,
                 namespace,
                 namespace,
                 configuredResponse.extractBuildConfigName(),
@@ -896,7 +906,9 @@ public class E2EProjectAPIControllerTest {
             matchesClientCall()
                 .url(
                     containsString(
-                        "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
+                        "https://webhook-proxy-testp-cd"
+                            + projectOpenshiftBaseDomain
+                            + "/build?trigger_secret="))
                 .url(
                     containsString(
                         "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
@@ -1066,7 +1078,8 @@ public class E2EProjectAPIControllerTest {
   private String createJenkinsJobPath(String namespace, String jenkinsfilePath, String component) {
     return "https://webhook-proxy-"
         + namespace
-        + ".192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+        + projectOpenshiftBaseDomain
+        + "/build?trigger_secret=secret101&jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;
@@ -1076,7 +1089,8 @@ public class E2EProjectAPIControllerTest {
       String namespace, String jenkinsfilePath, String component, String secret) {
     return "https://webhook-proxy-"
         + namespace
-        + ".192.168.56.101.nip.io/build?trigger_secret="
+        + projectOpenshiftBaseDomain
+        + "/build?trigger_secret="
         + secret
         + "&jenkinsfile_path="
         + jenkinsfilePath
