@@ -148,13 +148,19 @@ public class OpenProjectDataValidatorTest {
     data.quickstarters.forEach(validator);
   }
 
-  /** Valid name starts with chars and can have dashes and alphanumerics in between and not be a reserved keyword */
+  /**
+   * Valid name starts with chars and can have dashes and alphanumerics in between and not be a
+   * reserved keyword
+   */
   @Test
   public void validComponentIdName() {
     validateIdName(
         createComponentIdValidator(),
         List.of(
-            "invalid-contains.dot", "invalid-contains_underscore", "invalid-Contains-123-numbers", "tests"),
+            "invalid-contains.dot",
+            "invalid-contains_underscore",
+            "invalid-Contains-123-numbers",
+            "tests"),
         List.of("valid-name", "valid-valid-NAME"));
   }
 
