@@ -98,12 +98,8 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       expect(startEditProjectBtn).toBeDefined();
       expect(closeEditProjectBtn).toBeNull();
     });
@@ -113,12 +109,8 @@ describe('ProjectHeaderComponent', () => {
       component.editMode = false;
       /* when */
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       startEditProjectBtn.click();
       /* then */
       expect(closeEditProjectBtn).toBeDefined();
@@ -133,12 +125,8 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       expect(startEditProjectBtn).toBeNull();
       expect(closeEditProjectBtn).toBeDefined();
     });
@@ -148,12 +136,8 @@ describe('ProjectHeaderComponent', () => {
       component.editMode = true;
       /* when */
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       closeEditProjectBtn.click();
       /* then */
       expect(startEditProjectBtn).toBeDefined();
@@ -169,17 +153,13 @@ describe('ProjectHeaderComponent', () => {
 
     it('should show copy to clipboard button', () => {
       /* then */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       expect(copyToClipboardBtn).toBeDefined();
     });
 
     it('should open copy to clipboard confirmation dialog when clicking on copy button', () => {
       /* when */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       copyToClipboardBtn.click();
       /* then */
       expect(component.openNotification.emit).toHaveBeenCalled();
@@ -207,9 +187,7 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const projectLinkUrl = fixture.debugElement.queryAll(
-        By.css('[data-test-project-link-url]')
-      );
+      const projectLinkUrl = fixture.debugElement.queryAll(By.css('[data-test-project-link-url]'));
       expect(projectLinkUrl.length).toBe(1);
     });
 
@@ -235,9 +213,7 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const projectLinkUrl = fixture.debugElement.queryAll(
-        By.css('[data-test-project-link-url]')
-      );
+      const projectLinkUrl = fixture.debugElement.queryAll(By.css('[data-test-project-link-url]'));
       expect(projectLinkUrl.length).toBe(0);
     });
   });
@@ -250,9 +226,7 @@ describe('ProjectHeaderComponent', () => {
 
     it('should not show copy to clipboard button', () => {
       /* then */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       expect(copyToClipboardBtn).toBeNull();
     });
   });
@@ -262,9 +236,7 @@ describe('ProjectHeaderComponent', () => {
       /* given */
       component.project = { platformRuntime: true } as any;
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
       /* when */
       /* then */
       expect(startEditProjectBtn.hasAttribute('disabled')).toBe(false);
@@ -274,9 +246,7 @@ describe('ProjectHeaderComponent', () => {
       /* given */
       component.project = { platformRuntime: false } as any;
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
       /* when */
       /* then */
       expect(startEditProjectBtn.hasAttribute('disabled')).toBe(true);

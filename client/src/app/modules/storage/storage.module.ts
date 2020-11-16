@@ -10,9 +10,7 @@ import { StorageService } from './services/storage.service';
   providers: [StorageService]
 })
 export class StorageModule {
-  static withOptions(options: {
-    storagePrefix: string;
-  }): ModuleWithProviders<StorageModule> {
+  static withOptions(options: { storagePrefix: string }): ModuleWithProviders<StorageModule> {
     return {
       ngModule: StorageModule,
       providers: [

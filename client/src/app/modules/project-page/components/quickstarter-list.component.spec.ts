@@ -28,14 +28,7 @@ describe('QuickstarterListComponent', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        imports: [
-          CommonModule,
-          HttpClientTestingModule,
-          MatIconModule,
-          MatTooltipModule,
-          MatExpansionModule,
-          MatDialogModule
-        ],
+        imports: [CommonModule, HttpClientTestingModule, MatIconModule, MatTooltipModule, MatExpansionModule, MatDialogModule],
         declarations: [QuickstarterListComponent],
         providers: [
           { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
@@ -68,19 +61,12 @@ describe('QuickstarterListComponent', () => {
 
   it('given project quickstarters, should display quickstarters', () => {
     /* given */
-    component.projectQuickstarters = [
-      { description: 'qs-test1' },
-      { description: 'qs-test2' }
-    ] as any;
+    component.projectQuickstarters = [{ description: 'qs-test1' }, { description: 'qs-test2' }] as any;
     /* when */
     fixture.detectChanges();
     /* then */
-    const qsListElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list]')
-    );
-    const qsListEmptyElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list-empty]')
-    );
+    const qsListElement = fixture.debugElement.query(By.css('[data-test-qs-list]'));
+    const qsListEmptyElement = fixture.debugElement.query(By.css('[data-test-qs-list-empty]'));
     expect(qsListElement).toBeDefined();
     expect(qsListEmptyElement).toBeNull();
   });
@@ -96,15 +82,9 @@ describe('QuickstarterListComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-yes]')
-      );
-      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-no]')
-      );
-      const addQsButtonElement = fixture.debugElement.query(
-        By.css('[data-test-add-qs-btn]')
-      );
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-yes]'));
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-no]'));
+      const addQsButtonElement = fixture.debugElement.query(By.css('[data-test-add-qs-btn]'));
       expect(qsListWithPlatformRuntimeElement).toBeDefined();
       expect(qsListWithoutPlatformRuntimeElement).toBeNull();
       expect(addQsButtonElement).toBeDefined();
@@ -116,15 +96,9 @@ describe('QuickstarterListComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-yes]')
-      );
-      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-no]')
-      );
-      const addQsButtonElement = fixture.debugElement.query(
-        By.css('[data-test-add-qs-btn]')
-      );
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-yes]'));
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-no]'));
+      const addQsButtonElement = fixture.debugElement.query(By.css('[data-test-add-qs-btn]'));
       expect(qsListWithPlatformRuntimeElement).toBeNull();
       expect(qsListWithoutPlatformRuntimeElement).toBeDefined();
       expect(addQsButtonElement).toBeNull();

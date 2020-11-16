@@ -9,10 +9,7 @@ import { Subject } from 'rxjs';
 export class LogoutComponent implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
 
-  constructor(
-    private browserService: BrowserService,
-    private renderer: Renderer2
-  ) {}
+  constructor(private browserService: BrowserService, private renderer: Renderer2) {}
 
   ngOnInit(): void {
     this.browserService.deleteCookieByName('JSESSIONID');

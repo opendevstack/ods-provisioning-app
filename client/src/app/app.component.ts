@@ -31,16 +31,8 @@ export class AppComponent implements OnInit {
     private projectService: ProjectService,
     private storageService: StorageService
   ) {
-    this.matIconRegistry.addSvgIconSet(
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        'assets/icons/mdi-custom-icons.svg'
-      )
-    );
-    this.matIconRegistry.addSvgIconSet(
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        'assets/icons/tech-stack.svg'
-      )
-    );
+    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/mdi-custom-icons.svg'));
+    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/tech-stack.svg'));
   }
 
   ngOnInit() {
@@ -63,22 +55,16 @@ export class AppComponent implements OnInit {
   }
 
   private checkRedirectToProjectDetail() {
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationStart && event.url === '/')
-      )
-      .subscribe(() => {
-        const projectKey = this.getProjectKeyFormStorage();
-        if (projectKey) {
-          this.router.navigateByUrl(`/project/${projectKey}`);
-        }
-      });
+    this.router.events.pipe(filter(event => event instanceof NavigationStart && event.url === '/')).subscribe(() => {
+      const projectKey = this.getProjectKeyFormStorage();
+      if (projectKey) {
+        this.router.navigateByUrl(`/project/${projectKey}`);
+      }
+    });
   }
 
   private getProjectKeyFormStorage(): string | undefined {
-    const projectKeyFromStorage = this.storageService.getItem(
-      'project'
-    ) as ProjectStorage;
+    const projectKeyFromStorage = this.storageService.getItem('project') as ProjectStorage;
     return projectKeyFromStorage?.key;
   }
 

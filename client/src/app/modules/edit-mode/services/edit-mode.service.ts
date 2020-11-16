@@ -1,10 +1,4 @@
-import {
-  EventEmitter,
-  Injectable,
-  Output,
-  Renderer2,
-  RendererFactory2
-} from '@angular/core';
+import { EventEmitter, Injectable, Output, Renderer2, RendererFactory2 } from '@angular/core';
 import { EditModeFlag } from '../domain/edit-mode';
 
 @Injectable({

@@ -26,17 +26,13 @@ export class BrowserService {
   }
 
   deleteCookieByName(name: string): void {
-    this.document.cookie = `${encodeURIComponent(
-      name
-    )}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    this.document.cookie = `${encodeURIComponent(name)}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
   }
 
   getCookie(cookieName: string): Cookie | null {
     const cookies = this.readCookies();
     if (cookies.hasOwnProperty(cookieName)) {
-      return new CookieBuilder(cookieName)
-        .withStringValue(cookies[cookieName])
-        .build();
+      return new CookieBuilder(cookieName).withStringValue(cookies[cookieName]).build();
     }
     return null;
   }
@@ -50,9 +46,7 @@ export class BrowserService {
       pairs.forEach(item => {
         if (item.length > 0) {
           const pair = item.split('=');
-          cookies[decodeURIComponent(pair[0].trim())] = decodeURIComponent(
-            pair[1]
-          );
+          cookies[decodeURIComponent(pair[0].trim())] = decodeURIComponent(pair[1]);
         }
       });
     }
