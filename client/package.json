@@ -11,7 +11,9 @@
     "build:prod": "ng build --baseHref=/nfe/ --prod=true --aot=true --buildOptimizer=true --sourceMap=false --statsJson=true --optimization=true --progress=true",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "ng lint --fix && sass-lint --verbose --no-exit",
+    "lint": "ng lint && yarn lint:sass",
+    "lint:fix": "ng lint --fix && lint:sass",
+    "lint:sass": "sass-lint --verbose --no-exit",
     "format:fix:staged": "pretty-quick --staged --verbose --pattern \"**/*.{js,json,md,ts}\""
   },
   "private": true,
