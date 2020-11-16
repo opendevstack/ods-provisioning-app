@@ -2,12 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
-import {
-  API_PROJECT_URL,
-  API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_DETAIL_URL,
-  API_PROJECT_TEMPLATES_URL
-} from '../../../tokens';
+import { API_PROJECT_URL, API_GENERATE_PROJECT_KEY_URL, API_PROJECT_DETAIL_URL, API_PROJECT_TEMPLATES_URL } from '../../../tokens';
 import {
   UpdateProjectRequest,
   ProjectData,
@@ -29,10 +24,7 @@ export class ProjectService {
     });
   }
 
-  private static replaceUrlPlaceholder(
-    url: string,
-    projectKey: string
-  ): string {
+  private static replaceUrlPlaceholder(url: string, projectKey: string): string {
     return url.replace(/{{{PROJECT_KEY}}}/, `${projectKey}`);
   }
 
@@ -64,31 +56,20 @@ export class ProjectService {
   }
 
   getProjectByKey(projectKey: string): Observable<ProjectData> {
-    const projectUrl = ProjectService.replaceUrlPlaceholder(
-      this.projectDetailUrl,
-      projectKey
-    );
-    return this.httpClient
-      .get<ProjectData>(projectUrl)
-      .pipe(catchError(ProjectService.handleError));
+    const projectUrl = ProjectService.replaceUrlPlaceholder(this.projectDetailUrl, projectKey);
+    return this.httpClient.get<ProjectData>(projectUrl).pipe(catchError(ProjectService.handleError));
   }
 
   updateProject(project: UpdateProjectRequest): Observable<ProjectData> {
-    return this.httpClient
-      .put<UpdateProjectRequest>(this.projectUrl, project)
-      .pipe(catchError(ProjectService.handleError));
+    return this.httpClient.put<UpdateProjectRequest>(this.projectUrl, project).pipe(catchError(ProjectService.handleError));
   }
 
   createProject(project: NewProjectRequest): Observable<ProjectData> {
-    return this.httpClient
-      .post<NewProjectRequest>(this.projectUrl, project)
-      .pipe(catchError(ProjectService.handleError));
+    return this.httpClient.post<NewProjectRequest>(this.projectUrl, project).pipe(catchError(ProjectService.handleError));
   }
 
   deleteProject(projectKey: string): Observable<null> {
-    return this.httpClient
-      .delete<NewProjectRequest>(this.projectUrl + '/' + projectKey)
-      .pipe(catchError(ProjectService.handleError));
+    return this.httpClient.delete<NewProjectRequest>(this.projectUrl + '/' + projectKey).pipe(catchError(ProjectService.handleError));
   }
 
   getProjectLinksConfig(project: ProjectData): ProjectLink[] {
@@ -109,12 +90,10 @@ export class ProjectService {
   }
 
   getProjectTemplates(): Observable<ProjectTemplate[]> {
-    return this.httpClient
-      .get<ProjectTemplate[]>(this.projectTemplatesUrl)
-      .pipe(
-        map(result => result['project-template-keys']),
-        catchError(ProjectService.handleError)
-      );
+    return this.httpClient.get<ProjectTemplate[]>(this.projectTemplatesUrl).pipe(
+      map(result => result['project-template-keys']),
+      catchError(ProjectService.handleError)
+    );
   }
 
   generateProjectKey(projectName: string): Observable<ProjectKeyResponse> {

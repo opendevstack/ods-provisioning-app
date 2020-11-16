@@ -21,9 +21,7 @@ export class SidebarComponent {
   constructor() {
     this.filteredProjects = this.searchControl.valueChanges.pipe(
       startWith(''),
-      map(project =>
-        project ? this.filterProjects(project) : this.projects.slice()
-      )
+      map(project => (project ? this.filterProjects(project) : this.projects.slice()))
     );
   }
 

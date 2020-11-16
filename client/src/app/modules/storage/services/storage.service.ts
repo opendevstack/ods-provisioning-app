@@ -10,10 +10,7 @@ export class StorageService {
 
   private readonly cookieName: string;
 
-  constructor(
-    @Inject(STORAGE_PREFIX) private storagePrefix: string,
-    private browserService: BrowserService
-  ) {
+  constructor(@Inject(STORAGE_PREFIX) private storagePrefix: string, private browserService: BrowserService) {
     this.storage = this.browserService.getLocalStorage();
     this.restoreKeys();
     this.cookieName = '_' + this.storagePrefix + 'storage';
@@ -98,12 +95,8 @@ export class StorageService {
     return cookie ? cookie.getValueAsObject() : {};
   }
 
-  private packCookieStorage(unpackedCookieStorage: {
-    [s: string]: string;
-  }): void {
-    const cookie = new CookieBuilder(this.cookieName)
-      .withObjectValue(unpackedCookieStorage)
-      .build();
+  private packCookieStorage(unpackedCookieStorage: { [s: string]: string }): void {
+    const cookie = new CookieBuilder(this.cookieName).withObjectValue(unpackedCookieStorage).build();
     this.browserService.setCookie(cookie);
   }
 }

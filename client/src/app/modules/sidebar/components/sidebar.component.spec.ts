@@ -47,18 +47,14 @@ describe('SidebarComponent', () => {
   }
 
   function doSearchInput(searchText: string) {
-    const searchInputElement = fixture.debugElement.query(
-      By.css('[data-test-search-input]')
-    ).nativeElement;
+    const searchInputElement = fixture.debugElement.query(By.css('[data-test-search-input]')).nativeElement;
     searchInputElement.value = searchText;
     searchInputElement.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
 
   function getSearchResultCountElement() {
-    return fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar-project-count]'
-    );
+    return fixture.debugElement.nativeElement.querySelector('[data-test-sidebar-project-count]');
   }
 
   beforeEach(
@@ -111,12 +107,8 @@ describe('SidebarComponent', () => {
     /* when */
 
     /* then */
-    const errorMessageElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-error]'
-    );
-    const sidebarElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar]'
-    );
+    const errorMessageElement = fixture.debugElement.nativeElement.querySelector('[data-test-error]');
+    const sidebarElement = fixture.debugElement.nativeElement.querySelector('[data-test-sidebar]');
     expect(sidebarElement).toBeNull();
     expect(errorMessageElement).toBeDefined();
   });
@@ -127,12 +119,8 @@ describe('SidebarComponent', () => {
     /* when */
 
     /* then */
-    const errorMessageElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-error]'
-    );
-    const sidebarElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar]'
-    );
+    const errorMessageElement = fixture.debugElement.nativeElement.querySelector('[data-test-error]');
+    const sidebarElement = fixture.debugElement.nativeElement.querySelector('[data-test-sidebar]');
     expect(sidebarElement).toBeDefined();
     expect(errorMessageElement).toBeNull();
   });

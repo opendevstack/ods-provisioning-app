@@ -1,11 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpEvent,
-  HttpHandler,
-  HttpHeaders,
-  HttpInterceptor,
-  HttpRequest
-} from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
@@ -18,10 +12,7 @@ export enum HttpErrorTypes {
 export class HttpRequestInterceptor implements HttpInterceptor {
   constructor() {}
 
-  intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const credentials = {
       withCredentials: true
     };
@@ -33,19 +24,13 @@ export class HttpRequestInterceptor implements HttpInterceptor {
       case 'POST':
         httpOptions = {
           ...credentials,
-          headers: new HttpHeaders().set(
-            'Content-Type',
-            'application/json; charset=UTF-8'
-          )
+          headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
         };
         break;
       case 'GET':
         httpOptions = {
           ...credentials,
-          headers: new HttpHeaders().set(
-            'Accept',
-            'application/json; charset=UTF-8'
-          )
+          headers: new HttpHeaders().set('Accept', 'application/json; charset=UTF-8')
         };
         break;
       default:

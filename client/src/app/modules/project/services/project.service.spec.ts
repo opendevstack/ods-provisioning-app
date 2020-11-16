@@ -5,9 +5,7 @@ import { HTTPMethod } from '@ngneat/spectator';
 import { ProjectData } from '../../../domain/project';
 
 describe('ProjectService', () => {
-  const projectService: () => SpectatorHttp<ProjectService> = createHttpFactory<
-    ProjectService
-  >({
+  const projectService: () => SpectatorHttp<ProjectService> = createHttpFactory<ProjectService>({
     service: ProjectService,
     providers: [
       { provide: API_PROJECT_DETAIL_URL, useValue: '/api/project/FOO' },

@@ -20,13 +20,7 @@ export class CookieBuilder {
   }
 
   build(): Cookie {
-    return new Cookie(
-      this.settings.name,
-      this.settings.value,
-      this.settings.secure,
-      this.settings.maxAge,
-      this.settings.path
-    );
+    return new Cookie(this.settings.name, this.settings.value, this.settings.secure, this.settings.maxAge, this.settings.path);
   }
 
   withStringValue(value: string): this {

@@ -38,9 +38,7 @@ xdescribe('UppercaseDirective', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    debugElement = fixture.debugElement.query(
-      By.directive(RemoveWhitespacesDirective)
-    );
+    debugElement = fixture.debugElement.query(By.directive(RemoveWhitespacesDirective));
     nativeElement = debugElement.nativeElement;
     eventObject = {
       target: nativeElement,

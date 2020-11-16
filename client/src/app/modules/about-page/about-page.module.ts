@@ -4,9 +4,6 @@ import { RouterModule } from '@angular/router';
 import { AboutPageComponent } from './components/about-page.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    RouterModule.forChild([{ path: '', component: AboutPageComponent }])
-  ]
+  imports: [CommonModule, RouterModule.forChild([{ path: '', component: AboutPageComponent }])]
 })
 export class AboutPageModule {}

@@ -1,5 +1,5 @@
 module.exports = {
-  printWidth: 80,
+  printWidth: 140,
   tabWidth: 2,
   useTabs: false,
   semi: true,
@@ -12,5 +12,5 @@ module.exports = {
   rangeEnd: Infinity,
   requirePragma: false,
   insertPragma: false,
-  proseWrap: 'preserve'
+  proseWrap: 'always'
 };

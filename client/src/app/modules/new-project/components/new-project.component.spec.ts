@@ -16,12 +16,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../../app-form/app-form.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import {
-  API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_DETAIL_URL,
-  API_PROJECT_TEMPLATES_URL,
-  API_PROJECT_URL
-} from '../../../tokens';
+import { API_GENERATE_PROJECT_KEY_URL, API_PROJECT_DETAIL_URL, API_PROJECT_TEMPLATES_URL, API_PROJECT_URL } from '../../../tokens';
 import { StorageService } from '../../storage/services/storage.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 

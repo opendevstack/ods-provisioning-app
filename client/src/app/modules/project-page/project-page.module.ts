@@ -22,12 +22,7 @@ import { ProjectModule } from '../project/project.module';
 import { ConfirmationModule } from '../confirmation/confirmation.module';
 
 @NgModule({
-  declarations: [
-    ProjectPageComponent,
-    ProjectHeaderComponent,
-    QuickstarterListComponent,
-    QuickstarterAddComponent
-  ],
+  declarations: [ProjectPageComponent, ProjectHeaderComponent, QuickstarterListComponent, QuickstarterAddComponent],
   imports: [
     CommonModule,
     RouterModule.forChild([
@@ -54,9 +49,7 @@ import { ConfirmationModule } from '../confirmation/confirmation.module';
   schemas: [NO_ERRORS_SCHEMA]
 })
 export class ProjectPageModule {
-  static withOptions(options: {
-    apiAllQuickstartersUrl: string;
-  }): ModuleWithProviders<ProjectPageModule> {
+  static withOptions(options: { apiAllQuickstartersUrl: string }): ModuleWithProviders<ProjectPageModule> {
     return {
       ngModule: ProjectPageModule,
       providers: [

@@ -15,56 +15,37 @@ import { DeleteComponentRequest } from '../../../domain/project';
   providedIn: 'root'
 })
 export class QuickstarterService {
-  private static groupProjectQuickstartersByDescription(
-    quickstarters: ProjectQuickstarterComponentsData[]
-  ): ProjectQuickstarter[] {
-    return quickstarters.reduce(
-      (acc, quickstarter: ProjectQuickstarterComponentsData) => {
-        const quickstarterComponentObj: ProjectQuickstarterComponent = this.mapQuickstarterComponentsToFeModel(
-          quickstarter
-        );
+  private static groupProjectQuickstartersByDescription(quickstarters: ProjectQuickstarterComponentsData[]): ProjectQuickstarter[] {
+    return quickstarters.reduce((acc, quickstarter: ProjectQuickstarterComponentsData) => {
+      const quickstarterComponentObj: ProjectQuickstarterComponent = this.mapQuickstarterComponentsToFeModel(quickstarter);
 
-        const found = acc.find(
-          predicate =>
-            predicate.description === quickstarter.component_description
-        );
+      const found = acc.find(predicate => predicate.description === quickstarter.component_description);
 
-        if (found) {
-          found.ids.push(quickstarterComponentObj);
-        } else {
-          acc.push({
-            description: quickstarter.component_description,
-            type: quickstarter.component_type,
-            ids: [quickstarterComponentObj]
-          });
-        }
-        return acc;
-      },
-      []
-    );
+      if (found) {
+        found.ids.push(quickstarterComponentObj);
+      } else {
+        acc.push({
+          description: quickstarter.component_description,
+          type: quickstarter.component_type,
+          ids: [quickstarterComponentObj]
+        });
+      }
+      return acc;
+    }, []);
   }
 
-  private static sortByDescription = (
-    a: { description: string },
-    b: { description: string }
-  ) => a.description.localeCompare(b.description);
+  private static sortByDescription = (a: { description: string }, b: { description: string }) => a.description.localeCompare(b.description);
 
-  private static sortProjectQuickstartersByDescription(
-    quickstarters: ProjectQuickstarter[]
-  ): ProjectQuickstarter[] {
+  private static sortProjectQuickstartersByDescription(quickstarters: ProjectQuickstarter[]): ProjectQuickstarter[] {
     return quickstarters.sort(this.sortByDescription);
   }
 
-  private static sortQuickstartersByDescription(
-    quickstarters: QuickstarterData[]
-  ): QuickstarterData[] {
+  private static sortQuickstartersByDescription(quickstarters: QuickstarterData[]): QuickstarterData[] {
     return quickstarters.sort(this.sortByDescription);
   }
 
   // TODO consider lodash to shorten mapping
-  private static mapQuickstarterComponentsToFeModel(
-    quickstarter: ProjectQuickstarterComponentsData
-  ): ProjectQuickstarterComponent {
+  private static mapQuickstarterComponentsToFeModel(quickstarter: ProjectQuickstarterComponentsData): ProjectQuickstarterComponent {
     return {
       id: quickstarter.component_id,
       groupId: quickstarter.GROUP_ID,
@@ -102,31 +83,19 @@ export class QuickstarterService {
   getAllQuickstarters(): Observable<QuickstarterData[]> {
     return this.httpClient.get(this.apiAllQuickstartersUrl).pipe(
       map(json => (json ? Object.values(json) : []) as QuickstarterData[]),
-      map(quickstarters =>
-        QuickstarterService.sortQuickstartersByDescription(quickstarters)
-      ),
-      map(quickstarters =>
-        quickstarters.filter(quickstarter => quickstarter.enabled)
-      ),
+      map(quickstarters => QuickstarterService.sortQuickstartersByDescription(quickstarters)),
+      map(quickstarters => quickstarters.filter(quickstarter => quickstarter.enabled)),
       tap(quickstarters => console.log('Quickstarters: ', quickstarters)),
       catchError(QuickstarterService.handleError)
     );
   }
 
-  transformProjectQuickstarterData(
-    projectQuickstarters: ProjectQuickstarterComponentsData[]
-  ): ProjectQuickstarter[] {
-    const groupedProjectQuickstarters = QuickstarterService.groupProjectQuickstartersByDescription(
-      projectQuickstarters
-    );
-    return QuickstarterService.sortProjectQuickstartersByDescription(
-      groupedProjectQuickstarters
-    );
+  transformProjectQuickstarterData(projectQuickstarters: ProjectQuickstarterComponentsData[]): ProjectQuickstarter[] {
+    const groupedProjectQuickstarters = QuickstarterService.groupProjectQuickstartersByDescription(projectQuickstarters);
+    return QuickstarterService.sortProjectQuickstartersByDescription(groupedProjectQuickstarters);
   }
 
-  deleteQuickstarterComponent(
-    componentDeleteObj: DeleteComponentRequest
-  ): Observable<DeleteComponentRequest> {
+  deleteQuickstarterComponent(componentDeleteObj: DeleteComponentRequest): Observable<DeleteComponentRequest> {
     return this.httpClient
       .put<DeleteComponentRequest>(this.projectUrl, componentDeleteObj)
       .pipe(catchError(QuickstarterService.handleError));
