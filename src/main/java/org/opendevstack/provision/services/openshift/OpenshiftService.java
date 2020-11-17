@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
@@ -51,7 +50,7 @@ public class OpenshiftService {
       logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
 
       List<CheckPreconditionFailure> preconditionFailures =
-          createProjectKeyExistsCheck(newProject.projectKey).apply(new ArrayList<>());
+          createProjectKeyExistsCheck(newProject.projectKey);
 
       logger.info(
           "done with check create project preconditions for project '{}'!", newProject.projectKey);
@@ -70,30 +69,31 @@ public class OpenshiftService {
     }
   }
 
-  public Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
-      createProjectKeyExistsCheck(String projectKey) {
-    return preconditionFailures -> {
+  public List<CheckPreconditionFailure> createProjectKeyExistsCheck(String projectKey) {
+
+    try {
       logger.info("Checking if ODS project '{}-*'  exists in openshift!", projectKey);
-      try {
-        Set<String> projects = openshiftClient.projects();
-        List<String> existingProjects =
-            projects.stream()
-                .filter(s -> s.toLowerCase().startsWith(projectKey.toLowerCase() + "-"))
-                .collect(Collectors.toList());
 
-        if (existingProjects.size() > 0) {
-          String message =
-              String.format(
-                  "Project name (namespace) with prefix '%s' already exists in '%s'! [existingProjects=%s]",
-                  projectKey, SERVICE_NAME, Arrays.asList(existingProjects.toArray()));
-          preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
-        }
+      List<CheckPreconditionFailure> preconditionFailures = new ArrayList<>();
 
-        return preconditionFailures;
+      Set<String> projects = openshiftClient.projects();
+      List<String> existingProjects =
+          projects.stream()
+              .filter(s -> s.toLowerCase().startsWith(projectKey.toLowerCase() + "-"))
+              .collect(Collectors.toList());
 
-      } catch (Exception ex) {
-        throw new AdapterException(ex);
+      if (existingProjects.size() > 0) {
+        String message =
+            String.format(
+                "Project name (namespace) with prefix '%s' already exists in '%s'! [existingProjects=%s]",
+                projectKey, SERVICE_NAME, Arrays.asList(existingProjects.toArray()));
+        preconditionFailures.add(CheckPreconditionFailure.getProjectExistsInstance(message));
       }
-    };
+
+      return preconditionFailures;
+
+    } catch (Exception ex) {
+      throw new AdapterException(ex);
+    }
   }
 }

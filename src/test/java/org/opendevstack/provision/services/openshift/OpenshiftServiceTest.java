@@ -16,10 +16,8 @@ package org.opendevstack.provision.services.openshift;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,15 +58,12 @@ public class OpenshiftServiceTest {
     String project = "TESTP";
 
     // case project key with pattern "<PROJECT_NAME>-*" does exist
-    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> projectKeyExistsCheck =
-        openshiftService.createProjectKeyExistsCheck(project);
-    List<CheckPreconditionFailure> failures = projectKeyExistsCheck.apply(new ArrayList<>());
+    List<CheckPreconditionFailure> failures = openshiftService.createProjectKeyExistsCheck(project);
     assertNotNull(CheckPreconditionFailure.ExceptionCodes.valueOf(failures.get(0).getCode()));
     assertTrue(failures.get(0).getDetail().contains(project));
 
     // case project key with pattern "<PROJECT_NAME>-*" does not exist
-    projectKeyExistsCheck = openshiftService.createProjectKeyExistsCheck("UNEXISTANT_PROJECT");
-    failures = projectKeyExistsCheck.apply(new ArrayList<>());
+    failures = openshiftService.createProjectKeyExistsCheck("UNEXISTANT_PROJECT");
     assertTrue(failures.size() == 0);
   }
 
@@ -80,9 +75,8 @@ public class OpenshiftServiceTest {
         .thenReturn(Set.of("project-cd", "project-dev", "project-test", "ods", "default"));
 
     // case project key with pattern "<PROJECT_NAME>-*" does not exist
-    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> projectKeyExistsCheck =
+    List<CheckPreconditionFailure> failures =
         openshiftService.createProjectKeyExistsCheck("UNEXISTANT_PROJECT");
-    List<CheckPreconditionFailure> failures = projectKeyExistsCheck.apply(new ArrayList<>());
     assertTrue(failures.size() == 0);
   }
 
@@ -100,9 +94,8 @@ public class OpenshiftServiceTest {
             Set.of(notOdsProject + "odsproj-cd", "odsproj-dev", "odsproj-test", "ods", "default"));
 
     // case project key with pattern "<PROJECT_NAME>-*" does not exist
-    Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>> projectKeyExistsCheck =
+    List<CheckPreconditionFailure> failures =
         openshiftService.createProjectKeyExistsCheck("NOT_ODS_PROJECT");
-    List<CheckPreconditionFailure> failures = projectKeyExistsCheck.apply(new ArrayList<>());
     assertTrue(failures.size() == 0);
   }
 
@@ -119,9 +112,8 @@ public class OpenshiftServiceTest {
 
     // case project key with pattern "<PROJECT_NAME>-*" does not exist
     try {
-      Function<List<CheckPreconditionFailure>, List<CheckPreconditionFailure>>
-          projectKeyExistsCheck = openshiftService.createProjectKeyExistsCheck("NOT_ODS_PROJECT");
-      List<CheckPreconditionFailure> failures = projectKeyExistsCheck.apply(new ArrayList<>());
+      List<CheckPreconditionFailure> failures =
+          openshiftService.createProjectKeyExistsCheck("NOT_ODS_PROJECT");
       assertTrue(failures.size() == 0);
       fail();
     } catch (AdapterException ex) {
