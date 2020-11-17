@@ -315,6 +315,21 @@ jira.admin_user=jira_admin
 Note: if the pair of properties is not defined for a third party tool, the logged in user's credentials are used to authenticate against the application.
 The credentials are read by caling the method _getUserName_ and _getUserPassword_ from https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
 
+=== Other configuration
+
+To adapt the provisioning app to your infrastructure following properties will help you to disable some adapters/services.
+
+To disable the confluence adapter you can add this property to the application properties:
+```
+adapters.confluence.enabled=false
+```
+
+The Openshift Service currently is used to verify that a project key does not exists in the cluster before provisioning a project.
+If you need to disable it, you can add this property to the application properties:
+```
+services.openshift.enabled=false
+```
+
 == FAQ
 
 . Where is the provision app deployed? +
