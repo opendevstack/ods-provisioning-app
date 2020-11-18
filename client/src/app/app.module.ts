@@ -10,16 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    SidebarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatButtonModule,
-    MatIconModule
-  ],
+  imports: [BrowserModule, BrowserAnimationsModule, AppRoutingModule, SidebarModule, MatButtonModule, MatIconModule],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

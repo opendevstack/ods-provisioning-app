@@ -3,7 +3,7 @@ import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { UpdateProjectQuickstartersData, UpdateProjectRequest, ProjectData, ProjectLink, ProjectStorage } from '../../../domain/project';
 import { ProjectService } from '../../project/services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
@@ -12,11 +12,10 @@ import { AbstractControl, FormArray, FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { StorageService } from '../../storage/services/storage.service';
-import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 import { ConfirmationComponent } from '../../confirmation/components/confirmation.component';
 import { ConfirmationConfig } from '../../confirmation/domain/confirmation-config';
-
-type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
+import { HttpErrorResponse } from '@angular/common/http';
+import HttpStatusCodes from '../../../domain/http-status-codes';
 
 @Component({
   selector: 'app-project-page',
@@ -31,7 +30,7 @@ export class ProjectPageComponent extends FormBaseComponent implements OnInit, O
   isLoading = true;
   isProjectError: boolean;
   isQuickstartersError: boolean;
-  errorType: ProjectErrorType;
+  errorType: string;
   project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
@@ -70,12 +69,14 @@ export class ProjectPageComponent extends FormBaseComponent implements OnInit, O
       if (!param.key) {
         if (!projectKeyFromStorage) {
           this.switchToErrorDisplay('NO_PROJECT_KEY');
+        } else {
+          projectKey = projectKeyFromStorage;
+          this.loadProjectData(projectKey);
         }
-        projectKey = projectKeyFromStorage;
       } else {
         projectKey = param.key;
+        this.loadProjectData(projectKey);
       }
-      this.loadProjectData(projectKey);
     });
   }
 
@@ -214,9 +215,13 @@ export class ProjectPageComponent extends FormBaseComponent implements OnInit, O
     return this.projectService.getProjectByKey(key).pipe(
       takeUntil(this.destroy$),
       tap(() => (this.isProjectError = false)),
-      catchError((errorType: HttpErrorTypes) => {
+      catchError((error: HttpErrorResponse) => {
         this.storageService.removeItem('project');
-        this.switchToErrorDisplay(errorType);
+        if (error.status === HttpStatusCodes.NOT_FOUND) {
+          this.switchToErrorDisplay('NOT_FOUND');
+        } else {
+          this.switchToErrorDisplay('TECHNICAL_ERROR');
+        }
         return EMPTY;
       })
     );
@@ -241,7 +246,7 @@ export class ProjectPageComponent extends FormBaseComponent implements OnInit, O
     this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(this.projectLinks);
   }
 
-  private switchToErrorDisplay(errorType: ProjectErrorType) {
+  private switchToErrorDisplay(errorType: string) {
     this.errorType = errorType;
     this.isProjectError = true;
     this.isLoading = false;
