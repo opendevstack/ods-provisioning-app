@@ -446,4 +446,24 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_NAME);
     assertTrue(foundByLegacyType.isPresent());
   }
+
+  @Test
+  public void appendToMapEntry() {}
+
+  @Test
+  public void addOrAppendToMapEntryLambda() {
+
+    Map<String, String> map = new HashMap<>();
+    map.put("k1", "v1");
+    map.put("k2", "v2");
+
+    String key = "k1";
+    JenkinsPipelineAdapter.addOrAppendToEntry(map, key, "appended", ",");
+    Assert.assertEquals("v1,appended", map.get(key));
+
+    key = "newKey";
+    String value = "newValue";
+    JenkinsPipelineAdapter.addOrAppendToEntry(map, key, value, ",");
+    Assert.assertEquals(value, map.get(key));
+  }
 }
