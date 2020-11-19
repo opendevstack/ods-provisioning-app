@@ -57,6 +57,13 @@ The configuration for the permission sets are configured:
 . Bitbucket Project is provisioned with tight read & write roles
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
+Furthermore if you need to define default permission for openshift (e.g. to setup membership permission for cluster admins) you can add this to your application properties:
+```
+jenkinspipeline.create-project.default-project-groups=ADMINGROUP=<MY_CLUSTER_ADMIN_GROUP_NAME>
+```
+
+In case special permissions sets are defined this the default project groups will be appended to the lis of permissions sets.
+
 == Project/Space types based on templates
 
 The default jira / confluence project' types are defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
