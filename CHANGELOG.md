@@ -4,6 +4,7 @@
 
 ### Added
 
+- SPA: Replace Spectator unit test framework by Angular Testbed default ([#539](https://github.com/opendevstack/ods-provisioning-app/issues/539))
 - SPA dependencies update incl. Angular 12 ([#692](https://github.com/opendevstack/ods-provisioning-app/issues/692))
 - Add swagger-ui support ([#679](https://github.com/opendevstack/ods-provisioning-app/pull/679))
 - Handle logout in SPA ([#675](https://github.com/opendevstack/ods-provisioning-app/issues/675))

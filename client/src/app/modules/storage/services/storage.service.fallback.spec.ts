@@ -1,31 +1,22 @@
-import { inject } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { STORAGE_PREFIX } from '../tokens';
 import { StorageService } from './storage.service';
 import { BrowserService } from '../../browser/services/browser.service';
 import { CookieBuilder } from '../../browser/domain/cookie-builder';
 import { Cookie } from '../../browser/domain/cookie';
-import { throwError } from 'rxjs';
 
 describe('StorageService in fallback mode', () => {
   const mockStoragePrefix = 'provapp_';
   const mockStorageCookieName = '_' + mockStoragePrefix + 'storage';
 
-  let mockSessionStorage: any;
-  let mockBrowserService: any;
+  let service: StorageService;
+
+  let mockSessionStorage;
+  let mockBrowserService;
 
   beforeEach(() => {
-    mockSessionStorage = {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      removeItem: jest.fn()
-    };
-    mockBrowserService = {
-      getCookie: jest.fn(),
-      setCookie: jest.fn(),
-      getSessionStorage: jest.fn(),
-      deleteCookieByName: jest.fn()
-    };
+    mockSessionStorage = jasmine.createSpyObj('Storage', ['getItem', 'setItem', 'removeItem']);
+    mockBrowserService = jasmine.createSpyObj('BrowserService', ['getLocalStorage', 'getCookie', 'setCookie', 'deleteCookieByName']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -40,26 +31,27 @@ describe('StorageService in fallback mode', () => {
         StorageService
       ]
     });
+    service = TestBed.inject(StorageService);
   });
 
   beforeEach(() => {
-    mockSessionStorage.setItem.mockImplementation(() => throwError('Quota exceeded'));
+    mockSessionStorage.setItem.and.throwError('Quota exceeded');
   });
 
-  it('should save item to cookie if session storage is not writable', inject([StorageService], (storageService: StorageService) => {
+  it('should save item to cookie if session storage is not writable', () => {
     /* given */
-    mockBrowserService.getCookie.mockReturnValue(null);
+    mockBrowserService.getCookie.and.returnValue(null);
     /* when */
-    storageService.saveItem('test', { hello: 'world' });
+    service.saveItem('test', { hello: 'world' });
     /* then */
     expect(mockBrowserService.setCookie).toHaveBeenCalledWith(
       new CookieBuilder(mockStorageCookieName).withObjectValue({ test: JSON.stringify({ hello: 'world' }) }).build()
     );
-  }));
+  });
 
-  it('should read item from cookie if session storage is not writable', inject([StorageService], (storageService: StorageService) => {
+  it('should read item from cookie if session storage is not writable', () => {
     /* given */
-    mockBrowserService.getCookie.mockReturnValue(
+    mockBrowserService.getCookie.and.returnValue(
       new CookieBuilder(mockStorageCookieName)
         .withObjectValue({
           test: { hello: 'world' }
@@ -67,15 +59,15 @@ describe('StorageService in fallback mode', () => {
         .build()
     );
     /* when */
-    const retrievedObject = storageService.getItem('test');
+    const retrievedObject = service.getItem('test');
     /* then */
     expect(mockBrowserService.getCookie).toHaveBeenCalledWith(mockStorageCookieName);
     expect<any>(retrievedObject).toEqual({ hello: 'world' });
-  }));
+  });
 
-  it('should remove item from cookie if session storage is not writable', inject([StorageService], (storageService: StorageService) => {
+  it('should remove item from cookie if session storage is not writable', () => {
     /* given */
-    mockBrowserService.getCookie.mockReturnValue(
+    mockBrowserService.getCookie.and.returnValue(
       new CookieBuilder(mockStorageCookieName)
         .withObjectValue({
           test: { hello: 'world' },
@@ -84,27 +76,27 @@ describe('StorageService in fallback mode', () => {
         .build()
     );
     /* when */
-    storageService.removeItem('test');
+    service.removeItem('test');
     /* then */
     expect(mockBrowserService.getCookie).toHaveBeenCalledWith(mockStorageCookieName);
     expect(mockBrowserService.setCookie).toHaveBeenCalledWith(
       new Cookie(mockStorageCookieName, JSON.stringify({ test2: { x: 1 } }), false, null, '/')
     );
-  }));
+  });
 
-  it('should remove item from cookie if session storage is not writable', inject([StorageService], (storageService: StorageService) => {
+  it('should remove item from cookie if session storage is not writable', () => {
     /* given */
-    mockBrowserService.getCookie.mockReturnValue(
+    mockBrowserService.getCookie.and.returnValue(
       new CookieBuilder(mockStorageCookieName)
         .withObjectValue({
           test: { hello: 'world' }
         })
         .build()
     );
-    storageService.saveItem('test', { hello: 'world' });
+    service.saveItem('test', { hello: 'world' });
     /* when */
-    storageService.removeAll();
+    service.removeAll();
     /* then */
     expect(mockBrowserService.deleteCookieByName).toHaveBeenCalledWith(mockStorageCookieName);
-  }));
+  });
 });
