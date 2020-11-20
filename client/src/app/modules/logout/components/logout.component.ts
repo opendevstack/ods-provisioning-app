@@ -13,7 +13,7 @@ export class LogoutComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.browserService.deleteCookieByName('JSESSIONID');
-    this.renderer.addClass(document.body, 'status-user-logged-out');
+    this.renderer.addClass(document.body, 'status-user-auth');
   }
 
   ngOnDestroy() {

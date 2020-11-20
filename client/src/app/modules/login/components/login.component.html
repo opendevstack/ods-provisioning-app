@@ -1,0 +1,56 @@
+<div class="page">
+  <form [formGroup]="form" novalidate id="form">
+  <div class="box">
+    <div class="page__header">
+      <h3 class="mat-h3">Login</h3>
+    </div>
+    <div class="page__content">
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="formfield__input">
+            <mat-label>Username</mat-label>
+            <input
+              matInput
+              placeholder="Username"
+              formControlName="username"
+              appRemoveWhitespaces
+              maxlength="80"
+              required
+              data-test-input-username />
+          </mat-form-field>
+          <mat-error
+            class="formfield__error"
+            *ngIf="hasErrorByType(form.get('username'), 'required')">
+            Username is required
+          </mat-error>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="formfield__input">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              placeholder="Password"
+              formControlName="password"
+              appRemoveWhitespaces
+              maxlength="80"
+              required
+              data-test-input-password />
+          </mat-form-field>
+          <mat-error
+            class="formfield__error"
+            *ngIf="hasErrorByType(form.get('password'), 'required')">
+            Password is required
+          </mat-error>
+        </div>
+      </div>
+    </div>
+    <div class="page__footer">
+      <div class="button-group">
+        <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Login</button>
+      </div>
+    </div>
+  </div>
+  </form>
+</div>

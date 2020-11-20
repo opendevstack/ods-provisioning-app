@@ -25,6 +25,10 @@ const routes: Routes = [
     loadChildren: () => import('../about-page/about-page.module').then(m => m.AboutPageModule)
   },
   {
+    path: 'login',
+    loadChildren: () => import('../login/login.module').then(m => m.LoginModule)
+  },
+  {
     path: 'logout',
     loadChildren: () => import('../logout/logout.module').then(m => m.LogoutModule)
   },
@@ -64,7 +68,6 @@ const routes: Routes = [
     }),
     NewProjectModule
   ],
-  exports: [RouterModule],
-  providers: []
+  exports: [RouterModule]
 })
 export class AppRoutingModule {}

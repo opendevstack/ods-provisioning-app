@@ -36,6 +36,10 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          console.log('auth');
+        }
+
         // TODO
         // - Send error to logging service (backend + browser console <- based on env setting
         // - Eventually show error details in a modal dialog in the browser (based on an env setting)
