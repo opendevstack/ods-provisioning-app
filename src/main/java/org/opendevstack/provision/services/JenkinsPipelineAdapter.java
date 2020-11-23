@@ -126,7 +126,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${bitbucket.technical.user}")
   protected String generalCdUser;
 
-  @Value("${jenkinspipeline.create-project.default-project-groups:''}")
+  @Value("${jenkinspipeline.create-project.default-project-groups:}")
   private String defaultEntitlementGroups;
 
   public JenkinsPipelineAdapter() {

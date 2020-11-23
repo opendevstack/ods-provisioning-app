@@ -23,6 +23,7 @@ import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matc
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
@@ -408,12 +409,22 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     Assertions.assertThat(actualBody.getOptionValue("ODS_GIT_REF"))
         .isEqualTo(jenkinsPipelineAdapter.odsGitRef);
 
-    String groups = actualBody.getOptionValue("PROJECT_GROUPS");
-    assertNotNull(groups);
-    Assertions.assertThat(groups).contains(defaultEntitlementGroups);
-    Assertions.assertThat(groups).contains("ADMINGROUP=" + projectData.projectAdminGroup);
-    Assertions.assertThat(groups).contains("USERGROUP=" + projectData.projectUserGroup);
-    Assertions.assertThat(groups).contains("READONLYGROUP=" + projectData.projectReadonlyGroup);
+    String groupsValue = actualBody.getOptionValue("PROJECT_GROUPS");
+    assertNotNull(groupsValue);
+    List<String> groups = asList(groupsValue.split(","));
+    Assertions.assertThat(groups.size()).isEqualTo(4);
+
+    List.of(
+            defaultEntitlementGroups,
+            "ADMINGROUP=" + projectData.projectAdminGroup,
+            "USERGROUP=" + projectData.projectUserGroup,
+            "READONLYGROUP=" + projectData.projectReadonlyGroup)
+        .forEach(
+            element -> {
+              List<String> collect =
+                  groups.stream().filter(s -> s.equals(element)).collect(Collectors.toList());
+              Assert.assertEquals(1, collect.size());
+            });
   }
 
   private CreateProjectResponse buildDummyCreateProjectResponse() {
