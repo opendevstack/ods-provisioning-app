@@ -127,7 +127,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   protected String generalCdUser;
 
   @Value("${jenkinspipeline.create-project.default-project-groups:''}")
-  private String clusterAdminsEntitlementGroups;
+  protected String clusterAdminsEntitlementGroups;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");

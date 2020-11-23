@@ -87,6 +87,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     jenkinsPipelineAdapter.bitbucketOdsProject = "opendevstack";
     jenkinsPipelineAdapter.odsImageTag = "latest";
     jenkinsPipelineAdapter.odsGitRef = "master";
+    jenkinsPipelineAdapter.clusterAdminsEntitlementGroups = "ADMINGROUP=MY-ADMIN-GROUP";
     jenkinsPipelineAdapter.init();
     super.beforeTest();
   }
@@ -406,6 +407,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
+    Assertions.assertThat(groups).contains(jenkinsPipelineAdapter.clusterAdminsEntitlementGroups);
     Assertions.assertThat(groups).contains("ADMINGROUP=" + projectData.projectAdminGroup);
     Assertions.assertThat(groups).contains("USERGROUP=" + projectData.projectUserGroup);
     Assertions.assertThat(groups).contains("READONLYGROUP=" + projectData.projectReadonlyGroup);
