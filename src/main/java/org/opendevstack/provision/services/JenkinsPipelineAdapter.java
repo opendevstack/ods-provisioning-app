@@ -127,7 +127,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   protected String generalCdUser;
 
   @Value("${jenkinspipeline.create-project.default-project-groups:''}")
-  protected String clusterAdminsEntitlementGroups;
+  private String defaultEntitlementGroups;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
@@ -263,8 +263,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     try {
       options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
 
-      if (addClusterAdminsEntitlementGroups()) {
-        addOrAppendToEntry(options, "PROJECT_GROUPS", clusterAdminsEntitlementGroups, ",");
+      if (addDefaultEntitlementGroups()) {
+        addOrAppendToEntry(options, "PROJECT_GROUPS", defaultEntitlementGroups, ",");
       }
 
       if (project.specialPermissionSet) {
@@ -364,8 +364,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     map.put(key, map.computeIfAbsent(key, s -> toAppend));
   }
 
-  private boolean addClusterAdminsEntitlementGroups() {
-    return null != clusterAdminsEntitlementGroups && !clusterAdminsEntitlementGroups.isEmpty();
+  private boolean addDefaultEntitlementGroups() {
+    return null != defaultEntitlementGroups && !defaultEntitlementGroups.isEmpty();
   }
 
   @Override

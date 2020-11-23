@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-
+- Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
 - Add support for odsbox for local development([#579](https://github.com/opendevstack/ods-provisioning-app/issues/579))
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
 - Parameterise jira project type templates ([#404](https://github.com/opendevstack/ods-provisioning-app/issues/404))
