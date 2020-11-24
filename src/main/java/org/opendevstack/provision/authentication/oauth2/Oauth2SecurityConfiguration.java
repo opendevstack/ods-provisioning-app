@@ -33,8 +33,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Configuration Class for the OAuth2 Spring Security Adapter
- *
- * @author Stefan Lack, Sebastian Titakis
  */
 @Configuration
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")

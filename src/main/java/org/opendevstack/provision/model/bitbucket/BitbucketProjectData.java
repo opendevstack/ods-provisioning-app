@@ -22,8 +22,6 @@ import javax.annotation.Generated;
 /**
  * {"key":"SUBTA","id":1,"name":"Subtaskeditor","description":"Das ist ein
  * Testprojekt","public":false,"type":"NORMAL","links":{"self":[{"href":"http://192.168.56.31:7990/projects/SUBTA"}]}}
- *
- * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

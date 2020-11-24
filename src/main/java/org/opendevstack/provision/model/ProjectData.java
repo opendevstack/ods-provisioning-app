@@ -27,8 +27,6 @@ import org.opendevstack.provision.model.bitbucket.Link;
 
 /**
  * ProjectData
- *
- * @author Torsten Jaeschke
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)

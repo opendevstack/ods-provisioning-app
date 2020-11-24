@@ -22,8 +22,6 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Service interface for a bugtracker
- *
- * @author utschig
  */
 public interface IBugtrackerAdapter extends IServiceAdapter {
   /**

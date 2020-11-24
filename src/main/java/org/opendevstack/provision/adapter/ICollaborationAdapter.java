@@ -20,8 +20,6 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Interface for collaboration adapter implementations, e.g for confluence
- *
- * @author utschig
  */
 public interface ICollaborationAdapter extends IServiceAdapter {
 

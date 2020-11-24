@@ -15,8 +15,6 @@ package org.opendevstack.provision.adapter.exception;
 
 /**
  * Root exception type thrown by the Identity Mgmt adapter
- *
- * @author utschig
  */
 public class IdMgmtException extends Exception {
 

@@ -42,8 +42,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Custom Authentication manager to integrate the password storing for authentication
- *
- * @author Torsten Jaeschke
  */
 @Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")

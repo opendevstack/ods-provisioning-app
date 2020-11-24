@@ -22,8 +22,6 @@ import javax.annotation.Generated;
  *
  * <p>{ "key": "PRJ", "name": "My Cool Project", "description": "The description for my cool
  * project.", "avatar": "data:image/png;base64,<base64-encoded-image-data>" }
- *
- * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -19,7 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/** @author Sebastian Titakis */
+
 public class UserRolesHolder {
 
   public Set<String> getUserRoles() {

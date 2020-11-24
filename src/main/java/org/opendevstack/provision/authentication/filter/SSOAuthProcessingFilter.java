@@ -28,8 +28,6 @@ import org.springframework.security.core.Authentication;
 
 /**
  * Custom processing filter to enable SSO via Crowd for the provision app
- *
- * @author Torsten Jaeschke
  */
 public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFilter {
 

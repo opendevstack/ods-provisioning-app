@@ -43,8 +43,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * <p>NOTES: - positive cases are tested in E2EProjectAPIControllerTest - see
  * BasicAuthSecurityConfig.class, it configures a TestingAuthenticationProvider with test users
- *
- * @author Sebastian Titakis
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

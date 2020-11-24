@@ -32,8 +32,6 @@ import org.thymeleaf.context.Context;
 
 /**
  * Service for mail interaction with the user in the provisioning app
- *
- * @author Brokmeier, Pascal
  */
 @Service
 public class MailAdapter {

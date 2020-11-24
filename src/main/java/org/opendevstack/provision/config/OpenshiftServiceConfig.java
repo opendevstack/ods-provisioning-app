@@ -29,7 +29,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 
-/** @author Sebastian Titakis */
+
 @Configuration
 @ConditionalOnProperty(
     name = "services.openshift.enabled",

@@ -18,8 +18,6 @@ import org.opendevstack.provision.adapter.exception.IdMgmtException;
 
 /**
  * Interface to wrap all (current) user based identity calls
- *
- * @author utschig
  */
 public interface IODSAuthnzAdapter {
   /**

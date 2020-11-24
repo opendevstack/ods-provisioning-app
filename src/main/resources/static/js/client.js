@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * @author Torsten Jaeschke
- */
 
 var projectAPiUrl = "/api/v2/project";
 var quickstarterAPIUrl = "api/v1/quickstarter";

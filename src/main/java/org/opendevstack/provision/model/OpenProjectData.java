@@ -22,8 +22,6 @@ import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 
 /**
  * Open Plugin API to create and update projects
- *
- * @author utschig
  */
 public class OpenProjectData {
 

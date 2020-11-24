@@ -53,9 +53,6 @@ import org.springframework.util.Assert;
 
 /**
  * Service to interact with Bitbucket and to create projects and repositories
- *
- * @author Brokmeier, Pascal
- * @author utschig
  */
 @Service
 public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter {

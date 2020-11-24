@@ -44,8 +44,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service to interact with Jenkins in order to provision projects and components.
- *
- * @author Torsten Jaeschke
  */
 @Service
 public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobExecutionAdapter {

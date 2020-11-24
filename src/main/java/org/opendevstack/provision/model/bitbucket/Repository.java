@@ -19,8 +19,6 @@ import javax.annotation.Generated;
 
 /**
  * { "name": "My repo", "scmId": "git", "forkable": true }
- *
- * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

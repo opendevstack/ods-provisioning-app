@@ -22,8 +22,6 @@ import org.junit.Test;
 
 /**
  * Test Project data equals / hashcode
- *
- * @author utschig
  */
 public class ProjectDataTest {
 

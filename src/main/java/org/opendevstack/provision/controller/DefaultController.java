@@ -32,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * Default controller for navigating the page. Autowiring per setter because of testability
- *
- * @author Brokmeier, Pascal
  */
 @Controller
 public class DefaultController {

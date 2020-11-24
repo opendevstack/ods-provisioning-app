@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-/** @author Sebastian Titakis */
+
 public class SSOAuthProcessingFilterBasicAuthHandler
     implements SSOAuthProcessingFilterBasicAuthStrategy {
 

@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.adapter.exception;
 
-/** @author Sebastian Titakis */
+
 public class AdapterException extends RuntimeException {
   public AdapterException(Exception e) {
     super(e);

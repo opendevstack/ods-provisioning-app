@@ -65,8 +65,6 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 
 /**
  * Class for setting the security configuration and security related configurations
- *
- * @author Brokmeier, Pascal
  */
 @Configuration
 @EnableWebSecurity

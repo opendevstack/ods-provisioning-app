@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service to interact with the underlying storage system to liast the project history
- *
- * @author Torsten Jaeschke
  */
 @Service
 public class StorageAdapter implements IServiceAdapter {

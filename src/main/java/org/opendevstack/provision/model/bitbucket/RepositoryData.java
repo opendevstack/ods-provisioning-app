@@ -29,8 +29,6 @@ import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
  * "clone": [ { "href": "ssh://git@192.168.56.31:7999/drimm/testrepo.git", "name": "ssh" }, {
  * "href": "http://admin@192.168.56.31:7990/scm/drimm/testrepo.git", "name": "http" } ], "self": [ {
  * "href": "http://192.168.56.31:7990/projects/DRIMM/repos/testrepo/browse" } ] } }
- *
- * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

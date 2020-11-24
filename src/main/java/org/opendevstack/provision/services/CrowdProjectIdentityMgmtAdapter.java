@@ -29,9 +29,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Identity mgmt adapter to create / validate groups
- *
- * @author utschig
- * @author utschig,stefanlack
  */
 @Service
 public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter {

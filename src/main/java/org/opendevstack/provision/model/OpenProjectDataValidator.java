@@ -22,8 +22,6 @@ import java.util.regex.Pattern;
 
 /**
  * Provides validators method
- *
- * @author: Sebastian Titakis
  */
 public class OpenProjectDataValidator {
   /**

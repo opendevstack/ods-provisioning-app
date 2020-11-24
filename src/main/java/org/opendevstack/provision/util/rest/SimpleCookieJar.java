@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Simple cookie jar implementation to store cookies for all for session bound APIs
- *
- * @author Torsten Jaeschke
  */
 public class SimpleCookieJar implements CookieJar {
 

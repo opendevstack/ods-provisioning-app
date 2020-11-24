@@ -59,9 +59,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Rest Controller to handle the process of project creation
- *
- * @author Torsten Jaeschke
- * @author Clemens Utschig
  */
 @RestController
 @RequestMapping(value = ProjectAPI.API_V2_PROJECT)

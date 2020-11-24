@@ -23,8 +23,6 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Base interface for all service adapters
- *
- * @author utschig
  */
 public interface IServiceAdapter {
 

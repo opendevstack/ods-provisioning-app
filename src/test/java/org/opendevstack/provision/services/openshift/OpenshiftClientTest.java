@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/** @author Sebastian Titakis */
+
 @RunWith(SpringRunner.class)
 public class OpenshiftClientTest {
 

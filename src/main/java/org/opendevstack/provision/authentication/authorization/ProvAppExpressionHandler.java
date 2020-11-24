@@ -25,8 +25,6 @@ import org.springframework.security.core.Authentication;
 
 /**
  * Provides custom expression-based access control
- *
- * @author Sebastian Titakis
  */
 public class ProvAppExpressionHandler extends DefaultMethodSecurityExpressionHandler {
 

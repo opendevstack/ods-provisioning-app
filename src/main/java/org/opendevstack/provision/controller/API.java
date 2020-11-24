@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.controller;
 
-/** @author Sebastian Titakis */
+
 public interface API {
 
   String API_ROOT = "api";

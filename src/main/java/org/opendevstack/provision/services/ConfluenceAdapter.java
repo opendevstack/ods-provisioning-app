@@ -49,8 +49,6 @@ import org.springframework.util.Assert;
 
 /**
  * Service to interact with and add Spaces
- *
- * @author Brokmeier, Pascal
  */
 @Service
 @ConditionalOnProperty(

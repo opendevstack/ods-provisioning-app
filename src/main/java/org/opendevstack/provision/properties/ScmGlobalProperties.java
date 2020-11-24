@@ -23,8 +23,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration properties for global SCM settings
- *
- * @author tjaeschke
  */
 @Configuration
 @ConfigurationProperties("scm.global")

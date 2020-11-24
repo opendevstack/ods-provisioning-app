@@ -95,8 +95,6 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * End to end testcase with real result data - only mock is the RestClient - to feed the json
- *
- * @author utschig
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

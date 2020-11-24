@@ -20,14 +20,10 @@ import org.opendevstack.provision.model.OpenProjectData;
 
 /**
  * Interface for SCM adapters
- *
- * @author utschig
  */
 public interface ISCMAdapter extends IServiceAdapter {
   /**
    * Type of URLs returned from this adapter
-   *
-   * @author utschig
    */
   public enum URL_TYPE {
     URL_CLONE_HTTP,

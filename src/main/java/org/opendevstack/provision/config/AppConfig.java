@@ -27,8 +27,6 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 
 /**
  * Represents basic bean configurations not related to security
- *
- * @author Brokmeier, Pascal
  */
 @Configuration
 public class AppConfig {

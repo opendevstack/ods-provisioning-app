@@ -19,8 +19,6 @@ import java.util.List;
 
 /**
  * Model for about changes
- *
- * @author utschig
  */
 public class AboutChangesData {
   @JsonIgnoreProperties(ignoreUnknown = true)

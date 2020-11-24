@@ -26,7 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/** @author Sebastian Titakis */
+
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class ProvAppExpressionHandlerTest {

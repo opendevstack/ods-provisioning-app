@@ -41,8 +41,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Class handling local storage of JSON files for a simple historization
- *
- * @author Torsten Jaeschke
  */
 @Component
 public class LocalStorage implements IStorage {

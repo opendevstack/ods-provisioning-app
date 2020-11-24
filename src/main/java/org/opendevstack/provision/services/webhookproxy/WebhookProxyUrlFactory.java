@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** @author Sebastian Titakis */
+
 @Component
 public class WebhookProxyUrlFactory {
 

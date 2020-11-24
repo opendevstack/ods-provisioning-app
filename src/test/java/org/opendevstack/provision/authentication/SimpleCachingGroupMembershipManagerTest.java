@@ -28,8 +28,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 /**
  * Testclass for the simple caching manager
- *
- * @author utschig
  */
 @ActiveProfiles("crowd")
 public class SimpleCachingGroupMembershipManagerTest {

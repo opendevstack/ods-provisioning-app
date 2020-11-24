@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** @author Sebastian Titakis */
+
 public class OpenshiftClient {
 
   private final IClient iClient;

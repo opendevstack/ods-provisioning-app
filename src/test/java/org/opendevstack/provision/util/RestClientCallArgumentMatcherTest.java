@@ -10,7 +10,7 @@ import static org.opendevstack.provision.util.rest.RestClientCall.get;
 import org.junit.Test;
 import org.opendevstack.provision.util.rest.RestClientCall;
 
-/** @author Stefan Lack */
+
 public class RestClientCallArgumentMatcherTest {
 
   @Test
