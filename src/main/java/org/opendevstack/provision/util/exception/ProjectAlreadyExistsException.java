@@ -13,9 +13,7 @@
  */
 package org.opendevstack.provision.util.exception;
 
-/**
- * Thrown in case a project already exists
- */
+/** Thrown in case a project already exists */
 public class ProjectAlreadyExistsException extends Exception {
 
   public ProjectAlreadyExistsException(String message) {

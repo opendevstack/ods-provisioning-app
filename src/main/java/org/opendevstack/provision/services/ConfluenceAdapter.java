@@ -47,9 +47,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-/**
- * Service to interact with and add Spaces
- */
+/** Service to interact with and add Spaces */
 @Service
 @ConditionalOnProperty(
     name = "adapters.confluence.enabled",

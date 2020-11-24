@@ -51,9 +51,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-/**
- * Service to interact with Bitbucket and to create projects and repositories
- */
+/** Service to interact with Bitbucket and to create projects and repositories */
 @Service
 public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter {
 

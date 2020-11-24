@@ -40,9 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-/**
- * Custom Authentication manager to integrate the password storing for authentication
- */
+/** Custom Authentication manager to integrate the password storing for authentication */
 @Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {

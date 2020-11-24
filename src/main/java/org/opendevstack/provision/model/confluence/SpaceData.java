@@ -17,7 +17,6 @@ package org.opendevstack.provision.model.confluence;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;
 
-
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

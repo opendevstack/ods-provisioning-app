@@ -42,9 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/**
- * Service to interact with Jenkins in order to provision projects and components.
- */
+/** Service to interact with Jenkins in order to provision projects and components. */
 @Service
 public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobExecutionAdapter {
 

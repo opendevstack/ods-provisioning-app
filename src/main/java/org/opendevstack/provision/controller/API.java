@@ -13,7 +13,6 @@
  */
 package org.opendevstack.provision.controller;
 
-
 public interface API {
 
   String API_ROOT = "api";

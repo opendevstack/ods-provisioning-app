@@ -93,9 +93,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/**
- * End to end testcase with real result data - only mock is the RestClient - to feed the json
- */
+/** End to end testcase with real result data - only mock is the RestClient - to feed the json */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

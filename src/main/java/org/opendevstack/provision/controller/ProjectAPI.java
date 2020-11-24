@@ -13,7 +13,6 @@
  */
 package org.opendevstack.provision.controller;
 
-
 public interface ProjectAPI extends API {
 
   String API_V2_PROJECT = API_ROOT_V2 + "/" + "project";

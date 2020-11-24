@@ -17,7 +17,6 @@ package org.opendevstack.provision.authentication.filter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
 public interface SSOAuthProcessingFilterBasicAuthStrategy {
   boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response);
 }

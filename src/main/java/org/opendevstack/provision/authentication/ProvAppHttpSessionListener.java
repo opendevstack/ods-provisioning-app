@@ -30,7 +30,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.util.Assert;
 
-
 public class ProvAppHttpSessionListener implements HttpSessionListener {
 
   private static final Logger logger = LoggerFactory.getLogger(ProvAppHttpSessionListener.class);

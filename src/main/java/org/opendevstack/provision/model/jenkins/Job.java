@@ -19,7 +19,6 @@ import java.util.Optional;
 import javax.annotation.Generated;
 import org.opendevstack.provision.config.Quickstarter;
 
-
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {

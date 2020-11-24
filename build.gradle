@@ -218,8 +218,10 @@ jacocoTestReport {
 
 spotless {
     java {
-        googleJavaFormat('1.7')
+        googleJavaFormat('1.9')
+        trimTrailingWhitespace()
         indentWithSpaces(2)
+        endWithNewline()
     }
 }
 

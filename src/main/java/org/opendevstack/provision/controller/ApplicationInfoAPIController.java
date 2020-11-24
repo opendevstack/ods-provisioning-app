@@ -33,9 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Rest Controller to handle the process of project creation
- */
+/** Rest Controller to handle the process of project creation */
 @RestController
 @RequestMapping(value = ApplicationInfoAPI.APP_INFO_API_V2)
 public class ApplicationInfoAPIController {

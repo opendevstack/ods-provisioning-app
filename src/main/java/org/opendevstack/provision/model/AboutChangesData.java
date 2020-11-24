@@ -17,9 +17,7 @@ package org.opendevstack.provision.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
-/**
- * Model for about changes
- */
+/** Model for about changes */
 public class AboutChangesData {
   @JsonIgnoreProperties(ignoreUnknown = true)
   public List<AboutRecordData> aboutDataList;

@@ -30,9 +30,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * Service to interact with the underlying storage system to liast the project history
- */
+/** Service to interact with the underlying storage system to liast the project history */
 @Service
 public class StorageAdapter implements IServiceAdapter {
 

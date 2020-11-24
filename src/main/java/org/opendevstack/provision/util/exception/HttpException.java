@@ -15,9 +15,7 @@ package org.opendevstack.provision.util.exception;
 
 import java.io.IOException;
 
-/**
- * Simple exception to wrap an HTTP non 2xx
- */
+/** Simple exception to wrap an HTTP non 2xx */
 public class HttpException extends IOException {
   private final int httpResponseCode;
 

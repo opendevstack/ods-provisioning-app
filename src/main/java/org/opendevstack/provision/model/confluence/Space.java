@@ -16,7 +16,6 @@ package org.opendevstack.provision.model.confluence;
 
 import javax.annotation.Generated;
 
-
 @Generated(value = {"JSON-to-Pojo-Generator"})
 public class Space {
   private String spaceKey = null;

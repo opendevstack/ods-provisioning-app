@@ -20,9 +20,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-/**
- * Provides validators method
- */
+/** Provides validators method */
 public class OpenProjectDataValidator {
   /**
    * Valid name starts with alpha chars and only dashes (-) in between are allowed. It is more

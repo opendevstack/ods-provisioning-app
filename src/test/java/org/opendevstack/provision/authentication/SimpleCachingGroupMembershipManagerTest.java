@@ -26,9 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
-/**
- * Testclass for the simple caching manager
- */
+/** Testclass for the simple caching manager */
 @ActiveProfiles("crowd")
 public class SimpleCachingGroupMembershipManagerTest {
 

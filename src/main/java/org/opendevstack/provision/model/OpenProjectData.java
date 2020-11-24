@@ -20,9 +20,7 @@ import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 
-/**
- * Open Plugin API to create and update projects
- */
+/** Open Plugin API to create and update projects */
 public class OpenProjectData {
 
   /** The key to get the chosen name for the quickstarter */

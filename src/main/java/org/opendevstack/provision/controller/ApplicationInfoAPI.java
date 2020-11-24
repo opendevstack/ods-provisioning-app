@@ -13,7 +13,6 @@
  */
 package org.opendevstack.provision.controller;
 
-
 public interface ApplicationInfoAPI extends API {
 
   String ENDPOINT_APPINFO = "appinfo";

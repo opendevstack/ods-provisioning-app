@@ -63,9 +63,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
-/**
- * Class for setting the security configuration and security related configurations
- */
+/** Class for setting the security configuration and security related configurations */
 @Configuration
 @EnableWebSecurity
 @EnableCaching
