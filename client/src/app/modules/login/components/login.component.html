@@ -1,5 +1,9 @@
 <div class="page">
-  <form [formGroup]="form" novalidate id="form">
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
+
+  <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="intendFormSubmit()" novalidate id="form">
   <div class="box">
     <div class="page__header">
       <h3 class="mat-h3">Login</h3>
@@ -30,6 +34,7 @@
           <mat-form-field class="formfield__input">
             <mat-label>Password</mat-label>
             <input
+              type="password"
               matInput
               placeholder="Password"
               formControlName="password"
@@ -46,11 +51,16 @@
         </div>
       </div>
     </div>
+
     <div class="page__footer">
-      <div class="button-group">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center">
+        <div class="error">
+          <p *ngIf="isLoginError">Login failed. Please check your credentials and try again.</p>
+        </div>
         <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Login</button>
       </div>
     </div>
+
   </div>
   </form>
 </div>

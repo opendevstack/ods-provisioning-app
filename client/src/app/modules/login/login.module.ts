@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../app-form/app-form.module';
+import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
 
 @NgModule({
   declarations: [LoginComponent],
@@ -22,7 +23,8 @@ import { AppFormModule } from '../app-form/app-form.module';
     MatInputModule,
     MatButtonModule,
     ReactiveFormsModule,
-    AppFormModule
+    AppFormModule,
+    LoadingIndicatorModule
   ]
 })
 export class LoginModule {}

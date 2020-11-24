@@ -4,6 +4,7 @@ import { LogoutComponent } from './components/logout.component';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
 
 @NgModule({
   declarations: [LogoutComponent],
@@ -16,7 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
       }
     ]),
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    LoadingIndicatorModule
   ]
 })
 export class LogoutModule {}

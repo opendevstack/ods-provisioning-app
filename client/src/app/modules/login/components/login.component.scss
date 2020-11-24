@@ -1,3 +1,7 @@
+.page {
+  height: auto;
+}
+
 .page__content,
 .page__footer {
   padding: 30px;
@@ -5,12 +9,17 @@
 
 .page__header {
   padding: 5px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   border-bottom: 1px solid var(--primary-lighter-color);
 
   h3 {
+    margin-bottom: 0;
+  }
+}
+
+.page__footer {
+  .error p {
+    color: var(--warn-color);
+    font-size: 0.85rem;
     margin-bottom: 0;
   }
 }

@@ -2,7 +2,9 @@
 
 ## Status
 
-This first version of the new frontend stack was introduced as an experimental feature within OpenDevStack 3.x ([original issue](https://github.com/opendevstack/ods-provisioning-app/issues/518)). It can be activated for users with a `frontend.spa.enabled` feature flag in Spring Boot.
+This first version of the new frontend stack was introduced as an experimental feature within OpenDevStack 3.x
+([original issue](https://github.com/opendevstack/ods-provisioning-app/issues/518)). It can be activated for users with a
+`frontend.spa.enabled` feature flag in Spring Boot.
 
 OpenDevStack NEXT will include this new frontend activated by default (without featue flag).
 
@@ -35,13 +37,26 @@ Doing this there's no need to run Spring Boot locally.
 
 ### 3. Test the setup
 
-Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app will automatically reload if you change any of the source files.
+Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app
+will automatically reload if you change any of the source files.
 
 ## Development
 
 ### Dev Server
 
 `yarn start:dev`: Starts a live reload dev server on `http://localhost:4200/`
+
+### Dev Server with SSL localhost
+
+Depending on the authentication strategy configured in Spring Boot it might be necessary to serve localhost over https so that the app
+behaves correctly. Although not ideal, we discovered this as the most effortless solution in the time of writing.
+
+1. Create a self-signed certificate and add it to your OS - we found
+   [this article](https://medium.com/@richardr39/using-angular-cli-to-serve-over-https-locally-70dab07417c8) quite helpful to set it up.
+2. We recommend creating `sslcert` folder - the `.gitignore` file already includes this naming.
+3. As mentioned in the article create a new script entry in `package.json`. We recommend naming it `start:dev:ssl`, like this:
+
+`"start:dev:ssl": "ng serve --proxy-config proxy.conf.json --ssl --ssl-key ./sslcert/localhost.key --ssl-cert ./sslcert/localhost.crt"`
 
 ### Build
 
@@ -58,11 +73,14 @@ Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your 
 
 ### Prettier
 
-Prettier is used as a pre-commit hook to format js, json, md, ts files. Formatting of html files has been temporarily removed due to inflexibility in context of Angular component markup.
+Prettier is used as a pre-commit hook to format js, json, md, ts files. Formatting of html files has been temporarily removed due to
+inflexibility in context of Angular component markup.
 
 ## Contributions welcome!
 
-We're happy if you'd like to contribute to the further development of the new frontend client. Feel free to check the [existing issues tagged with "frontend-spa"](https://github.com/opendevstack/ods-provisioning-app/labels/frontend-spa) or add a new issue there.
+We're happy if you'd like to contribute to the further development of the new frontend client. Feel free to check the
+[existing issues tagged with "frontend-spa"](https://github.com/opendevstack/ods-provisioning-app/labels/frontend-spa) or add a new issue
+there.
 
 ## Usage of Angular CLI
 
