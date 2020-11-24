@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /**
  * Service to interact with Jenkins in order to provision projects and components.
@@ -124,6 +125,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   @Value("${bitbucket.technical.user}")
   protected String generalCdUser;
+
+  @Value("${jenkinspipeline.create-project.default-project-groups:}")
+  private String defaultEntitlementGroups;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
@@ -258,6 +262,11 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     try {
       options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
+
+      if (addDefaultEntitlementGroups()) {
+        addOrAppendToEntry(options, "PROJECT_GROUPS", defaultEntitlementGroups, ",");
+      }
+
       if (project.specialPermissionSet) {
         String entitlementGroups =
             "ADMINGROUP="
@@ -276,7 +285,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             entitlementGroups);
 
         options.put("PROJECT_ADMIN", project.projectAdminUser);
-        options.put("PROJECT_GROUPS", entitlementGroups);
+        addOrAppendToEntry(options, "PROJECT_GROUPS", entitlementGroups, ",");
+
       } else {
         // someone is always logged in :)
         logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
@@ -337,6 +347,25 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       logger.error(error, ex);
       throw ex;
     }
+  }
+
+  public static void addOrAppendToEntry(
+      Map<String, String> map, String key, String toAppend, String separator) {
+    Assert.notNull(map, "Parameter map is null!");
+    Assert.notNull(toAppend, "Parameter toAppend is null!");
+    Assert.notNull(key, "Parameter key is null!");
+    Assert.notNull(separator, "Parameter separator is null!");
+
+    String value = map.computeIfPresent(key, (s, s2) -> s2 + separator + toAppend);
+    if (value != null) {
+      return;
+    }
+
+    map.put(key, map.computeIfAbsent(key, s -> toAppend));
+  }
+
+  private boolean addDefaultEntitlementGroups() {
+    return null != defaultEntitlementGroups && !defaultEntitlementGroups.isEmpty();
   }
 
   @Override
