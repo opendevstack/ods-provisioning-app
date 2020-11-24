@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
@@ -35,7 +35,6 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     req = req.clone(httpOptions);
 
     return next.handle(req).pipe(
-      retry(2),
       catchError((error: HttpErrorResponse) => {
         // TODO
         // - Send error to logging service (backend + browser console <- based on env setting

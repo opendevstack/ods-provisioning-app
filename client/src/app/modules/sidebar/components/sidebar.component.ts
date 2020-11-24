@@ -11,8 +11,6 @@ import { Observable } from 'rxjs';
 })
 export class SidebarComponent {
   @Input() projects: ProjectData[];
-  @Input() isError: boolean;
-  @Input() isLoading: boolean;
   @Input() isNewProjectFormActive: boolean;
 
   searchControl: FormControl = new FormControl();
@@ -23,10 +21,6 @@ export class SidebarComponent {
       startWith(''),
       map(project => (project ? this.filterProjects(project) : this.projects.slice()))
     );
-  }
-
-  canDisplayContent(): boolean {
-    return this.projects && !this.isLoading && !this.isError;
   }
 
   private filterProjects(value: string): ProjectData[] {
