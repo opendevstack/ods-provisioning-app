@@ -68,7 +68,6 @@ describe('SidebarComponent', () => {
           ReactiveFormsModule,
           AppFormModule,
           MatCardModule,
-          LoadingIndicatorModule,
           MatListModule,
           MatFormFieldModule,
           MatInputModule,
@@ -99,18 +98,6 @@ describe('SidebarComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should display a message when projects cannot be loaded', () => {
-    /* given */
-    component.projects = null;
-    /* when */
-
-    /* then */
-    const errorMessageElement = fixture.debugElement.nativeElement.querySelector('[data-test-error]');
-    const sidebarElement = fixture.debugElement.nativeElement.querySelector('[data-test-sidebar]');
-    expect(sidebarElement).toBeNull();
-    expect(errorMessageElement).toBeDefined();
   });
 
   it('should be shown when projects could be loaded', () => {

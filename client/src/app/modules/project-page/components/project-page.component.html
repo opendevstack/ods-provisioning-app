@@ -10,21 +10,21 @@
           <img src="assets/icons/project-not-found.svg" alt="Project was not found" />
         </div>
         <div class="infobox__headline">Project was not found</div>
-        <div class="infobox__subline">Please check URL or select another project</div>
+        <div class="infobox__subline">Please check URL or select another project.</div>
       </div>
       <div class="infobox" *ngIf="errorType === 'NO_PROJECT_KEY'">
         <div class="infobox__img">
           <img src="assets/icons/project-empty.svg" alt="No project selected" />
         </div>
         <div class="infobox__headline">No project selected</div>
-        <div class="infobox__subline">Select or create a project to see more detail</div>
+        <div class="infobox__subline">Select or create a project to see more detail.</div>
       </div>
-      <div class="infobox" *ngIf="errorType === 'UNKNOWN'">
+      <div class="infobox" *ngIf="errorType === 'TECHNICAL_ERROR'">
         <div class="infobox__img">
-          <img src="assets/icons/project-empty.svg" alt="General error" />
+          <img src="assets/icons/project-empty.svg" alt="Technical error" />
         </div>
-        <div class="infobox__headline">General error</div>
-        <div class="infobox__subline">Please try again soon</div>
+        <div class="infobox__headline">Technical error</div>
+        <div class="infobox__subline">There was a technical error retrieving the project. Please try again soon.</div>
       </div>
     </div>
   </ng-container>

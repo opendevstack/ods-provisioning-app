@@ -36,11 +36,11 @@ export class NewProjectComponent extends FormBaseComponent implements OnInit, On
     private storageService: StorageService
   ) {
     super();
+    this.editMode.context = 'new';
+    this.editMode.enabled = true;
   }
 
   ngOnInit() {
-    this.editMode.context = 'new';
-    this.editMode.enabled = true;
     this.initializeFormGroup();
     this.initializePage();
   }

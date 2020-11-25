@@ -39,12 +39,18 @@ body {
   @include media-breakpoint-up(lg) {
     overflow: hidden;
     grid-area: main;
+
     .container {
       position: relative;
       height: 100%;
       display: grid;
       grid-template-areas: 'sidebar content';
       grid-template-columns: 1fr 2fr;
+
+      &.without-sidebar {
+        grid-template-areas: 'content content';
+        align-items: center;
+      }
     }
   }
 }
