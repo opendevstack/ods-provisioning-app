@@ -263,9 +263,9 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
       String name =
           securityServerClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
       return name;
-    } catch (Exception eAddGroup) {
-      logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
-      throw new IdMgmtException(eAddGroup);
+    } catch (Exception ex) {
+      logger.error("Could not create group {}, error: {}", groupName, ex.getMessage(), ex);
+      throw new IdMgmtException(ex);
     }
   }
 

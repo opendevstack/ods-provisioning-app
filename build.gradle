@@ -56,7 +56,7 @@ plugins {
     id 'eclipse'
     id 'maven-publish'
     id 'jacoco'
-    id 'org.sonarqube' version "2.8"
+    id 'org.sonarqube' version "3.0"
     id "com.diffplug.spotless" version "5.8.2"
 }
 
@@ -106,7 +106,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-actuator')
     implementation('org.springframework.boot:spring-boot-starter-mail')
     implementation('org.springframework.boot:spring-boot-starter-security')
-    //security frameowork
+    //security framework
     implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
     //templating for frontend
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -157,7 +157,7 @@ dependencies {
     implementation(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
         exclude group: 'commons-httpclient'
         exclude group: 'org.apache.ws.commons', module: 'XmlSchema'
-        // Explicity excludes vulnerable versions
+        // Explicitly excludes vulnerable versions
         exclude group: 'org.apache.struts', module: 'struts2-core'
         exclude group: 'org.apache.struts.xwork', module: 'xwork-core'
         exclude group: 'commons-collections', module: 'commons-collections'
@@ -207,7 +207,7 @@ bootRun {
 }
 
 jacoco {
-    toolVersion = "0.8.3"
+    toolVersion = "0.8.6"
 }
 
 jacocoTestReport {
