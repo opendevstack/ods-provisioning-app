@@ -21,7 +21,7 @@
       "errorMessages": [
         "Please enter 3-40 characters",
         "Please use letters and dashes (optional)",
-        "Please avoid using reserved keywords e.g. tests"
+        "Please avoid using tests as a reserved keyword"
       ]
     }
   }
