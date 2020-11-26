@@ -40,11 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-/**
- * Custom Authentication manager to integrate the password storing for authentication
- *
- * @author Torsten Jaeschke
- */
+/** Custom Authentication manager to integrate the password storing for authentication */
 @Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
@@ -267,9 +263,9 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
       String name =
           securityServerClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
       return name;
-    } catch (Exception eAddGroup) {
-      logger.error("Could not create group {}, error: {}", groupName, eAddGroup);
-      throw new IdMgmtException(eAddGroup);
+    } catch (Exception ex) {
+      logger.error("Could not create group {}, error: {}", groupName, ex.getMessage(), ex);
+      throw new IdMgmtException(ex);
     }
   }
 

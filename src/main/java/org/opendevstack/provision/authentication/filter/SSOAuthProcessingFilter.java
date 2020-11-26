@@ -26,11 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 
-/**
- * Custom processing filter to enable SSO via Crowd for the provision app
- *
- * @author Torsten Jaeschke
- */
+/** Custom processing filter to enable SSO via Crowd for the provision app */
 public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFilter {
 
   private static final Logger logger = LoggerFactory.getLogger(SSOAuthProcessingFilter.class);

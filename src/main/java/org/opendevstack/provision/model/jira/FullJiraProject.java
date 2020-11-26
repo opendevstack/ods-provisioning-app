@@ -23,8 +23,6 @@ import java.net.URI;
  * In line with https://docs.atlassian.com/jira/REST/server/#api/2/project-getProject to allow use
  * of given jira classes from Jira Rest Client lib but still let us create a new project, we need to
  * expand the already existing one with properties that they left out
- *
- * @author Pascal Brokmeier
  */
 // otherwise jackson adds all the nulls and we don't want those in our call to
 // the API

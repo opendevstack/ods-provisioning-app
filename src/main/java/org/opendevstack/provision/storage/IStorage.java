@@ -19,7 +19,7 @@ import java.util.Map;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/** @author Torsten Jaeschke Interface for the underlying storage */
+/** Interface for the underlying storage */
 public interface IStorage {
   /**
    * Store a project

@@ -31,8 +31,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Simple extension of <code>CachingGroupMembershipManager</code> to fix
  * https://github.com/opendevstack/ods-provisioning-app/issues/106
- *
- * @author utschig
  */
 public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipManager {
   /** security server restClient */

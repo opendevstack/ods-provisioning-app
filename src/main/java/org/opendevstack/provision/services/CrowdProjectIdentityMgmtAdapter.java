@@ -27,12 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Identity mgmt adapter to create / validate groups
- *
- * @author utschig
- * @author utschig,stefanlack
- */
+/** Identity mgmt adapter to create / validate groups */
 @Service
 public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdapter {
   private static final Logger logger =

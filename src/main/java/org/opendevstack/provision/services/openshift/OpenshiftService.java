@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-/** @author Sebastian Titakis */
 public class OpenshiftService {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenshiftService.class);

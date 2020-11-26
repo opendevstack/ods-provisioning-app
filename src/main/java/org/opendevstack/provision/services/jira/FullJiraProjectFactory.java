@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** @author Sebastian Titaks */
 @Component
 public class FullJiraProjectFactory {
 

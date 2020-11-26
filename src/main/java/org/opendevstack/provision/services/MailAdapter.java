@@ -30,11 +30,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-/**
- * Service for mail interaction with the user in the provisioning app
- *
- * @author Brokmeier, Pascal
- */
+/** Service for mail interaction with the user in the provisioning app */
 @Service
 public class MailAdapter {
 

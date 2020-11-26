@@ -45,13 +45,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * created by: OPITZ CONSULTING Deutschland GmbH
- *
- * @author Brokmeier, Pascal
- *     <p>To communicate with Jira, we use the Jira REST API
- *     https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To ease the burden of
- *     working with a REST API, there is a jira restClient
- *     https://ecosystem.atlassian.net/wiki/display/JRJC/
+ * To communicate with Jira, we use the Jira REST API
+ * https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis To ease the burden of working
+ * with a REST API, there is a jira restClient https://ecosystem.atlassian.net/wiki/display/JRJC/
  */
 @Service
 public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapter, JiraRestService {

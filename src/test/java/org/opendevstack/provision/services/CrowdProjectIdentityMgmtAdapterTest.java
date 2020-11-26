@@ -32,10 +32,6 @@ import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * @author utschig
- * @author Stefan Lack
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CrowdProjectIdentityMgmtAdapterTest {
 

@@ -57,12 +57,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Rest Controller to handle the process of project creation
- *
- * @author Torsten Jaeschke
- * @author Clemens Utschig
- */
+/** Rest Controller to handle the process of project creation */
 @RestController
 @RequestMapping(value = ProjectAPI.API_V2_PROJECT)
 public class ProjectApiController {

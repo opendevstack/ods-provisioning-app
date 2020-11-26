@@ -31,8 +31,6 @@ import org.springframework.http.HttpMethod;
  * the matcher matches.
  *
  * <p>See RestClientCallArgumentMatcher#bodyCaptor and RestClientCallArgumentMatcher#urlCaptor
- *
- * @author Stefan Lack
  */
 public class RestClientCallArgumentMatcher implements ArgumentMatcher<RestClientCall> {
 

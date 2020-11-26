@@ -18,17 +18,9 @@ import java.io.IOException;
 import java.util.Map;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * Interface for SCM adapters
- *
- * @author utschig
- */
+/** Interface for SCM adapters */
 public interface ISCMAdapter extends IServiceAdapter {
-  /**
-   * Type of URLs returned from this adapter
-   *
-   * @author utschig
-   */
+  /** Type of URLs returned from this adapter */
   public enum URL_TYPE {
     URL_CLONE_HTTP,
     URL_CLONE_SSH,

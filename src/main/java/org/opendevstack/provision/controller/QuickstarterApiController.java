@@ -29,11 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Restcontroller to communicate with the Job API and handle the quickstarters and related jobs
- *
- * @author Torsten Jaeschke
- */
+/** Restcontroller to communicate with the Job API and handle the quickstarters and related jobs */
 @RestController
 @RequestMapping(value = "api/v1/quickstarter")
 public class QuickstarterApiController {

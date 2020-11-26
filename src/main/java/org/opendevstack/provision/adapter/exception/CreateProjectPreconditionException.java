@@ -13,7 +13,6 @@
  */
 package org.opendevstack.provision.adapter.exception;
 
-/** @author Sebastian Titakis */
 public class CreateProjectPreconditionException extends Exception {
 
   private final String adapterName;

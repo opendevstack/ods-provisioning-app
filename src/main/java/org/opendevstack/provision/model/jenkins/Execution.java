@@ -22,7 +22,6 @@ import javax.annotation.Generated;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties({"options"})
 public class Execution {
