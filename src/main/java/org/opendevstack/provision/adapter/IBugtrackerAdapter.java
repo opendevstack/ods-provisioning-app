@@ -20,11 +20,7 @@ import java.util.Map;
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * Service interface for a bugtracker
- *
- * @author utschig
- */
+/** Service interface for a bugtracker */
 public interface IBugtrackerAdapter extends IServiceAdapter {
   /**
    * Create a bugtracker project based on name, key and project type

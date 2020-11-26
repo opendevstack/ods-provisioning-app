@@ -16,7 +16,6 @@ package org.opendevstack.provision.services.jira;
 import javax.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 
-/** @author Sebastian Titakis */
 @Validated
 public class JiraProjectTemplateRoleMapping {
 

@@ -23,11 +23,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.core.Authentication;
 
-/**
- * Provides custom expression-based access control
- *
- * @author Sebastian Titakis
- */
+/** Provides custom expression-based access control */
 public class ProvAppExpressionHandler extends DefaultMethodSecurityExpressionHandler {
 
   private static Logger logger = LoggerFactory.getLogger(ProvAppExpressionHandler.class);

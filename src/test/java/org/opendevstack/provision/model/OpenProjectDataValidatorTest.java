@@ -27,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-/** @author Sebastian Titakis */
 public class OpenProjectDataValidatorTest {
 
   private OpenProjectData data;

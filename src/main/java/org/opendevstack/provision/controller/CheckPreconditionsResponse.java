@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
-/** @author Sebastian Titakis */
 public class CheckPreconditionsResponse {
 
   private static Logger logger = LoggerFactory.getLogger(CheckPreconditionsResponse.class);

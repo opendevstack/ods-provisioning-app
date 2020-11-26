@@ -20,11 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
-/**
- * Test Project data equals / hashcode
- *
- * @author utschig
- */
+/** Test Project data equals / hashcode */
 public class ProjectDataTest {
 
   @Test

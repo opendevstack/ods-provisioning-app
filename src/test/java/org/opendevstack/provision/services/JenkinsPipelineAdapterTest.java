@@ -29,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.SpringBoot;
@@ -42,6 +41,8 @@ import org.opendevstack.provision.model.jenkins.Option;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.ValueCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
@@ -49,7 +50,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
@@ -58,7 +58,10 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private static final String PROJECT_KEY = "123key";
 
-  @InjectMocks JenkinsPipelineAdapter jenkinsPipelineAdapter;
+  @Autowired private JenkinsPipelineAdapter jenkinsPipelineAdapter;
+
+  @Value("${jenkinspipeline.create-project.default-project-groups}")
+  private String defaultEntitlementGroups;
 
   private final String JOB_1_NAME = "be-java-springboot";
   private final String JOB_1_REPO = "gitRepoName.git";
@@ -406,6 +409,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
+    Assertions.assertThat(groups).contains(defaultEntitlementGroups);
     Assertions.assertThat(groups).contains("ADMINGROUP=" + projectData.projectAdminGroup);
     Assertions.assertThat(groups).contains("USERGROUP=" + projectData.projectUserGroup);
     Assertions.assertThat(groups).contains("READONLYGROUP=" + projectData.projectReadonlyGroup);
@@ -445,5 +449,25 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   public void getComponentByNameComponentType() {
     Optional<Job> foundByLegacyType = jenkinsPipelineAdapter.getComponentByType(JOB_1_NAME);
     assertTrue(foundByLegacyType.isPresent());
+  }
+
+  @Test
+  public void appendToMapEntry() {}
+
+  @Test
+  public void addOrAppendToMapEntryLambda() {
+
+    Map<String, String> map = new HashMap<>();
+    map.put("k1", "v1");
+    map.put("k2", "v2");
+
+    String key = "k1";
+    JenkinsPipelineAdapter.addOrAppendToEntry(map, key, "appended", ",");
+    Assert.assertEquals("v1,appended", map.get(key));
+
+    key = "newKey";
+    String value = "newValue";
+    JenkinsPipelineAdapter.addOrAppendToEntry(map, key, value, ",");
+    Assert.assertEquals(value, map.get(key));
   }
 }

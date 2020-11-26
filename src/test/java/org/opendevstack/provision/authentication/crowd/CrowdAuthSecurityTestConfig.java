@@ -35,8 +35,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * Configuration of BasicAuth for testing purposes.
  *
  * <p>Never move it to src/main/java folder!
- *
- * @author Sebastian Titakis
  */
 @Configuration
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "utestcrowd")

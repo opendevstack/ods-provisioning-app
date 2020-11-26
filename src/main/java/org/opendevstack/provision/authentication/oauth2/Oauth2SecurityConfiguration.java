@@ -31,11 +31,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-/**
- * Configuration Class for the OAuth2 Spring Security Adapter
- *
- * @author Stefan Lack, Sebastian Titakis
- */
+/** Configuration Class for the OAuth2 Spring Security Adapter */
 @Configuration
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")
 @EnableWebSecurity

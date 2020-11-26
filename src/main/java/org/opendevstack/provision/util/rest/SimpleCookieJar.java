@@ -23,11 +23,7 @@ import okhttp3.HttpUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Simple cookie jar implementation to store cookies for all for session bound APIs
- *
- * @author Torsten Jaeschke
- */
+/** Simple cookie jar implementation to store cookies for all for session bound APIs */
 public class SimpleCookieJar implements CookieJar {
 
   private static final Logger logger = LoggerFactory.getLogger(SimpleCookieJar.class);

@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-/** @author Sebastian Titakis, Georg Federmann */
 @Component
 public class JiraProjectPropertyUpdater {
 

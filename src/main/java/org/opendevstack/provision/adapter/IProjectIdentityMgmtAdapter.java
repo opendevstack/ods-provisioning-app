@@ -21,8 +21,6 @@ import org.opendevstack.provision.model.OpenProjectData;
  * IBugtrackerAdapter}, {@link ICollaborationAdapter} and {@link ISCMAdapter}
  *
  * <p>In case authentication is needed - use {@link IODSAuthnzAdapter} to get the data
- *
- * @author utschig
  */
 public interface IProjectIdentityMgmtAdapter extends IServiceAdapter {
 

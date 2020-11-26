@@ -17,11 +17,7 @@ package org.opendevstack.provision.model.bitbucket;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.annotation.Generated;
 
-/**
- * { "name": "My repo", "scmId": "git", "forkable": true }
- *
- * @author Torsten Jaeschke
- */
+/** { "name": "My repo", "scmId": "git", "forkable": true } */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Repository {

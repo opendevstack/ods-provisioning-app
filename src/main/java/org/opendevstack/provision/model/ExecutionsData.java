@@ -22,8 +22,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 /**
  * error: {"error":true,"apiversion":19,"errorCode":"api.error.job.options-invalid","message":"Job
  * options were not valid: Option 'git_url_https' is required."}
- *
- * @author Torsten Jaeschke
  */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)

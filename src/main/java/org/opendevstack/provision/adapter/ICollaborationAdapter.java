@@ -18,11 +18,7 @@ import java.io.IOException;
 import java.util.Map;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * Interface for collaboration adapter implementations, e.g for confluence
- *
- * @author utschig
- */
+/** Interface for collaboration adapter implementations, e.g for confluence */
 public interface ICollaborationAdapter extends IServiceAdapter {
 
   /**
