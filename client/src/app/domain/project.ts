@@ -9,7 +9,7 @@ export interface ProjectData {
   projectKey: string;
   description?: string;
   webhookProxySecret?: string;
-  cdUser?: string;
+  cdUser: string;
   quickstarters?: ProjectQuickstarterComponentsData[];
   bugtrackerSpace: boolean;
   platformRuntime: boolean;

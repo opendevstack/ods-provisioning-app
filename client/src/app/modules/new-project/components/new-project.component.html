@@ -98,18 +98,31 @@
                     placeholder="Project specific CD user"
                     formControlName="cdUser"
                     appRemoveWhitespaces
+                    required
                   />
                 </mat-form-field>
                 <mat-icon
                   svgIcon="information"
                   aria-hidden="false"
-                  aria-label="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                  aria-label="The CD user has to exist in your identity management and has to be able to access Bitbucket.
                     After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
-                  matTooltip="If you use a project specific CD user, the user has to exist in your identity management and has to be able to access Bitbucket.
+                  matTooltip="The CD user has to exist in your identity management and has to be able to access Bitbucket.
                     After project creation you will have to change the CD user password in the OpenShift webconsole of the created CD project."
                   matTooltipClass="formfield__tooltip"
                 ></mat-icon>
               </div>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('cdUser'), 'required')">
+                Project specific CD user is required
+              </mat-error>
+              <mat-error
+                class="formfield__error"
+                *ngIf="hasErrorByType(form.get('cdUser'), 'pattern')">
+                <ul>
+                  <li *ngFor="let message of validationConfig.project.cdUser.errorMessages">{{ message }}</li>
+                </ul>
+              </mat-error>
             </div>
             <div class="col">
               <mat-form-field>

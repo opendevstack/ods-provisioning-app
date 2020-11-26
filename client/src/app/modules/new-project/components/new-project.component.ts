@@ -105,7 +105,7 @@ export class NewProjectComponent extends FormBaseComponent implements OnInit, On
     this.form = this.formBuilder.group({
       name: ['', [Validators.required, Validators.pattern(this.validationConfig.project.name.regex)]],
       key: ['', [Validators.required, Validators.pattern(this.validationConfig.project.key.regex)]],
-      cdUser: null,
+      cdUser: ['', [Validators.required, Validators.pattern(this.validationConfig.project.cdUser.regex)]],
       template: [null, Validators.required],
       description: null,
       optInODS: null,

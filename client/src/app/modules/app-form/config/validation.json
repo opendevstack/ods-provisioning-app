@@ -2,17 +2,15 @@
   "project": {
     "name": {
       "regex": "([a-zA-Z][a-zA-Z_0-9]+)",
-      "errorMessages": [
-        "Please enter 2-80 characters",
-        "Please use numbers, letters and underscore"
-      ]
+      "errorMessages": ["Please enter 2-80 characters", "Please use numbers, letters and underscore"]
     },
     "key": {
       "regex": "([a-zA-Z][a-zA-Z_0-9]+)",
-      "errorMessages": [
-        "Please enter 2-10 characters",
-        "Please use numbers, letters and underscore"
-      ]
+      "errorMessages": ["Please enter 2-10 characters", "Please use numbers, letters and underscore"]
+    },
+    "cdUser": {
+      "regex": "([a-zA-Z][a-zA-Z_0-9]+)",
+      "errorMessages": ["Please enter at least 2 characters", "Please use numbers, letters and underscore"]
     }
   },
   "quickstarters": {
