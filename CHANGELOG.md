@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+
 - Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
 - Add support for odsbox for local development([#579](https://github.com/opendevstack/ods-provisioning-app/issues/579))
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
@@ -11,6 +12,7 @@
 
 ### Fixed
 
+- Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))
 - Set confluence shortcut in jira even if confluence server is not activated ([#613](https://github.com/opendevstack/ods-provisioning-app/issues/613))
 - Missing verification of confluence project already exists on project creation event ([#607](https://github.com/opendevstack/ods-provisioning-app/issues/607))
 - Jira project key check logs exception on project creation ([#605](https://github.com/opendevstack/ods-provisioning-app/issues/605))
