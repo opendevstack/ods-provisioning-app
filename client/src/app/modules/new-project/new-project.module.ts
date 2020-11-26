@@ -14,7 +14,7 @@ import { AppFormModule } from '../app-form/app-form.module';
 import { NewProjectComponent } from './components/new-project.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ProjectModule } from '../project/project.module';
-import { httpInterceptorProviders } from '../http-interceptors';
+import { CustomErrorHandlerModule } from '../error-handler/custom-error-handler.module';
 
 @NgModule({
   declarations: [NewProjectComponent],
@@ -26,6 +26,7 @@ import { httpInterceptorProviders } from '../http-interceptors';
         component: NewProjectComponent
       }
     ]),
+    CustomErrorHandlerModule,
     ProjectModule,
     LoadingIndicatorModule,
     MatIconModule,
@@ -39,7 +40,6 @@ import { httpInterceptorProviders } from '../http-interceptors';
     AppFormModule,
     MatCheckboxModule
   ],
-  providers: [httpInterceptorProviders],
   schemas: [NO_ERRORS_SCHEMA]
 })
 export class NewProjectModule {}

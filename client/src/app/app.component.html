@@ -21,22 +21,44 @@
 </div>
 
 <div class="main-wrapper">
-  <div class="container">
 
-    <div class="sidebar">
-      <app-sidebar
-        [projects]="projects"
-        [isLoading]="isLoading"
-        [isError]="isError"
-        [isNewProjectFormActive]="isNewProjectFormActive"
-      ></app-sidebar>
+  <ng-container *ngIf="isLoading; else finishedLoading">
+    <div class="container without-sidebar">
+      <div class="content">
+        <app-loading-indicator></app-loading-indicator>
+      </div>
     </div>
+  </ng-container>
 
-    <div class="content">
-      <router-outlet (activate)="getEditModeStatus()"></router-outlet>
-    </div>
+  <ng-template #finishedLoading>
 
-  </div>
+    <ng-container *ngIf="!isError; else globalError">
+      <div class="container">
+
+        <div class="sidebar">
+          <app-sidebar
+            [projects]="projects"
+            [isNewProjectFormActive]="isNewProjectFormActive"
+          ></app-sidebar>
+        </div>
+
+        <div class="content">
+          <router-outlet (activate)="getEditModeStatus()"></router-outlet>
+        </div>
+
+      </div>
+    </ng-container>
+
+    <ng-template #globalError>
+      <div class="container without-sidebar">
+        <div class="content">
+          <app-general-error-page></app-general-error-page>
+        </div>
+      </div>
+    </ng-template>
+
+  </ng-template>
+
 </div>
 
 <div class="footer-wrapper">

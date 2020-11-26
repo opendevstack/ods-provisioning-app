@@ -17,9 +17,9 @@ import { AppFormModule } from '../app-form/app-form.module';
 import { ProjectHeaderComponent } from './components/header.component';
 import { QuickstarterListComponent } from './components/quickstarter-list.component';
 import { QuickstarterAddComponent } from './components/quickstarter-add.component';
-import { httpInterceptorProviders } from '../http-interceptors';
 import { ProjectModule } from '../project/project.module';
 import { ConfirmationModule } from '../confirmation/confirmation.module';
+import { CustomErrorHandlerModule } from '../error-handler/custom-error-handler.module';
 
 @NgModule({
   declarations: [ProjectPageComponent, ProjectHeaderComponent, QuickstarterListComponent, QuickstarterAddComponent],
@@ -31,6 +31,7 @@ import { ConfirmationModule } from '../confirmation/confirmation.module';
         component: ProjectPageComponent
       }
     ]),
+    CustomErrorHandlerModule,
     ProjectModule,
     LoadingIndicatorModule,
     MatIconModule,
@@ -45,7 +46,6 @@ import { ConfirmationModule } from '../confirmation/confirmation.module';
     ReactiveFormsModule,
     AppFormModule
   ],
-  providers: [httpInterceptorProviders],
   schemas: [NO_ERRORS_SCHEMA]
 })
 export class ProjectPageModule {

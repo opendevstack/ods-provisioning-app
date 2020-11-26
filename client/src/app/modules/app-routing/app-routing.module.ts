@@ -29,6 +29,10 @@ const routes: Routes = [
     loadChildren: () => import('../logout/logout.module').then(m => m.LogoutModule)
   },
   {
+    path: 'error',
+    loadChildren: () => import('../general-error-page/general-error-page.module').then(m => m.GeneralErrorPageModule)
+  },
+  {
     path: '',
     redirectTo: 'project',
     pathMatch: 'full'
