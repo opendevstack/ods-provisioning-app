@@ -1,6 +1,6 @@
 package org.opendevstack.provision.authentication.oauth2;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,15 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(SpringExtension.class)
 public class RoleAwareOAuth2UserServiceTest {
 
   @Mock private DefaultOidcUser oidcUser;
@@ -28,7 +27,7 @@ public class RoleAwareOAuth2UserServiceTest {
   private Token token;
   private JsonNode jwt;
 
-  @Before
+  @BeforeEach
   public void setup() {
 
     List<String> roles = new ArrayList();
@@ -46,14 +45,14 @@ public class RoleAwareOAuth2UserServiceTest {
     when(oidcUser.getEmail()).thenReturn(email);
     when(oidcUser.getName()).thenReturn(username);
 
-    Assert.assertEquals(email, RoleAwareOAuth2UserService.resolveUsername(oidcUser, true));
-    Assert.assertEquals(username, RoleAwareOAuth2UserService.resolveUsername(oidcUser, false));
+    assertEquals(email, RoleAwareOAuth2UserService.resolveUsername(oidcUser, true));
+    assertEquals(username, RoleAwareOAuth2UserService.resolveUsername(oidcUser, false));
 
     try {
       RoleAwareOAuth2UserService.resolveUsername(null, false);
       fail();
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("oidcUser"));
+      assertTrue(e.getMessage().contains("oidcUser"));
     }
   }
 
@@ -64,21 +63,21 @@ public class RoleAwareOAuth2UserServiceTest {
       RoleAwareOAuth2UserService.extractRoles(null, userRolesExpression, false);
       fail();
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("token"));
+      assertTrue(e.getMessage().contains("token"));
     }
 
     try {
       RoleAwareOAuth2UserService.extractRoles(jwt, null, false);
       fail();
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("userRolesExpression"));
+      assertTrue(e.getMessage().contains("userRolesExpression"));
     }
 
     try {
       RoleAwareOAuth2UserService.extractRoles(jwt, "does-not-start-with-slash", false);
       fail();
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("must start with '/'"));
+      assertTrue(e.getMessage().contains("must start with '/'"));
     }
   }
 
@@ -89,22 +88,22 @@ public class RoleAwareOAuth2UserServiceTest {
     List<String> mappedRoles =
         RoleAwareOAuth2UserService.extractRoles(jwt, userRolesExpression, convertToLowerCase);
 
-    Assert.assertEquals(convertToLowerCase, mappedRoles.contains(ROLE_1.toLowerCase()));
-    Assert.assertEquals(!convertToLowerCase, mappedRoles.contains(ROLE_1));
+    assertEquals(convertToLowerCase, mappedRoles.contains(ROLE_1.toLowerCase()));
+    assertEquals(!convertToLowerCase, mappedRoles.contains(ROLE_1));
 
     convertToLowerCase = false;
     mappedRoles =
         RoleAwareOAuth2UserService.extractRoles(jwt, userRolesExpression, convertToLowerCase);
 
-    Assert.assertEquals(convertToLowerCase, mappedRoles.contains(ROLE_1.toLowerCase()));
-    Assert.assertEquals(!convertToLowerCase, mappedRoles.contains(ROLE_1));
+    assertEquals(convertToLowerCase, mappedRoles.contains(ROLE_1.toLowerCase()));
+    assertEquals(!convertToLowerCase, mappedRoles.contains(ROLE_1));
   }
 
   @Test
   public void whenNotValidUserRolesExpressionThenMappedRolesEmpty() {
 
     List<String> roles = RoleAwareOAuth2UserService.extractRoles(jwt, "/doesnotexists", false);
-    Assert.assertNotNull(roles);
+    assertNotNull(roles);
   }
 
   @Test

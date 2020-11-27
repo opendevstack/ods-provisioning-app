@@ -1,6 +1,6 @@
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,11 +8,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientCall;
@@ -24,12 +22,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("testods")
-@Ignore("Only exists for manual execution")
+@Disabled("Only exists for manual execution")
 public class CleanupAtlassianProjectsMT {
 
   private static final Logger LOG = LoggerFactory.getLogger(CleanupAtlassianProjectsMT.class);
@@ -53,7 +49,7 @@ public class CleanupAtlassianProjectsMT {
   @Value("${confluence.uri}")
   private String confluenceUrl;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     jiraCredentials = buildCredentials("jira");
     confluenceCredentials = buildCredentials("confluence");

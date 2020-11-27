@@ -13,14 +13,12 @@
  */
 package org.opendevstack.provision.services.jira;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.opendevstack.provision.services.jira.JiraSpecialPermissionerTest.UTEST_CONFIGURED_PERMISSION_SCHEME_ID;
 import static org.opendevstack.provision.services.jira.JiraSpecialPermissionerTest.UTEST_PROJECT_TEMPLATE_NAME;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jira.FullJiraProject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +26,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class FullJiraProjectFactoryTest {

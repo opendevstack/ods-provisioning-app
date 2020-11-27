@@ -14,11 +14,12 @@
 
 package org.opendevstack.provision.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -33,7 +34,7 @@ public class CheckPreconditionsResponseTest {
     String expectedJson =
         "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CREATE_PROJECT\",\"status\":\"FAILED\",\"errors\":[{\"error-code\":\"EXCEPTION\",\"error-message\":\"error1\"}]}";
 
-    Assert.assertEquals(
+    assertEquals(
         expectedJson,
         CheckPreconditionsResponse.failedAsJson(
             CheckPreconditionsResponse.JobStage.CREATE_PROJECT, "error1"));
@@ -46,7 +47,7 @@ public class CheckPreconditionsResponseTest {
     errors.add(CheckPreconditionFailure.getUnexistantGroupInstance("failure1"));
     errors.add(CheckPreconditionFailure.getUnexistantUserInstance("failure2"));
 
-    Assert.assertEquals(
+    assertEquals(
         "CHECK_PRECONDITIONS=FAILED"
             + System.lineSeparator()
             + "ERRORS=[CheckPreconditionFailure{error-code='UNEXISTANT_GROUP', detail='failure1'}, CheckPreconditionFailure{error-code='UNEXISTANT_USER', detail='failure2'}]"
@@ -57,7 +58,7 @@ public class CheckPreconditionsResponseTest {
     String expectedJson =
         "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"FAILED\",\"errors\":[{\"error-code\":\"UNEXISTANT_GROUP\",\"error-message\":\"failure1\"},{\"error-code\":\"UNEXISTANT_USER\",\"error-message\":\"failure2\"}]}";
 
-    Assert.assertEquals(
+    assertEquals(
         expectedJson,
         CheckPreconditionsResponse.checkPreconditionFailed(
             MediaType.APPLICATION_JSON_VALUE,
@@ -68,14 +69,13 @@ public class CheckPreconditionsResponseTest {
   @Test
   public void isJsonContentType() {
 
-    Assert.assertFalse(CheckPreconditionsResponse.isJsonContentType(null));
+    assertFalse(CheckPreconditionsResponse.isJsonContentType(null));
 
-    Assert.assertFalse(CheckPreconditionsResponse.isJsonContentType("something"));
+    assertFalse(CheckPreconditionsResponse.isJsonContentType("something"));
 
-    Assert.assertTrue(
-        CheckPreconditionsResponse.isJsonContentType(MediaType.APPLICATION_JSON_VALUE));
+    assertTrue(CheckPreconditionsResponse.isJsonContentType(MediaType.APPLICATION_JSON_VALUE));
 
-    Assert.assertTrue(
+    assertTrue(
         CheckPreconditionsResponse.isJsonContentType(
             MediaType.APPLICATION_JSON_VALUE + "; " + " more text"));
   }
@@ -83,14 +83,14 @@ public class CheckPreconditionsResponseTest {
   @Test
   public void successfulResponse() throws JsonProcessingException {
 
-    Assert.assertEquals(
+    assertEquals(
         "CHECK_PRECONDITIONS=COMPLETED_SUCCESSFULLY",
         CheckPreconditionsResponse.successful(
             null, CheckPreconditionsResponse.JobStage.CHECK_PRECONDITIONS));
 
     String expectedJson =
         "{\"endpoint\":\"ADD_PROJECT\",\"stage\":\"CHECK_PRECONDITIONS\",\"status\":\"COMPLETED_SUCCESSFULLY\"}";
-    Assert.assertEquals(
+    assertEquals(
         expectedJson,
         CheckPreconditionsResponse.successful(
             MediaType.APPLICATION_JSON_VALUE,

@@ -13,22 +13,18 @@
  */
 package org.opendevstack.provision.services.jira;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @ActiveProfiles("utest")
 public class JiraProjectTypePropertyCalculatorTest {
 
@@ -41,7 +37,7 @@ public class JiraProjectTypePropertyCalculatorTest {
 
   @Autowired private JiraProjectTypePropertyCalculator propertyCalculator;
 
-  @Before
+  @BeforeEach
   public void beforeTest() {
     MockitoAnnotations.initMocks(this);
   }
