@@ -34,9 +34,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.FileCopyUtils;
 
-@SpringBootTest
-@DirtiesContext
-@ActiveProfiles("utest")
 public class LocalStorageTest {
 
   private LocalStorage localStorage;

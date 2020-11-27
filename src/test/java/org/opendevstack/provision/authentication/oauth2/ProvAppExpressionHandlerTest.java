@@ -14,7 +14,6 @@
 package org.opendevstack.provision.authentication.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +33,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class ProvAppExpressionHandlerTest {
 
   @MockBean private Authentication authentication;
-  @MockBean private MethodInvocation methodInvocation;
 
   private static final String USER_ROLE = "userRole";
   private static final String ADMIN_ROLE = "adminRole";
@@ -47,16 +45,10 @@ public class ProvAppExpressionHandlerTest {
   }
 
   @Test
-  public void createEvaluationContextInternal() {
+  public void createEvaluationContextInternal() throws NoSuchMethodException {
     MethodInvocation mi = mock(MethodInvocation.class);
-    try {
-      given(mi.getMethod()).willReturn(String.class.getMethod("toString"));
-    } catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    }
-    given(mi.getThis()).willReturn(this);
-
-
+    when(mi.getMethod()).thenReturn(String.class.getMethod("toString"));
+    when(mi.getThis()).thenReturn(this);
 
     StandardEvaluationContext evaluationContextInternal =
         provAppExpressionHandler.createEvaluationContextInternal(authentication, mi);

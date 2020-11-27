@@ -48,7 +48,7 @@ public class RestClientTest {
   public void setUp() {
     client = new RestClient();
     client.setConnectTimeout(5);
-    client.setReadTimeout(20);
+    client.setReadTimeout(25);
     client.afterPropertiesSet();
   }
 
