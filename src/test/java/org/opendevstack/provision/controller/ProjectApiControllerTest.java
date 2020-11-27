@@ -14,7 +14,7 @@
 
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
@@ -28,13 +28,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
@@ -61,7 +58,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -69,11 +65,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SpringBoot.class)
-@ActiveProfiles("crowd,utestcrowd,quickstarters")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({"crowd", "utestcrowd", "quickstarters"})
 @DirtiesContext
 public class ProjectApiControllerTest {
 
@@ -112,7 +105,7 @@ public class ProjectApiControllerTest {
 
   private OpenProjectData data;
 
-  @Before
+  @BeforeEach
   public void setUp() {
 
     mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
@@ -1076,7 +1069,7 @@ public class ProjectApiControllerTest {
           null, new ArrayList<Consumer<Map<String, String>>>());
     } catch (IllegalArgumentException e) {
       // expected!
-      Assert.assertTrue(e.getMessage().contains("null"));
+      assertTrue(e.getMessage().contains("null"));
     }
 
     // case validators list is empty
@@ -1085,7 +1078,7 @@ public class ProjectApiControllerTest {
           data, new ArrayList<Consumer<Map<String, String>>>());
     } catch (IllegalArgumentException e) {
       // expected!
-      Assert.assertTrue(e.getMessage().contains("validators"));
+      assertTrue(e.getMessage().contains("validators"));
     }
 
     // case data is not null and validators is not empty

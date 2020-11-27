@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.model;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_ID_KEY;
 import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_TYPE_KEY;
 
@@ -23,15 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OpenProjectDataValidatorTest {
 
   private OpenProjectData data;
 
-  @Before
+  @BeforeEach
   public void setup() {
     data = new OpenProjectData();
     data.projectKey = "KEY";
@@ -62,7 +63,7 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, null);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
+      assertTrue(e.getMessage().contains("null"));
     }
 
     // case component id is empty
@@ -71,7 +72,7 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, empty);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("empty"));
+      assertTrue(e.getMessage().contains("empty"));
     }
 
     // case component id longer than max length
@@ -82,10 +83,10 @@ public class OpenProjectDataValidatorTest {
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
       String errorMessage = e.getMessage();
-      Assert.assertTrue(errorMessage.contains(tooLong));
+      assertTrue(errorMessage.contains(tooLong));
       // special assert that verifies 2 errors: too long and not valid chars
-      Assert.assertTrue(errorMessage.contains("not valid name"));
-      //            Assert.assertEquals(2,
+      assertTrue(errorMessage.contains("not valid name"));
+      //            assertEquals(2,
       // errorMessage.split(OpenProjectDataValidator.VALIDATION_ERROR_MESSAGE_SEPARATOR).length);
     }
 
@@ -96,7 +97,7 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, tooShort);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains(tooShort));
+      assertTrue(e.getMessage().contains(tooShort));
     }
 
     // case component id is longer or equal than max length
@@ -117,8 +118,8 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, null);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
-      Assert.assertTrue(e.getMessage().contains(COMPONENT_TYPE_KEY));
+      assertTrue(e.getMessage().contains("null"));
+      assertTrue(e.getMessage().contains(COMPONENT_TYPE_KEY));
     }
 
     // case component id is null
@@ -127,8 +128,8 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, null);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("null"));
-      Assert.assertTrue(e.getMessage().contains(COMPONENT_ID_KEY));
+      assertTrue(e.getMessage().contains("null"));
+      assertTrue(e.getMessage().contains(COMPONENT_ID_KEY));
     }
 
     // case component type equals component id
@@ -138,7 +139,7 @@ public class OpenProjectDataValidatorTest {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, same);
       data.quickstarters.forEach(validator);
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("is equal"));
+      assertTrue(e.getMessage().contains("is equal"));
     }
 
     // case component type not equals component id
@@ -180,9 +181,9 @@ public class OpenProjectDataValidatorTest {
           try {
             data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
             data.quickstarters.forEach(validator);
-            Assert.fail(notValid + " is a not valid component id!");
+            fail(notValid + " is a not valid component id!");
           } catch (IllegalArgumentException e) {
-            Assert.assertTrue(e.getMessage().contains("not valid name"));
+            assertTrue(e.getMessage().contains("not valid name"));
           }
         });
 
@@ -193,9 +194,9 @@ public class OpenProjectDataValidatorTest {
               try {
                 data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
                 data.quickstarters.forEach(validator);
-                Assert.fail(notValid + " is a not valid component id!");
+                fail(notValid + " is a not valid component id!");
               } catch (IllegalArgumentException e) {
-                Assert.assertTrue(e.getMessage().contains("not valid name"));
+                assertTrue(e.getMessage().contains("not valid name"));
               }
             });
 

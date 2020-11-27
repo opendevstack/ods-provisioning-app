@@ -1,5 +1,6 @@
 package org.opendevstack.provision.authentication;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -9,9 +10,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,9 +19,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.test.context.TestSecurityContextHolder;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public class ProvAppHttpSessionListenerTest {
 
   @MockBean private HttpSessionEvent sessionEvent;
@@ -50,7 +50,7 @@ public class ProvAppHttpSessionListenerTest {
     ProvAppHttpSessionListener provAppHttpSessionListener =
         new ProvAppHttpSessionListener(
             auth -> {
-              Assert.assertEquals(authentication, auth);
+              assertEquals(authentication, auth);
               latch.countDown();
               return "username";
             });
@@ -58,8 +58,8 @@ public class ProvAppHttpSessionListenerTest {
     provAppHttpSessionListener.sessionDestroyed(sessionEvent);
 
     boolean await = latch.await(100, TimeUnit.MILLISECONDS);
-    Assert.assertTrue(await);
-    Assert.assertEquals(0, latch.getCount());
+    assertTrue(await);
+    assertEquals(0, latch.getCount());
   }
 
   @Test
@@ -84,7 +84,7 @@ public class ProvAppHttpSessionListenerTest {
         ProvAppHttpSessionListener.createUsernameProvider();
 
     // if authentication == null no exception is raised
-    Assert.assertNull(usernameProvider.apply(null));
+    assertNull(usernameProvider.apply(null));
 
     {
       OAuth2AuthenticationToken auth = mock(OAuth2AuthenticationToken.class);
@@ -93,7 +93,7 @@ public class ProvAppHttpSessionListenerTest {
       when(oidcUser.getEmail()).thenReturn(username);
 
       // authentication instance of OAuth2AuthenticationToken
-      Assert.assertEquals(username, usernameProvider.apply(auth));
+      assertEquals(username, usernameProvider.apply(auth));
     }
 
     {
@@ -103,12 +103,12 @@ public class ProvAppHttpSessionListenerTest {
       CrowdUserDetails userDetails = mock(CrowdUserDetails.class);
       when(passwordAuthenticationToken.getPrincipal()).thenReturn(userDetails);
       when(userDetails.getUsername()).thenReturn(username);
-      Assert.assertEquals(username, usernameProvider.apply(passwordAuthenticationToken));
+      assertEquals(username, usernameProvider.apply(passwordAuthenticationToken));
     }
 
     {
       // authentication instance of something else
-      Assert.assertNull(usernameProvider.apply(mock(Authentication.class)));
+      assertNull(usernameProvider.apply(mock(Authentication.class)));
     }
   }
 }

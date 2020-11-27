@@ -13,19 +13,16 @@
  */
 package org.opendevstack.provision.authentication.oauth2;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.authentication.authorization.MethodSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class MethodSecurityConfigurationTest {
@@ -35,6 +32,6 @@ public class MethodSecurityConfigurationTest {
   @Test
   public void opendevstackRoles() {
     // 2 roles are expected: user and administrator!
-    Assert.assertEquals(2, methodSecurityConfiguration.opendevstackRoles().size());
+    assertEquals(2, methodSecurityConfiguration.opendevstackRoles().size());
   }
 }

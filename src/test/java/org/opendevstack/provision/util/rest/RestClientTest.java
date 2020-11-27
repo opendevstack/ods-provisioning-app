@@ -14,20 +14,15 @@
 
 package org.opendevstack.provision.util.rest;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +31,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = SpringBoot.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 @ActiveProfiles("crowd")
 public class RestClientTest {
@@ -51,17 +44,17 @@ public class RestClientTest {
 
   @Autowired CrowdAuthenticationManager manager;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     client = new RestClient();
     client.setConnectTimeout(5);
-    client.setReadTimeout(5);
+    client.setReadTimeout(20);
     client.afterPropertiesSet();
   }
 
   @Test
   public void getClient() {
-    Assert.assertThat(client.getClient(), instanceOf(OkHttpClient.class));
+    assertTrue(client.getClient() instanceof OkHttpClient);
   }
 
   @Test
@@ -76,9 +69,9 @@ public class RestClientTest {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void callHttpMissingUrl() throws Exception {
-    client.execute(validGetCall().url(null));
+  @Test
+  public void callHttpMissingUrl() {
+    assertThrows(IllegalArgumentException.class, () -> client.execute(validGetCall().url(null)));
   }
 
   @Test

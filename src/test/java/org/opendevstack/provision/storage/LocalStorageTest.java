@@ -14,11 +14,7 @@
 
 package org.opendevstack.provision.storage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,24 +22,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileCopyUtils;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class LocalStorageTest {
@@ -52,16 +43,20 @@ public class LocalStorageTest {
 
   private static final Logger logger = LoggerFactory.getLogger(LocalStorageTest.class);
 
-  @Before
+  @BeforeEach
   public void setUp() {
     localStorage = new LocalStorage();
     localStorage.setLocalStoragePath("src/test/resources/");
   }
 
-  @Test(expected = IOException.class)
-  public void storeProjectNoKey() throws Exception {
-    OpenProjectData project = new OpenProjectData();
-    localStorage.storeProject(project);
+  @Test
+  public void storeProjectNoKey() {
+    assertThrows(
+        IOException.class,
+        () -> {
+          OpenProjectData project = new OpenProjectData();
+          localStorage.storeProject(project);
+        });
   }
 
   @Test
@@ -130,11 +125,15 @@ public class LocalStorageTest {
     (new File(filePath)).delete();
   }
 
-  @Test(expected = IOException.class)
-  public void storeProjectWithException() throws Exception {
-    OpenProjectData project = new OpenProjectData();
-    localStorage.setLocalStoragePath("/to/some/non/existant/folder/");
-    localStorage.storeProject(project);
+  @Test
+  public void storeProjectWithException() {
+    assertThrows(
+        IOException.class,
+        () -> {
+          OpenProjectData project = new OpenProjectData();
+          localStorage.setLocalStoragePath("/to/some/non/existant/folder/");
+          localStorage.storeProject(project);
+        });
   }
 
   @Test

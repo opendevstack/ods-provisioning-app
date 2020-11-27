@@ -1,8 +1,8 @@
 package org.opendevstack.provision.authentication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.atlassian.crowd.integration.soap.SOAPPrincipal;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
@@ -11,20 +11,15 @@ import com.atlassian.crowd.service.GroupManager;
 import com.atlassian.crowd.service.UserManager;
 import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.opendevstack.provision.SpringBoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 /** Testclass for the simple caching manager */
 @ActiveProfiles("crowd")

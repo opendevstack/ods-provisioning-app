@@ -16,7 +16,7 @@ package org.opendevstack.provision.controller;
 
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
@@ -36,15 +36,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig;
 import org.opendevstack.provision.model.ExecutionJob;
@@ -85,7 +82,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -94,11 +90,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /** End to end testcase with real result data - only mock is the RestClient - to feed the json */
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SpringBoot.class)
-@ActiveProfiles("utest,quickstarters")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles({"utest", "quickstarters"})
 @DirtiesContext
 public class E2EProjectAPIControllerTest {
 
@@ -158,7 +151,7 @@ public class E2EProjectAPIControllerTest {
 
   private String VALID_CREDENTIAL = BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
 
-  @Before
+  @BeforeEach
   public void setUp() {
 
     E2EProjectAPIControllerTest.initLocalStorage(
@@ -187,16 +180,16 @@ public class E2EProjectAPIControllerTest {
   }
 
   public static void initLocalStorage(LocalStorage realStorageAdapter, File resultsDir) {
-    Assert.assertNotNull(realStorageAdapter.getLocalStoragePath());
-    Assert.assertTrue(resultsDir.exists());
-    Assert.assertTrue(resultsDir.isDirectory());
+    assertNotNull(realStorageAdapter.getLocalStoragePath());
+    assertTrue(resultsDir.exists());
+    assertTrue(resultsDir.isDirectory());
     realStorageAdapter.setLocalStoragePath(resultsDir.getPath());
-    Assert.assertNotNull(realStorageAdapter.getLocalStoragePath());
+    assertNotNull(realStorageAdapter.getLocalStoragePath());
     e2eLogger.info(
         "Local storage initialized. LocalStoragePath={}", realStorageAdapter.getStoragePath());
   }
 
-  @After
+  @AfterEach
   public void cleanUpTempDir() {
     new File(realLocalStorageAdapter.getLocalStoragePath()).deleteOnExit();
   }
@@ -665,29 +658,31 @@ public class E2EProjectAPIControllerTest {
     assertActualJobMatchesInputParams(actualJob, configuredResponse);
 
     // verify 2 repos are created
-    assertEquals("Repository created", 2, resultProject.repositories.size());
+    assertEquals(2, resultProject.repositories.size(), "Repository created");
   }
 
   private void assertActualJobMatchesInputParams(
       ExecutionJob actualJob, CreateProjectResponse configuredResponse) {
     String namespace = configuredResponse.extractNamespace();
-    Assertions.assertThat(actualJob.getName())
-        .isEqualTo(namespace + "-" + configuredResponse.extractBuildConfigName());
+    Assertions.assertEquals(
+        actualJob.getName(), namespace + "-" + configuredResponse.extractBuildConfigName());
 
-    Assertions.assertThat(actualJob.getUrl())
-        .contains(
-            format(
-                "https://jenkins-%s%s/job/%s/job/%s-%s/%s",
-                namespace,
-                projectOpenshiftBaseDomain,
-                namespace,
-                namespace,
-                configuredResponse.extractBuildConfigName(),
-                configuredResponse.extractBuildNumber()));
+    Assertions.assertTrue(
+        actualJob
+            .getUrl()
+            .contains(
+                format(
+                    "https://jenkins-%s%s/job/%s/job/%s-%s/%s",
+                    namespace,
+                    projectOpenshiftBaseDomain,
+                    namespace,
+                    namespace,
+                    configuredResponse.extractBuildConfigName(),
+                    configuredResponse.extractBuildNumber())));
 
     String expectedUrlSuffix =
         configuredResponse.extractBuildConfigName() + "/" + configuredResponse.extractBuildNumber();
-    Assertions.assertThat(actualJob.getUrl()).endsWith(expectedUrlSuffix);
+    assertTrue(actualJob.getUrl().endsWith(expectedUrlSuffix));
   }
 
   /** Test positive new quickstarter */
@@ -876,7 +871,7 @@ public class E2EProjectAPIControllerTest {
     OpenProjectData currentlyStoredProject =
         realLocalStorageAdapter.getProject(dataUpdate.projectKey);
 
-    Assertions.assertThat(currentlyStoredProject.getQuickstarters()).isEmpty();
+    assertTrue(currentlyStoredProject.getQuickstarters().isEmpty());
 
     // bitbucket repo creation for new quickstarter
     RepositoryData bitbucketRepositoryDataQSRepo =

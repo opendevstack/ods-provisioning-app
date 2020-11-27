@@ -13,15 +13,13 @@
  */
 package org.opendevstack.provision.services.openshift;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
@@ -31,10 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class OpenshiftServiceTest {
@@ -43,7 +39,7 @@ public class OpenshiftServiceTest {
 
   @Autowired private OpenshiftService openshiftService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     openshiftService = new OpenshiftService(openshiftClient);
   }

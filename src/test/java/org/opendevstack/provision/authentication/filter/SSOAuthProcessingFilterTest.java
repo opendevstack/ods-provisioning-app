@@ -14,8 +14,8 @@
 
 package org.opendevstack.provision.authentication.filter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -23,15 +23,13 @@ import com.atlassian.crowd.integration.http.HttpAuthenticator;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
-@DirtiesContext
+@ExtendWith(SpringExtension.class)
 public class SSOAuthProcessingFilterTest {
 
   @MockBean private HttpAuthenticator httpAuthenticator;
@@ -44,7 +42,7 @@ public class SSOAuthProcessingFilterTest {
 
   private SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
 
-  @Before
+  @BeforeEach
   public void setup() {
     filter.setBasicAuthHandlerStrategy(basicAuthStrategy);
     filter.setHttpAuthenticator(httpAuthenticator);
