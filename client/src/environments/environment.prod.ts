@@ -6,6 +6,6 @@ export const environment = {
   apiGenerateProjectKeyUrl: '/api/v2/project/key/generate',
   apiProjectTemplatesUrl: '/api/v2/project/templates',
   apiAllQuickstartersUrl: '/api/v1/quickstarter',
-  apiAuthUrl: '/api/v2/appinfo/about',
+  apiAuthUrl: '/j_security_check',
   apiLogoutUrl: '/logout'
 };

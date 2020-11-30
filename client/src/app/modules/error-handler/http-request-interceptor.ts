@@ -19,10 +19,12 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     switch (req.method) {
       case 'PUT':
       case 'POST':
-        httpOptions = {
-          ...credentials,
-          headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
-        };
+        if (req.url != "/j_security_check") {
+          httpOptions = {
+            ...credentials,
+            headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
+          };
+        }
         break;
       case 'GET':
         httpOptions = {

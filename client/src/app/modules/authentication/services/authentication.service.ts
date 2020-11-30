@@ -23,11 +23,15 @@ export class AuthenticationService {
   }
 
   login(username: string, password: string): any {
-    const authData = window.btoa(username + ':' + password);
-    const httpOptions = {
-      headers: new HttpHeaders({ Authorization: `Basic ${authData}` })
-    };
-    return this.httpClient.get<any>(this.apiAuthUrl, httpOptions);
+
+    let formData: FormData = new FormData()
+    formData.append("username", username);
+    formData.append("password", password);
+
+    const headers = new HttpHeaders();
+    headers.append('Content-Type', 'multipart/form-data');
+
+    return this.httpClient.post<any>(this.apiAuthUrl, formData, {headers: headers});
   }
 
   logout(): any {
