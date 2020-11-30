@@ -194,4 +194,4 @@ task yarnBuild(type:Exec) {
     commandLine 'yarn', 'build'
 }
 
-bootRun.dependsOn yarnBuild
+//bootRun.dependsOn yarnBuild
