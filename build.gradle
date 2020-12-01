@@ -149,7 +149,7 @@ bootRun {
         }
     }
     args = [
-            '--spring.config.location=file:./build/resources/main/application-rene.properties'
+            '--spring.config.location=file:./build/resources/main/application-local.properties'
     ]
 }
 
@@ -190,4 +190,4 @@ task yarnBuild(type:Exec) {
     commandLine 'yarn', 'build'
 }
 
-//bootRun.dependsOn yarnBuild
+bootRun.dependsOn yarnBuild
