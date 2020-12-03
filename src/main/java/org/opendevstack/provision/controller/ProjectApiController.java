@@ -116,7 +116,7 @@ public class ProjectApiController {
   @Value("${adapters.confluence.enabled:true}")
   private boolean confluenceAdapterEnable;
 
-  @Value("${services.openshift.enabled:true}")
+  @Value("${services.openshift.enabled:false}")
   private boolean openshiftServiceEnable;
 
   @PostConstruct

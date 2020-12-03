@@ -30,10 +30,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 
 @Configuration
-@ConditionalOnProperty(
-    name = "services.openshift.enabled",
-    havingValue = "true",
-    matchIfMissing = true)
+@ConditionalOnProperty(name = "services.openshift.enabled", havingValue = "true")
 public class OpenshiftServiceConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenshiftServiceConfig.class);
