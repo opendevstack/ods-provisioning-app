@@ -11,18 +11,8 @@ import { API_PROJECT_URL, API_PROJECT_DETAIL_URL } from './tokens';
 describe('AppComponent', () => {
   const createComponent = createComponentFactory({
     component: AppComponent,
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      MatListModule,
-      LoadingIndicatorModule,
-      SidebarModule
-    ],
-    providers: [
-      MatDialog,
-      { provide: API_PROJECT_DETAIL_URL, useValue: '/api/mock' },
-      { provide: API_PROJECT_URL, useValue: '/api/mock' }
-    ]
+    imports: [HttpClientTestingModule, RouterTestingModule, MatListModule, LoadingIndicatorModule, SidebarModule],
+    providers: [MatDialog, { provide: API_PROJECT_DETAIL_URL, useValue: '/api/mock' }, { provide: API_PROJECT_URL, useValue: '/api/mock' }]
   });
   let component: any;
   let spectator: Spectator<AppComponent>;

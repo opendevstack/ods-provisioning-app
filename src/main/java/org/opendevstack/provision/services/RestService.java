@@ -16,7 +16,6 @@ package org.opendevstack.provision.services;
 import org.opendevstack.provision.util.rest.RestClient;
 import org.opendevstack.provision.util.rest.RestClientCall;
 
-/** @author Sebastian Titakis */
 public interface RestService {
 
   RestClientCall httpPost();

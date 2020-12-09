@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { FormBuilder, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
@@ -25,8 +19,7 @@ import { default as validationConfig } from '../../app-form/config/validation.js
   styleUrls: ['./new-project.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NewProjectComponent extends FormBaseComponent
-  implements OnInit, OnDestroy {
+export class NewProjectComponent extends FormBaseComponent implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
   isLoading = true;
   isProjectTemplatesError: boolean;
@@ -43,11 +36,11 @@ export class NewProjectComponent extends FormBaseComponent
     private storageService: StorageService
   ) {
     super();
+    this.editMode.context = 'new';
+    this.editMode.enabled = true;
   }
 
   ngOnInit() {
-    this.editMode.context = 'new';
-    this.editMode.enabled = true;
     this.initializeFormGroup();
     this.initializePage();
   }
@@ -110,20 +103,8 @@ export class NewProjectComponent extends FormBaseComponent
 
   private initializeFormGroup(): void {
     this.form = this.formBuilder.group({
-      name: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(this.validationConfig.project.name.regex)
-        ]
-      ],
-      key: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(this.validationConfig.project.key.regex)
-        ]
-      ],
+      name: ['', [Validators.required, Validators.pattern(this.validationConfig.project.name.regex)]],
+      key: ['', [Validators.required, Validators.pattern(this.validationConfig.project.key.regex)]],
       cdUser: null,
       template: [null, Validators.required],
       description: null,
@@ -136,9 +117,7 @@ export class NewProjectComponent extends FormBaseComponent
             group: null
           },
           {
-            validators: [
-              NewProjectValidators.isPermissionSetGroupMandatoryValidator
-            ]
+            validators: [NewProjectValidators.isPermissionSetGroupMandatoryValidator]
           }
         ),
         user: this.formBuilder.group(
@@ -147,9 +126,7 @@ export class NewProjectComponent extends FormBaseComponent
             group: null
           },
           {
-            validators: [
-              NewProjectValidators.isPermissionSetGroupMandatoryValidator
-            ]
+            validators: [NewProjectValidators.isPermissionSetGroupMandatoryValidator]
           }
         )
       })
@@ -181,18 +158,10 @@ export class NewProjectComponent extends FormBaseComponent
       description: this.form.get('description').value,
       projectType: this.form.get('template').value,
       cdUser: this.form.get('cdUser').value,
-      projectAdminUser: this.form.get('permissionSet').get('admin').get('name')
-        .value,
-      projectAdminGroup: this.form
-        .get('permissionSet')
-        .get('admin')
-        .get('group').value,
-      projectUserGroup: this.form.get('permissionSet').get('user').get('name')
-        .value,
-      projectReadonlyGroup: this.form
-        .get('permissionSet')
-        .get('user')
-        .get('group').value,
+      projectAdminUser: this.form.get('permissionSet').get('admin').get('name').value,
+      projectAdminGroup: this.form.get('permissionSet').get('admin').get('group').value,
+      projectUserGroup: this.form.get('permissionSet').get('user').get('name').value,
+      projectReadonlyGroup: this.form.get('permissionSet').get('user').get('group').value,
       bugtrackerSpace: this.form.get('optInJira').value,
       platformRuntime: this.form.get('optInODS').value
     };
@@ -204,15 +173,10 @@ export class NewProjectComponent extends FormBaseComponent
     return this.projectService.createProject(requestData).subscribe(
       project => {
         this.storageService.saveItem('project', { key: project.projectKey });
-        this.openNotification(
-          `${project.projectKey} successfully created, reloading ...`,
-          true
-        );
+        this.openNotification(`${project.projectKey} successfully created, reloading ...`, true);
       },
       () => {
-        this.openNotification(
-          `Project could not be created, please try again soon`
-        );
+        this.openNotification(`Project could not be created, please try again soon`);
         this.isLoading = false;
         this.cdr.detectChanges();
         return EMPTY;

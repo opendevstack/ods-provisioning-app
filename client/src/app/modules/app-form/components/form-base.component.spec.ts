@@ -1,11 +1,11 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { FormBaseComponent } from './form-base.component';
 import { Component } from '@angular/core';
 
 describe('FormBaseComponent', () => {
   @Component({
-    selector: 'form-base',
+    selector: 'app-form-base',
     template: ''
   })
   class TestComponent extends FormBaseComponent {
@@ -17,11 +17,13 @@ describe('FormBaseComponent', () => {
   let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [TestComponent]
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [TestComponent]
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);

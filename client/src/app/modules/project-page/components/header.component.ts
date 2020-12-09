@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ProjectData, ProjectLink } from '../../../domain/project';
 
 @Component({
-  selector: 'project-header',
+  selector: 'app-project-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -13,19 +13,19 @@ export class ProjectHeaderComponent implements OnInit {
   @Input() isQuickstartersError: boolean;
   @Input() aggregatedProjectLinks: string;
 
-  @Output() onActivateEditMode = new EventEmitter<boolean>();
-  @Output() onOpenNotification = new EventEmitter<string>();
+  @Output() activateEditMode = new EventEmitter<boolean>();
+  @Output() openNotification = new EventEmitter<string>();
 
   constructor() {}
 
   ngOnInit(): void {}
 
   emitActivateEditMode(flag: boolean) {
-    this.onActivateEditMode.emit(flag);
+    this.activateEditMode.emit(flag);
   }
 
   emitOpenNotification(text) {
-    this.onOpenNotification.emit(text);
+    this.openNotification.emit(text);
   }
 
   isEditingPossible(): boolean {

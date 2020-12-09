@@ -25,11 +25,7 @@ import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-/**
- * Represents basic bean configurations not related to security
- *
- * @author Brokmeier, Pascal
- */
+/** Represents basic bean configurations not related to security */
 @Configuration
 public class AppConfig {
 

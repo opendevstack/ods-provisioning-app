@@ -39,11 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Class handling local storage of JSON files for a simple historization
- *
- * @author Torsten Jaeschke
- */
+/** Class handling local storage of JSON files for a simple historization */
 @Component
 public class LocalStorage implements IStorage {
   private static final Logger logger = LoggerFactory.getLogger(LocalStorage.class);

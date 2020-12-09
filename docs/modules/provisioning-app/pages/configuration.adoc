@@ -57,6 +57,13 @@ The configuration for the permission sets are configured:
 . Bitbucket Project is provisioned with tight read & write roles
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
+Furthermore if you need to define default permission for openshift (e.g. to setup membership permission for cluster admins) you can add this to your application properties:
+```
+jenkinspipeline.create-project.default-project-groups=ADMINGROUP=<MY_CLUSTER_ADMIN_GROUP_NAME>
+```
+
+In case special permissions sets are defined this the default project groups will be appended to the lis of permissions sets.
+
 == Project/Space types based on templates
 
 The default jira / confluence project' types are defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/application.properties[src/main/resources/application.properties] - and correspondingly in the config maps
@@ -314,6 +321,21 @@ jira.admin_user=jira_admin
 [TIP]
 Note: if the pair of properties is not defined for a third party tool, the logged in user's credentials are used to authenticate against the application.
 The credentials are read by caling the method _getUserName_ and _getUserPassword_ from https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
+
+=== Other configuration
+
+To adapt the provisioning app to your infrastructure following properties will help you to disable some adapters/services.
+
+To disable the confluence adapter you can add this property to the application properties:
+```
+adapters.confluence.enabled=false
+```
+
+The Openshift Service currently is used to verify that a project key does not exists in the cluster before provisioning a project.
+If you need to disable it, you can add this property to the application properties:
+```
+services.openshift.enabled=false
+```
 
 == FAQ
 

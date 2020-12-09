@@ -31,7 +31,6 @@ import org.springframework.util.Assert;
  * @see <a
  *     href="https://docs.spring.io/spring-security/site/docs/5.2.x/reference/htmlsingle/#oauth2login-advanced-map-authorities-oauth2userservice">Delegation-based
  *     strategy with OAuth2UserService</a>
- * @author Stefan Lack
  */
 @Component
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "oauth2")

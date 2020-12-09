@@ -21,11 +21,7 @@ import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configuration properties for global SCM settings
- *
- * @author tjaeschke
- */
+/** Configuration properties for global SCM settings */
 @Configuration
 @ConfigurationProperties("scm.global")
 public class ScmGlobalProperties {

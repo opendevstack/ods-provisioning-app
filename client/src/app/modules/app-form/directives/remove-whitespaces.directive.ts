@@ -2,7 +2,7 @@ import { Directive, HostListener } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
-  selector: '[removeWhitespaces]'
+  selector: '[appRemoveWhitespaces]'
 })
 export class RemoveWhitespacesDirective {
   constructor(private host: NgControl) {}

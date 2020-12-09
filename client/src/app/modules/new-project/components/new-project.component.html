@@ -42,7 +42,7 @@
                   matInput
                   placeholder="Name"
                   formControlName="name"
-                  removeWhitespaces
+                  appRemoveWhitespaces
                   maxlength="80"
                   required
                   data-test-input-name
@@ -68,8 +68,8 @@
                   matInput
                   placeholder="Key"
                   formControlName="key"
-                  uppercase
-                  removeWhitespaces
+                  appUppercase
+                  appRemoveWhitespaces
                   maxlength="10"
                   required />
               </mat-form-field>
@@ -97,7 +97,7 @@
                     matInput
                     placeholder="Project specific CD user"
                     formControlName="cdUser"
-                    removeWhitespaces
+                    appRemoveWhitespaces
                   />
                 </mat-form-field>
                 <mat-icon
@@ -153,13 +153,13 @@
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Admin user</mat-label>
-                  <input matInput placeholder="Admin user" formControlName="name" removeWhitespaces />
+                  <input matInput placeholder="Admin user" formControlName="name" appRemoveWhitespaces />
                 </mat-form-field>
               </div>
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Admin group</mat-label>
-                  <input matInput placeholder="Admin group" formControlName="group" removeWhitespaces
+                  <input matInput placeholder="Admin group" formControlName="group" appRemoveWhitespaces
                   />
                 </mat-form-field>
               </div>
@@ -175,13 +175,13 @@
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>User group</mat-label>
-                  <input matInput placeholder="User group" formControlName="name" removeWhitespaces />
+                  <input matInput placeholder="User group" formControlName="name" appRemoveWhitespaces />
                 </mat-form-field>
               </div>
               <div class="col">
                 <mat-form-field class="formfield__input">
                   <mat-label>Readonly user group</mat-label>
-                  <input matInput placeholder="Readonly user group" formControlName="group" removeWhitespaces />
+                  <input matInput placeholder="Readonly user group" formControlName="group" appRemoveWhitespaces />
                 </mat-form-field>
               </div>
             </div>

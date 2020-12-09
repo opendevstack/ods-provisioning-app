@@ -1,79 +1,69 @@
-<ng-container *ngIf="isLoading">
-  <app-loading-indicator></app-loading-indicator>
-</ng-container>
+<div class="sidebar__header">
+  <div class="sidebar__header--count" data-test-sidebar-project-count>
+    <span>Projects</span> ({{ (filteredProjects | async).length }})
+  </div>
+  <div class="sidebar__header--action">
+    <button
+      mat-stroked-button
+      color="accent"
+      routerLink="/new"
+      class="mini-icon-button mat-elevation-z0"
+      data-test-new-project-btn>
+      <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Create new project'"></mat-icon>
+      <span>New</span>
+    </button>
+  </div>
+</div>
 
-<ng-container *ngIf="isError" data-test-error>
-  <div class="error">The project list could not be loaded currently</div>
-</ng-container>
-
-<ng-container *ngIf="canDisplayContent()">
-  <div class="sidebar__header">
-    <div class="sidebar__header--count" data-test-sidebar-project-count>
-      <span>Projects</span> ({{ (filteredProjects | async).length }})
-    </div>
-    <div class="sidebar__header--action">
-      <button
-        mat-stroked-button
-        color="accent"
-        routerLink="/new"
-        class="mini-icon-button mat-elevation-z0"
-        data-test-new-project-btn>
-        <mat-icon svgIcon="plus" aria-hidden="false" [attr.aria-label]="'Create new project'"></mat-icon>
-        <span>New</span>
-      </button>
-    </div>
+<div class="box">
+  <div class="searchbar">
+    <mat-form-field class="searchbar__input">
+      <input
+        matInput
+        autofocus
+        appRemoveWhitespaces
+        placeholder="Search in name, key, description"
+        aria-label="Search in name, key, description"
+        data-test-search-input
+        [formControl]="searchControl" />
+    </mat-form-field>
   </div>
 
-  <div class="box">
-    <div class="searchbar">
-      <mat-form-field class="searchbar__input">
-        <input
-          matInput
-          autofocus
-          removeWhitespaces
-          placeholder="Search in name, key, description"
-          aria-label="Search in name, key, description"
-          data-test-search-input
-          [formControl]="searchControl" />
-      </mat-form-field>
-    </div>
-
-    <div class="nav__list" *ngIf="(filteredProjects | async).length !== 0">
-      <mat-nav-list>
-        <a
-          *ngIf="isNewProjectFormActive"
-          data-test-sidebar-nav-list-item-new
-          class="nav__list--item active"
-          mat-list-item>
-          <div class="project">
-            <div class="project__name">New project</div>
-            <div class="project__key">Key</div>
-          </div>
-        </a>
-        <a
-          title="{{ project.description }}"
-          data-test-sidebar-nav-list-item
-          class="nav__list--item"
-          mat-list-item
-          routerLinkActive="active"
-          routerLink="/project/{{ project.projectKey }}"
-          *ngFor="let project of filteredProjects | async">
-          <div class="project">
-            <div class="project__name">{{ project.projectName }}</div>
-            <div class="project__key">{{ project.projectKey }}</div>
-          </div>
-        </a>
-      </mat-nav-list>
-    </div>
-
-    <div class="empty-content" *ngIf="(filteredProjects | async).length === 0">
-      <div class="infobox">
-        <div class="infobox__img">
-          <img src="assets/icons/search-empty.svg" alt="Sorry, no results found" />
+  <div class="nav__list" *ngIf="(filteredProjects | async).length !== 0">
+    <mat-nav-list>
+      <a
+        *ngIf="isNewProjectFormActive"
+        data-test-sidebar-nav-list-item-new
+        class="nav__list--item active"
+        mat-list-item>
+        <div class="project">
+          <div class="project__name">New project</div>
+          <div class="project__key">Key</div>
         </div>
-        <div class="infobox__headline">Sorry, no results found</div>
-        <div class="infobox__subline">Try searching another keyword</div>
+      </a>
+      <a
+        title="{{ project.description }}"
+        data-test-sidebar-nav-list-item
+        class="nav__list--item"
+        mat-list-item
+        routerLinkActive="active"
+        routerLink="/project/{{ project.projectKey }}"
+        *ngFor="let project of filteredProjects | async">
+        <div class="project">
+          <div class="project__name">{{ project.projectName }}</div>
+          <div class="project__key">{{ project.projectKey }}</div>
+        </div>
+      </a>
+    </mat-nav-list>
+  </div>
+
+  <div class="empty-content" *ngIf="(filteredProjects | async).length === 0">
+    <div class="infobox">
+      <div class="infobox__img">
+        <img src="assets/icons/search-empty.svg" alt="Sorry, no results found" />
       </div>
+      <div class="infobox__headline">Sorry, no results found</div>
+      <div class="infobox__subline">Try searching another keyword</div>
     </div>
   </div>
-</ng-container>
+</div>

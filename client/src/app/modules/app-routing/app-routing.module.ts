@@ -10,32 +10,27 @@ import { ProjectModule } from '../project/project.module';
 const routes: Routes = [
   {
     path: 'project',
-    loadChildren: () =>
-      import('../project-page/project-page.module').then(
-        m => m.ProjectPageModule
-      )
+    loadChildren: () => import('../project-page/project-page.module').then(m => m.ProjectPageModule)
   },
   {
     path: 'project/:key',
-    loadChildren: () =>
-      import('../project-page/project-page.module').then(
-        m => m.ProjectPageModule
-      )
+    loadChildren: () => import('../project-page/project-page.module').then(m => m.ProjectPageModule)
   },
   {
     path: 'new',
-    loadChildren: () =>
-      import('../new-project/new-project.module').then(m => m.NewProjectModule)
+    loadChildren: () => import('../new-project/new-project.module').then(m => m.NewProjectModule)
   },
   {
     path: 'about',
-    loadChildren: () =>
-      import('../about-page/about-page.module').then(m => m.AboutPageModule)
+    loadChildren: () => import('../about-page/about-page.module').then(m => m.AboutPageModule)
   },
   {
     path: 'logout',
-    loadChildren: () =>
-      import('../logout/logout.module').then(m => m.LogoutModule)
+    loadChildren: () => import('../logout/logout.module').then(m => m.LogoutModule)
+  },
+  {
+    path: 'error',
+    loadChildren: () => import('../general-error-page/general-error-page.module').then(m => m.GeneralErrorPageModule)
   },
   {
     path: '',
@@ -50,7 +45,10 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { enableTracing: false }),
+    RouterModule.forRoot(routes, {
+      enableTracing: false,
+      relativeLinkResolution: 'legacy'
+    }),
     BrowserModule,
     StorageModule.withOptions({
       storagePrefix: 'provapp_'

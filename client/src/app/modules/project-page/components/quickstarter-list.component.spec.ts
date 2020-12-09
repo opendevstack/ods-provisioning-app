@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { QuickstarterListComponent } from './quickstarter-list.component';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { API_ALL_QUICKSTARTERS_URL, API_PROJECT_URL } from '../../../tokens';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -25,34 +25,29 @@ describe('QuickstarterListComponent', () => {
   let component: QuickstarterListComponent;
   let fixture: ComponentFixture<QuickstarterListComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        HttpClientTestingModule,
-        MatIconModule,
-        MatTooltipModule,
-        MatExpansionModule,
-        MatDialogModule
-      ],
-      declarations: [QuickstarterListComponent],
-      providers: [
-        { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
-        { provide: API_PROJECT_URL, useValue: '/api/mock' }
-      ]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [CommonModule, HttpClientTestingModule, MatIconModule, MatTooltipModule, MatExpansionModule, MatDialogModule],
+        declarations: [QuickstarterListComponent],
+        providers: [
+          { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
+          { provide: API_PROJECT_URL, useValue: '/api/mock' }
+        ]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(QuickstarterListComponent);
@@ -66,19 +61,12 @@ describe('QuickstarterListComponent', () => {
 
   it('given project quickstarters, should display quickstarters', () => {
     /* given */
-    component.projectQuickstarters = [
-      { description: 'qs-test1' },
-      { description: 'qs-test2' }
-    ] as any;
+    component.projectQuickstarters = [{ description: 'qs-test1' }, { description: 'qs-test2' }] as any;
     /* when */
     fixture.detectChanges();
     /* then */
-    const qsListElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list]')
-    );
-    const qsListEmptyElement = fixture.debugElement.query(
-      By.css('[data-test-qs-list-empty]')
-    );
+    const qsListElement = fixture.debugElement.query(By.css('[data-test-qs-list]'));
+    const qsListEmptyElement = fixture.debugElement.query(By.css('[data-test-qs-list-empty]'));
     expect(qsListElement).toBeDefined();
     expect(qsListEmptyElement).toBeNull();
   });
@@ -94,15 +82,9 @@ describe('QuickstarterListComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-yes]')
-      );
-      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-no]')
-      );
-      const addQsButtonElement = fixture.debugElement.query(
-        By.css('[data-test-add-qs-btn]')
-      );
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-yes]'));
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-no]'));
+      const addQsButtonElement = fixture.debugElement.query(By.css('[data-test-add-qs-btn]'));
       expect(qsListWithPlatformRuntimeElement).toBeDefined();
       expect(qsListWithoutPlatformRuntimeElement).toBeNull();
       expect(addQsButtonElement).toBeDefined();
@@ -114,15 +96,9 @@ describe('QuickstarterListComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-yes]')
-      );
-      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(
-        By.css('[data-test-qs-list-platform-runtime-no]')
-      );
-      const addQsButtonElement = fixture.debugElement.query(
-        By.css('[data-test-add-qs-btn]')
-      );
+      const qsListWithPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-yes]'));
+      const qsListWithoutPlatformRuntimeElement = fixture.debugElement.query(By.css('[data-test-qs-list-platform-runtime-no]'));
+      const addQsButtonElement = fixture.debugElement.query(By.css('[data-test-add-qs-btn]'));
       expect(qsListWithPlatformRuntimeElement).toBeNull();
       expect(qsListWithoutPlatformRuntimeElement).toBeDefined();
       expect(addQsButtonElement).toBeNull();

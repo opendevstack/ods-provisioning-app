@@ -7,7 +7,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { SidebarComponent } from './components/sidebar.component';
 import { MatListModule } from '@angular/material/list';
 import { RouterModule } from '@angular/router';
-import { LoadingIndicatorModule } from '../loading-indicator/loading-indicator.module';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AppFormModule } from '../app-form/app-form.module';
@@ -19,7 +18,6 @@ import { AppFormModule } from '../app-form/app-form.module';
     RouterModule,
     ReactiveFormsModule,
     AppFormModule,
-    LoadingIndicatorModule,
     MatListModule,
     MatFormFieldModule,
     MatInputModule,

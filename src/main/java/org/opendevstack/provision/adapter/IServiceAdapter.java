@@ -21,11 +21,7 @@ import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
-/**
- * Base interface for all service adapters
- *
- * @author utschig
- */
+/** Base interface for all service adapters */
 public interface IServiceAdapter {
 
   /** Stage the adapters are in during project creation & update */

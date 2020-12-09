@@ -1,14 +1,5 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  Output
-} from '@angular/core';
-import {
-  ProjectQuickstarter,
-  ProjectQuickStarterComponentDeleteObj
-} from '../../../domain/quickstarter';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { ProjectQuickstarter, ProjectQuickStarterComponentDeleteObj } from '../../../domain/quickstarter';
 import { EMPTY, Subject } from 'rxjs';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ConfirmationComponent } from '../../confirmation/components/confirmation.component';
@@ -18,7 +9,7 @@ import { DeleteComponentRequest } from '../../../domain/project';
 import { ConfirmationConfig } from '../../confirmation/domain/confirmation-config';
 
 @Component({
-  selector: 'project-quickstarter-list',
+  selector: 'app-project-quickstarter-list',
   templateUrl: './quickstarter-list.component.html',
   styleUrls: ['./quickstarter-list.component.scss']
 })
@@ -26,13 +17,11 @@ export class QuickstarterListComponent implements OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() projectKey: string;
   @Input() hasPlatformRuntime: boolean;
-  @Output() onActivateEditMode = new EventEmitter<boolean>();
+  @Output() activateEditMode = new EventEmitter<boolean>();
   @Output() triggerLoadProjectData = new EventEmitter<boolean>();
   destroy$ = new Subject<boolean>();
 
-  private static buildConfirmationConfig(
-    componentId: string
-  ): ConfirmationConfig {
+  private static buildConfirmationConfig(componentId: string): ConfirmationConfig {
     return {
       verify: {
         inputLabel: 'Component name',
@@ -40,29 +29,21 @@ export class QuickstarterListComponent implements OnDestroy {
       },
       text: {
         title: 'Remove component',
-        info:
-          "This will delete the component including its Jira spaces and component's cd/dev/test namespaces in OpenShift",
+        info: 'This will delete the component including its Jira spaces and cd/dev/test namespaces in OpenShift',
         ctaButtonLabel: 'Yes, remove component'
       }
     };
   }
 
-  constructor(
-    private dialog: MatDialog,
-    private quickstarterService: QuickstarterService
-  ) {}
+  constructor(private dialog: MatDialog, private quickstarterService: QuickstarterService) {}
 
   emitActivateEditMode() {
-    this.onActivateEditMode.emit(true);
+    this.activateEditMode.emit(true);
   }
 
-  intendDeleteComponent(
-    componentDeleteObj: ProjectQuickStarterComponentDeleteObj
-  ) {
+  intendDeleteComponent(componentDeleteObj: ProjectQuickStarterComponentDeleteObj) {
     const dialogConfig = new MatDialogConfig();
-    dialogConfig.data = QuickstarterListComponent.buildConfirmationConfig(
-      componentDeleteObj.id
-    );
+    dialogConfig.data = QuickstarterListComponent.buildConfirmationConfig(componentDeleteObj.id);
     dialogConfig.panelClass = 'custom-dialog-panel';
     const dialogRef = this.dialog.open(ConfirmationComponent, dialogConfig);
     dialogRef.afterClosed().subscribe(submitRequest => {
@@ -72,9 +53,7 @@ export class QuickstarterListComponent implements OnDestroy {
     });
   }
 
-  private createComponentDeleteObj(
-    componentDeleteObj: ProjectQuickStarterComponentDeleteObj
-  ): DeleteComponentRequest {
+  private createComponentDeleteObj(componentDeleteObj: ProjectQuickStarterComponentDeleteObj): DeleteComponentRequest {
     return {
       projectKey: this.projectKey,
       quickstarters: [
@@ -104,21 +83,14 @@ export class QuickstarterListComponent implements OnDestroy {
 
   deleteComponent(componentDeleteObj: DeleteComponentRequest) {
     const componentId = componentDeleteObj.quickstarters[0].component_id;
-    return this.quickstarterService
-      .deleteQuickstarterComponent(componentDeleteObj)
-      .subscribe(
-        project => {
-          this.openNotification(
-            `${componentId} successfully deleted, reloading ...`,
-            true
-          );
-        },
-        () => {
-          this.openNotification(
-            `Component could not be deleted, please try again soon`
-          );
-          return EMPTY;
-        }
-      );
+    return this.quickstarterService.deleteQuickstarterComponent(componentDeleteObj).subscribe(
+      () => {
+        this.openNotification(`${componentId} successfully deleted, reloading ...`, true);
+      },
+      () => {
+        this.openNotification(`Component could not be deleted, please try again soon`);
+        return EMPTY;
+      }
+    );
   }
 }

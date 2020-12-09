@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
@@ -31,16 +31,8 @@ export class AppComponent implements OnInit {
     private projectService: ProjectService,
     private storageService: StorageService
   ) {
-    this.matIconRegistry.addSvgIconSet(
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        'assets/icons/mdi-custom-icons.svg'
-      )
-    );
-    this.matIconRegistry.addSvgIconSet(
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        'assets/icons/tech-stack.svg'
-      )
-    );
+    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/mdi-custom-icons.svg'));
+    this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/tech-stack.svg'));
   }
 
   ngOnInit() {
@@ -49,7 +41,7 @@ export class AppComponent implements OnInit {
   }
 
   getEditModeStatus() {
-    this.editMode.onGetEditModeFlag.subscribe((editMode: EditModeFlag) => {
+    this.editMode.getEditModeFlag.subscribe((editMode: EditModeFlag) => {
       if (editMode.enabled) {
         this.renderer.addClass(document.body, 'status-editmode-active');
         if (editMode.context === 'new') {
@@ -63,22 +55,16 @@ export class AppComponent implements OnInit {
   }
 
   private checkRedirectToProjectDetail() {
-    this.router.events
-      .pipe(
-        filter(event => event instanceof NavigationStart && event.url === '/')
-      )
-      .subscribe(() => {
-        const projectKey = this.getProjectKeyFormStorage();
-        if (projectKey) {
-          this.router.navigateByUrl(`/project/${projectKey}`);
-        }
-      });
+    this.router.events.pipe(filter(event => event instanceof NavigationStart && event.url === '/')).subscribe(() => {
+      const projectKey = this.getProjectKeyFormStorage();
+      if (projectKey) {
+        this.router.navigateByUrl(`/project/${projectKey}`);
+      }
+    });
   }
 
   private getProjectKeyFormStorage(): string | undefined {
-    const projectKeyFromStorage = this.storageService.getItem(
-      'project'
-    ) as ProjectStorage;
+    const projectKeyFromStorage = this.storageService.getItem('project') as ProjectStorage;
     return projectKeyFromStorage?.key;
   }
 

@@ -30,11 +30,6 @@ export abstract class FormBaseComponent {
   }
 
   private controlHasInteractions(control: AbstractControl): boolean {
-    return (
-      control.touched ||
-      control.dirty ||
-      (control.untouched && control.value) ||
-      this.submitButtonClicks > 0
-    );
+    return control.touched || control.dirty || (control.untouched && control.value) || this.submitButtonClicks > 0;
   }
 }

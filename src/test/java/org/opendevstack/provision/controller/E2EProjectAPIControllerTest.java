@@ -18,6 +18,7 @@ import static java.lang.String.format;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -34,6 +35,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assert;
@@ -62,6 +64,7 @@ import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
 import org.opendevstack.provision.services.*;
 import org.opendevstack.provision.services.jira.JiraRestApi;
+import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
@@ -72,7 +75,6 @@ import org.opendevstack.provision.util.rest.RestClientMockHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -91,11 +93,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/**
- * End to end testcase with real result data - only mock is the RestClient - to feed the json
- *
- * @author utschig
- */
+/** End to end testcase with real result data - only mock is the RestClient - to feed the json */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -109,7 +107,7 @@ public class E2EProjectAPIControllerTest {
   public static final String BITBUCKET_PARAM_FILTER = "filter";
   public static final String BITBUCKET_PARAM_PERMISSION = "permission";
 
-  public static final String testAdminUsername = "testUserName";
+  public static final String TEST_ADMIN_USERNAME = BasicAuthSecurityTestConfig.TEST_ADMIN_USERNAME;
   public static final String TEST_VALID_CREDENTIAL =
       BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
 
@@ -120,6 +118,8 @@ public class E2EProjectAPIControllerTest {
   @MockBean private IODSAuthnzAdapter mockAuthnzAdapter;
 
   @MockBean private RestClient restClient;
+
+  @MockBean private OpenshiftClient openshiftClient;
 
   @MockBean private CrowdProjectIdentityMgmtAdapter crowdProjectIdentityMgmtAdapter;
 
@@ -139,15 +139,14 @@ public class E2EProjectAPIControllerTest {
 
   @Autowired private TestRestTemplate template;
 
-  @Qualifier("testUsersAndRoles")
-  @Autowired
-  private Map<String, String> testUsersAndRoles;
-
   @Value("${idmanager.group.opendevstack-users}")
   private String userGroup;
 
   @Value("${idmanager.group.opendevstack-administrators}")
   private String adminGroup;
+
+  @Value("${openshift.apps.basedomain}")
+  protected String projectOpenshiftBaseDomain;
 
   private static TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
@@ -161,8 +160,6 @@ public class E2EProjectAPIControllerTest {
 
   @Before
   public void setUp() {
-
-    testUsersAndRoles.put(testAdminUsername, adminGroup);
 
     E2EProjectAPIControllerTest.initLocalStorage(
         realLocalStorageAdapter, E2EProjectAPIControllerTest.createTempDir(buildDir));
@@ -182,8 +179,11 @@ public class E2EProjectAPIControllerTest {
     // override configuration in application.properties, some tests depends on cleanupAllowed
     apiController.setCleanupAllowed(true);
 
-    when(mockAuthnzAdapter.getUserName()).thenReturn(testAdminUsername);
+    when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
+    when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
     when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
+
+    when(openshiftClient.projects()).thenReturn(Set.of("default", "ods"));
   }
 
   public static void initLocalStorage(LocalStorage realStorageAdapter, File resultsDir) {
@@ -263,7 +263,7 @@ public class E2EProjectAPIControllerTest {
     if (data.specialPermissionSet && data.projectAdminUser != null) {
       getUserResponse = getUserResponse.replace("<%USERNAME%>", data.projectAdminUser);
     } else {
-      getUserResponse = getUserResponse.replace("<%USERNAME%>", testAdminUsername);
+      getUserResponse = getUserResponse.replace("<%USERNAME%>", TEST_ADMIN_USERNAME);
     }
 
     mockHelper
@@ -358,7 +358,7 @@ public class E2EProjectAPIControllerTest {
     String confluenceUserTemplate = fileReader.readFileContent("confluence-get-user-template");
     HashSet<String> confluenceUsers = new HashSet<>();
     confluenceUsers.add(data.projectAdminUser);
-    confluenceUsers.add(testAdminUsername);
+    confluenceUsers.add(TEST_ADMIN_USERNAME);
     confluenceUsers.forEach(
         username -> {
           try {
@@ -450,7 +450,7 @@ public class E2EProjectAPIControllerTest {
                         realBitbucketAdapter.getAdapterRootApiUri()
                             + "/"
                             + BitbucketAdapter.BITBUCKET_API_USERS))
-                .queryParam(BITBUCKET_PARAM_FILTER, testAdminUsername)
+                .queryParam(BITBUCKET_PARAM_FILTER, TEST_ADMIN_USERNAME)
                 .queryParam(
                     BITBUCKET_PARAM_PERMISSION, BitbucketAdapter.GLOBAL_PERMISSION_PROJECT_CREATE)
                 .method(HttpMethod.GET))
@@ -567,7 +567,7 @@ public class E2EProjectAPIControllerTest {
                 post("/api/v2/project")
                     .content(ProjectApiControllerTest.asJsonString(data))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -644,7 +644,7 @@ public class E2EProjectAPIControllerTest {
             .perform(
                 get("/api/v2/project/" + data.projectKey)
                     .accept(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL)))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL)))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -677,8 +677,9 @@ public class E2EProjectAPIControllerTest {
     Assertions.assertThat(actualJob.getUrl())
         .contains(
             format(
-                "https://jenkins-%s.192.168.56.101.nip.io/job/%s/job/%s-%s/%s",
+                "https://jenkins-%s%s/job/%s/job/%s-%s/%s",
                 namespace,
+                projectOpenshiftBaseDomain,
                 namespace,
                 namespace,
                 configuredResponse.extractBuildConfigName(),
@@ -717,7 +718,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             get("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -728,7 +729,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             delete("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -738,7 +739,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             get("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -785,7 +786,7 @@ public class E2EProjectAPIControllerTest {
                 delete("/api/v2/project/")
                     .content(ProjectApiControllerTest.asJsonString(toClean))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -807,7 +808,7 @@ public class E2EProjectAPIControllerTest {
             .perform(
                 get("/api/v2/project/" + toClean.projectKey)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -901,7 +902,9 @@ public class E2EProjectAPIControllerTest {
             matchesClientCall()
                 .url(
                     containsString(
-                        "https://webhook-proxy-testp-cd.192.168.56.101.nip.io/build?trigger_secret="))
+                        "https://webhook-proxy-testp-cd"
+                            + projectOpenshiftBaseDomain
+                            + "/build?trigger_secret="))
                 .url(
                     containsString(
                         "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
@@ -921,7 +924,7 @@ public class E2EProjectAPIControllerTest {
                 put("/api/v2/project")
                     .content(ProjectApiControllerTest.asJsonString(dataUpdate))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -1005,7 +1008,7 @@ public class E2EProjectAPIControllerTest {
             .perform(
                 get("/api/v2/project/LEGPROJ")
                     .accept(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(testAdminUsername, VALID_CREDENTIAL)))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL)))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -1034,7 +1037,7 @@ public class E2EProjectAPIControllerTest {
     mockMvc
         .perform(
             get("/api/v2/project/LEGPROJ")
-                .with(httpBasic(testAdminUsername, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(
@@ -1071,7 +1074,8 @@ public class E2EProjectAPIControllerTest {
   private String createJenkinsJobPath(String namespace, String jenkinsfilePath, String component) {
     return "https://webhook-proxy-"
         + namespace
-        + ".192.168.56.101.nip.io/build?trigger_secret=secret101&jenkinsfile_path="
+        + projectOpenshiftBaseDomain
+        + "/build?trigger_secret=secret101&jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;
@@ -1081,7 +1085,8 @@ public class E2EProjectAPIControllerTest {
       String namespace, String jenkinsfilePath, String component, String secret) {
     return "https://webhook-proxy-"
         + namespace
-        + ".192.168.56.101.nip.io/build?trigger_secret="
+        + projectOpenshiftBaseDomain
+        + "/build?trigger_secret="
         + secret
         + "&jenkinsfile_path="
         + jenkinsfilePath

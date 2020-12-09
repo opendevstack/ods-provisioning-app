@@ -35,16 +35,17 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
  * Configuration of BasicAuth for testing purposes.
  *
  * <p>Never move it to src/main/java folder!
- *
- * @author Sebastian Titakis
  */
 @Configuration
 @ConditionalOnProperty(name = "provision.auth.basic-auth.enabled", havingValue = "utest")
 public class BasicAuthSecurityTestConfig {
 
   public static final String TEST_USER_USERNAME = "user";
+  public static final String TEST_USER_EMAIL = "user@example.com";
   public static final String TEST_ADMIN_USERNAME = "admin";
+  public static final String TEST_ADMIN_EMAIL = "admin@example.com";
   public static final String TEST_NOT_PERMISSIONED_USER_USERNAME = "not-permissioned-user";
+  public static final String TEST_NOT_PERMISSIONED_USER_EMAIL = "not-permissioned-user@example.com";
   public static final String TEST_REALM = "test-realm";
   public static final String TEST_VALID_CREDENTIAL = "validsecret";
 

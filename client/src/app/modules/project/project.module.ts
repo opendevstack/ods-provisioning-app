@@ -2,12 +2,7 @@ import { ModuleWithProviders, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProjectService } from './services/project.service';
 import { HttpClientModule } from '@angular/common/http';
-import {
-  API_PROJECT_URL,
-  API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_DETAIL_URL,
-  API_PROJECT_TEMPLATES_URL
-} from '../../tokens';
+import { API_PROJECT_URL, API_GENERATE_PROJECT_KEY_URL, API_PROJECT_DETAIL_URL, API_PROJECT_TEMPLATES_URL } from '../../tokens';
 
 @NgModule({
   declarations: [],
@@ -20,7 +15,7 @@ export class ProjectModule {
     apiProjectUrl: string;
     apiProjectTemplatesUrl: string;
     apiGenerateProjectKeyUrl: string;
-  }): ModuleWithProviders {
+  }): ModuleWithProviders<ProjectModule> {
     return {
       ngModule: ProjectModule,
       providers: [

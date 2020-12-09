@@ -24,8 +24,6 @@ import org.opendevstack.provision.model.jenkins.Job;
 /**
  * Job execution adapter, called to delegate long running provision, e.g. of components and
  * boilerplates
- *
- * @author utschig
  */
 public interface IJobExecutionAdapter extends IServiceAdapter {
 

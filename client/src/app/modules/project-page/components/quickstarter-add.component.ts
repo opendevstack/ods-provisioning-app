@@ -1,15 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnDestroy,
-  OnInit
-} from '@angular/core';
-import {
-  ProjectQuickstarter,
-  QuickstarterData
-} from '../../../domain/quickstarter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ProjectQuickstarter, QuickstarterData } from '../../../domain/quickstarter';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EditProjectValidators } from '../../app-form/validators/edit-project.validators';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
@@ -18,30 +8,24 @@ import { default as validationConfig } from '../../app-form/config/validation.js
 import { CustomValidation } from '../../app-form/domain/custom-validation';
 
 @Component({
-  selector: 'project-quickstarter-add',
+  selector: 'app-project-quickstarter-add',
   templateUrl: './quickstarter-add.component.html',
   styleUrls: ['./quickstarter-add.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuickstarterAddComponent extends FormBaseComponent
-  implements OnInit, OnDestroy {
+export class QuickstarterAddComponent extends FormBaseComponent implements OnInit, OnDestroy {
   @Input() projectQuickstarters: ProjectQuickstarter[];
   @Input() allQuickstarters: QuickstarterData[];
   @Input() form: FormGroup;
   componentNameCustomValidation: CustomValidation;
   destroy$ = new Subject<boolean>();
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private cdr: ChangeDetectorRef
-  ) {
+  constructor(private formBuilder: FormBuilder, private cdr: ChangeDetectorRef) {
     super();
   }
 
   ngOnInit() {
-    this.componentNameCustomValidation = this.getCustomValidationConfig(
-      validationConfig.quickstarters.componentName
-    );
+    this.componentNameCustomValidation = this.getCustomValidationConfig(validationConfig.quickstarters.componentName);
     this.initializeFormGroup();
   }
 
@@ -67,15 +51,8 @@ export class QuickstarterAddComponent extends FormBaseComponent
     return this.newComponentArray.length > 1;
   }
 
-  controlHasErrorByType(
-    index,
-    controlName: string,
-    errorType: string
-  ): boolean {
-    return this.hasErrorByType(
-      this.newComponentArray.controls[index].get(controlName),
-      errorType
-    );
+  controlHasErrorByType(index, controlName: string, errorType: string): boolean {
+    return this.hasErrorByType(this.newComponentArray.controls[index].get(controlName), errorType);
   }
 
   ngOnDestroy() {
@@ -84,10 +61,7 @@ export class QuickstarterAddComponent extends FormBaseComponent
   }
 
   private initializeFormGroup(): void {
-    this.form.addControl(
-      'newComponent',
-      new FormArray([this.createNewFormGroup()])
-    );
+    this.form.addControl('newComponent', new FormArray([this.createNewFormGroup()]));
   }
 
   private createNewFormGroup(): FormGroup {
@@ -98,12 +72,8 @@ export class QuickstarterAddComponent extends FormBaseComponent
         [
           Validators.required,
           Validators.pattern(this.componentNameCustomValidation.regex),
-          EditProjectValidators.nameExistsInAllQuickstartersValidator(
-            this.allQuickstarters
-          ),
-          EditProjectValidators.nameExistsInNewProjectQuickstarterComponentsValidator(
-            this.form.parent as FormGroup
-          )
+          EditProjectValidators.nameExistsInAllQuickstartersValidator(this.allQuickstarters),
+          EditProjectValidators.nameExistsInNewProjectQuickstarterComponentsValidator(this.form.parent as FormGroup)
         ]
       ]
     });

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SidebarComponent } from './sidebar.component';
 import { CommonModule } from '@angular/common';
@@ -18,7 +18,7 @@ import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -47,51 +47,48 @@ describe('SidebarComponent', () => {
   }
 
   function doSearchInput(searchText: string) {
-    const searchInputElement = fixture.debugElement.query(
-      By.css('[data-test-search-input]')
-    ).nativeElement;
+    const searchInputElement = fixture.debugElement.query(By.css('[data-test-search-input]')).nativeElement;
     searchInputElement.value = searchText;
     searchInputElement.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
 
   function getSearchResultCountElement() {
-    return fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar-project-count]'
-    );
+    return fixture.debugElement.nativeElement.querySelector('[data-test-sidebar-project-count]');
   }
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [SidebarComponent],
-      imports: [
-        NoopAnimationsModule,
-        CommonModule,
-        RouterTestingModule,
-        ReactiveFormsModule,
-        AppFormModule,
-        MatCardModule,
-        LoadingIndicatorModule,
-        MatListModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatAutocompleteModule,
-        MatButtonModule,
-        MatIconModule
-      ]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [SidebarComponent],
+        imports: [
+          NoopAnimationsModule,
+          CommonModule,
+          RouterTestingModule,
+          ReactiveFormsModule,
+          AppFormModule,
+          MatCardModule,
+          MatListModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatAutocompleteModule,
+          MatButtonModule,
+          MatIconModule
+        ]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SidebarComponent);
@@ -103,34 +100,14 @@ describe('SidebarComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display a message when projects cannot be loaded', () => {
-    /* given */
-    component.projects = null;
-    /* when */
-
-    /* then */
-    const errorMessageElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-error]'
-    );
-    const sidebarElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar]'
-    );
-    expect(sidebarElement).toBeNull();
-    expect(errorMessageElement).toBeDefined();
-  });
-
   it('should be shown when projects could be loaded', () => {
     /* given */
     component.projects = null;
     /* when */
 
     /* then */
-    const errorMessageElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-error]'
-    );
-    const sidebarElement = fixture.debugElement.nativeElement.querySelector(
-      '[data-test-sidebar]'
-    );
+    const errorMessageElement = fixture.debugElement.nativeElement.querySelector('[data-test-error]');
+    const sidebarElement = fixture.debugElement.nativeElement.querySelector('[data-test-sidebar]');
     expect(sidebarElement).toBeDefined();
     expect(errorMessageElement).toBeNull();
   });

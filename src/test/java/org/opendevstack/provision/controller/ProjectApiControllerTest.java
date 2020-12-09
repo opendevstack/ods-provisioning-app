@@ -47,6 +47,7 @@ import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
+import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.IStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,10 +69,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/**
- * @author Torsten Jaeschke
- * @author utschig
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -81,6 +78,8 @@ import org.springframework.web.context.WebApplicationContext;
 public class ProjectApiControllerTest {
 
   private static Logger logger = LoggerFactory.getLogger(ProjectApiControllerTest.class);
+
+  @MockBean private OpenshiftClient openshiftClient;
 
   @MockBean private IBugtrackerAdapter jiraAdapter;
 
@@ -136,6 +135,8 @@ public class ProjectApiControllerTest {
     initOpenProjectData();
 
     when(jiraAdapter.isSpecialPermissionSchemeEnabled()).thenReturn(true);
+
+    when(openshiftClient.projects()).thenReturn(Set.of("default", "ods"));
 
     apiController.setCheckPreconditionsEnabled(true);
 

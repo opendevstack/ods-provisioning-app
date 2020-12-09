@@ -5,13 +5,7 @@ export class Cookie {
   readonly path: string;
   readonly maxAge: number;
 
-  constructor(
-    name: string,
-    value: string,
-    secure: boolean,
-    maxAge: number,
-    path: string
-  ) {
+  constructor(name: string, value: string, secure: boolean, maxAge: number, path: string) {
     this.name = name;
     this.value = value;
     this.secure = secure;

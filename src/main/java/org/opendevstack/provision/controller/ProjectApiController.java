@@ -42,6 +42,7 @@ import org.opendevstack.provision.model.OpenProjectDataValidator;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
+import org.opendevstack.provision.services.openshift.OpenshiftService;
 import org.opendevstack.provision.storage.IStorage;
 import org.opendevstack.provision.util.exception.ProjectAlreadyExistsException;
 import org.slf4j.Logger;
@@ -56,12 +57,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Rest Controller to handle the process of project creation
- *
- * @author Torsten Jaeschke
- * @author Clemens Utschig
- */
+/** Rest Controller to handle the process of project creation */
 @RestController
 @RequestMapping(value = ProjectAPI.API_V2_PROJECT)
 public class ProjectApiController {
@@ -86,6 +82,9 @@ public class ProjectApiController {
 
   @Autowired(required = false)
   private ICollaborationAdapter confluenceAdapter;
+
+  @Autowired(required = false)
+  private OpenshiftService openshiftService;
 
   @Autowired private ISCMAdapter bitbucketAdapter;
   @Autowired private IJobExecutionAdapter jenkinsPipelineAdapter;
@@ -116,6 +115,9 @@ public class ProjectApiController {
 
   @Value("${adapters.confluence.enabled:true}")
   private boolean confluenceAdapterEnable;
+
+  @Value("${services.openshift.enabled:true}")
+  private boolean openshiftServiceEnable;
 
   @PostConstruct
   public void postConstruct() {
@@ -338,6 +340,10 @@ public class ProjectApiController {
 
     if (newProject.platformRuntime) {
       results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
+
+      if (isOpenshiftServiceEnable() && null != openshiftService) {
+        results.addAll(openshiftService.checkCreateProjectPreconditions(newProject));
+      }
     }
 
     if (results.isEmpty()) {
@@ -956,6 +962,14 @@ public class ProjectApiController {
 
   public IStorage getDirectStorage() {
     return directStorage;
+  }
+
+  public boolean isOpenshiftServiceEnable() {
+    return openshiftServiceEnable;
+  }
+
+  public void setOpenshiftServiceEnable(boolean openshiftServiceEnable) {
+    this.openshiftServiceEnable = openshiftServiceEnable;
   }
 
   public boolean isConfluenceAdapterEnable() {

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { NewProjectComponent } from './new-project.component';
 import { CommonModule } from '@angular/common';
@@ -16,12 +16,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../../app-form/app-form.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import {
-  API_GENERATE_PROJECT_KEY_URL,
-  API_PROJECT_DETAIL_URL,
-  API_PROJECT_TEMPLATES_URL,
-  API_PROJECT_URL
-} from '../../../tokens';
+import { API_GENERATE_PROJECT_KEY_URL, API_PROJECT_DETAIL_URL, API_PROJECT_TEMPLATES_URL, API_PROJECT_URL } from '../../../tokens';
 import { StorageService } from '../../storage/services/storage.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
@@ -48,41 +43,43 @@ describe('NewProjectComponent', () => {
     }
   };
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        HttpClientTestingModule,
-        RouterTestingModule,
-        ProjectModule,
-        LoadingIndicatorModule,
-        MatIconModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatButtonModule,
-        NotificationModule,
-        MatExpansionModule,
-        ReactiveFormsModule,
-        AppFormModule,
-        MatCheckboxModule
-      ],
-      providers: [
-        { provide: API_PROJECT_DETAIL_URL, useValue: '/api/mock' },
-        { provide: API_PROJECT_URL, useValue: '/api/mock' },
-        { provide: API_PROJECT_TEMPLATES_URL, useValue: '/api/mock' },
-        { provide: API_GENERATE_PROJECT_KEY_URL, useValue: '/api/mock' },
-        {
-          provide: StorageService,
-          useValue: {
-            saveItem: jest.fn()
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [
+          CommonModule,
+          HttpClientTestingModule,
+          RouterTestingModule,
+          ProjectModule,
+          LoadingIndicatorModule,
+          MatIconModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatTooltipModule,
+          MatButtonModule,
+          NotificationModule,
+          MatExpansionModule,
+          ReactiveFormsModule,
+          AppFormModule,
+          MatCheckboxModule
+        ],
+        providers: [
+          { provide: API_PROJECT_DETAIL_URL, useValue: '/api/mock' },
+          { provide: API_PROJECT_URL, useValue: '/api/mock' },
+          { provide: API_PROJECT_TEMPLATES_URL, useValue: '/api/mock' },
+          { provide: API_GENERATE_PROJECT_KEY_URL, useValue: '/api/mock' },
+          {
+            provide: StorageService,
+            useValue: {
+              saveItem: jest.fn()
+            }
           }
-        }
-      ],
-      declarations: [NewProjectComponent],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
-  }));
+        ],
+        declarations: [NewProjectComponent],
+        schemas: [NO_ERRORS_SCHEMA]
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(NewProjectComponent);

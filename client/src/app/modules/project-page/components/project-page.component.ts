@@ -1,39 +1,21 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  OnDestroy,
-  OnInit,
-  Output
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import {
-  UpdateProjectQuickstartersData,
-  UpdateProjectRequest,
-  ProjectData,
-  ProjectLink,
-  ProjectStorage
-} from '../../../domain/project';
+import { UpdateProjectQuickstartersData, UpdateProjectRequest, ProjectData, ProjectLink, ProjectStorage } from '../../../domain/project';
 import { ProjectService } from '../../project/services/project.service';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { NotificationComponent } from '../../notification/components/notification.component';
 import { EditModeService } from '../../edit-mode/services/edit-mode.service';
-import {
-  ProjectQuickstarter,
-  QuickstarterData
-} from '../../../domain/quickstarter';
+import { ProjectQuickstarter, QuickstarterData } from '../../../domain/quickstarter';
 import { AbstractControl, FormArray, FormBuilder } from '@angular/forms';
 import { QuickstarterService } from '../services/quickstarter.service';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { StorageService } from '../../storage/services/storage.service';
-import { HttpErrorTypes } from '../../http-interceptors/http-request-interceptor.service';
 import { ConfirmationComponent } from '../../confirmation/components/confirmation.component';
 import { ConfirmationConfig } from '../../confirmation/domain/confirmation-config';
-
-type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
+import { HttpErrorResponse } from '@angular/common/http';
+import HttpStatusCodes from '../../../domain/http-status-codes';
 
 @Component({
   selector: 'app-project-page',
@@ -41,26 +23,23 @@ type ProjectErrorType = 'NOT_FOUND' | 'NO_PROJECT_KEY' | 'UNKNOWN';
   styleUrls: ['./project-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectPageComponent extends FormBaseComponent
-  implements OnInit, OnDestroy {
+export class ProjectPageComponent extends FormBaseComponent implements OnInit, OnDestroy {
   destroy$ = new Subject<boolean>();
   project$ = new Subject<ProjectData>();
   quickstarters$ = new Subject<ProjectData>();
   isLoading = true;
   isProjectError: boolean;
   isQuickstartersError: boolean;
-  errorType: ProjectErrorType;
+  errorType: string;
   project: ProjectData;
   projectLinks: ProjectLink[];
   aggregatedProjectLinks: string;
   allQuickstarters: QuickstarterData[];
   projectQuickstarters: ProjectQuickstarter[] = null;
 
-  @Output() onGetEditModeFlag = new EventEmitter<boolean>();
+  @Output() getEditModeFlag = new EventEmitter<boolean>();
 
-  private static mapFormValuesToBackendModel(
-    formArray: AbstractControl[]
-  ): UpdateProjectQuickstartersData[] {
+  private static mapFormValuesToBackendModel(formArray: AbstractControl[]): UpdateProjectQuickstartersData[] {
     return formArray.map((component: FormArray) => {
       return {
         component_id: component.value.componentName,
@@ -77,8 +56,7 @@ export class ProjectPageComponent extends FormBaseComponent
     private quickstarterService: QuickstarterService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog,
-    private storageService: StorageService,
-    private router: Router
+    private storageService: StorageService
   ) {
     super();
     this.editMode.context = 'edit';
@@ -91,12 +69,14 @@ export class ProjectPageComponent extends FormBaseComponent
       if (!param.key) {
         if (!projectKeyFromStorage) {
           this.switchToErrorDisplay('NO_PROJECT_KEY');
+        } else {
+          projectKey = projectKeyFromStorage;
+          this.loadProjectData(projectKey);
         }
-        projectKey = projectKeyFromStorage;
       } else {
         projectKey = param.key;
+        this.loadProjectData(projectKey);
       }
-      this.loadProjectData(projectKey);
     });
   }
 
@@ -159,15 +139,14 @@ export class ProjectPageComponent extends FormBaseComponent
       text: {
         title: 'Remove project',
         info:
-          'This will delete your Jira- and Confluence spaces as well as Jenkins pipelines and OpenShift namespace (if existing). Bitbucket repositories will not be deleted.',
+          'This will delete your Jira- and Confluence spaces as well as Jenkins pipelines and OpenShift namespace' +
+          ' (if existing). Bitbucket repositories will not be deleted.',
         ctaButtonLabel: 'Yes, remove project'
       }
     };
   }
   private getProjectKeyFromStorage(): string | null {
-    const projectKeyFromStorage = this.storageService.getItem(
-      'project'
-    ) as ProjectStorage;
+    const projectKeyFromStorage = this.storageService.getItem('project') as ProjectStorage;
     if (!projectKeyFromStorage) {
       return;
     }
@@ -175,18 +154,13 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   private initializeDataRetrieval(projectKey: string) {
-    forkJoin([
-      this.getProjectByKey(projectKey),
-      this.getAllQuickstarters()
-    ]).subscribe(([project, allQuickstarters]) => {
+    forkJoin([this.getProjectByKey(projectKey), this.getAllQuickstarters()]).subscribe(([project, allQuickstarters]) => {
       this.project = project as ProjectData;
       this.prepareProjectLinks();
 
       this.projectQuickstarters = null;
       if (this.project.quickstarters.length) {
-        this.projectQuickstarters = this.quickstarterService.transformProjectQuickstarterData(
-          this.project.quickstarters
-        );
+        this.projectQuickstarters = this.quickstarterService.transformProjectQuickstarterData(this.project.quickstarters);
       }
 
       this.storageService.saveItem('project', { key: this.project.projectKey });
@@ -202,15 +176,10 @@ export class ProjectPageComponent extends FormBaseComponent
     this.isLoading = true;
     return this.projectService.updateProject(requestData).subscribe(
       project => {
-        this.openNotification(
-          `${project.projectKey} successfully updated, reloading ...`,
-          true
-        );
+        this.openNotification(`${project.projectKey} successfully updated, reloading ...`, true);
       },
       () => {
-        this.openNotification(
-          `Project could not be updated, please try again soon`
-        );
+        this.openNotification(`Project could not be updated, please try again soon`);
         this.isLoading = false;
         this.cdr.detectChanges();
         return EMPTY;
@@ -220,17 +189,12 @@ export class ProjectPageComponent extends FormBaseComponent
 
   private deleteProject() {
     return this.projectService.deleteProject(this.project.projectKey).subscribe(
-      project => {
+      () => {
         this.storageService.removeItem('project');
-        this.openNotification(
-          `${this.project.projectKey} successfully deleted, reloading ...`,
-          true
-        );
+        this.openNotification(`${this.project.projectKey} successfully deleted, reloading ...`, true);
       },
       () => {
-        this.openNotification(
-          `Project could not be deleted, please try again soon`
-        );
+        this.openNotification(`Project could not be deleted, please try again soon`);
         this.isLoading = false;
         this.cdr.detectChanges();
         return EMPTY;
@@ -251,9 +215,13 @@ export class ProjectPageComponent extends FormBaseComponent
     return this.projectService.getProjectByKey(key).pipe(
       takeUntil(this.destroy$),
       tap(() => (this.isProjectError = false)),
-      catchError((errorType: HttpErrorTypes) => {
+      catchError((error: HttpErrorResponse) => {
         this.storageService.removeItem('project');
-        this.switchToErrorDisplay(errorType);
+        if (error.status === HttpStatusCodes.NOT_FOUND) {
+          this.switchToErrorDisplay('NOT_FOUND');
+        } else {
+          this.switchToErrorDisplay('TECHNICAL_ERROR');
+        }
         return EMPTY;
       })
     );
@@ -275,12 +243,10 @@ export class ProjectPageComponent extends FormBaseComponent
 
   private prepareProjectLinks() {
     this.projectLinks = this.projectService.getProjectLinksConfig(this.project);
-    this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(
-      this.projectLinks
-    );
+    this.aggregatedProjectLinks = this.projectService.getAggregateProjectLinks(this.projectLinks);
   }
 
-  private switchToErrorDisplay(errorType: ProjectErrorType) {
+  private switchToErrorDisplay(errorType: string) {
     this.errorType = errorType;
     this.isProjectError = true;
     this.isLoading = false;
@@ -288,12 +254,8 @@ export class ProjectPageComponent extends FormBaseComponent
   }
 
   private createUpdateProjectRequestData(): UpdateProjectRequest {
-    const newComponentsControls = (this.newComponentsForm.get(
-      'newComponent'
-    ) as FormArray).controls;
-    const allComponentsData = ProjectPageComponent.mapFormValuesToBackendModel(
-      newComponentsControls
-    );
+    const newComponentsControls = (this.newComponentsForm.get('newComponent') as FormArray).controls;
+    const allComponentsData = ProjectPageComponent.mapFormValuesToBackendModel(newComponentsControls);
 
     return {
       projectKey: this.project.projectKey,

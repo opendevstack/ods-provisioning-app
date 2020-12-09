@@ -14,6 +14,9 @@
 
 package org.opendevstack.provision.controller;
 
+import static org.mockito.Mockito.when;
+import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -21,20 +24,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opendevstack.provision.SpringBoot;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -43,7 +50,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/** @author Torsten Jaeschke */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
 @DirtiesContext
@@ -53,15 +59,31 @@ public class QuickstarterApiControllerTest {
 
   @Autowired private WebApplicationContext context;
 
+  @Qualifier("testUsersAndRoles")
+  @Autowired
+  private Map<String, String> testUsersAndRoles;
+
   @MockBean JenkinsPipelineAdapter jenkinsPipelineAdapter;
+
+  @MockBean private IODSAuthnzAdapter mockAuthnzAdapter;
 
   private List<Job> jobs;
   private OpenProjectData project;
   private List<ExecutionsData> executions = new ArrayList<>();
 
+  private static final String TEST_ADMIN_EMAIL = "testUserName@example.com";
+
   @Before
   public void init() {
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(context)
+            .apply(SecurityMockMvcConfigurers.springSecurity())
+            .build();
+
+    when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
+    when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
+    when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
+
     initJobs();
   }
 
@@ -81,9 +103,18 @@ public class QuickstarterApiControllerTest {
   public void getQuickstarters() throws Exception {
     Mockito.when(jenkinsPipelineAdapter.getQuickstarterJobs()).thenReturn(jobs);
 
+    // authorized
     mockMvc
-        .perform(get("/api/v1/quickstarter"))
+        .perform(
+            get("/api/v1/quickstarter").with(httpBasic(TEST_USER_USERNAME, TEST_VALID_CREDENTIAL)))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+
+    // not authorized
+    mockMvc
+        .perform(
+            get("/api/v1/quickstarter")
+                .with(httpBasic(TEST_NOT_PERMISSIONED_USER_USERNAME, TEST_VALID_CREDENTIAL)))
+        .andExpect(MockMvcResultMatchers.status().isForbidden());
   }
 
   @Test
@@ -91,12 +122,26 @@ public class QuickstarterApiControllerTest {
     Mockito.when(jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project))
         .thenReturn(executions);
 
+    // authorized
     mockMvc
         .perform(
             post("/api/v1/quickstarter/provision")
+                .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .content(getBody())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+        .andReturn()
+        .getResponse()
+        .toString();
+
+    // not authorized
+    mockMvc
+        .perform(
+            post("/api/v1/quickstarter/provision")
+                .with(httpBasic(TEST_NOT_PERMISSIONED_USER_USERNAME, TEST_VALID_CREDENTIAL))
+                .content(getBody())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isForbidden())
         .andReturn()
         .getResponse()
         .toString();

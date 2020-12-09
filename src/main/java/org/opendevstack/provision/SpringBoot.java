@@ -17,11 +17,6 @@ package org.opendevstack.provision;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/**
- * Spring boot start class for the administration
- *
- * @author Torsten Jaeschke
- */
 @SpringBootApplication
 public class SpringBoot {
 

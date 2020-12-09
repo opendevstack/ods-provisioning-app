@@ -16,11 +16,7 @@ package org.opendevstack.provision.adapter;
 
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 
-/**
- * Interface to wrap all (current) user based identity calls
- *
- * @author utschig
- */
+/** Interface to wrap all (current) user based identity calls */
 public interface IODSAuthnzAdapter {
   /**
    * Get the password from the logged in user

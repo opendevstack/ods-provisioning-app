@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ProjectHeaderComponent } from './header.component';
 import { ProjectModule } from '../../project/project.module';
@@ -18,7 +18,7 @@ import { Component, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 @Component({
-  selector: 'mat-icon',
+  selector: 'app-mat-icon',
   template: '<span></span>'
 })
 class MockMatIconComponent {
@@ -31,37 +31,39 @@ describe('ProjectHeaderComponent', () => {
   let component: ProjectHeaderComponent;
   let fixture: ComponentFixture<ProjectHeaderComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        ProjectModule,
-        LoadingIndicatorModule,
-        MatIconModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatCardModule,
-        MatTooltipModule,
-        MatButtonModule,
-        ClipboardModule,
-        NotificationModule,
-        MatExpansionModule,
-        ReactiveFormsModule,
-        AppFormModule
-      ],
-      declarations: [ProjectHeaderComponent]
-    })
-      .overrideModule(MatIconModule, {
-        remove: {
-          declarations: [MatIcon],
-          exports: [MatIcon]
-        },
-        add: {
-          declarations: [MockMatIconComponent],
-          exports: [MockMatIconComponent]
-        }
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [
+          ProjectModule,
+          LoadingIndicatorModule,
+          MatIconModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatCardModule,
+          MatTooltipModule,
+          MatButtonModule,
+          ClipboardModule,
+          NotificationModule,
+          MatExpansionModule,
+          ReactiveFormsModule,
+          AppFormModule
+        ],
+        declarations: [ProjectHeaderComponent]
       })
-      .compileComponents();
-  }));
+        .overrideModule(MatIconModule, {
+          remove: {
+            declarations: [MatIcon],
+            exports: [MatIcon]
+          },
+          add: {
+            declarations: [MockMatIconComponent],
+            exports: [MockMatIconComponent]
+          }
+        })
+        .compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ProjectHeaderComponent);
@@ -80,8 +82,8 @@ describe('ProjectHeaderComponent', () => {
       lastExecutionJobs: null,
       physicalLocation: null
     };
-    jest.spyOn(component.onActivateEditMode, 'emit');
-    jest.spyOn(component.onOpenNotification, 'emit');
+    jest.spyOn(component.activateEditMode, 'emit');
+    jest.spyOn(component.openNotification, 'emit');
     fixture.detectChanges();
   });
 
@@ -96,12 +98,8 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       expect(startEditProjectBtn).toBeDefined();
       expect(closeEditProjectBtn).toBeNull();
     });
@@ -111,16 +109,12 @@ describe('ProjectHeaderComponent', () => {
       component.editMode = false;
       /* when */
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       startEditProjectBtn.click();
       /* then */
       expect(closeEditProjectBtn).toBeDefined();
-      expect(component.onActivateEditMode.emit).toHaveBeenCalledWith(true);
+      expect(component.activateEditMode.emit).toHaveBeenCalledWith(true);
     });
   });
 
@@ -131,12 +125,8 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       expect(startEditProjectBtn).toBeNull();
       expect(closeEditProjectBtn).toBeDefined();
     });
@@ -146,16 +136,12 @@ describe('ProjectHeaderComponent', () => {
       component.editMode = true;
       /* when */
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
-      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-close-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
+      const closeEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-close-edit-project-btn]');
       closeEditProjectBtn.click();
       /* then */
       expect(startEditProjectBtn).toBeDefined();
-      expect(component.onActivateEditMode.emit).toHaveBeenCalledWith(false);
+      expect(component.activateEditMode.emit).toHaveBeenCalledWith(false);
     });
   });
 
@@ -167,20 +153,16 @@ describe('ProjectHeaderComponent', () => {
 
     it('should show copy to clipboard button', () => {
       /* then */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       expect(copyToClipboardBtn).toBeDefined();
     });
 
     it('should open copy to clipboard confirmation dialog when clicking on copy button', () => {
       /* when */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       copyToClipboardBtn.click();
       /* then */
-      expect(component.onOpenNotification.emit).toHaveBeenCalled();
+      expect(component.openNotification.emit).toHaveBeenCalled();
     });
 
     it('with applied urls, should show link to click on', () => {
@@ -205,9 +187,7 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const projectLinkUrl = fixture.debugElement.queryAll(
-        By.css('[data-test-project-link-url]')
-      );
+      const projectLinkUrl = fixture.debugElement.queryAll(By.css('[data-test-project-link-url]'));
       expect(projectLinkUrl.length).toBe(1);
     });
 
@@ -233,9 +213,7 @@ describe('ProjectHeaderComponent', () => {
       /* when */
       fixture.detectChanges();
       /* then */
-      const projectLinkUrl = fixture.debugElement.queryAll(
-        By.css('[data-test-project-link-url]')
-      );
+      const projectLinkUrl = fixture.debugElement.queryAll(By.css('[data-test-project-link-url]'));
       expect(projectLinkUrl.length).toBe(0);
     });
   });
@@ -248,9 +226,7 @@ describe('ProjectHeaderComponent', () => {
 
     it('should not show copy to clipboard button', () => {
       /* then */
-      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-copy-to-clipboard-btn]'
-      );
+      const copyToClipboardBtn = fixture.debugElement.nativeElement.querySelector('[data-test-copy-to-clipboard-btn]');
       expect(copyToClipboardBtn).toBeNull();
     });
   });
@@ -260,9 +236,7 @@ describe('ProjectHeaderComponent', () => {
       /* given */
       component.project = { platformRuntime: true } as any;
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
       /* when */
       /* then */
       expect(startEditProjectBtn.hasAttribute('disabled')).toBe(false);
@@ -272,9 +246,7 @@ describe('ProjectHeaderComponent', () => {
       /* given */
       component.project = { platformRuntime: false } as any;
       fixture.detectChanges();
-      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector(
-        '[data-test-start-edit-project-btn]'
-      );
+      const startEditProjectBtn = fixture.debugElement.nativeElement.querySelector('[data-test-start-edit-project-btn]');
       /* when */
       /* then */
       expect(startEditProjectBtn.hasAttribute('disabled')).toBe(true);

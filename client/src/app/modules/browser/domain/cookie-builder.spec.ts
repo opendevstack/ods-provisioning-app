@@ -7,9 +7,7 @@ describe('CookieBuilder', () => {
 
   it('should build cookie from string', () => {
     /* when */
-    const cookie = new CookieBuilder('foocookie')
-      .withStringValue('hello')
-      .build();
+    const cookie = new CookieBuilder('foocookie').withStringValue('hello').build();
 
     /* then */
     expect(cookie.name).toEqual('foocookie');
@@ -22,9 +20,7 @@ describe('CookieBuilder', () => {
   describe('building cookie from object', () => {
     it('should build insecure cookie without expiration date', () => {
       /* when */
-      const cookie = new CookieBuilder('foocookie')
-        .withObjectValue({ hello: 'world' })
-        .build();
+      const cookie = new CookieBuilder('foocookie').withObjectValue({ hello: 'world' }).build();
 
       /* then */
       expect(cookie.name).toEqual('foocookie');
@@ -36,11 +32,7 @@ describe('CookieBuilder', () => {
 
     it('should build secure cookie with expiration date', () => {
       /* when */
-      const cookie = new CookieBuilder('foocookie')
-        .withObjectValue({ hello: 'world' })
-        .withExpiringInDays(100)
-        .asSecure()
-        .build();
+      const cookie = new CookieBuilder('foocookie').withObjectValue({ hello: 'world' }).withExpiringInDays(100).asSecure().build();
 
       /* then */
       expect(cookie.name).toEqual('foocookie');

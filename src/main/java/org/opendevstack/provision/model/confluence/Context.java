@@ -17,7 +17,6 @@ package org.opendevstack.provision.model.confluence;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.Generated;
 
-/** @author Torsten Jaeschke */
 @Generated(value = {"JSON-to-Pojo-Generator"})
 public class Context {
 
