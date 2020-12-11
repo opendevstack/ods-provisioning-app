@@ -25,7 +25,7 @@ DOCKERTAG='none'
 case $GIT_REF in
   refs/heads/master )
     DOCKERTAG='latest' ;;
-  refs/heads/ods-devenv-build-fixes )
+  refs/heads/bugfix/ods-devenv-build-fixes )
     DOCKERTAG='snapshot' ;;
   refs/heads/?(+([0-9]).)+([0-9]).x )
   	DOCKERTAG="${GIT_REF/refs\/heads\//}" ;;
