@@ -14,10 +14,7 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.atlassian.crowd.embedded.api.PasswordCredential;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
@@ -30,22 +27,17 @@ import com.atlassian.crowd.service.soap.client.SoapClientProperties;
 import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
 import java.rmi.RemoteException;
 import java.util.Properties;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.opendevstack.provision.SpringBoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @WithMockUser(
     username = CrowdAuthenticationManagerTest.USER,
@@ -65,7 +57,7 @@ public class CrowdAuthenticationManagerTest {
 
   @Mock private SecurityServerClient securityServerClient;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     String token = TOKEN;
     ValidationFactor[] factors = new ValidationFactor[0];
@@ -127,23 +119,24 @@ public class CrowdAuthenticationManagerTest {
     assertTrue(manager.isAuthenticated("", new ValidationFactor[0]));
   }
 
-  @Test(expected = RemoteException.class)
-  public void invalidateWithRemoteException() throws Exception {
-    manager.invalidate("remote");
-  }
-
-  @Test(expected = InvalidAuthorizationTokenException.class)
-  public void invalidateWithInvalidAuthorizationTokenException() throws Exception {
-    manager.invalidate("invalid_token");
-  }
-
-  @Test(expected = InvalidAuthenticationException.class)
-  public void invalidateWithInvalidAuthenticationException() throws Exception {
-    manager.invalidate("invalid_auth");
+  @Test
+  public void invalidateWithRemoteException() {
+    assertThrows(RemoteException.class, () -> manager.invalidate("remote"));
   }
 
   @Test
-  public void getSecurityServerClient() throws Exception {
+  public void invalidateWithInvalidAuthorizationTokenException() {
+    assertThrows(
+        InvalidAuthorizationTokenException.class, () -> manager.invalidate("invalid_token"));
+  }
+
+  @Test
+  public void invalidateWithInvalidAuthenticationException() {
+    assertThrows(InvalidAuthenticationException.class, () -> manager.invalidate("invalid_auth"));
+  }
+
+  @Test
+  public void getSecurityServerClient() {
     assertNotNull(manager.getSecurityServerClient());
     assertTrue((manager.getSecurityServerClient() instanceof SecurityServerClient));
   }

@@ -13,21 +13,19 @@
  */
 package org.opendevstack.provision.authentication.filter;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.opendevstack.provision.authentication.TestAuthentication;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.TestSecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
-@DirtiesContext
+@ExtendWith(SpringExtension.class)
 public class SSOAuthProcessingFilterBasicAuthHandlerTest {
 
   @MockBean private HttpServletRequest request;

@@ -20,4 +20,4 @@ ENTRYPOINT ["entrypoint.sh"]
 # which are defined in classpath:/application.properties
 # for details refert to Spring boot documention:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config
-CMD ["java", "-jar", "app.jar", "--spring.config.additional-location=/quickstarters/quickstarters.properties,/jira-project-types/additional-templates.properties,/config/*/"]
+CMD ["java", "-jar", "app.jar", "--spring.config.additional-location=/quickstarters/quickstarters.properties,optional:file:/jira-project-types/additional-templates.properties"]

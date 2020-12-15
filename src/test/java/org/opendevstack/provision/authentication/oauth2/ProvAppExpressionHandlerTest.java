@@ -13,42 +13,45 @@
  */
 package org.opendevstack.provision.authentication.oauth2;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.opendevstack.provision.authentication.authorization.ProvAppExpressionHandler;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @DirtiesContext
 public class ProvAppExpressionHandlerTest {
 
   @MockBean private Authentication authentication;
 
-  @MockBean private MethodInvocation methodInvocation;
-
   private static final String USER_ROLE = "userRole";
-
   private static final String ADMIN_ROLE = "adminRole";
 
   private ProvAppExpressionHandler provAppExpressionHandler;
 
-  @Before
+  @BeforeEach
   public void setup() {
     provAppExpressionHandler = new ProvAppExpressionHandler(USER_ROLE, ADMIN_ROLE);
   }
 
   @Test
-  public void createEvaluationContextInternal() {
+  public void createEvaluationContextInternal() throws NoSuchMethodException {
+    MethodInvocation mi = mock(MethodInvocation.class);
+    when(mi.getMethod()).thenReturn(String.class.getMethod("toString"));
+    when(mi.getThis()).thenReturn(this);
+
     StandardEvaluationContext evaluationContextInternal =
-        provAppExpressionHandler.createEvaluationContextInternal(authentication, methodInvocation);
+        provAppExpressionHandler.createEvaluationContextInternal(authentication, mi);
     ProvAppExpressionHandler handler =
         (ProvAppExpressionHandler)
             evaluationContextInternal.lookupVariable(ProvAppExpressionHandler.PROV_APP);

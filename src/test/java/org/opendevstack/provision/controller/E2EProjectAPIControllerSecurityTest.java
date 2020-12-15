@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.controller;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -21,10 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.opendevstack.provision.SpringBoot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.StorageAdapter;
@@ -35,7 +33,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * This E2E test focus in testing 2 things: - basic auth authentication - authorization negative
@@ -44,21 +41,13 @@ import org.springframework.test.context.junit4.SpringRunner;
  * <p>NOTES: - positive cases are tested in E2EProjectAPIControllerTest - see
  * BasicAuthSecurityConfig.class, it configures a TestingAuthenticationProvider with test users
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SpringBoot.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 @ActiveProfiles("utest")
 public class E2EProjectAPIControllerSecurityTest {
 
   public static final String TEST_VALID_CREDENTIAL =
       BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
-
-  @MockBean private StorageAdapter storageAdapter;
-
-  @Autowired private TestRestTemplate template;
-
   private final String admin = BasicAuthSecurityTestConfig.TEST_ADMIN_USERNAME;
   private final String user = BasicAuthSecurityTestConfig.TEST_USER_USERNAME;
   private final String unknownUser =
@@ -67,7 +56,6 @@ public class E2EProjectAPIControllerSecurityTest {
   private final String validCredential = BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
   private final String invalidCredential = "invalidSecret";
   private final String projectAPI = "/" + ProjectAPI.API_V2_PROJECT;
-
   private final List<String> allGetAPIs =
       List.of(
           projectAPI, // get all projects API
@@ -77,12 +65,13 @@ public class E2EProjectAPIControllerSecurityTest {
           projectAPI + "/template/KEY",
           projectAPI + "/key/validate?projectKey=KEY",
           projectAPI + "/key/generate?name=NAME");
-
+  @MockBean private StorageAdapter storageAdapter;
+  @Autowired private TestRestTemplate template;
   private HttpHeaders headers = new HttpHeaders();
 
   private OpenProjectData projectData;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     headers.setContentType(MediaType.APPLICATION_JSON);
     headers.setAccept(List.of(MediaType.APPLICATION_JSON));
@@ -234,11 +223,11 @@ public class E2EProjectAPIControllerSecurityTest {
 
     HttpStatus responseStatus = request.apply(username, credential);
     assertEquals(
+        expected,
+        responseStatus,
         String.format(
             "Authentication failed with unexpected return code for user '%s:%s' ",
-            username, credential),
-        expected,
-        responseStatus);
+            username, credential));
   }
 
   public void assertRequests(

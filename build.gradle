@@ -1,98 +1,54 @@
 buildscript {
-
     ext {
-        springBootVersion = '2.2.4.RELEASE'
-        // fix for not set system variable
+        // set gradle properties regarding nexus
         nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
         nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
         nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
-        no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
-
-
-    }
-
-    repositories {
-        if (no_nexus) {
-            println("using repositories 'jcenter' and 'mavenCentral'")
-            jcenter()
-            mavenCentral()
-        } else {
-            println("using nexus repositories")
-            if (!nexus_url) {
-                throw new GradleException('Nexus URL not specified!')
-            }
-            maven() {
-                url "${nexus_url}/repository/jcenter/"
-                credentials() {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
-            maven() {
-                url "${nexus_url}/repository/maven-public/"
-                credentials() {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
-            maven() {
-                url "${nexus_url}/repository/atlassian_public/"
-                credentials {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
+        no_nexus = project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false
+        if (!no_nexus && (nexus_url == null || nexus_user == null || nexus_pw == null)) {
+            throw new GradleException("property 'no_nexus' is set to false, but neither " +
+                "'nexus_url', 'nexus_user' nor 'nexus_pw' is configured. You can do so " +
+                "by e.g. creating a gradle.properties file in your 'GRADLE_USER_HOME' " +
+                "(by default '~/.gradle') folder and setting the nexus properties there.")
         }
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.8")
+        nexusFolderReleases = project.findProperty('nexus_folder_releases')
+            ?: System.getenv('NEXUS_FOLDER_RELEASES') ?: "maven-releases"
+        nexusFolderSnapshots = project.findProperty('nexus_folder_snapshots')
+            ?: System.getenv('NEXUS_FOLDER_SNAPSHOTS') ?: "maven-snapshots"
     }
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'org.springframework.boot' version '2.4.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
-    id 'eclipse'
     id 'maven-publish'
     id 'jacoco'
     id 'org.sonarqube' version "3.0"
     id "com.diffplug.spotless" version "5.8.2"
 }
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-
 group = 'prov'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.11
 
 repositories {
-    if (no_nexus) {
-        jcenter()
-        mavenCentral()
+    if (!no_nexus) {
+        def nexusMaven = { repoUrl ->
+            maven {
+                credentials {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+                url repoUrl
+            }
+        }
+        nexusMaven("${nexus_url}/repository/jcenter/")
+        nexusMaven("${nexus_url}/repository/maven-public/")
+        nexusMaven("${nexus_url}/repository/atlassian_public/")
     } else {
-        maven() {
-            url "${nexus_url}/repository/jcenter/"
-            credentials() {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
-        maven() {
-            url "${nexus_url}/repository/maven-public/"
-            credentials() {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
-        maven() {
-            url "${nexus_url}/repository/atlassian_public/"
-            credentials {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
+        mavenCentral()
+        jcenter()
     }
 }
 
@@ -191,6 +147,7 @@ bootJar {
 
 test {
     finalizedBy jacocoTestReport
+    useJUnitPlatform()
 }
 
 bootRun {
@@ -216,6 +173,7 @@ jacocoTestReport {
     }
 }
 
+// run with ./gradlew spotlessApply.
 spotless {
     java {
         googleJavaFormat('1.9')

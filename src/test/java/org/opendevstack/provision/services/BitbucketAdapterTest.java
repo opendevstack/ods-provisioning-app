@@ -14,7 +14,7 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,14 +31,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
@@ -54,7 +51,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
@@ -62,12 +58,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
-@ActiveProfiles("utest,quickstarters")
+@ActiveProfiles({"utest", "quickstarters"})
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Value("${openshift.jenkins.project.webhookproxy.events}")
@@ -89,7 +83,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   private static TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
 
-  @Before
+  @BeforeEach
   public void initTests() {
     when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
     when(authnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
@@ -606,8 +600,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       fail();
 
     } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains("Unexpected error"));
+      assertTrue(e.getMessage().contains(project.projectKey));
     }
   }
 }

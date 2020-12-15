@@ -14,7 +14,7 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -27,14 +27,12 @@ import com.atlassian.crowd.service.cache.BasicCache;
 import com.atlassian.crowd.service.soap.client.SecurityServerClient;
 import java.rmi.RemoteException;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
-@DirtiesContext
+@ExtendWith(SpringExtension.class)
 public class ProvAppSimpleCachingGroupMembershipManagerTest {
 
   @MockBean private SecurityServerClient securityServerClient;

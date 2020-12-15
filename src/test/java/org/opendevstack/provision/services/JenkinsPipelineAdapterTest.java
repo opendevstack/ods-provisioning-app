@@ -15,8 +15,7 @@
 package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.opendevstack.provision.config.Quickstarter.adminjobQuickstarter;
 import static org.opendevstack.provision.config.Quickstarter.componentQuickstarter;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
@@ -24,14 +23,11 @@ import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matc
 import java.io.IOException;
 import java.util.*;
 import org.apache.commons.lang3.NotImplementedException;
-import org.assertj.core.api.Assertions;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -44,14 +40,11 @@ import org.opendevstack.provision.util.ValueCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
@@ -67,7 +60,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   private final String JOB_1_REPO = "gitRepoName.git";
   private final String JOB_1_LEGACY_ID = "e5b77f0f-262a-42f9-9d06-5d9052c1f394";
 
-  @Before
+  @BeforeEach
   public void setup() {
     MockitoAnnotations.initMocks(this);
 
@@ -285,21 +278,23 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
     Execution capturedBody = bodyCaptor.getValues().get(0);
-    Assertions.assertThat(capturedBody.branch).isEqualTo("production");
-    Assertions.assertThat(capturedBody.repository).isEqualTo("ods-core");
+    Assertions.assertEquals("production", capturedBody.branch);
+    Assertions.assertEquals("ods-core", capturedBody.repository);
     List<Option> env = capturedBody.env;
-    Assertions.assertThat(env)
-        .contains(
-            new Option("PROJECT_ID", projectData.projectKey),
-            new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
-            new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.odsNamespace),
-            new Option("ODS_BITBUCKET_PROJECT", jenkinsPipelineAdapter.bitbucketOdsProject),
-            new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.odsImageTag),
-            new Option("ODS_GIT_REF", jenkinsPipelineAdapter.odsGitRef));
 
-    Assertions.assertThat(
-            capturedBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
-        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
+    assertTrue(
+        env.containsAll(
+            List.of(
+                new Option("PROJECT_ID", projectData.projectKey),
+                new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
+                new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.odsNamespace),
+                new Option("ODS_BITBUCKET_PROJECT", jenkinsPipelineAdapter.bitbucketOdsProject),
+                new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.odsImageTag),
+                new Option("ODS_GIT_REF", jenkinsPipelineAdapter.odsGitRef))));
+
+    Assertions.assertEquals(
+        jenkinsPipelineAdapter.bitbucketUri,
+        capturedBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL));
 
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
     assertTrue(expectedOpenProjectData.platformRuntime);
@@ -326,7 +321,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
       jenkinsPipelineAdapter.createPlatformProjects(projectData);
       fail();
     } catch (IllegalArgumentException e) {
-      Assert.assertTrue(e.getMessage().contains("is not valid name"));
+      assertTrue(e.getMessage().contains("is not valid name"));
     }
   }
 
@@ -352,10 +347,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     mockExecute(matchesClientCall().method(HttpMethod.GET)).thenReturn(jobs);
   }
 
-  @Test(expected = NullPointerException.class)
-  public void createNullOCProject() throws Exception {
-    JenkinsPipelineAdapter spyAdapter = Mockito.spy(jenkinsPipelineAdapter);
-    spyAdapter.createPlatformProjects(null);
+  @Test
+  public void createNullOCProject() {
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          JenkinsPipelineAdapter spyAdapter = Mockito.spy(jenkinsPipelineAdapter);
+          spyAdapter.createPlatformProjects(null);
+        });
   }
 
   @Test
@@ -391,28 +390,24 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Execution actualBody = (Execution) valueHolder.getValues().get(0);
     assertNotNull(actualBody);
-    Assertions.assertThat(actualBody.getOptionValue("PROJECT_ADMIN"))
-        .isEqualTo(projectData.projectAdminUser);
-    Assertions.assertThat(actualBody.getOptionValue("PROJECT_ID"))
-        .isEqualTo(projectData.projectKey);
-    Assertions.assertThat(
-            actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL))
-        .isEqualTo(jenkinsPipelineAdapter.bitbucketUri);
-    Assertions.assertThat(actualBody.getOptionValue("ODS_NAMESPACE"))
-        .isEqualTo(jenkinsPipelineAdapter.odsNamespace);
-    Assertions.assertThat(actualBody.getOptionValue("ODS_BITBUCKET_PROJECT"))
-        .isEqualTo(jenkinsPipelineAdapter.bitbucketOdsProject);
-    Assertions.assertThat(actualBody.getOptionValue("ODS_IMAGE_TAG"))
-        .isEqualTo(jenkinsPipelineAdapter.odsImageTag);
-    Assertions.assertThat(actualBody.getOptionValue("ODS_GIT_REF"))
-        .isEqualTo(jenkinsPipelineAdapter.odsGitRef);
+    assertEquals(projectData.projectAdminUser, actualBody.getOptionValue("PROJECT_ADMIN"));
+    assertEquals(projectData.projectKey, actualBody.getOptionValue("PROJECT_ID"));
+    assertEquals(
+        jenkinsPipelineAdapter.bitbucketUri,
+        actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL));
+    assertEquals(jenkinsPipelineAdapter.odsNamespace, actualBody.getOptionValue("ODS_NAMESPACE"));
+    assertEquals(
+        jenkinsPipelineAdapter.bitbucketOdsProject,
+        actualBody.getOptionValue("ODS_BITBUCKET_PROJECT"));
+    assertEquals(jenkinsPipelineAdapter.odsImageTag, actualBody.getOptionValue("ODS_IMAGE_TAG"));
+    assertEquals(jenkinsPipelineAdapter.odsGitRef, actualBody.getOptionValue("ODS_GIT_REF"));
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
-    Assertions.assertThat(groups).contains(defaultEntitlementGroups);
-    Assertions.assertThat(groups).contains("ADMINGROUP=" + projectData.projectAdminGroup);
-    Assertions.assertThat(groups).contains("USERGROUP=" + projectData.projectUserGroup);
-    Assertions.assertThat(groups).contains("READONLYGROUP=" + projectData.projectReadonlyGroup);
+    assertTrue(groups.contains(defaultEntitlementGroups));
+    assertTrue(groups.contains("ADMINGROUP=" + projectData.projectAdminGroup));
+    assertTrue(groups.contains("USERGROUP=" + projectData.projectUserGroup));
+    assertTrue(groups.contains("READONLYGROUP=" + projectData.projectReadonlyGroup));
   }
 
   private CreateProjectResponse buildDummyCreateProjectResponse() {
@@ -422,9 +417,12 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Test
   public void getEndpointAPIPath() {
-    Assertions.assertThatThrownBy(() -> jenkinsPipelineAdapter.getAdapterApiUri())
-        .isInstanceOf(NotImplementedException.class)
-        .hasMessageContaining("JenkinsPipelineAdapter#getAdapterApiUri");
+    NotImplementedException ex =
+        assertThrows(
+            NotImplementedException.class, () -> jenkinsPipelineAdapter.getAdapterApiUri());
+    String expectedMessage = "JenkinsPipelineAdapter#getAdapterApiUri";
+    String actualMessage = ex.getMessage();
+    assertTrue(actualMessage.contains(expectedMessage));
   }
 
   private OpenProjectData generateDefaultOpenProjectData() {
@@ -463,11 +461,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     String key = "k1";
     JenkinsPipelineAdapter.addOrAppendToEntry(map, key, "appended", ",");
-    Assert.assertEquals("v1,appended", map.get(key));
+    assertEquals("v1,appended", map.get(key));
 
     key = "newKey";
     String value = "newValue";
     JenkinsPipelineAdapter.addOrAppendToEntry(map, key, value, ",");
-    Assert.assertEquals(value, map.get(key));
+    assertEquals(value, map.get(key));
   }
 }

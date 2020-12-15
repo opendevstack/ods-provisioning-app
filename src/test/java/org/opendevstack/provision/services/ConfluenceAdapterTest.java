@@ -14,11 +14,9 @@
 
 package org.opendevstack.provision.services;
 
-import static junit.framework.TestCase.assertEquals;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasToString;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -30,13 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.exception.AdapterException;
@@ -53,16 +48,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @ActiveProfiles("utest")
 @DirtiesContext
 public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
@@ -86,7 +78,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Autowired ConfigurableEnvironment environment;
 
-  @Before
+  @BeforeEach
   public void initTests() {
     when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
     when(authnzAdapter.getUserPassword()).thenReturn(TEST_USER_PASSWORD);
@@ -240,9 +232,9 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       fail();
 
     } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
-      Assert.assertTrue(e.getMessage().contains(ConfluenceAdapter.ADAPTER_NAME));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
+      assertTrue(e.getMessage().contains(ConfluenceAdapter.ADAPTER_NAME));
+      assertTrue(e.getMessage().contains(project.projectKey));
     }
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
@@ -253,8 +245,8 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       fail();
 
     } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains("Unexpected error"));
+      assertTrue(e.getMessage().contains(project.projectKey));
     }
   }
 
@@ -277,7 +269,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -287,7 +279,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case error, project key exists!
@@ -298,8 +290,8 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = checkProjectKeyExists.apply(new ArrayList<>());
-    Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(
+    assertEquals(1, newResult.size());
+    assertTrue(
         newResult
             .get(0)
             .toString()
@@ -311,6 +303,6 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     when(restClient.execute(isNotNull())).thenThrow(notFound);
     checkProjectKeyExists = spyAdapter.createProjectKeyExistsCheck(thisProjectKeyNotExists);
     newResult = checkProjectKeyExists.apply(new ArrayList<>());
-    Assert.assertEquals(0, newResult.size());
+    assertEquals(0, newResult.size());
   }
 }
