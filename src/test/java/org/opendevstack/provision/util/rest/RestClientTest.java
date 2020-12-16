@@ -71,7 +71,7 @@ public class RestClientTest {
 
   @Test
   public void callHttpMissingUrl() {
-    assertThrows(IllegalArgumentException.class, () -> client.execute(validGetCall().url(null)));
+    assertThrows(NullPointerException.class, () -> client.execute(validGetCall().url(null)));
   }
 
   @Test
