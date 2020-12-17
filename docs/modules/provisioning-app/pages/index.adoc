@@ -8,12 +8,12 @@ It delegates the tasks to create / update resources to several services such as 
 
 Any user with admin privileges can create new ODS projects through the provisioning application.
 
-A new ODS project consists of:
+A new ODS project typically consists of:
 
 * a Jira Project (name based on project `<project-key>`)
 * a Confluence Space (name based on project `<project-key>`)
-* if OpenShift was selected - a Bitbucket project (name based on project `<project-key>`)
-* if OpenShift was selected - two Openshift projects named `<project-key>-dev` and `<project-key>-test`, which are used to run your application. Further, a Jenkins deployment will be created in the `<project-key>-cd` project to allow each ODS project full freedom of build management. This deployment is based on a common Jenkins image provided by the central ODS namespace.
+* a Bitbucket project (name based on project `<project-key>`)
+* two Openshift projects named `<project-key>-dev` and `<project-key>-test`, which are used to run your application. Further, a Jenkins deployment will be created in the `<project-key>-cd` project to allow each ODS project full freedom of build management. This deployment is based on a common Jenkins image provided by the central ODS namespace.
 
 == Creating a new component within a project (using a quickstarter)
 
