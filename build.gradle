@@ -74,13 +74,13 @@ dependencies {
     testImplementation('org.springframework.restdocs:spring-restdocs-mockmvc')
     testImplementation('org.springframework.security:spring-security-test')
 
-    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
+    implementation('org.thymeleaf.extras:thymeleaf-extras-springsecurity5')
 
     // oauth2
-    implementation 'org.springframework.security:spring-security-oauth2-core'
-    implementation 'org.springframework.security:spring-security-oauth2-client'
-    implementation 'org.springframework.security:spring-security-oauth2-jose'
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE'
+    implementation('org.springframework.security:spring-security-oauth2-core')
+    implementation('org.springframework.security:spring-security-oauth2-client')
+    implementation('org.springframework.security:spring-security-oauth2-jose')
+    implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE')
 
     implementation(group: 'com.openshift', name: 'openshift-restclient-java', version: '9.0.1.Final') {
         exclude(group: 'org.slf4j', module: 'slf4j-api:')
@@ -91,34 +91,36 @@ dependencies {
     runtimeOnly('com.microsoft.azure:azure-active-directory-spring-boot-starter:2.3.5')
 
     //frontend webjars
-    implementation 'org.webjars:webjars-locator:0.37'
-    implementation 'org.webjars.bower:jquery:3.4.1'
-    implementation 'org.webjars.bower:bootstrap:3.3.7'
-    implementation 'org.webjars.bower:react:16.1.0'
-    implementation 'org.webjars.bower:font-awesome:4.7.0'
-    implementation 'org.webjars.bower:lodash:4.17.10'
+    implementation('org.webjars:webjars-locator:0.37')
+    implementation('org.webjars.bower:jquery:3.4.1')
+    implementation('org.webjars.bower:bootstrap:3.3.7')
+    implementation('org.webjars.bower:react:16.1.0')
+    implementation('org.webjars.bower:font-awesome:4.7.0')
+    implementation('org.webjars.bower:lodash:4.17.10')
 
     //encryption library for properties
-    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.2'
+    implementation('com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.2')
 
     //easy http calls to atlassian JSON APIs
-    implementation "com.squareup.okhttp3:okhttp:4.9.0"
+    implementation('com.squareup.okhttp3:okhttp:4.9.0')
 
+    implementation(group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1')
+    implementation(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.14')
     implementation(group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final')
     implementation(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
-        exclude group: 'commons-httpclient'
-        exclude group: 'org.apache.ws.commons', module: 'XmlSchema'
+        exclude(group: 'commons-httpclient')
+        exclude(group: 'org.apache.ws.commons', module: 'XmlSchema')
         // Explicitly excludes vulnerable versions
-        exclude group: 'org.apache.struts', module: 'struts2-core'
-        exclude group: 'org.apache.struts.xwork', module: 'xwork-core'
-        exclude group: 'commons-collections', module: 'commons-collections'
-        exclude group: 'commons-fileupload', module: 'commons-fileupload'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'org.aspectj', module: 'aspectjweaver'
-        exclude group: 'com.google.guava', module: 'guava'
+        exclude(group: 'org.apache.struts', module: 'struts2-core')
+        exclude(group: 'org.apache.struts.xwork', module: 'xwork-core')
+        exclude(group: 'commons-collections', module: 'commons-collections')
+        exclude(group: 'commons-fileupload', module: 'commons-fileupload')
+        exclude(group: 'com.fasterxml.jackson.core', module: 'jackson-databind')
+        exclude(group: 'org.aspectj', module: 'aspectjweaver')
+        exclude(group: 'com.google.guava', module: 'guava')
     }
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
-    implementation group: 'com.google.guava', name: 'guava', version: '30.0-jre'
+    implementation(group: 'com.google.guava', name: 'guava', version: '30.0-jre')
 
 }
 
