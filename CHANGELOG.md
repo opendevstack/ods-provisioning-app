@@ -12,6 +12,7 @@
 
 ### Fixed
 
+- Wrong exception logging of bitbucket project key pre flight check ([#655](https://github.com/opendevstack/ods-provisioning-app/issues/655))
 - Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))
 - Set confluence shortcut in jira even if confluence server is not activated ([#613](https://github.com/opendevstack/ods-provisioning-app/issues/613))
 - Missing verification of confluence project already exists on project creation event ([#607](https://github.com/opendevstack/ods-provisioning-app/issues/607))
