@@ -82,8 +82,8 @@ dependencies {
     implementation('org.springframework.security:spring-security-oauth2-jose')
     implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE')
 
-    implementation(group: 'com.openshift', name: 'openshift-restclient-java', version: '9.0.1.Final') {
-        exclude(group: 'org.slf4j', module: 'slf4j-api:')
+    implementation('com.openshift:openshift-restclient-java:9.0.1.Final') {
+        exclude(group: 'org.slf4j', module: 'slf4j-api')
         exclude(group: 'org.slf4j', module: 'slf4j-log4j12')
     }
 
@@ -104,10 +104,10 @@ dependencies {
     //easy http calls to atlassian JSON APIs
     implementation('com.squareup.okhttp3:okhttp:4.9.0')
 
-    implementation(group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1')
-    implementation(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.14')
-    implementation(group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final')
-    implementation(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
+    implementation('commons-httpclient:commons-httpclient:3.1')
+    implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14')
+    implementation('javax.validation:validation-api:2.0.1.Final')
+    implementation('com.atlassian.crowd:crowd-integration-springsecurity:1000.82.0') {
         exclude(group: 'commons-httpclient')
         exclude(group: 'org.apache.ws.commons', module: 'XmlSchema')
         // Explicitly excludes vulnerable versions
@@ -119,8 +119,9 @@ dependencies {
         exclude(group: 'org.aspectj', module: 'aspectjweaver')
         exclude(group: 'com.google.guava', module: 'guava')
     }
+
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
-    implementation(group: 'com.google.guava', name: 'guava', version: '30.0-jre')
+    implementation('com.google.guava:guava:30.0-jre')
 
 }
 
