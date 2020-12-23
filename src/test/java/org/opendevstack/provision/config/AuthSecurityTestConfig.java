@@ -16,7 +16,10 @@ package org.opendevstack.provision.config;
 import static java.util.Map.entry;
 import static org.mockito.Mockito.mock;
 
+import com.atlassian.crowd.service.cache.BasicCache;
+import com.atlassian.crowd.service.cache.CacheImpl;
 import java.util.Map;
+import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
@@ -59,6 +62,18 @@ public class AuthSecurityTestConfig {
   @Primary
   public IODSAuthnzAdapter iodsAuthnzAdapter() {
     return mock(IODSAuthnzAdapter.class);
+  }
+
+  @Bean
+  @Primary
+  public BasicCache getCache() {
+    return new CacheImpl(getCacheManager());
+  }
+
+  @Bean
+  @Primary
+  public CacheManager getCacheManager() {
+    return getEhCacheFactory().getObject();
   }
 
   @Bean

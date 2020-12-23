@@ -22,6 +22,7 @@ import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
@@ -32,7 +33,6 @@ import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManage
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,9 +41,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles({"crowd", "quickstarters"})
 public class DefaultControllerTest {
 
@@ -51,7 +52,7 @@ public class DefaultControllerTest {
 
   @MockBean private StorageAdapter storageAdapter;
 
-  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
+  @Mock private CrowdAuthenticationManager crowdAuthenticationManager;
 
   @Autowired private DefaultController defaultController;
 
@@ -61,10 +62,14 @@ public class DefaultControllerTest {
 
   @Autowired private ICollaborationAdapter realConfluenceAdapter;
 
-  @Autowired private MockMvc mockMvc;
+  @Autowired private WebApplicationContext context;
+
+  private MockMvc mockMvc;
 
   @BeforeEach
   public void setUp() {
+    // mockMvc without spring security
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
     // reset to default value
     defaultController.setSpafrontendEnabled(false);
   }

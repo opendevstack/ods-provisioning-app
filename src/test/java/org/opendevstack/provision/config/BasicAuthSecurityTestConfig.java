@@ -33,7 +33,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
 @Configuration
 @Profile("utest")
 @ConditionalOnProperty(name = "provision.auth.basic-auth.enabled", havingValue = "utest")
-public class BasicAuthSecurityTestConfig extends AuthSecurityTestConfig {
+public class BasicAuthSecurityTestConfig {
 
   @Bean
   public BasicAuthenticationEntryPoint basicAuthenticationEntryPoint() {

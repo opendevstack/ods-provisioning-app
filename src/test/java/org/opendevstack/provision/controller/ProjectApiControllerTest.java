@@ -58,7 +58,6 @@ import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -71,14 +70,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
 @ActiveProfiles({"crowd", "utestcrowd", "quickstarters"})
 @DirtiesContext
 public class ProjectApiControllerTest {
-
-  @Autowired private MockMvc mockMvc;
 
   @MockBean private OpenshiftClient openshiftClient;
 
@@ -102,6 +100,10 @@ public class ProjectApiControllerTest {
 
   @Autowired private List<String> projectTemplateKeyNames;
 
+  @Autowired private WebApplicationContext context;
+
+  private MockMvc mockMvc;
+
   @Value("${idmanager.group.opendevstack-administrators}")
   private String roleAdmin;
 
@@ -109,6 +111,9 @@ public class ProjectApiControllerTest {
 
   @BeforeEach
   public void setUp() {
+    // mockMvc without spring security
+    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
     GrantedAuthority auth = () -> roleAdmin;
     SecurityContextHolder.getContext()
         .setAuthentication(

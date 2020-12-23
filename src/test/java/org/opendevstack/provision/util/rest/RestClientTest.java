@@ -23,7 +23,6 @@ import okhttp3.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.util.CredentialsInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -38,7 +37,7 @@ public class RestClientTest {
   @Value("${local.server.port}")
   private int randomServerPort;
 
-  @Autowired private RestClient client;
+  private RestClient client;
 
   @BeforeEach
   public void setUp() {

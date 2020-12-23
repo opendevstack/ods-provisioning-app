@@ -29,6 +29,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -41,7 +42,7 @@ public class ProvAppSimpleCachingGroupMembershipManagerTest {
 
   @MockBean private GroupManager groupManager;
 
-  @MockBean private BasicCache cache;
+  @Mock private BasicCache cache;
 
   @Test
   public void getMemberships()

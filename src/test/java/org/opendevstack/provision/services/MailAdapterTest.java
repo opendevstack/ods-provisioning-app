@@ -35,13 +35,14 @@ import org.springframework.test.context.ActiveProfiles;
 public class MailAdapterTest {
 
   @Autowired private MailAdapter mailAdapter;
-  @Autowired private CrowdAuthenticationManager manager;
 
-  @Mock JavaMailSender mailSender;
+  @Mock private CrowdAuthenticationManager crowdAuthenticationManager;
+
+  @Mock private JavaMailSender mailSender;
 
   @BeforeEach
   public void setUp() {
-    mailAdapter.manager = manager;
+    mailAdapter.manager = crowdAuthenticationManager;
   }
 
   @Test

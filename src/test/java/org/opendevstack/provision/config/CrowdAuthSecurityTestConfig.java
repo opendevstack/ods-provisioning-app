@@ -33,7 +33,7 @@ import org.springframework.security.core.GrantedAuthority;
 @Configuration
 @Profile("utestcrowd")
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "utestcrowd")
-public class CrowdAuthSecurityTestConfig extends AuthSecurityTestConfig {
+public class CrowdAuthSecurityTestConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider(
