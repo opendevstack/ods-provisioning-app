@@ -15,9 +15,7 @@ package org.opendevstack.provision.services.jira;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,14 +35,8 @@ public class JiraProjectTypePropertyCalculatorTest {
 
   @Autowired private JiraProjectTypePropertyCalculator propertyCalculator;
 
-  @BeforeEach
-  public void beforeTest() {
-    MockitoAnnotations.initMocks(this);
-  }
-
   @Test
   public void givenTemplatePrefixOrDefaultValue_whenOneIsNull_ThenException() {
-
     try {
       propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
           null, null, "not-null");
@@ -80,18 +72,16 @@ public class JiraProjectTypePropertyCalculatorTest {
 
     // case 1: environment does not contain template prefix + project type and project type is one
     // of the available template key
-    String unknownProjectType = UNKNOWN_PROJECT_TYPE;
     String value =
         propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-            unknownProjectType, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
+            UNKNOWN_PROJECT_TYPE, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
     assertEquals(DEFAULT_VALUE, value);
 
     // case 2: environment contain template prefix + project type but project type is not one of the
     // available template key
-    String disabledTemplate = DISABLED_TEMPLATE;
     value =
         propertyCalculator.readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-            disabledTemplate, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
+            DISABLED_TEMPLATE, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, DEFAULT_VALUE);
     assertEquals(DEFAULT_VALUE, value);
   }
 }

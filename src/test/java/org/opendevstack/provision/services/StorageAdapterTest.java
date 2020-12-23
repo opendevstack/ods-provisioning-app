@@ -21,11 +21,9 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.LocalStorage;
@@ -34,26 +32,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class StorageAdapterTest {
 
+  @Autowired private StorageAdapter adapter;
+
   @Mock LocalStorage storage;
 
-  @Autowired private WebApplicationContext context;
-
-  @Autowired StorageAdapter adapter;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-  }
-
   @Test
-  public void listProjectHistoryNoAuth() throws Exception {
+  public void listProjectHistoryNoAuth() {
     Mockito.when(storage.listProjectHistory()).thenReturn(new HashMap<>());
     adapter.setStorage(storage);
 
@@ -61,7 +51,7 @@ public class StorageAdapterTest {
   }
 
   @Test
-  public void listProjectHistoryWithAuth() throws Exception {
+  public void listProjectHistoryWithAuth() {
     try {
       // open project
       OpenProjectData data = new OpenProjectData();

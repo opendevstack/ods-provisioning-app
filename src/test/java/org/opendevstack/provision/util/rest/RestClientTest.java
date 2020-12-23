@@ -20,10 +20,8 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,9 +38,7 @@ public class RestClientTest {
   @Value("${local.server.port}")
   private int randomServerPort;
 
-  private RestClient client;
-
-  @Autowired CrowdAuthenticationManager manager;
+  @Autowired private RestClient client;
 
   @BeforeEach
   public void setUp() {
@@ -54,7 +50,7 @@ public class RestClientTest {
 
   @Test
   public void getClient() {
-    assertTrue(client.getClient() instanceof OkHttpClient);
+    assertNotNull(client.getClient());
   }
 
   @Test
@@ -80,8 +76,7 @@ public class RestClientTest {
       RestClientCall invalidCall =
           validGetCall().url(String.format("http://localhost:%d", randomServerPort + 1));
       client.execute(invalidCall);
-    } catch (SocketTimeoutException expectedInLocalEnv) {
-    } catch (ConnectException expectedInJenkins) {
+    } catch (SocketTimeoutException | ConnectException ignored) {
     } catch (IOException unexpected) {
       fail(unexpected.getMessage());
     }

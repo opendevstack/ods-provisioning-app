@@ -14,46 +14,40 @@
 
 package org.opendevstack.provision.services;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@DirtiesContext
 @ActiveProfiles("crowd")
 public class MailAdapterTest {
+
+  @Autowired private MailAdapter mailAdapter;
+  @Autowired private CrowdAuthenticationManager manager;
+
   @Mock JavaMailSender mailSender;
-
-  @InjectMocks @Autowired MailAdapter mailAdapter;
-
-  @Autowired CrowdAuthenticationManager manager;
 
   @BeforeEach
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
     mailAdapter.manager = manager;
   }
 
   @Test
   public void notifyUsersAboutProject() {
-    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
+    MailAdapter spyAdapter = new MailAdapter(mailSender);
     Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
-    spyAdapter = new MailAdapter(mailSender);
 
     spyAdapter.notifyUsersAboutProject(new OpenProjectData());
   }
@@ -80,6 +74,6 @@ public class MailAdapterTest {
 
     String message = spyAdapter.build(new OpenProjectData());
     assertNotNull(message);
-    assertTrue(message.trim().length() > 0);
+    assertFalse(message.trim().isEmpty());
   }
 }

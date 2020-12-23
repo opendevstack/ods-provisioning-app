@@ -15,7 +15,7 @@
 package org.opendevstack.provision.controller;
 
 import static org.mockito.Mockito.when;
-import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,59 +24,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.jenkins.Job;
 import org.opendevstack.provision.services.JenkinsPipelineAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @DirtiesContext
+@AutoConfigureMockMvc
 @ActiveProfiles("utest")
 public class QuickstarterApiControllerTest {
-  private MockMvc mockMvc;
 
-  @Autowired private WebApplicationContext context;
+  @Autowired private MockMvc mockMvc;
 
-  @Qualifier("testUsersAndRoles")
-  @Autowired
-  private Map<String, String> testUsersAndRoles;
-
-  @MockBean JenkinsPipelineAdapter jenkinsPipelineAdapter;
+  @MockBean private JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
   @MockBean private IODSAuthnzAdapter mockAuthnzAdapter;
 
   private List<Job> jobs;
   private OpenProjectData project;
-  private List<ExecutionsData> executions = new ArrayList<>();
-
-  private static final String TEST_ADMIN_EMAIL = "testUserName@example.com";
 
   @BeforeEach
   public void init() {
-    mockMvc =
-        MockMvcBuilders.webAppContextSetup(context)
-            .apply(SecurityMockMvcConfigurers.springSecurity())
-            .build();
-
     when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
-    when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
     when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
 
     initJobs();
@@ -115,7 +97,7 @@ public class QuickstarterApiControllerTest {
   @Test
   public void executeJobs() throws Exception {
     Mockito.when(jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project))
-        .thenReturn(executions);
+        .thenReturn(List.of());
 
     // authorized
     mockMvc
@@ -126,8 +108,7 @@ public class QuickstarterApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
         .andReturn()
-        .getResponse()
-        .toString();
+        .getResponse();
 
     // not authorized
     mockMvc
@@ -138,13 +119,11 @@ public class QuickstarterApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isForbidden())
         .andReturn()
-        .getResponse()
-        .toString();
+        .getResponse();
   }
 
   private String getBody() throws Exception {
     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-    String json = ow.writeValueAsString(project);
-    return json;
+    return ow.writeValueAsString(project);
   }
 }

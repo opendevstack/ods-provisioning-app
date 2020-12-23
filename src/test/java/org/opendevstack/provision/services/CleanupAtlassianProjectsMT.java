@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -30,7 +31,7 @@ public class CleanupAtlassianProjectsMT {
 
   private static final Logger LOG = LoggerFactory.getLogger(CleanupAtlassianProjectsMT.class);
 
-  @Autowired private RestClient restClient;
+  @MockBean private RestClient restClient;
 
   @Autowired private JiraAdapter jiraAdapter;
 
@@ -71,7 +72,7 @@ public class CleanupAtlassianProjectsMT {
   }
 
   @Test
-  public void cleanupConfluence() throws IOException {
+  public void cleanupConfluence() {
     deleteConfluenceSpaces("x1", "x2");
   }
 

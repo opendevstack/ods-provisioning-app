@@ -34,11 +34,9 @@ public class RestClient {
 
   @PostConstruct
   public void afterPropertiesSet() {
-
     if (trustAllCertificates) {
       LOG.warn(
-          "Trust all certificates. Only set this property to true in development environment! [restClient.trust-all-certificates={}]",
-          trustAllCertificates);
+          "Trust all certificates. Only set this property to true in development environment! [restClient.trust-all-certificates=true]");
       client = TrustAllCertificatesClientFactory.createClient(connectTimeout, readTimeout);
     } else {
       client = standardClient();
@@ -192,21 +190,12 @@ public class RestClient {
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-        builder.hostnameVerifier(
-            new HostnameVerifier() {
-              @Override
-              public boolean verify(String hostname, SSLSession session) {
-                return true;
-              }
-            });
+        builder.hostnameVerifier((hostname, session) -> true);
 
-        OkHttpClient httpClient =
-            builder
-                .connectTimeout(connectTimeout, TimeUnit.SECONDS)
-                .readTimeout(readTimeout, TimeUnit.SECONDS)
-                .build();
-
-        return httpClient;
+        return builder
+            .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+            .readTimeout(readTimeout, TimeUnit.SECONDS)
+            .build();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

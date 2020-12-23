@@ -15,6 +15,7 @@ package org.opendevstack.provision.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +46,6 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("utest")
 public class E2EProjectAPIControllerSecurityTest {
 
-  public static final String TEST_VALID_CREDENTIAL =
-      BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
-  private final String admin = BasicAuthSecurityTestConfig.TEST_ADMIN_USERNAME;
-  private final String user = BasicAuthSecurityTestConfig.TEST_USER_USERNAME;
-  private final String unknownUser =
-      BasicAuthSecurityTestConfig
-          .TEST_NOT_PERMISSIONED_USER_USERNAME; // User that does not have any ProvApp role
-  private final String validCredential = BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
-  private final String invalidCredential = "invalidSecret";
   private final String projectAPI = "/" + ProjectAPI.API_V2_PROJECT;
   private final List<String> allGetAPIs =
       List.of(
@@ -83,136 +74,139 @@ public class E2EProjectAPIControllerSecurityTest {
 
   @Test
   public void authenticationTest() {
-
     BiFunction<String, String, HttpStatus> getProjectRequest = createGetProjectRequest();
-
-    assertRequest(getProjectRequest, user, invalidCredential, HttpStatus.UNAUTHORIZED);
-    assertRequest(getProjectRequest, admin, invalidCredential, HttpStatus.UNAUTHORIZED);
-    assertRequest(getProjectRequest, unknownUser, invalidCredential, HttpStatus.UNAUTHORIZED);
-    assertRequest(getProjectRequest, user, validCredential, HttpStatus.OK);
-    assertRequest(getProjectRequest, admin, validCredential, HttpStatus.OK);
-    assertRequest(getProjectRequest, unknownUser, validCredential, HttpStatus.FORBIDDEN);
+    String invalidCredential = "invalidSecret";
+    assertRequest(
+        getProjectRequest, TEST_USER_USERNAME, invalidCredential, HttpStatus.UNAUTHORIZED);
+    assertRequest(
+        getProjectRequest, TEST_ADMIN_USERNAME, invalidCredential, HttpStatus.UNAUTHORIZED);
+    assertRequest(
+        getProjectRequest,
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        invalidCredential,
+        HttpStatus.UNAUTHORIZED);
+    assertRequest(getProjectRequest, TEST_USER_USERNAME, TEST_VALID_CREDENTIAL, HttpStatus.OK);
+    assertRequest(getProjectRequest, TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL, HttpStatus.OK);
+    assertRequest(
+        getProjectRequest,
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
   }
 
   public BiFunction<String, String, HttpStatus> createGetProjectRequest() {
+    return (username, credential) -> {
+      OpenProjectData project = new OpenProjectData();
+      project.projectKey = "testproject";
+      Map<String, OpenProjectData> projects = new HashMap<>();
+      projects.put(project.projectKey, project);
+      when(storageAdapter.getProjects()).thenReturn(projects);
 
-    BiFunction<String, String, HttpStatus> request =
-        (username, credential) -> {
-          OpenProjectData project = new OpenProjectData();
-          project.projectKey = "testproject";
-          Map<String, OpenProjectData> projects = new HashMap<>();
-          projects.put(project.projectKey, project);
-          when(storageAdapter.getProjects()).thenReturn(projects);
+      var entity = template.withBasicAuth(username, credential).getForEntity(projectAPI, Map.class);
 
-          ResponseEntity<Map> entity =
-              template.withBasicAuth(username, credential).getForEntity(projectAPI, Map.class);
-
-          return entity.getStatusCode();
-        };
-
-    return request;
+      return entity.getStatusCode();
+    };
   }
 
-  public BiFunction<String, String, HttpStatus> postNewProject() throws Exception {
+  public BiFunction<String, String, HttpStatus> postNewProject() {
+    return (username, credential) -> {
+      String json = ProjectApiControllerTest.asJsonString(projectData);
+      HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
+      var entity =
+          template
+              .withBasicAuth(username, credential)
+              .postForEntity(projectAPI, httpRequest, Object.class);
 
-    BiFunction<String, String, HttpStatus> request =
-        (username, credential) -> {
-          String json = ProjectApiControllerTest.asJsonString(projectData);
-
-          HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
-
-          ResponseEntity<Object> entity =
-              template
-                  .withBasicAuth(username, credential)
-                  .postForEntity(projectAPI, httpRequest, Object.class);
-
-          return entity.getStatusCode();
-        };
-    return request;
+      return entity.getStatusCode();
+    };
   }
 
   @Test
-  public void authorizationForbiddenTest() throws Exception {
-
+  public void authorizationForbiddenTest() {
     // not permissioned user = user has not ProvApp roles
-    assertRequest(postNewProject(), unknownUser, validCredential, HttpStatus.FORBIDDEN);
-    assertRequest(updateProject(), unknownUser, validCredential, HttpStatus.FORBIDDEN);
-    assertRequest(deleteProject(), unknownUser, validCredential, HttpStatus.FORBIDDEN);
-    assertRequest(deleteComponent(), unknownUser, validCredential, HttpStatus.FORBIDDEN);
+    assertRequest(
+        postNewProject(),
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
+    assertRequest(
+        updateProject(),
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
+    assertRequest(
+        deleteProject(),
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
+    assertRequest(
+        deleteComponent(),
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
     assertRequests(
-        allGetAPIs, getRequestFactory(), unknownUser, validCredential, HttpStatus.FORBIDDEN);
+        allGetAPIs,
+        getRequestFactory(),
+        TEST_NOT_PERMISSIONED_USER_USERNAME,
+        TEST_VALID_CREDENTIAL,
+        HttpStatus.FORBIDDEN);
 
     // ProvApp user
-    assertRequest(postNewProject(), user, validCredential, HttpStatus.FORBIDDEN);
-    assertRequest(deleteProject(), user, validCredential, HttpStatus.FORBIDDEN);
-    assertRequest(deleteComponent(), user, validCredential, HttpStatus.FORBIDDEN);
+    assertRequest(
+        postNewProject(), TEST_USER_USERNAME, TEST_VALID_CREDENTIAL, HttpStatus.FORBIDDEN);
+    assertRequest(deleteProject(), TEST_USER_USERNAME, TEST_VALID_CREDENTIAL, HttpStatus.FORBIDDEN);
+    assertRequest(
+        deleteComponent(), TEST_USER_USERNAME, TEST_VALID_CREDENTIAL, HttpStatus.FORBIDDEN);
   }
 
-  public BiFunction<String, String, HttpStatus> updateProject() throws Exception {
+  public BiFunction<String, String, HttpStatus> updateProject() {
+    return (username, credential) -> {
+      String json = ProjectApiControllerTest.asJsonString(projectData);
+      HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
+      var exchange =
+          template
+              .withBasicAuth(username, credential)
+              .getRestTemplate()
+              .exchange(projectAPI, HttpMethod.PUT, httpRequest, Object.class, Map.of());
 
-    BiFunction<String, String, HttpStatus> request =
-        (username, credential) -> {
-          String json = ProjectApiControllerTest.asJsonString(projectData);
-
-          HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
-
-          ResponseEntity exchange =
-              template
-                  .withBasicAuth(username, credential)
-                  .getRestTemplate()
-                  .exchange(projectAPI, HttpMethod.PUT, httpRequest, Object.class, new HashMap());
-
-          return exchange.getStatusCode();
-        };
-    return request;
+      return exchange.getStatusCode();
+    };
   }
 
-  public BiFunction<String, String, HttpStatus> deleteProject() throws Exception {
-
-    BiFunction<String, String, HttpStatus> request =
-        (username, credential) -> {
-          String json = ProjectApiControllerTest.asJsonString(projectData);
-
-          HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
-
-          ResponseEntity exchange =
-              template
-                  .withBasicAuth(username, credential)
-                  .getRestTemplate()
-                  .exchange(
-                      projectAPI, HttpMethod.DELETE, httpRequest, Object.class, new HashMap());
-          return exchange.getStatusCode();
-        };
-    return request;
+  public BiFunction<String, String, HttpStatus> deleteProject() {
+    return (username, credential) -> {
+      String json = ProjectApiControllerTest.asJsonString(projectData);
+      HttpEntity<String> httpRequest = new HttpEntity<>(json, headers);
+      var exchange =
+          template
+              .withBasicAuth(username, credential)
+              .getRestTemplate()
+              .exchange(projectAPI, HttpMethod.DELETE, httpRequest, Object.class, Map.of());
+      return exchange.getStatusCode();
+    };
   }
 
-  public BiFunction<String, String, HttpStatus> deleteComponent() throws Exception {
-
-    BiFunction<String, String, HttpStatus> request =
-        (username, credential) -> {
-          String api = projectAPI + "/PROJECTKEY";
-          ResponseEntity exchange =
-              template
-                  .withBasicAuth(username, credential)
-                  .getRestTemplate()
-                  .exchange(api, HttpMethod.DELETE, null, Object.class, new HashMap());
-          return exchange.getStatusCode();
-        };
-    return request;
+  public BiFunction<String, String, HttpStatus> deleteComponent() {
+    return (username, credential) -> {
+      String api = projectAPI + "/PROJECTKEY";
+      var exchange =
+          template
+              .withBasicAuth(username, credential)
+              .getRestTemplate()
+              .exchange(api, HttpMethod.DELETE, null, Object.class, Map.of());
+      return exchange.getStatusCode();
+    };
   }
 
   public Function<String, BiFunction<String, String, HttpStatus>> getRequestFactory() {
-    return api -> {
-      return (username, credential) -> {
-        ResponseEntity<Map> entity =
-            template
-                .withBasicAuth(
-                    BasicAuthSecurityTestConfig.TEST_NOT_PERMISSIONED_USER_USERNAME,
-                    TEST_VALID_CREDENTIAL)
-                .getForEntity(api, Map.class);
-        return entity.getStatusCode();
-      };
-    };
+    return api ->
+        (username, credential) -> {
+          var entity =
+              template
+                  .withBasicAuth(TEST_NOT_PERMISSIONED_USER_USERNAME, TEST_VALID_CREDENTIAL)
+                  .getForEntity(api, Map.class);
+          return entity.getStatusCode();
+        };
   }
 
   public void assertRequest(
@@ -220,7 +214,6 @@ public class E2EProjectAPIControllerSecurityTest {
       String username,
       String credential,
       HttpStatus expected) {
-
     HttpStatus responseStatus = request.apply(username, credential);
     assertEquals(
         expected,
@@ -236,10 +229,7 @@ public class E2EProjectAPIControllerSecurityTest {
       String username,
       String credential,
       HttpStatus expected) {
-
     apis.forEach(
-        endpoint -> {
-          assertRequest(requestFactory.apply(endpoint), username, credential, expected);
-        });
+        endpoint -> assertRequest(requestFactory.apply(endpoint), username, credential, expected));
   }
 }

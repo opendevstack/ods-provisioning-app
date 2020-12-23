@@ -21,20 +21,22 @@ import static org.mockito.Mockito.when;
 import com.atlassian.crowd.integration.soap.SOAPGroup;
 import com.atlassian.crowd.integration.soap.SOAPPrincipal;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
-@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@DirtiesContext
+@ActiveProfiles("crowd")
 public class CrowdProjectIdentityMgmtAdapterTest {
 
-  @Mock CrowdAuthenticationManager manager;
-
-  @InjectMocks CrowdProjectIdentityMgmtAdapter idMgr;
+  @Autowired private CrowdProjectIdentityMgmtAdapter idMgr;
+  @MockBean private IODSAuthnzAdapter manager;
 
   @Test
   public void testGroupExists() {
