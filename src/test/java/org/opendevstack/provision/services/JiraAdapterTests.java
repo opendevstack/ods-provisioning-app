@@ -15,11 +15,9 @@
 package org.opendevstack.provision.services;
 
 import static java.util.Arrays.asList;
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
@@ -36,14 +34,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.opendevstack.provision.SpringBoot;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.exception.AdapterException;
@@ -69,17 +63,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = SpringBoot.class)
+@SpringBootTest
 @DirtiesContext
 @ActiveProfiles("utest")
 public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
@@ -123,7 +114,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   @Qualifier("projectTemplateKeyNames")
   private List<String> projectTemplateKeyNames;
 
-  @Before
+  @BeforeEach
   public void initTests() {
     objectMapper = new ObjectMapper();
 
@@ -225,8 +216,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 .method(HttpMethod.GET))
         .thenReturn(returnValue);
 
-    boolean exists = jiraAdapter.projectKeyExists(existingKey);
-    assertThat("expecting key " + existingKey + " exists", exists, CoreMatchers.equalTo(true));
+    assertTrue(
+        jiraAdapter.projectKeyExists(existingKey), "expecting key " + existingKey + " exists");
   }
 
   public List<JsonNode> createResult(String existingKey) {
@@ -477,9 +468,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       fail();
 
     } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
-      Assert.assertTrue(e.getMessage().contains(JiraAdapter.ADAPTER_NAME));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
+      assertTrue(e.getMessage().contains(JiraAdapter.ADAPTER_NAME));
+      assertTrue(e.getMessage().contains(project.projectKey));
     }
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
@@ -490,8 +481,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       fail();
 
     } catch (CreateProjectPreconditionException e) {
-      Assert.assertTrue(e.getMessage().contains("Unexpected error"));
-      Assert.assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains("Unexpected error"));
+      assertTrue(e.getMessage().contains(project.projectKey));
     }
   }
 
@@ -522,7 +513,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkUser.apply(result);
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -532,26 +523,26 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkUser.apply(result);
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case no error, user exists!
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = checkUser.apply(result);
-    Assert.assertEquals(0, newResult.size());
+    assertEquals(0, newResult.size());
 
     // Case no error, username in json response is different than key but equals to emailAddress,
     // user exists!
     when(restClient.execute(isNotNull())).thenReturn(response);
     newResult = spyAdapter.createProjectAdminUserExistsCheck(user + "@domain.com").apply(result);
-    Assert.assertEquals(0, newResult.size());
+    assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
     String thisUserDoesNotExists = "this_cd_user_not_exist";
     checkUser = spyAdapter.createProjectAdminUserExistsCheck(thisUserDoesNotExists);
     newResult = checkUser.apply(result);
-    Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).toString().contains(thisUserDoesNotExists));
+    assertEquals(1, newResult.size());
+    assertTrue(newResult.get(0).toString().contains(thisUserDoesNotExists));
   }
 
   @Test
@@ -578,7 +569,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkPermissionScheme.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -588,19 +579,19 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkPermissionScheme.apply(new ArrayList<>());
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case no error, permission scheme id exists!
     when(restClient.execute(isNotNull())).thenReturn(response);
     result = checkPermissionScheme.apply(new ArrayList<>());
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
 
     // Case project is not enabled with special permission set
     project.setSpecialPermissionSet(false);
     when(restClient.execute(isNotNull())).thenReturn(response);
     result = checkPermissionScheme.apply(new ArrayList<>());
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
 
     // Case error, permission schemed does not exists!
     project.setSpecialPermissionSet(true);
@@ -612,8 +603,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 404,
                 "Permission scheme " + project.getSpecialPermissionSchemeId() + " does not exist"));
     result = checkPermissionScheme.apply(new ArrayList<>());
-    Assert.assertEquals(1, result.size());
-    Assert.assertTrue(result.get(0).toString().contains(unexistantSchemeId.toString()));
+    assertEquals(1, result.size());
+    assertTrue(result.get(0).toString().contains(unexistantSchemeId.toString()));
   }
 
   @Test
@@ -644,7 +635,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkRole.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -654,21 +645,21 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkRole.apply(new ArrayList<>());
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case no error, project role id exists!
     reset(restClient);
     when(restClient.execute(isNotNull())).thenReturn(response);
     result = checkRole.apply(new ArrayList<>());
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
     verify(restClient, times(3)).execute(isNotNull());
 
     // Case project is not enabled with special permission set
     project.setSpecialPermissionSet(false);
     when(restClient.execute(isNotNull())).thenReturn(response);
     result = checkRole.apply(new ArrayList<>());
-    Assert.assertEquals(0, result.size());
+    assertEquals(0, result.size());
 
     // Case error: project roles does not exists
     project.setSpecialPermissionSet(true);
@@ -676,8 +667,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     project.setProjectRoleForUserGroup(null);
     project.setProjectRoleForReadonlyGroup(null);
     result = checkRole.apply(new ArrayList<>());
-    Assert.assertEquals(3, result.size());
-    Assert.assertTrue(
+    assertEquals(3, result.size());
+    assertTrue(
         result
             .toArray()[0]
             .toString()
@@ -690,7 +681,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     project.setProjectRoleForReadonlyGroup("99999");
     when(restClient.execute(isNotNull())).thenThrow(new HttpException(404, "Not found!"));
     result = checkRole.apply(new ArrayList<>());
-    Assert.assertEquals(3, result.size());
+    assertEquals(3, result.size());
   }
 
   @Test
@@ -713,7 +704,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkGroupExists.apply(result);
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -723,7 +714,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       checkGroupExists.apply(result);
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case no error, group exists!
@@ -735,14 +726,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = checkGroupExists.apply(result);
-    Assert.assertEquals(0, newResult.size());
+    assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
     String thisGroupDoesNotExists = "this_group_does_not_exists".toUpperCase();
     checkGroupExists = spyAdapter.createProjectAdminUserExistsCheck(thisGroupDoesNotExists);
     newResult = checkGroupExists.apply(result);
-    Assert.assertEquals(1, newResult.size());
-    Assert.assertTrue(newResult.get(0).toString().contains(thisGroupDoesNotExists));
+    assertEquals(1, newResult.size());
+    assertTrue(newResult.get(0).toString().contains(thisGroupDoesNotExists));
   }
 
   @Test
@@ -765,7 +756,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       check.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      Assert.assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(IllegalArgumentException.class.isInstance(e));
     }
 
     // Case IOException throw from rest client!
@@ -775,7 +766,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       check.apply(new ArrayList<>());
       fail();
     } catch (AdapterException e) {
-      Assert.assertEquals(ioException, e.getCause());
+      assertEquals(ioException, e.getCause());
     }
 
     // Case have and not permission!
@@ -791,7 +782,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 when(restClient.execute(isNotNull())).thenReturn(response);
                 List<CheckPreconditionFailure> newResult = check.apply(new ArrayList<>());
 
-                Assert.assertEquals("true".equals(expected) ? 0 : 1, newResult.size());
+                assertEquals("true".equals(expected) ? 0 : 1, newResult.size());
 
               } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -807,7 +798,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     when(restClient.execute(isNotNull())).thenReturn(response);
     List<CheckPreconditionFailure> newResult = check.apply(new ArrayList<>());
-    Assert.assertEquals(1, newResult.size());
+    assertEquals(1, newResult.size());
   }
 
   @Test

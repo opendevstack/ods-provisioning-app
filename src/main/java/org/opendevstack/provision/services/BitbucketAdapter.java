@@ -224,7 +224,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       projectAsJson = getProject(projectKey);
     } catch (HttpException e) {
       if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
-        logger.debug("project '{}' was not found in {}!", projectKey, ADAPTER_NAME, e);
+        logger.debug("project '{}' was not found in {}!", projectKey, ADAPTER_NAME, e.getMessage());
         return false;
       } else {
         logger.warn("Unexpected method trying to get project '{}'!", projectKey, e);

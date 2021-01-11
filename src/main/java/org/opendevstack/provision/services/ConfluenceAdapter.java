@@ -574,7 +574,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         Assert.notNull(response, "Response is null for '" + projectKey + "'");
       } catch (HttpException e) {
         if (HttpStatus.NOT_FOUND.value() == e.getResponseCode()) {
-          logger.debug("Could not find space '{}' in '{}'", projectKey, ADAPTER_NAME, e);
+          logger.debug(
+              "Could not find space '{}' in '{}'", projectKey, ADAPTER_NAME, e.getMessage());
           return false;
         } else {
           logger.warn(

@@ -14,25 +14,22 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.atlassian.crowd.integration.soap.SOAPGroup;
 import com.atlassian.crowd.integration.soap.SOAPPrincipal;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(SpringExtension.class)
 public class CrowdProjectIdentityMgmtAdapterTest {
 
   @Mock CrowdAuthenticationManager manager;
@@ -73,17 +70,20 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     assertEquals(group.getName(), idMgr.createReadonlyGroup(group.getName()));
   }
 
-  @Test(expected = IdMgmtException.class)
-  public void testCreateNullGroup() throws Exception {
-    idMgr.createGroupInternal(null);
+  @Test
+  public void testCreateNullGroup() {
+    assertThrows(IdMgmtException.class, () -> idMgr.createGroupInternal(null));
   }
 
-  @Test(expected = IdMgmtException.class)
-  public void testCreateGroupSOAPErr() throws Exception {
-    SOAPGroup group = new SOAPGroup("xxx", null);
-
-    when(manager.addGroup(group.getName())).thenThrow(IdMgmtException.class);
-    idMgr.createGroupInternal(group.getName());
+  @Test
+  public void testCreateGroupSOAPErr() {
+    assertThrows(
+        IdMgmtException.class,
+        () -> {
+          SOAPGroup group = new SOAPGroup("xxx", null);
+          when(manager.addGroup(group.getName())).thenThrow(IdMgmtException.class);
+          idMgr.createGroupInternal(group.getName());
+        });
   }
 
   @Test

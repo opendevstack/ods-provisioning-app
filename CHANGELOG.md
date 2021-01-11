@@ -9,9 +9,11 @@
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
 - Parameterise jira project type templates ([#404](https://github.com/opendevstack/ods-provisioning-app/issues/404))
 - Provision app should support reuse of shared schemes for Jira & not create permission schemes every time ([#151](https://github.com/opendevstack/ods-provisioning-app/issues/151))
+- Add changelog enforcer as GitHub Action to workflow ([#657](https://github.com/opendevstack/ods-provisioning-app/issues/657))
 
 ### Fixed
 
+- Wrong exception logging of bitbucket project key pre flight check ([#655](https://github.com/opendevstack/ods-provisioning-app/issues/655))
 - Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))
 - Set confluence shortcut in jira even if confluence server is not activated ([#613](https://github.com/opendevstack/ods-provisioning-app/issues/613))
 - Missing verification of confluence project already exists on project creation event ([#607](https://github.com/opendevstack/ods-provisioning-app/issues/607))

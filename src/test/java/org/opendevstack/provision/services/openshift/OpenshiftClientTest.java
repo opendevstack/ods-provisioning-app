@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.services.openshift;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,13 +21,13 @@ import com.openshift.restclient.IClient;
 import com.openshift.restclient.model.IResource;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 public class OpenshiftClientTest {
 
   @MockBean private IClient ocClient;
@@ -36,7 +36,7 @@ public class OpenshiftClientTest {
 
   private OpenshiftClient openshiftClient;
 
-  @Before
+  @BeforeEach
   public void setup() {
     openshiftClient = new OpenshiftClient(url, ocClient);
   }

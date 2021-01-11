@@ -1,22 +1,25 @@
-:toc: macro
-
 = Provisioning Application
-
-toc::[]
 
 This application creates new OpenDevStack projects. It is the central entrypoint to get started with a new project / or provision new components based on xref:quickstarters:index.adoc[quickstarters].
 It delegates the tasks to create / update resources to several services such as Jira, Confluence, Bitbucket and Jenkins.
 
-== Basic idea & usage
 
-. An admin creates new ODS project. This in turn creates:
- ** a Jira Project (name based on project `key`)
- ** a Confluence Space (name based on project `key`)
- ** if OpenShift was selected - a Bitbucket Project (name based on project `key`). Within this project two default repositories are created: `<project-key>-oc-config-artifacts` for all OpenShift YAML resources used during export/import as well as `<project-key>-design<project>` for any design artifacts (e.g. sketches)
- ** if OpenShift was selected - the required Openshift projects named `<project-key>-dev`, `<project-key>-test` and `<project-key>-cd`. Internally those are created and configured using a Jenkins pipeline.
-. A normal user creates new components by provisioning quickstarters. This can be done by picking the project to modify in the UI and then selecting the desired quickstarter. This creates:
- ** a Bitbucket repository within the chosen project named `<project-key>-<component-name>`. This repository has a webhook configured which will start a new Jenkins job each time a new commit is pushed.
- ** OpenShift resources based on the chosen xref:quickstarters:index.adoc[quickstarter]
+== Creating a new project
+
+Any user with admin privileges can create new ODS projects through the provisioning application.
+
+A new ODS project typically consists of:
+
+* a Jira Project (name based on project `<project-key>`)
+* a Confluence Space (name based on project `<project-key>`)
+* a Bitbucket project (name based on project `<project-key>`)
+* two Openshift projects named `<project-key>-dev` and `<project-key>-test`, which are used to run your application. Further, a Jenkins deployment will be created in the `<project-key>-cd` project to allow each ODS project full freedom of build management. This deployment is based on a common Jenkins image provided by the central ODS namespace.
+
+== Creating a new component within a project (using a quickstarter)
+
+Open the web GUI of the provisioning app (ask your ODS administrator for the URL). Select your project, then choose a quickstarter. If no framework fits your needs, choose the xref:quickstarters:docker-plain.adoc[docker-plain quickstarter], and adjust the repository afterwards as required.
+
+After provisioning the quickstarter, you’ll have a new repository in your Bitbucket project with the boilerplate of the component. This repository has a webhook configured which will start a new Jenkins job each time a new commit is pushed. This means the new component will immediately be built and deployed into your `<project-key>-dev` project.
 
 == FAQ
 

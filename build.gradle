@@ -1,98 +1,55 @@
 buildscript {
-
     ext {
-        springBootVersion = '2.2.4.RELEASE'
-        // fix for not set system variable
+        // set gradle properties regarding nexus
         nexus_url = project.findProperty('nexus_url') ?: System.getenv('NEXUS_HOST')
         nexus_user = project.findProperty('nexus_user') ?: System.getenv('NEXUS_USERNAME')
         nexus_pw = project.findProperty('nexus_pw') ?: System.getenv('NEXUS_PASSWORD')
-        no_nexus = (project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false).toBoolean()
-
-
-    }
-
-    repositories {
-        if (no_nexus) {
-            println("using repositories 'jcenter' and 'mavenCentral'")
-            jcenter()
-            mavenCentral()
-        } else {
-            println("using nexus repositories")
-            if (!nexus_url) {
-                throw new GradleException('Nexus URL not specified!')
-            }
-            maven() {
-                url "${nexus_url}/repository/jcenter/"
-                credentials() {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
-            maven() {
-                url "${nexus_url}/repository/maven-public/"
-                credentials() {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
-            maven() {
-                url "${nexus_url}/repository/atlassian_public/"
-                credentials {
-                    username = "${nexus_user}"
-                    password = "${nexus_pw}"
-                }
-            }
+        no_nexus = project.findProperty('no_nexus') ?: System.getenv('NO_NEXUS') ?: false
+        if (!no_nexus && (nexus_url == null || nexus_user == null || nexus_pw == null)) {
+            throw new GradleException("property 'no_nexus' is set to false, but neither " +
+                "'nexus_url', 'nexus_user' nor 'nexus_pw' is configured. You can do so " +
+                "by e.g. creating a gradle.properties file in your 'GRADLE_USER_HOME' " +
+                "(by default '~/.gradle') folder and setting the nexus properties there.")
         }
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.8")
+        nexusFolderReleases = project.findProperty('nexus_folder_releases')
+            ?: System.getenv('NEXUS_FOLDER_RELEASES') ?: "maven-releases"
+        nexusFolderSnapshots = project.findProperty('nexus_folder_snapshots')
+            ?: System.getenv('NEXUS_FOLDER_SNAPSHOTS') ?: "maven-snapshots"
     }
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'org.springframework.boot' version '2.4.1'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
-    id 'eclipse'
     id 'maven-publish'
     id 'jacoco'
     id 'org.sonarqube' version "3.0"
     id "com.diffplug.spotless" version "5.8.2"
+    id "nebula.lint" version "16.9.1"
 }
-
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
 
 group = 'prov'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.11
 
 repositories {
-    if (no_nexus) {
-        jcenter()
-        mavenCentral()
+    if (!no_nexus) {
+        def nexusMaven = { repoUrl ->
+            maven {
+                credentials {
+                    username = "${nexus_user}"
+                    password = "${nexus_pw}"
+                }
+                url repoUrl
+            }
+        }
+        nexusMaven("${nexus_url}/repository/jcenter/")
+        nexusMaven("${nexus_url}/repository/maven-public/")
+        nexusMaven("${nexus_url}/repository/atlassian_public/")
     } else {
-        maven() {
-            url "${nexus_url}/repository/jcenter/"
-            credentials() {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
-        maven() {
-            url "${nexus_url}/repository/maven-public/"
-            credentials() {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
-        maven() {
-            url "${nexus_url}/repository/atlassian_public/"
-            credentials {
-                username = "${nexus_user}"
-                password = "${nexus_pw}"
-            }
-        }
+        mavenCentral()
+        jcenter()
     }
 }
 
@@ -113,66 +70,58 @@ dependencies {
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     //hot reloading, disabling cache ...
 
-    annotationProcessor('org.projectlombok:lombok')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.restdocs:spring-restdocs-mockmvc')
     testImplementation('org.springframework.security:spring-security-test')
 
-    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
+    implementation('org.thymeleaf.extras:thymeleaf-extras-springsecurity5')
 
     // oauth2
-    implementation 'org.springframework.security:spring-security-oauth2-core'
-    implementation 'org.springframework.security:spring-security-oauth2-client'
-    implementation 'org.springframework.security:spring-security-oauth2-jose'
-    implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
+    implementation('org.springframework.security:spring-security-oauth2-core')
+    implementation('org.springframework.security:spring-security-oauth2-client')
+    implementation('org.springframework.security:spring-security-oauth2-jose')
+    implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE')
 
-    implementation(group: 'com.openshift', name: 'openshift-restclient-java', version: '9.0.0.Final') {
-        exclude(group: 'org.slf4j', module: 'slf4j-api:')
+    implementation('com.openshift:openshift-restclient-java:9.0.1.Final') {
+        exclude(group: 'org.slf4j', module: 'slf4j-api')
         exclude(group: 'org.slf4j', module: 'slf4j-log4j12')
     }
 
     // azure ad
-    implementation('com.microsoft.azure:azure-active-directory-spring-boot-starter:2.2.2')
+    runtimeOnly('com.microsoft.azure:azure-active-directory-spring-boot-starter:2.3.5')
 
     //frontend webjars
-    implementation 'org.webjars:webjars-locator:0.37'
-    implementation 'org.webjars.bower:jquery:3.4.1'
-    implementation 'org.webjars.bower:bootstrap:3.3.7'
-    implementation 'org.webjars.bower:react:16.1.0'
-    implementation 'org.webjars.bower:font-awesome:4.7.0'
-    implementation 'org.webjars.bower:lodash:4.17.10'
+    implementation('org.webjars:webjars-locator:0.37')
+    implementation('org.webjars.bower:jquery:3.4.1')
+    implementation('org.webjars.bower:bootstrap:3.3.7')
+    implementation('org.webjars.bower:react:16.1.0')
+    implementation('org.webjars.bower:font-awesome:4.7.0')
+    implementation('org.webjars.bower:lodash:4.17.10')
 
     //encryption library for properties
-    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.1'
+    implementation('com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.2')
 
     //easy http calls to atlassian JSON APIs
-    implementation "com.squareup.okhttp3:okhttp:4.4.0"
+    implementation('com.squareup.okhttp3:okhttp:4.9.0')
 
-    implementation group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
-    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.10.0.pr3'
-    implementation group: 'joda-time', name: 'joda-time', version: '2.10.4'
-    implementation(group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final')
-    implementation(group: 'com.atlassian.security', name: 'atlassian-cookie-tools', version: '3.2.11')
-    implementation(group: 'com.atlassian.crowd', name: 'crowd-integration-springsecurity', version: '1000.82.0') {
-        exclude group: 'commons-httpclient'
-        exclude group: 'org.apache.ws.commons', module: 'XmlSchema'
+    implementation('commons-httpclient:commons-httpclient:3.1')
+    implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14')
+    implementation('javax.validation:validation-api:2.0.1.Final')
+    implementation('com.atlassian.crowd:crowd-integration-springsecurity:1000.82.0') {
+        exclude(group: 'commons-httpclient')
+        exclude(group: 'org.apache.ws.commons', module: 'XmlSchema')
         // Explicitly excludes vulnerable versions
-        exclude group: 'org.apache.struts', module: 'struts2-core'
-        exclude group: 'org.apache.struts.xwork', module: 'xwork-core'
-        exclude group: 'commons-collections', module: 'commons-collections'
-        exclude group: 'commons-fileupload', module: 'commons-fileupload'
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'org.aspectj', module: 'aspectjweaver'
-        exclude group: 'com.google.guava', module: 'guava'
+        exclude(group: 'org.apache.struts', module: 'struts2-core')
+        exclude(group: 'org.apache.struts.xwork', module: 'xwork-core')
+        exclude(group: 'commons-collections', module: 'commons-collections')
+        exclude(group: 'commons-fileupload', module: 'commons-fileupload')
+        exclude(group: 'com.fasterxml.jackson.core', module: 'jackson-databind')
+        exclude(group: 'org.aspectj', module: 'aspectjweaver')
+        exclude(group: 'com.google.guava', module: 'guava')
     }
+
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
-    implementation group: 'org.apache.struts', name: 'struts2-core', version: '2.5.20'
-    implementation group: 'org.apache.struts.xwork', name: 'xwork-core', version: '2.3.37'
-    implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
-    implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
-    implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.4'
-    implementation group: 'com.google.guava', name: 'guava', version: '23.0'
+    implementation('com.google.guava:guava:30.0-jre')
 
 }
 
@@ -191,6 +140,7 @@ bootJar {
 
 test {
     finalizedBy jacocoTestReport
+    useJUnitPlatform()
 }
 
 bootRun {
@@ -216,6 +166,7 @@ jacocoTestReport {
     }
 }
 
+// run with ./gradlew spotlessApply
 spotless {
     java {
         googleJavaFormat('1.9')
@@ -223,6 +174,12 @@ spotless {
         indentWithSpaces(2)
         endWithNewline()
     }
+}
+
+// run with ./gradlew lintGradle
+gradleLint {
+    alwaysRun = false
+    rules = ['unused-dependency']
 }
 
 task yarnBuild(type:Exec) {
