@@ -615,7 +615,6 @@ public class E2EProjectAPIControllerTest {
       return;
     }
 
-    // get the project through its key
     MvcResult resultProjectGetResponse =
         mockMvc
             .perform(
@@ -781,7 +780,6 @@ public class E2EProjectAPIControllerTest {
 
     assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
 
-    // retrieve the project through the get endpoint - to ensure we have the right data stored
     resultProjectGetResponse =
         mockMvc
             .perform(

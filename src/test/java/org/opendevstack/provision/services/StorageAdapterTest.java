@@ -22,25 +22,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.provision.authentication.TestAuthentication;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.storage.LocalStorage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@DirtiesContext
-@ActiveProfiles("utest")
+@ExtendWith(MockitoExtension.class)
 public class StorageAdapterTest {
 
-  @Autowired private StorageAdapter adapter;
+  @InjectMocks private StorageAdapter adapter;
 
-  @Mock LocalStorage storage;
+  @Mock private LocalStorage storage;
 
   @Test
   public void listProjectHistoryNoAuth() {
