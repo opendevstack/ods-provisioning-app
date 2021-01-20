@@ -27,16 +27,19 @@ import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManage
 import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@DirtiesContext
 @ActiveProfiles("crowd")
 public class MailAdapterTest {
 
   @Autowired private MailAdapter mailAdapter;
 
-  @Mock private CrowdAuthenticationManager crowdAuthenticationManager;
+  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
 
   @Mock private JavaMailSender mailSender;
 
