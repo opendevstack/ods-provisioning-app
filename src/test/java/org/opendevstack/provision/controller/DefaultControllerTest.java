@@ -41,7 +41,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -61,8 +60,6 @@ public class DefaultControllerTest {
   @Autowired private IBugtrackerAdapter realJiraAdapter;
 
   @Autowired private ICollaborationAdapter realConfluenceAdapter;
-
-  @Autowired private WebApplicationContext context;
 
   @Autowired private MockMvc mockMvc;
 

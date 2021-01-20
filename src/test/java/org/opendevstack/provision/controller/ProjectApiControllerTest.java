@@ -71,7 +71,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc(addFilters = false)
@@ -100,8 +99,6 @@ public class ProjectApiControllerTest {
   @Autowired private ProjectApiController apiController;
 
   @Autowired private List<String> projectTemplateKeyNames;
-
-  @Autowired private WebApplicationContext context;
 
   @Autowired private MockMvc mockMvc;
 

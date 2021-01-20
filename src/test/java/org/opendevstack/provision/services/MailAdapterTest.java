@@ -14,70 +14,54 @@
 
 package org.opendevstack.provision.services;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 
-import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 
-@SpringBootTest
-@DirtiesContext
-@ActiveProfiles("crowd")
+@ExtendWith(MockitoExtension.class)
 public class MailAdapterTest {
 
-  @Autowired private MailAdapter mailAdapter;
+  private MailAdapter mailAdapter;
 
-  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
+  @Mock private CrowdAuthenticationManager crowdAuthenticationManager;
 
   @Mock private JavaMailSender mailSender;
 
   @BeforeEach
   public void setUp() {
+    mailAdapter = new MailAdapter(mailSender);
     mailAdapter.manager = crowdAuthenticationManager;
   }
 
   @Test
-  public void notifyUsersAboutProject() {
-    MailAdapter spyAdapter = new MailAdapter(mailSender);
-    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
+  public void notifyUsersAboutProjectMailEnabled() {
+    mailAdapter.isMailEnabled = true;
+    mailAdapter.notifyUsersAboutProject(new OpenProjectData());
 
-    spyAdapter.notifyUsersAboutProject(new OpenProjectData());
+    // we capture the lambda of MimeMessagePreparator from the mailSender.send() method since it is
+    // not possible to take Mockito's any() as argument for that method call
+    ArgumentCaptor<MimeMessagePreparator> captor =
+        ArgumentCaptor.forClass(MimeMessagePreparator.class);
+    Mockito.verify(mailSender).send(captor.capture());
+    var mimeMessagePreparator = captor.getValue();
+
+    Mockito.verify(mailSender, Mockito.times(1)).send(mimeMessagePreparator);
   }
 
   @Test
-  public void notifyUsersMailDisabled() {
-    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-    spyAdapter.isMailEnabled = false;
-    Mockito.verify(mailSender, Mockito.never()).send(any(MimeMessage.class));
-  }
-
-  @Test
-  public void notifyUsersAboutProjectWhenCrowdUserDetailsIsNull() {
-    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
-
-    spyAdapter.notifyUsersAboutProject(new OpenProjectData());
-  }
-
-  @Test
-  public void testMailBuild() {
-    Mockito.doNothing().when(mailSender).send(any(MimeMessage.class));
-    MailAdapter spyAdapter = Mockito.spy(mailAdapter);
-
-    String message = spyAdapter.build(new OpenProjectData());
-    assertNotNull(message);
-    assertFalse(message.trim().isEmpty());
+  public void notifyUsersAboutProjectMailDisabled() {
+    mailAdapter.isMailEnabled = false;
+    mailAdapter.notifyUsersAboutProject(new OpenProjectData());
+    Mockito.verify(mailSender, Mockito.never()).send(mimeMessage -> {});
   }
 }

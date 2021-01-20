@@ -67,7 +67,7 @@ public class MailAdapter {
           messageHelper.setFrom(mailSenderAddress);
           messageHelper.setTo(recipient);
           messageHelper.setSubject("ODS Project provision update");
-          messageHelper.setText(build(data), true);
+          messageHelper.setText(buildText(data), true);
         };
 
     Thread sendThread =
@@ -87,7 +87,7 @@ public class MailAdapter {
     logger.debug("Mail for project: {} sent", data.projectKey);
   }
 
-  String build(OpenProjectData data) {
+  private String buildText(OpenProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);
