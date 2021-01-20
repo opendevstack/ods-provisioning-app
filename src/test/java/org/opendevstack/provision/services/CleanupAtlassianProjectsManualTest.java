@@ -27,9 +27,10 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("testods")
 @Disabled("Only exists for manual execution")
-public class CleanupAtlassianProjectsMT {
+public class CleanupAtlassianProjectsManualTest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(CleanupAtlassianProjectsMT.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(CleanupAtlassianProjectsManualTest.class);
 
   @MockBean private RestClient restClient;
 

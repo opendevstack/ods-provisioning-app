@@ -13,17 +13,15 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"oauth2", "oauth2private"})
 @Disabled("Only exists for manual execution")
-public class JiraAdapterMT {
+public class BitbucketAdapterManualTest {
 
-  @Autowired private JiraAdapter jiraAdapter;
+  @Autowired private BitbucketAdapter bitbucketAdapter;
 
   @Autowired private LocalStorage localStorage;
 
   @Test
   public void deletesProjects() {
-    // take care that you use an existing jira project that can be deleted. Since this is an
-    // real integration test, it will really delete the project.
-    OpenProjectData project = localStorage.getProject("TEST34");
-    jiraAdapter.cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
+    OpenProjectData project = localStorage.getProject("TEST6");
+    bitbucketAdapter.cleanup(LIFECYCLE_STAGE.INITIAL_CREATION, project);
   }
 }

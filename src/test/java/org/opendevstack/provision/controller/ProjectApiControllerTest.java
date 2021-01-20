@@ -58,6 +58,7 @@ import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.IStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -70,10 +71,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles({"crowd", "utestcrowd", "quickstarters"})
 @DirtiesContext
 public class ProjectApiControllerTest {
@@ -102,18 +103,24 @@ public class ProjectApiControllerTest {
 
   @Autowired private WebApplicationContext context;
 
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
   @Value("${idmanager.group.opendevstack-administrators}")
   private String roleAdmin;
 
   private OpenProjectData data;
 
+  public static String asJsonString(final Object obj) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper();
+      return mapper.writeValueAsString(obj);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @BeforeEach
   public void setUp() {
-    // mockMvc without spring security
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-
     GrantedAuthority auth = () -> roleAdmin;
     SecurityContextHolder.getContext()
         .setAuthentication(
@@ -244,7 +251,7 @@ public class ProjectApiControllerTest {
                     .andExpect(MockMvcResultMatchers.status().isOk())
                     .andDo(MockMvcResultHandlers.print());
 
-                verifyAddProjectAdapterCalls(times(1));
+                verifyAddProjectAdapterCalls(times(1), times(confluenceAdapterEnabled ? 1 : 0));
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
@@ -309,6 +316,11 @@ public class ProjectApiControllerTest {
 
   public void verifyAddProjectAdapterCalls(VerificationMode times)
       throws IOException, CreateProjectPreconditionException {
+    verifyAddProjectAdapterCalls(times, times);
+  }
+
+  public void verifyAddProjectAdapterCalls(VerificationMode times, VerificationMode confluenceTimes)
+      throws IOException, CreateProjectPreconditionException {
     Mockito.verify(jenkinsPipelineAdapter, times).createPlatformProjects(isNotNull());
     // check preconditions should be always called
     Mockito.verify(bitbucketAdapter, times(1)).checkCreateProjectPreconditions(isNotNull());
@@ -317,6 +329,9 @@ public class ProjectApiControllerTest {
     // jira components
     Mockito.verify(jiraAdapter, times)
         .createComponentsForProjectRepositories(isNotNull(), isNotNull());
+    // confluence
+    Mockito.verify(confluenceAdapter, confluenceTimes)
+        .createCollaborationSpaceForODSProject(isNotNull());
 
     Mockito.clearInvocations(
         jiraAdapter, confluenceAdapter, bitbucketAdapter, jenkinsPipelineAdapter);
@@ -990,15 +1005,6 @@ public class ProjectApiControllerTest {
     data.description = null;
     description = ProjectApiController.createShortenedDescription(data);
     assertEquals(data.description, description);
-  }
-
-  public static String asJsonString(final Object obj) {
-    try {
-      final ObjectMapper mapper = new ObjectMapper();
-      return mapper.writeValueAsString(obj);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Test
