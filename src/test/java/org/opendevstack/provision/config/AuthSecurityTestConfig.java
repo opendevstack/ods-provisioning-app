@@ -58,26 +58,4 @@ public class AuthSecurityTestConfig {
   public IODSAuthnzAdapter iodsAuthnzAdapter() {
     return mock(IODSAuthnzAdapter.class);
   }
-
-  //  @Bean
-  //  @Primary
-  //  public BasicCache getCache() {
-  //    return new CacheImpl(getCacheManager());
-  //  }
-  //
-  //  @Bean
-  //  @Primary
-  //  public CacheManager getCacheManager() {
-  //    return getEhCacheFactory().getObject();
-  //  }
-
-  //  @Bean
-  //  @Primary
-  //  public EhCacheManagerFactoryBean getEhCacheFactory() {
-  //    EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-  //    factoryBean.setConfigLocation(new ClassPathResource("crowd-ehcache.xml"));
-  //    factoryBean.setShared(false);
-  //    factoryBean.setAcceptExisting(true);
-  //    return factoryBean;
-  //  }
 }
