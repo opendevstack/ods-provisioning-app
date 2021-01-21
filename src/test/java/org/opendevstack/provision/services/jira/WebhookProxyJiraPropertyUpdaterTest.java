@@ -21,24 +21,23 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.net.URL;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.provision.services.JiraAdapter;
 import org.opendevstack.provision.services.webhookproxy.WebhookProxyUrlFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("utest")
+@ExtendWith(MockitoExtension.class)
 public class WebhookProxyJiraPropertyUpdaterTest {
 
-  @MockBean private JiraProjectPropertyUpdater jiraProjectPropertyUpdater;
+  @InjectMocks private WebhookProxyJiraPropertyUpdater webhookProxyJiraPropertyUpdater;
 
-  @MockBean private JiraAdapter jiraRestService;
+  @Mock private JiraProjectPropertyUpdater jiraProjectPropertyUpdater;
 
-  @MockBean private WebhookProxyUrlFactory webhookProxyUrlFactory;
+  @Mock private JiraAdapter jiraRestService;
 
-  @Autowired private WebhookProxyJiraPropertyUpdater webhookProxyJiraPropertyUpdater;
+  @Mock private WebhookProxyUrlFactory webhookProxyUrlFactory;
 
   @Test
   public void givenAddWebhookProxy_whenEndpointIsNotValidUrl_thenIOException() {

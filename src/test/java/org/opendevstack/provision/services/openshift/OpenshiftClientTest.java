@@ -24,17 +24,18 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class OpenshiftClientTest {
 
-  @MockBean private IClient ocClient;
+  @InjectMocks private OpenshiftClient openshiftClient;
+
+  @Mock private IClient ocClient;
 
   private String url = "http://url.com";
-
-  private OpenshiftClient openshiftClient;
 
   @BeforeEach
   public void setup() {
@@ -44,16 +45,16 @@ public class OpenshiftClientTest {
   @Test
   public void testOpenshiftClientReturnsProjectKeys() {
 
-    String projectname = "ods";
+    String projectName = "ods";
     IResource resource = mock(IResource.class);
-    when(resource.getName()).thenReturn(projectname);
+    when(resource.getName()).thenReturn(projectName);
     List.of(resource);
 
     when(ocClient.list("Project")).thenReturn(List.of(resource));
 
     Set<String> projects = openshiftClient.projects();
     assertEquals(1, projects.size());
-    assertTrue(projects.contains(projectname));
+    assertTrue(projects.contains(projectName));
   }
 
   @Test

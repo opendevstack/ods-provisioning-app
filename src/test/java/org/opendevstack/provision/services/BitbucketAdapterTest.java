@@ -15,9 +15,6 @@
 package org.opendevstack.provision.services;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_ID_KEY;
 import static org.opendevstack.provision.model.OpenProjectData.COMPONENT_TYPE_KEY;
@@ -26,15 +23,15 @@ import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matc
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
@@ -46,8 +43,6 @@ import org.opendevstack.provision.model.bitbucket.*;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.ValueCaptor;
 import org.opendevstack.provision.util.exception.HttpException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -67,20 +62,13 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Value("${openshift.jenkins.project.webhookproxy.events}")
   private List<String> webhookEvents;
 
-  private static final Logger logger = LoggerFactory.getLogger(BitbucketAdapterTest.class);
-
   public static final String TEST_USER_NAME = "testUserName";
   public static final String TEST_USER_PASSWORD = "testUserPassword";
-  private static final int ONE_SEC_IN_MILLIS = 1000;
 
   @MockBean private IODSAuthnzAdapter authnzAdapter;
+  @Autowired private BitbucketAdapter bitbucketAdapter;
 
-  @Mock BitbucketProjectData bitbucketData;
-  @Mock BitbucketProject project;
-  @InjectMocks @Autowired BitbucketAdapter bitbucketAdapter;
-  @Mock Repository repo;
-
-  private static TestDataFileReader fileReader =
+  private static final TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
 
   @BeforeEach
@@ -149,8 +137,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     SecurityContextHolder.setContext(securityContext);
 
     OpenProjectData projectData = getReturnOpenProjectData();
-    Map<String, Map<URL_TYPE, String>> repos = new HashMap();
-    projectData.repositories = repos;
+    projectData.repositories = new HashMap<>();
 
     Map<String, String> quickstart = new HashMap<>();
     quickstart.put("component_id", "testid");
@@ -317,7 +304,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repo.setForkable(true);
     String projectKey = "testkey";
     String basePath = "http://192.168.56.31:7990/rest/api/1.0";
-    String uri = "http://192.168.56.31:7990/rest/api/1.0/testkey/repos";
 
     RepositoryData expected = new RepositoryData();
 
@@ -370,7 +356,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @Test
   public void testCreateWebhooks() throws Exception {
-
     OpenProjectData projectData = new OpenProjectData();
     projectData.repositories = new HashMap<>();
     projectData.projectKey = "12423qtr";
@@ -380,7 +365,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
-    ValueCaptor<Webhook> bodyCaptor = new ValueCaptor();
+    ValueCaptor<Webhook> bodyCaptor = new ValueCaptor<>();
 
     mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(bodyCaptor))
         .thenReturn(repoData1);
@@ -391,7 +376,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
-  public void testCreateNoWebhookForReleaseManager() throws Exception {
+  public void testCreateNoWebhookForReleaseManager() {
 
     OpenProjectData projectData = new OpenProjectData();
     projectData.projectKey = "PWRM";
@@ -408,16 +393,17 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     verify(spyAdapter, never()).getAdapterApiUri();
   }
 
-  private Map<String, List<Link>> generateRepoLinks(String[] linknames) {
-    List<Link> linkList = new ArrayList();
-    for (String linkname : linknames) {
-      Link link = new Link();
-      link.setName(linkname);
-      linkList.add(link);
-    }
-    Map<String, List<Link>> linkMap = new HashMap();
-    linkMap.put("links", linkList);
-    return linkMap;
+  private Map<String, List<Link>> generateRepoLinks(String[] linkNames) {
+    var linkNameList =
+        Arrays.stream(linkNames)
+            .map(
+                linkname -> {
+                  var link = new Link();
+                  link.setName(linkname);
+                  return link;
+                })
+            .collect(Collectors.toList());
+    return Map.of("links", linkNameList);
   }
 
   private OpenProjectData getReturnOpenProjectData() {
@@ -437,13 +423,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   private BitbucketProjectData getReturnBitbucketData() {
-    BitbucketProjectData data = new BitbucketProjectData();
-    return data;
-  }
-
-  private BitbucketProject getTestProject() {
-    BitbucketProject project = new BitbucketProject();
-    return project;
+    return new BitbucketProjectData();
   }
 
   private RepositoryData getReturnRepoData() {
@@ -485,8 +465,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull())).thenReturn(null);
       checkUser.apply(result);
       fail();
-    } catch (Exception e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e));
+    } catch (Exception ex) {
+      assertTrue(ex instanceof IllegalArgumentException);
     }
 
     // Rest API return http error 404
@@ -537,8 +517,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       when(restClient.execute(isNotNull(), anyBoolean())).thenReturn(null);
       checkProjectExists.apply(new ArrayList<>());
       fail();
-    } catch (Exception e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e));
+    } catch (Exception ex) {
+      assertTrue(ex instanceof IllegalArgumentException);
     }
 
     // Rest API return other http error than 404

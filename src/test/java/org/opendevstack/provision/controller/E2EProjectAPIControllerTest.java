@@ -18,7 +18,8 @@ import static java.lang.String.format;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.TEST_ADMIN_USERNAME;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -43,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
-import org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig;
 import org.opendevstack.provision.model.ExecutionJob;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.bitbucket.BitbucketProject;
@@ -59,12 +59,16 @@ import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
 import org.opendevstack.provision.model.webhookproxy.CreateProjectResponse;
-import org.opendevstack.provision.services.*;
+import org.opendevstack.provision.services.BitbucketAdapter;
+import org.opendevstack.provision.services.ConfluenceAdapter;
+import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
+import org.opendevstack.provision.services.JiraAdapter;
+import org.opendevstack.provision.services.JiraAdapterTests;
+import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.jira.JiraRestApi;
 import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.LocalStorage;
 import org.opendevstack.provision.util.CreateProjectResponseUtil;
-import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.opendevstack.provision.util.rest.RestClient;
@@ -73,40 +77,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 /** End to end testcase with real result data - only mock is the RestClient - to feed the json */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ActiveProfiles({"utest", "quickstarters"})
 @DirtiesContext
 public class E2EProjectAPIControllerTest {
 
-  private static Logger e2eLogger = LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
+  private static final Logger e2eLogger =
+      LoggerFactory.getLogger(E2EProjectAPIControllerTest.class);
 
   public static final String BITBUCKET_PARAM_FILTER = "filter";
   public static final String BITBUCKET_PARAM_PERMISSION = "permission";
 
-  public static final String TEST_ADMIN_USERNAME = BasicAuthSecurityTestConfig.TEST_ADMIN_USERNAME;
-  public static final String TEST_VALID_CREDENTIAL =
-      BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
-
   private RestClientMockHelper mockHelper;
 
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
   @MockBean private IODSAuthnzAdapter mockAuthnzAdapter;
 
@@ -115,8 +114,6 @@ public class E2EProjectAPIControllerTest {
   @MockBean private OpenshiftClient openshiftClient;
 
   @MockBean private CrowdProjectIdentityMgmtAdapter crowdProjectIdentityMgmtAdapter;
-
-  @Autowired private WebApplicationContext context;
 
   @Autowired private JiraAdapter realJiraAdapter;
 
@@ -130,8 +127,6 @@ public class E2EProjectAPIControllerTest {
 
   @Autowired private MailAdapter realMailAdapter;
 
-  @Autowired private TestRestTemplate template;
-
   @Value("${idmanager.group.opendevstack-users}")
   private String userGroup;
 
@@ -141,15 +136,13 @@ public class E2EProjectAPIControllerTest {
   @Value("${openshift.apps.basedomain}")
   protected String projectOpenshiftBaseDomain;
 
-  private static TestDataFileReader fileReader =
+  private static final TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
 
-  private static File testProjectDataDir =
+  private static final File testProjectDataDir =
       new File(TestDataFileReader.TEST_DATA_FILE_DIR, "results");
 
-  private static File buildDir = new File("./build");
-
-  private String VALID_CREDENTIAL = BasicAuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
+  private static final File buildDir = new File("./build");
 
   @BeforeEach
   public void setUp() {
@@ -158,11 +151,6 @@ public class E2EProjectAPIControllerTest {
         realLocalStorageAdapter, E2EProjectAPIControllerTest.createTempDir(buildDir));
 
     apiController.setDirectStorage(realLocalStorageAdapter);
-
-    mockMvc =
-        MockMvcBuilders.webAppContextSetup(context)
-            .apply(SecurityMockMvcConfigurers.springSecurity())
-            .build();
 
     mockHelper = new RestClientMockHelper(restClient);
 
@@ -173,7 +161,6 @@ public class E2EProjectAPIControllerTest {
     apiController.setCleanupAllowed(true);
 
     when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
-    when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
     when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
 
     when(openshiftClient.projects()).thenReturn(Set.of("default", "ods"));
@@ -322,15 +309,13 @@ public class E2EProjectAPIControllerTest {
 
     // get confluence blueprints
     List<Blueprint> blList =
-        readTestDataTypeRef(
-            "confluence-get-blueprints-response", new TypeReference<List<Blueprint>>() {});
+        readTestDataTypeRef("confluence-get-blueprints-response", new TypeReference<>() {});
 
     mockHelper
         .mockExecute(
             matchesClientCall().url(containsString("dialog/web-items")).method(HttpMethod.GET))
         .thenReturn(blList);
 
-    String confluenceSpaceTemplate = fileReader.readFileContent("confluence-get-space-template");
     try {
       mockHelper
           .mockExecuteSuppressErrorLogging(
@@ -401,8 +386,7 @@ public class E2EProjectAPIControllerTest {
 
     // get jira servers for confluence space
     List<JiraServer> jiraservers =
-        readTestDataTypeRef(
-            "confluence-get-jira-servers-response", new TypeReference<List<JiraServer>>() {});
+        readTestDataTypeRef("confluence-get-jira-servers-response", new TypeReference<>() {});
 
     mockHelper
         .mockExecute(
@@ -560,7 +544,7 @@ public class E2EProjectAPIControllerTest {
                 post("/api/v2/project")
                     .content(ProjectApiControllerTest.asJsonString(data))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -631,13 +615,12 @@ public class E2EProjectAPIControllerTest {
       return;
     }
 
-    // get the project thru its key
     MvcResult resultProjectGetResponse =
         mockMvc
             .perform(
                 get("/api/v2/project/" + data.projectKey)
                     .accept(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL)))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL)))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -713,7 +696,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             get("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -724,7 +707,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             delete("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isOk());
@@ -734,7 +717,7 @@ public class E2EProjectAPIControllerTest {
         .perform(
             get("/api/v2/project/" + toClean.projectKey)
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -781,7 +764,7 @@ public class E2EProjectAPIControllerTest {
                 delete("/api/v2/project/")
                     .content(ProjectApiControllerTest.asJsonString(toClean))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -795,15 +778,14 @@ public class E2EProjectAPIControllerTest {
             .readValue(
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
-    assertTrue(resultProject.getQuickstarters().size() == (currentQuickstarterSize - 1));
+    assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
 
-    // retrieve the project thru the get endpoint - to ensure we have the right data stored
     resultProjectGetResponse =
         mockMvc
             .perform(
                 get("/api/v2/project/" + toClean.projectKey)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -815,7 +797,7 @@ public class E2EProjectAPIControllerTest {
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
     assertEquals(toClean.projectKey, resultProject.projectKey);
-    assertTrue(resultProject.getQuickstarters().size() == (currentQuickstarterSize - 1));
+    assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
     assertTrue(resultProject.getQuickstarters().isEmpty());
   }
 
@@ -919,7 +901,7 @@ public class E2EProjectAPIControllerTest {
                 put("/api/v2/project")
                     .content(ProjectApiControllerTest.asJsonString(dataUpdate))
                     .contentType(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -984,11 +966,6 @@ public class E2EProjectAPIControllerTest {
     return resultProject;
   }
 
-  public void oldVerify(VerificationMode times, RestClientCallArgumentMatcher wantedArgument)
-      throws IOException {
-    mockHelper.verifyExecute(wantedArgument, times);
-  }
-
   /** Test legacy upgrade e2e */
   @Test
   public void testLegacyProjectUpgradeOnGet() throws Exception {
@@ -1003,7 +980,7 @@ public class E2EProjectAPIControllerTest {
             .perform(
                 get("/api/v2/project/LEGPROJ")
                     .accept(MediaType.APPLICATION_JSON)
-                    .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL)))
+                    .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL)))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andDo(MockMvcResultHandlers.print())
             .andReturn();
@@ -1032,7 +1009,7 @@ public class E2EProjectAPIControllerTest {
     mockMvc
         .perform(
             get("/api/v2/project/LEGPROJ")
-                .with(httpBasic(TEST_ADMIN_USERNAME, VALID_CREDENTIAL))
+                .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(

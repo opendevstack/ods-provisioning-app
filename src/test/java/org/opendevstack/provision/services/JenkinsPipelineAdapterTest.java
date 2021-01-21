@@ -14,20 +14,24 @@
 
 package org.opendevstack.provision.services;
 
-import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.opendevstack.provision.config.Quickstarter.adminjobQuickstarter;
 import static org.opendevstack.provision.config.Quickstarter.componentQuickstarter;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.model.ExecutionsData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -62,10 +66,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @BeforeEach
   public void setup() {
-    MockitoAnnotations.initMocks(this);
-
     jenkinsPipelineAdapter.jenkinsPipelineProperties = buildJenkinsPipelineProperties();
-
     jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
     jenkinsPipelineAdapter.adminWebhookProxyHost = "webhook-proxy-ods";
     jenkinsPipelineAdapter.projectWebhookProxyHostPattern = "webhook-proxy-%s-cd%s";
@@ -143,7 +144,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     quickstart.add(testjob);
     project.quickstarters = quickstart;
 
-    mockJobsInServer(asList(job));
+    mockJobsInServer(Collections.singletonList(job));
 
     int expectedExecutionsSize = 1;
     ValueCaptor<Execution> bodyCaptor = new ValueCaptor<>();
@@ -198,12 +199,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             Optional.empty(),
             odsGitRef);
 
-    String componentId = "be-project-name-with-numbers-123";
-
-    Map<String, String> testjob = new HashMap<>();
-    testjob.put(OpenProjectData.COMPONENT_ID_KEY, componentId);
-    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
-
     // Case: do not delete component job
     String expectedUrl =
         "https://"
@@ -215,9 +210,11 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "&component=ods-corejob-"
             + job.getId();
 
+    String componentId = "be-project-name-with-numbers-123";
     String actualUrl =
         JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
             job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+
     assertEquals(expectedUrl, actualUrl);
   }
 
@@ -238,10 +235,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     String projectId = "be-acc-service-with-123-numbers";
 
-    Map<String, String> testjob = new HashMap<>();
-    testjob.put(OpenProjectData.COMPONENT_ID_KEY, projectId);
-    testjob.put(OpenProjectData.COMPONENT_TYPE_KEY, job.getId());
-
     // Case: delete component job
     String expectedUrl =
         "https://"
@@ -257,10 +250,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
             job, projectId, job.getId(), webhookProxySecret, webhookHost, true);
     assertEquals(expectedUrl, actualUrl);
-  }
-
-  private void mockRestClientToReturnExecutionData(String output) throws java.io.IOException {
-    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(output);
   }
 
   @Test

@@ -24,17 +24,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class CrowdProjectIdentityMgmtAdapterTest {
 
-  @Mock CrowdAuthenticationManager manager;
+  @InjectMocks private CrowdProjectIdentityMgmtAdapter idMgr;
 
-  @InjectMocks CrowdProjectIdentityMgmtAdapter idMgr;
+  @Mock private IODSAuthnzAdapter manager;
 
   @Test
   public void testGroupExists() {

@@ -26,7 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
     })
 public class Oauth2LogoutHandlerTest {
 
-  @Autowired Oauth2LogoutHandler logoutHandler;
+  @Autowired private Oauth2LogoutHandler logoutHandler;
 
   @MockBean private HttpServletRequest request;
   @MockBean private HttpServletResponse response;

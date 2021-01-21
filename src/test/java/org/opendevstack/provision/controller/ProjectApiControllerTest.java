@@ -18,12 +18,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.*;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.TEST_ADMIN_USERNAME;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -32,13 +40,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.verification.VerificationMode;
-import org.opendevstack.provision.adapter.*;
+import org.opendevstack.provision.adapter.IBugtrackerAdapter;
+import org.opendevstack.provision.adapter.ICollaborationAdapter;
+import org.opendevstack.provision.adapter.IJobExecutionAdapter;
+import org.opendevstack.provision.adapter.ISCMAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
+import org.opendevstack.provision.adapter.IServiceAdapter;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.authentication.TestAuthentication;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthSecurityTestConfig;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.ProjectData;
 import org.opendevstack.provision.services.CrowdProjectIdentityMgmtAdapter;
@@ -46,10 +56,9 @@ import org.opendevstack.provision.services.MailAdapter;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.opendevstack.provision.services.openshift.OpenshiftClient;
 import org.opendevstack.provision.storage.IStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -62,15 +71,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles({"crowd", "utestcrowd", "quickstarters"})
 @DirtiesContext
 public class ProjectApiControllerTest {
-
-  private static Logger logger = LoggerFactory.getLogger(ProjectApiControllerTest.class);
 
   @MockBean private OpenshiftClient openshiftClient;
 
@@ -90,39 +96,34 @@ public class ProjectApiControllerTest {
 
   @MockBean private CrowdProjectIdentityMgmtAdapter idm;
 
-  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
-
   @Autowired private ProjectApiController apiController;
 
   @Autowired private List<String> projectTemplateKeyNames;
 
-  @Autowired private WebApplicationContext context;
+  @Autowired private MockMvc mockMvc;
 
   @Value("${idmanager.group.opendevstack-administrators}")
   private String roleAdmin;
 
-  private MockMvc mockMvc;
-
   private OpenProjectData data;
+
+  public static String asJsonString(final Object obj) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper();
+      return mapper.writeValueAsString(obj);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   @BeforeEach
   public void setUp() {
-
-    mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-
-    GrantedAuthority auth =
-        new GrantedAuthority() {
-          @Override
-          public String getAuthority() {
-            return roleAdmin;
-          }
-        };
-
+    GrantedAuthority auth = () -> roleAdmin;
     SecurityContextHolder.getContext()
         .setAuthentication(
             new TestAuthentication(
-                CrowdAuthSecurityTestConfig.TEST_ADMIN_USERNAME,
-                CrowdAuthSecurityTestConfig.TEST_VALID_CREDENTIAL,
+                TEST_ADMIN_USERNAME,
+                TEST_VALID_CREDENTIAL,
                 List.of(auth).toArray(GrantedAuthority[]::new)));
 
     initOpenProjectData();
@@ -199,8 +200,7 @@ public class ProjectApiControllerTest {
   }
 
   @Test
-  public void addProjectWithOC() throws Exception {
-
+  public void addProjectWithOC() {
     List.of(true, false)
         .forEach(
             confluenceAdapterEnabled -> {
@@ -211,8 +211,7 @@ public class ProjectApiControllerTest {
                 data.quickstarters = null;
 
                 OpenProjectData bugTrackProject = copyFromProject(data);
-                String bugtrackerUrl = "bugtracker";
-                bugTrackProject.bugtrackerUrl = bugtrackerUrl;
+                bugTrackProject.bugtrackerUrl = "bugtracker";
                 String collaborationSpaceURL = "collspace";
                 bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
 
@@ -303,10 +302,6 @@ public class ProjectApiControllerTest {
 
   public void verifyCheckPreconditionsCalls(VerificationMode platform, VerificationMode bugtracker)
       throws CreateProjectPreconditionException, IOException {
-
-    //    VerificationMode platform = platformProject ? times(1) : times(0);
-    //    VerificationMode bugtracker = bugtrackerProject ? times(1) : times(0);
-
     Mockito.verify(bitbucketAdapter, platform).checkCreateProjectPreconditions(isNotNull());
     // jira components
     Mockito.verify(jiraAdapter, bugtracker).checkCreateProjectPreconditions(isNotNull());
@@ -314,8 +309,6 @@ public class ProjectApiControllerTest {
 
     Mockito.verify(jenkinsPipelineAdapter, never()).createPlatformProjects(isNotNull());
     Mockito.verify(bitbucketAdapter, never()).createSCMProjectForODSProject(isNotNull());
-
-    //    reset(bitbucketAdapter, jiraAdapter, confluenceAdapter);
   }
 
   public void verifyAddProjectAdapterCalls(VerificationMode times)
@@ -333,6 +326,9 @@ public class ProjectApiControllerTest {
     // jira components
     Mockito.verify(jiraAdapter, times)
         .createComponentsForProjectRepositories(isNotNull(), isNotNull());
+    // confluence
+    Mockito.verify(confluenceAdapter, confluenceTimes)
+        .createCollaborationSpaceForODSProject(isNotNull());
 
     Mockito.clearInvocations(
         jiraAdapter, confluenceAdapter, bitbucketAdapter, jenkinsPipelineAdapter);
@@ -908,7 +904,7 @@ public class ProjectApiControllerTest {
   }
 
   @Test
-  public void updateProjectWithValidAndInvalidComponentId() throws Exception {
+  public void updateProjectWithValidAndInvalidComponentId() {
 
     // allow upgrade
     apiController.setOcUpgradeAllowed(true);
@@ -953,7 +949,7 @@ public class ProjectApiControllerTest {
 
     String tooShort = "ad";
     String tooLong = "1234567890123456789012345678901234567890addd";
-    Arrays.asList(".-adfasfdasdfasdfsad", tooShort, tooLong, "", null).stream()
+    Arrays.asList(".-adfasfdasdfasdfsad", tooShort, tooLong, "", null)
         .forEach(s -> request.accept(s, false));
   }
 
@@ -1008,16 +1004,6 @@ public class ProjectApiControllerTest {
     assertEquals(data.description, description);
   }
 
-  public static String asJsonString(final Object obj) {
-    try {
-      final ObjectMapper mapper = new ObjectMapper();
-      final String jsonContent = mapper.writeValueAsString(obj);
-      return jsonContent;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Test
   public void testProjectDeleteForbidden() {
     apiController.setCleanupAllowed(false);
@@ -1065,8 +1051,7 @@ public class ProjectApiControllerTest {
 
     // case parameter is null
     try {
-      ProjectApiController.validateQuickstarters(
-          null, new ArrayList<Consumer<Map<String, String>>>());
+      ProjectApiController.validateQuickstarters(null, new ArrayList<>());
     } catch (IllegalArgumentException e) {
       // expected!
       assertTrue(e.getMessage().contains("null"));
@@ -1074,18 +1059,14 @@ public class ProjectApiControllerTest {
 
     // case validators list is empty
     try {
-      ProjectApiController.validateQuickstarters(
-          data, new ArrayList<Consumer<Map<String, String>>>());
+      ProjectApiController.validateQuickstarters(data, new ArrayList<>());
     } catch (IllegalArgumentException e) {
       // expected!
       assertTrue(e.getMessage().contains("validators"));
     }
 
     // case data is not null and validators is not empty
-    Consumer<Map<String, String>> acceptAllValidator =
-        stringStringMap -> {
-          return;
-        };
-    ProjectApiController.validateQuickstarters(data, Arrays.asList(acceptAllValidator));
+    Consumer<Map<String, String>> acceptAllValidator = stringStringMap -> {};
+    ProjectApiController.validateQuickstarters(data, Collections.singletonList(acceptAllValidator));
   }
 }

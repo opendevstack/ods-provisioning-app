@@ -22,7 +22,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
@@ -43,13 +41,10 @@ import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -59,24 +54,18 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext
 public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConfluenceAdapterTest.class);
-
   public static final String TEST_USER_NAME = "testUserName";
   public static final String TEST_USER_PASSWORD = "testUserPassword";
 
-  private ObjectMapper objectMapper;
-
-  private static TestDataFileReader fileReader =
+  private static final TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
+
+  @Autowired private ConfluenceAdapter confluenceAdapter;
 
   @MockBean private IODSAuthnzAdapter authnzAdapter;
 
-  @Autowired @InjectMocks ConfluenceAdapter confluenceAdapter;
-
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
-
-  @Autowired ConfigurableEnvironment environment;
 
   @BeforeEach
   public void initTests() {
@@ -145,7 +134,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     project.projectUserGroup = "adminGroup";
     project.projectReadonlyGroup = "adminGroup";
 
-    List blList = new ArrayList<>();
+    var blList = new ArrayList<>();
     Blueprint bPrint = new Blueprint();
     bPrint.setBlueprintModuleCompleteKey(confluenceBlueprintKey);
     bPrint.setContentBlueprintId("1234");
@@ -269,7 +258,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(e instanceof IllegalArgumentException);
     }
 
     // Case IOException throw from rest client!
