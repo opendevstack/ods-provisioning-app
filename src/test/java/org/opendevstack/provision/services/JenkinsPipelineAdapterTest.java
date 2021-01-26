@@ -66,24 +66,24 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   @BeforeEach
   public void setup() {
-    jenkinsPipelineAdapter.jenkinsPipelineProperties = buildJenkinsPipelineProperties();
-    jenkinsPipelineAdapter.groupPattern = "org.opendevstack.%s";
-    jenkinsPipelineAdapter.adminWebhookProxyHost = "webhook-proxy-ods";
-    jenkinsPipelineAdapter.projectWebhookProxyHostPattern = "webhook-proxy-%s-cd%s";
-    jenkinsPipelineAdapter.projectOpenshiftJenkinsProjectPattern = "jenkins-%s-cd%s";
-    jenkinsPipelineAdapter.projectOpenshiftBaseDomain = ".192.168.56.101.nip.io";
-    jenkinsPipelineAdapter.projectOpenshiftCdProjectPattern = "%s/project/%s-cd";
-    jenkinsPipelineAdapter.projectOpenshiftDevProjectPattern = "%s/project/%s-dev";
-    jenkinsPipelineAdapter.projectOpenshiftConsoleUri = "https://192.168.56.101:8443/console";
-    jenkinsPipelineAdapter.projectOpenshiftTestProjectPattern = "%s/project/%s-test";
-    jenkinsPipelineAdapter.bitbucketUri = "http://192.168.56.31:7990";
-    jenkinsPipelineAdapter.useTechnicalUser = true;
-    jenkinsPipelineAdapter.userName = "maier";
-    jenkinsPipelineAdapter.generalCdUser = "cd_user";
-    jenkinsPipelineAdapter.odsNamespace = "ods";
-    jenkinsPipelineAdapter.bitbucketOdsProject = "opendevstack";
-    jenkinsPipelineAdapter.odsImageTag = "latest";
-    jenkinsPipelineAdapter.odsGitRef = "master";
+    jenkinsPipelineAdapter.setJenkinsPipelineProperties(buildJenkinsPipelineProperties());
+    jenkinsPipelineAdapter.setGroupPattern("org.opendevstack.%s");
+    jenkinsPipelineAdapter.setAdminWebhookProxyHost("webhook-proxy-ods");
+    jenkinsPipelineAdapter.setProjectWebhookProxyHostPattern("webhook-proxy-%s-cd%s");
+    jenkinsPipelineAdapter.setProjectOpenshiftJenkinsProjectPattern("jenkins-%s-cd%s");
+    jenkinsPipelineAdapter.setProjectOpenshiftBaseDomain(".192.168.56.101.nip.io");
+    jenkinsPipelineAdapter.setProjectOpenshiftCdProjectPattern("%s/project/%s-cd");
+    jenkinsPipelineAdapter.setProjectOpenshiftDevProjectPattern("%s/project/%s-dev");
+    jenkinsPipelineAdapter.setProjectOpenshiftConsoleUri("https://192.168.56.101:8443/console");
+    jenkinsPipelineAdapter.setProjectOpenshiftTestProjectPattern("%s/project/%s-test");
+    jenkinsPipelineAdapter.setBitbucketUri("http://192.168.56.31:7990");
+    jenkinsPipelineAdapter.setUseTechnicalUser(true);
+    jenkinsPipelineAdapter.setUserName("maier");
+    jenkinsPipelineAdapter.setGeneralCdUser("cd_user");
+    jenkinsPipelineAdapter.setOdsNamespace("ods");
+    jenkinsPipelineAdapter.setBitbucketOdsProject("opendevstack");
+    jenkinsPipelineAdapter.setOdsImageTag("latest");
+    jenkinsPipelineAdapter.setOdsGitRef("master");
     jenkinsPipelineAdapter.init();
     super.beforeTest();
   }
@@ -131,8 +131,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void executeJobs() throws Exception {
     OpenProjectData project = new OpenProjectData();
-    project.projectKey = PROJECT_KEY;
-    project.webhookProxySecret = "secret101";
+    project.setProjectKey(PROJECT_KEY);
+    project.setWebhookProxySecret("secret101");
     String odsGitRef = "production";
     Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
 
@@ -142,7 +142,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     List<Map<String, String>> quickstart = new ArrayList<>();
     quickstart.add(testjob);
-    project.quickstarters = quickstart;
+    project.setQuickstarters(quickstart);
 
     mockJobsInServer(Collections.singletonList(job));
 
@@ -173,7 +173,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "/build?trigger_secret="
             + webhookProxySecret
             + "&jenkinsfile_path="
-            + job.jenkinsfilePath
+            + job.getJenkinsfilePath()
             + "&component=ods-qs-"
             + componentId;
 
@@ -206,7 +206,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "/build?trigger_secret="
             + webhookProxySecret
             + "&jenkinsfile_path="
-            + job.jenkinsfilePath
+            + job.getJenkinsfilePath()
             + "&component=ods-corejob-"
             + job.getId();
 
@@ -242,7 +242,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
             + "/build?trigger_secret="
             + webhookProxySecret
             + "&jenkinsfile_path="
-            + job.jenkinsfilePath
+            + job.getJenkinsfilePath()
             + "&component=ods-corejob-"
             + projectId;
 
@@ -267,38 +267,39 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
         jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
     Execution capturedBody = bodyCaptor.getValues().get(0);
-    Assertions.assertEquals("production", capturedBody.branch);
-    Assertions.assertEquals("ods-core", capturedBody.repository);
-    List<Option> env = capturedBody.env;
+    Assertions.assertEquals("production", capturedBody.getBranch());
+    Assertions.assertEquals("ods-core", capturedBody.getRepository());
+    List<Option> env = capturedBody.getEnv();
 
     assertTrue(
         env.containsAll(
             List.of(
-                new Option("PROJECT_ID", projectData.projectKey),
-                new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.userName),
-                new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.odsNamespace),
-                new Option("ODS_BITBUCKET_PROJECT", jenkinsPipelineAdapter.bitbucketOdsProject),
-                new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.odsImageTag),
-                new Option("ODS_GIT_REF", jenkinsPipelineAdapter.odsGitRef))));
+                new Option("PROJECT_ID", projectData.getProjectKey()),
+                new Option("PROJECT_ADMIN", jenkinsPipelineAdapter.getUserName()),
+                new Option("ODS_NAMESPACE", jenkinsPipelineAdapter.getOdsNamespace()),
+                new Option(
+                    "ODS_BITBUCKET_PROJECT", jenkinsPipelineAdapter.getBitbucketOdsProject()),
+                new Option("ODS_IMAGE_TAG", jenkinsPipelineAdapter.getOdsImageTag()),
+                new Option("ODS_GIT_REF", jenkinsPipelineAdapter.getOdsGitRef()))));
 
     Assertions.assertEquals(
-        jenkinsPipelineAdapter.bitbucketUri,
+        jenkinsPipelineAdapter.getBitbucketUri(),
         capturedBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL));
 
     assertEquals(expectedOpenProjectData, createdOpenProjectData);
-    assertTrue(expectedOpenProjectData.platformRuntime);
+    assertTrue(expectedOpenProjectData.isPlatformRuntime());
     assertEquals(
-        expectedOpenProjectData.platformCdEnvironmentUrl,
-        createdOpenProjectData.platformCdEnvironmentUrl);
+        expectedOpenProjectData.getPlatformCdEnvironmentUrl(),
+        createdOpenProjectData.getPlatformCdEnvironmentUrl());
     assertEquals(
-        expectedOpenProjectData.platformDevEnvironmentUrl,
-        createdOpenProjectData.platformDevEnvironmentUrl);
+        expectedOpenProjectData.getPlatformDevEnvironmentUrl(),
+        createdOpenProjectData.getPlatformDevEnvironmentUrl());
     assertEquals(
-        expectedOpenProjectData.platformTestEnvironmentUrl,
-        createdOpenProjectData.platformTestEnvironmentUrl);
+        expectedOpenProjectData.getPlatformTestEnvironmentUrl(),
+        createdOpenProjectData.getPlatformTestEnvironmentUrl());
     assertEquals(
-        expectedOpenProjectData.platformBuildEngineUrl,
-        createdOpenProjectData.platformBuildEngineUrl);
+        expectedOpenProjectData.getPlatformBuildEngineUrl(),
+        createdOpenProjectData.getPlatformBuildEngineUrl());
   }
 
   @Test
@@ -316,8 +317,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   public OpenProjectData createOpenProjectData(String projectKey) throws IOException {
     OpenProjectData projectData = new OpenProjectData();
-    projectData.projectKey = projectKey;
-    projectData.webhookProxySecret = UUID.randomUUID().toString();
+    projectData.setProjectKey(projectKey);
+    projectData.setWebhookProxySecret(UUID.randomUUID().toString());
 
     Job job1 = new Job();
     job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
@@ -360,13 +361,13 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     OpenProjectData projectData = new OpenProjectData();
     // create special permissionset - here crowd userdetails should never be called
-    projectData.projectKey = "key";
-    projectData.specialPermissionSet = true;
-    projectData.projectAdminUser = "clemens";
-    projectData.projectAdminGroup = "agroup";
-    projectData.projectUserGroup = "ugroup";
-    projectData.projectReadonlyGroup = "rgroup";
-    projectData.webhookProxySecret = UUID.randomUUID().toString();
+    projectData.setProjectKey("key");
+    projectData.setSpecialPermissionSet(true);
+    projectData.setProjectAdminUser("clemens");
+    projectData.setProjectAdminGroup("agroup");
+    projectData.setProjectUserGroup("ugroup");
+    projectData.setProjectReadonlyGroup("rgroup");
+    projectData.setWebhookProxySecret(UUID.randomUUID().toString());
 
     mockJobsInServer(jobs);
 
@@ -379,24 +380,26 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Execution actualBody = (Execution) valueHolder.getValues().get(0);
     assertNotNull(actualBody);
-    assertEquals(projectData.projectAdminUser, actualBody.getOptionValue("PROJECT_ADMIN"));
-    assertEquals(projectData.projectKey, actualBody.getOptionValue("PROJECT_ID"));
+    assertEquals(projectData.getProjectAdminUser(), actualBody.getOptionValue("PROJECT_ADMIN"));
+    assertEquals(projectData.getProjectKey(), actualBody.getOptionValue("PROJECT_ID"));
     assertEquals(
-        jenkinsPipelineAdapter.bitbucketUri,
+        jenkinsPipelineAdapter.getBitbucketUri(),
         actualBody.getOptionValue(JenkinsPipelineAdapter.OPTION_KEY_GIT_SERVER_URL));
-    assertEquals(jenkinsPipelineAdapter.odsNamespace, actualBody.getOptionValue("ODS_NAMESPACE"));
     assertEquals(
-        jenkinsPipelineAdapter.bitbucketOdsProject,
+        jenkinsPipelineAdapter.getOdsNamespace(), actualBody.getOptionValue("ODS_NAMESPACE"));
+    assertEquals(
+        jenkinsPipelineAdapter.getBitbucketOdsProject(),
         actualBody.getOptionValue("ODS_BITBUCKET_PROJECT"));
-    assertEquals(jenkinsPipelineAdapter.odsImageTag, actualBody.getOptionValue("ODS_IMAGE_TAG"));
-    assertEquals(jenkinsPipelineAdapter.odsGitRef, actualBody.getOptionValue("ODS_GIT_REF"));
+    assertEquals(
+        jenkinsPipelineAdapter.getOdsImageTag(), actualBody.getOptionValue("ODS_IMAGE_TAG"));
+    assertEquals(jenkinsPipelineAdapter.getOdsGitRef(), actualBody.getOptionValue("ODS_GIT_REF"));
 
     String groups = actualBody.getOptionValue("PROJECT_GROUPS");
     assertNotNull(groups);
     assertTrue(groups.contains(defaultEntitlementGroups));
-    assertTrue(groups.contains("ADMINGROUP=" + projectData.projectAdminGroup));
-    assertTrue(groups.contains("USERGROUP=" + projectData.projectUserGroup));
-    assertTrue(groups.contains("READONLYGROUP=" + projectData.projectReadonlyGroup));
+    assertTrue(groups.contains("ADMINGROUP=" + projectData.getProjectAdminGroup()));
+    assertTrue(groups.contains("USERGROUP=" + projectData.getProjectUserGroup()));
+    assertTrue(groups.contains("READONLYGROUP=" + projectData.getProjectReadonlyGroup()));
   }
 
   private CreateProjectResponse buildDummyCreateProjectResponse() {
@@ -416,13 +419,13 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private OpenProjectData generateDefaultOpenProjectData() {
     OpenProjectData result = new OpenProjectData();
-    result.platformCdEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-cd";
-    result.platformDevEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-dev";
-    result.platformTestEnvironmentUrl = "https://192.168.56.101:8443/console/project/key-test";
-    result.platformBuildEngineUrl = "https://jenkins-key-cd.192.168.56.101.nip.io";
-    result.bugtrackerSpace = true;
-    result.platformRuntime = true;
-    result.projectKey = "key";
+    result.setPlatformCdEnvironmentUrl("https://192.168.56.101:8443/console/project/key-cd");
+    result.setPlatformDevEnvironmentUrl("https://192.168.56.101:8443/console/project/key-dev");
+    result.setPlatformTestEnvironmentUrl("https://192.168.56.101:8443/console/project/key-test");
+    result.setPlatformBuildEngineUrl("https://jenkins-key-cd.192.168.56.101.nip.io");
+    result.setBugtrackerSpace(true);
+    result.setPlatformRuntime(true);
+    result.setProjectKey("key");
     return result;
   }
 

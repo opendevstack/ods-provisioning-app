@@ -26,13 +26,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExecutionsData {
-  Integer id;
-  String status;
-  String errorCode;
-  String message;
-  boolean error;
-  String jobName;
-  String permalink;
+  private Integer id;
+  private String status;
+  private String errorCode;
+  private String message;
+  private boolean error;
+  private String jobName;
+  private String permalink;
 
   public Integer getId() {
     return id;

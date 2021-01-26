@@ -17,14 +17,22 @@ package org.opendevstack.provision.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
-/** Model for about changes */
 public class AboutChangesData {
+
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public List<AboutRecordData> aboutDataList;
+  private List<AboutRecordData> aboutDataList;
 
   public static class AboutRecordData {
     public String who;
     public String when;
     public String what;
+  }
+
+  public List<AboutRecordData> getAboutDataList() {
+    return aboutDataList;
+  }
+
+  public void setAboutDataList(List<AboutRecordData> aboutDataList) {
+    this.aboutDataList = aboutDataList;
   }
 }

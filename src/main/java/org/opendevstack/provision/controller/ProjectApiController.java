@@ -78,7 +78,7 @@ public class ProjectApiController {
 
   private static final String EMPTY_PROJECT_DESCRIPTION = "";
 
-  @Autowired IBugtrackerAdapter jiraAdapter;
+  private @Autowired IBugtrackerAdapter jiraAdapter;
 
   @Autowired(required = false)
   private ICollaborationAdapter confluenceAdapter;
@@ -145,27 +145,27 @@ public class ProjectApiController {
       @RequestHeader(value = "Content-Type", required = false) String contentType) {
 
     if (newProject == null
-        || newProject.projectKey == null
-        || newProject.projectKey.trim().length() == 0
-        || newProject.projectName == null
-        || newProject.projectName.trim().length() == 0) {
+        || newProject.getProjectKey() == null
+        || newProject.getProjectKey().trim().length() == 0
+        || newProject.getProjectName() == null
+        || newProject.getProjectName().trim().length() == 0) {
       return ResponseEntity.badRequest()
           .body("Project key and name are mandatory fields to create a project!");
     }
 
-    if (newProject.specialPermissionSet && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
+    if (newProject.isSpecialPermissionSet() && !jiraAdapter.isSpecialPermissionSchemeEnabled()) {
       return ResponseEntity.badRequest()
           .body(
               format(
                   "Project with key %s can not be created with special permission set, "
                       + "since property jira.specialpermissionschema.enabled=false",
-                  newProject.projectKey));
+                  newProject.getProjectKey()));
     }
 
-    newProject.description = ProjectApiController.createShortenedDescription(newProject);
+    newProject.setDescription(ProjectApiController.createShortenedDescription(newProject));
 
-    newProject.projectKey = newProject.projectKey.toUpperCase();
-    MDC.put(STR_LOGFILE_KEY, newProject.projectKey);
+    newProject.setProjectKey(newProject.getProjectKey().toUpperCase());
+    MDC.put(STR_LOGFILE_KEY, newProject.getProjectKey());
 
     try {
       logger.debug(
@@ -173,20 +173,20 @@ public class ProjectApiController {
           new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
 
       // verify the project does NOT exist
-      if (directStorage.getProject(newProject.projectKey) != null
-          || directStorage.getProjectByName(newProject.projectName) != null) {
+      if (directStorage.getProject(newProject.getProjectKey()) != null
+          || directStorage.getProjectByName(newProject.getProjectName()) != null) {
         {
           throw new ProjectAlreadyExistsException(
               format(
                   "Project with key (%s) or name (%s) already exists",
-                  newProject.projectKey, newProject.projectName));
+                  newProject.getProjectKey(), newProject.getProjectName()));
         }
       }
 
       List<CheckPreconditionFailure> preconditionsFailures = new ArrayList<>();
 
       // TODO: move this block to check preconditions in projectIdentityMgmtAdapter
-      if (newProject.specialPermissionSet) {
+      if (newProject.isSpecialPermissionSet()) {
         if (!jiraAdapter.isSpecialPermissionSchemeEnabled()) {
           logger.info(
               "Do not validate special bugtracker permission set, "
@@ -223,22 +223,23 @@ public class ProjectApiController {
       }
 
       // init webhook secret
-      newProject.webhookProxySecret = UUID.randomUUID().toString();
+      newProject.setWebhookProxySecret(UUID.randomUUID().toString());
 
-      if (newProject.bugtrackerSpace) {
+      if (newProject.isBugtrackerSpace()) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
 
         Preconditions.checkNotNull(
-            newProject.bugtrackerUrl, jiraAdapter.getClass() + " did not return bugTracker url");
+            newProject.getBugtrackerUrl(),
+            jiraAdapter.getClass() + " did not return bugTracker url");
 
         // create confluence space
         if (isConfluenceAdapterEnable()) {
-          newProject.collaborationSpaceUrl =
-              confluenceAdapter.createCollaborationSpaceForODSProject(newProject);
+          newProject.setCollaborationSpaceUrl(
+              confluenceAdapter.createCollaborationSpaceForODSProject(newProject));
 
           Preconditions.checkNotNull(
-              newProject.collaborationSpaceUrl,
+              newProject.getCollaborationSpaceUrl(),
               confluenceAdapter.getClass() + " did not return collabSpace url");
         }
 
@@ -256,7 +257,7 @@ public class ProjectApiController {
       // store the project data
       String filePath = directStorage.storeProject(newProject);
       if (filePath != null) {
-        logger.debug("Project {} successfully stored: {}", newProject.projectKey, filePath);
+        logger.debug("Project {} successfully stored: {}", newProject.getProjectKey(), filePath);
       }
 
       // notify user via mail of project creation with embedding links
@@ -279,11 +280,11 @@ public class ProjectApiController {
               ? format(
                   "An error occured while creating project [%s], reason [%s]"
                       + " - but all cleaned up!",
-                  newProject.projectKey, exProvisionNew.getMessage())
+                  newProject.getProjectKey(), exProvisionNew.getMessage())
               : format(
                   "An error occured while creating project [%s], reason [%s]"
                       + " - cleanup attempted, but [%s] components are still there!",
-                  newProject.projectKey, exProvisionNew.getMessage(), cleanupResults);
+                  newProject.getProjectKey(), exProvisionNew.getMessage(), cleanupResults);
 
       logger.error(error, exProvisionNew);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -324,7 +325,7 @@ public class ProjectApiController {
 
     final List<CheckPreconditionFailure> results = new ArrayList<>();
 
-    if (newProject.bugtrackerSpace) {
+    if (newProject.isBugtrackerSpace()) {
 
       List<IServiceAdapter> adapters = new ArrayList<>();
       adapters.add(jiraAdapter);
@@ -338,7 +339,7 @@ public class ProjectApiController {
       }
     }
 
-    if (newProject.platformRuntime) {
+    if (newProject.isPlatformRuntime()) {
       results.addAll(bitbucketAdapter.checkCreateProjectPreconditions(newProject));
 
       if (isOpenshiftServiceEnable() && null != openshiftService) {
@@ -349,7 +350,7 @@ public class ProjectApiController {
     if (results.isEmpty()) {
       logger.info(
           "Done with all create project preconditions checks for project [project={}]!",
-          newProject.projectKey);
+          newProject.getProjectKey());
     } else {
       logger.info(
           "Done with all create project preconditions checks for project but some checks failed! [project={}, failures={}]!",
@@ -374,12 +375,12 @@ public class ProjectApiController {
   @RequestMapping(method = RequestMethod.PUT)
   public ResponseEntity<Object> updateProject(@RequestBody OpenProjectData updatedProject) {
 
-    if (updatedProject == null || updatedProject.projectKey.trim().length() == 0) {
+    if (updatedProject == null || updatedProject.getProjectKey().trim().length() == 0) {
       return ResponseEntity.badRequest().body("Project key is mandatory to call update project!");
     }
-    MDC.put(STR_LOGFILE_KEY, updatedProject.projectKey);
+    MDC.put(STR_LOGFILE_KEY, updatedProject.getProjectKey());
 
-    logger.debug("Update project {}", updatedProject.projectKey);
+    logger.debug("Update project {}", updatedProject.getProjectKey());
     try {
       logger.debug(
           "Project: {}",
@@ -388,48 +389,52 @@ public class ProjectApiController {
               .withDefaultPrettyPrinter()
               .writeValueAsString(updatedProject));
 
-      OpenProjectData storedExistingProject = directStorage.getProject(updatedProject.projectKey);
+      OpenProjectData storedExistingProject =
+          directStorage.getProject(updatedProject.getProjectKey());
 
       if (storedExistingProject == null) {
         return ResponseEntity.notFound().build();
       }
 
       // in case only quickstarters are passed - we are setting the upgrade flag
-      if (updatedProject.quickstarters != null && updatedProject.quickstarters.size() > 0) {
-        updatedProject.platformRuntime = true;
+      if (updatedProject.getQuickstarters() != null
+          && updatedProject.getQuickstarters().size() > 0) {
+        updatedProject.setPlatformRuntime(true);
       }
 
       validateQuickstarters(
           updatedProject, OpenProjectDataValidator.API_COMPONENT_ID_VALIDATOR_LIST);
 
       // add the baseline, to return a full project later
-      updatedProject.description = storedExistingProject.description;
-      updatedProject.projectName = storedExistingProject.projectName;
-      updatedProject.webhookProxySecret = storedExistingProject.webhookProxySecret;
+      updatedProject.setDescription(storedExistingProject.getDescription());
+      updatedProject.setProjectName(storedExistingProject.getProjectName());
+      updatedProject.setWebhookProxySecret(storedExistingProject.getWebhookProxySecret());
 
       // add the scm url & bugtracker space bool
-      updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
-      updatedProject.bugtrackerSpace = storedExistingProject.bugtrackerSpace;
+      updatedProject.setScmvcsUrl(storedExistingProject.getScmvcsUrl());
+      updatedProject.setBugtrackerSpace(storedExistingProject.isBugtrackerSpace());
       // we purposely allow overwriting platformRuntime settings, to create a project later
       // on
-      if (!storedExistingProject.platformRuntime
-          && updatedProject.platformRuntime
+      if (!storedExistingProject.isPlatformRuntime()
+          && updatedProject.isPlatformRuntime()
           && !ocUpgradeAllowed) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(
-                "Project: " + updatedProject.projectKey + " cannot be upgraded to openshift usage");
-      } else if (storedExistingProject.platformRuntime) {
+                "Project: "
+                    + updatedProject.getProjectKey()
+                    + " cannot be upgraded to openshift usage");
+      } else if (storedExistingProject.isPlatformRuntime()) {
         // we need to set this, otherwise the provisioning later will not work
-        updatedProject.platformRuntime = storedExistingProject.platformRuntime;
+        updatedProject.setPlatformRuntime(storedExistingProject.isPlatformRuntime());
       }
 
       // add (hard) permission data
-      if (storedExistingProject.specialPermissionSet) {
-        updatedProject.specialPermissionSet = storedExistingProject.specialPermissionSet;
-        updatedProject.projectAdminUser = storedExistingProject.projectAdminUser;
-        updatedProject.projectAdminGroup = storedExistingProject.projectAdminGroup;
-        updatedProject.projectUserGroup = storedExistingProject.projectUserGroup;
-        updatedProject.projectReadonlyGroup = storedExistingProject.projectReadonlyGroup;
+      if (storedExistingProject.isSpecialPermissionSet()) {
+        updatedProject.setSpecialPermissionSet(storedExistingProject.isSpecialPermissionSet());
+        updatedProject.setProjectAdminUser(storedExistingProject.getProjectAdminUser());
+        updatedProject.setProjectAdminGroup(storedExistingProject.getProjectAdminGroup());
+        updatedProject.setProjectUserGroup(storedExistingProject.getProjectUserGroup());
+        updatedProject.setProjectReadonlyGroup(storedExistingProject.getProjectReadonlyGroup());
       }
 
       updatedProject = createDeliveryChain(updatedProject);
@@ -438,27 +443,28 @@ public class ProjectApiController {
        * add the already existing data /provisioned/ + we have to add the scm url here, in case we
        * have upgraded a bugtracker only project to a platform project
        */
-      storedExistingProject.scmvcsUrl = updatedProject.scmvcsUrl;
-      if (updatedProject.quickstarters != null) {
-        if (storedExistingProject.quickstarters != null) {
-          storedExistingProject.quickstarters.addAll(updatedProject.quickstarters);
+      storedExistingProject.setScmvcsUrl(updatedProject.getScmvcsUrl());
+      if (updatedProject.getQuickstarters() != null) {
+        if (storedExistingProject.getQuickstarters() != null) {
+          storedExistingProject.getQuickstarters().addAll(updatedProject.getQuickstarters());
         } else {
-          storedExistingProject.quickstarters = updatedProject.quickstarters;
+          storedExistingProject.setQuickstarters(updatedProject.getQuickstarters());
         }
       }
 
-      if (storedExistingProject.repositories != null && updatedProject.repositories != null) {
-        storedExistingProject.repositories.putAll(updatedProject.repositories);
-      } else if (updatedProject.repositories != null) {
-        storedExistingProject.repositories = storedExistingProject.repositories;
+      if (storedExistingProject.getRepositories() != null
+          && updatedProject.getRepositories() != null) {
+        storedExistingProject.getRepositories().putAll(updatedProject.getRepositories());
+      } else if (updatedProject.getRepositories() != null) {
+        storedExistingProject.setRepositories(storedExistingProject.getRepositories());
       }
 
       // add the new executions - so people can track what's going on
-      storedExistingProject.lastExecutionJobs = updatedProject.lastExecutionJobs;
+      storedExistingProject.setLastExecutionJobs(updatedProject.getLastExecutionJobs());
 
       // store the updated project
       if (directStorage.updateStoredProject(storedExistingProject)) {
-        logger.debug("project {} successfully updated", updatedProject.projectKey);
+        logger.debug("project {} successfully updated", updatedProject.getProjectKey());
       }
 
       // notify user via mail of project updates with embedding links
@@ -478,11 +484,11 @@ public class ProjectApiController {
               ? format(
                   "An error occured while updating project %s, reason %s"
                       + " - but all cleaned up!",
-                  updatedProject.projectKey, exProvision.getMessage())
+                  updatedProject.getProjectKey(), exProvision.getMessage())
               : format(
                   "An error occured while updating project %s, reason %s"
                       + " - cleanup attempted, but [%s] components are still there!",
-                  updatedProject.projectKey, exProvision.getMessage(), cleanupResults);
+                  updatedProject.getProjectKey(), exProvision.getMessage(), cleanupResults);
 
       logger.error(error);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -507,8 +513,8 @@ public class ProjectApiController {
   }
 
   /**
-   * Create the delivery chain within the platform in case {@link OpenProjectData#platformRuntime}
-   * is set to true
+   * Create the delivery chain within the platform in case {@link
+   * OpenProjectData#getPlatformRuntime} is set to true
    *
    * @param project the meta information from the API
    * @return the generated, amended Project
@@ -518,43 +524,46 @@ public class ProjectApiController {
   private OpenProjectData createDeliveryChain(OpenProjectData project) throws IOException {
     logger.debug(
         "Create delivery chain for: {}, platform? {}, create scm: {}",
-        project.projectKey,
-        project.platformRuntime,
-        (project.scmvcsUrl == null ? true : false));
+        project.getProjectKey(),
+        project.isPlatformRuntime(),
+        (project.getScmvcsUrl() == null ? true : false));
 
-    if (!project.platformRuntime) {
+    if (!project.isPlatformRuntime()) {
       return project;
     }
 
     // create auxilaries - for design and for the ocp artifacts
     String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
 
-    if (project.scmvcsUrl == null) {
+    if (project.getScmvcsUrl() == null) {
       // create the bugtracker project
-      project.scmvcsUrl = bitbucketAdapter.createSCMProjectForODSProject(project);
+      project.setScmvcsUrl(bitbucketAdapter.createSCMProjectForODSProject(project));
 
       Preconditions.checkNotNull(
-          project.scmvcsUrl, bitbucketAdapter.getClass() + " did not return scmvcs url");
+          project.getScmvcsUrl(), bitbucketAdapter.getClass() + " did not return scmvcs url");
 
-      project.repositories =
-          bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(project, auxiliaryRepositories);
+      project.setRepositories(
+          bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(
+              project, auxiliaryRepositories));
 
       // provision platform projects
       project = jenkinsPipelineAdapter.createPlatformProjects(project);
     }
 
-    int newQuickstarters = (project.quickstarters == null ? 0 : project.quickstarters.size());
+    int newQuickstarters =
+        (project.getQuickstarters() == null ? 0 : project.getQuickstarters().size());
 
-    int existingComponentRepos = (project.repositories == null ? 0 : project.repositories.size());
+    int existingComponentRepos =
+        (project.getRepositories() == null ? 0 : project.getRepositories().size());
 
     // create repositories dependent of the chosen quickstarters
     Map<String, Map<URL_TYPE, String>> newComponentRepos =
         bitbucketAdapter.createComponentRepositoriesForODSProject(project);
     if (newComponentRepos != null) {
-      if (project.repositories != null) {
-        project.repositories.putAll(newComponentRepos);
+      if (project.getRepositories() != null) {
+        project.getRepositories().putAll(newComponentRepos);
       } else {
-        project.repositories = newComponentRepos;
+        project.setRepositories(newComponentRepos);
       }
     }
 
@@ -562,10 +571,10 @@ public class ProjectApiController {
         "New quickstarters {}, prior existing repos: {}, now project repos: {}",
         newQuickstarters,
         existingComponentRepos,
-        project.repositories.size());
+        project.getRepositories().size());
 
     Preconditions.checkState(
-        project.repositories.size() == existingComponentRepos + newQuickstarters,
+        project.getRepositories().size() == existingComponentRepos + newQuickstarters,
         format(
             "Class: %s did not create %s new repositories "
                 + "for new quickstarters, existing repos: %s",
@@ -576,7 +585,7 @@ public class ProjectApiController {
     addRepositoryUrlsToQuickstarters(project);
 
     List<String> auxiliariesToExclude = new ArrayList<>();
-    final String projectKey = project.projectKey;
+    final String projectKey = project.getProjectKey();
     Arrays.asList(auxiliaryRepositories)
         .forEach(
             repoName ->
@@ -584,26 +593,27 @@ public class ProjectApiController {
                     bitbucketAdapter.createRepoNameFromComponentName(projectKey, repoName)));
 
     // create jira components from newly created repos
-    if (project.bugtrackerSpace) {
+    if (project.isBugtrackerSpace()) {
       jiraAdapter.createComponentsForProjectRepositories(project, auxiliariesToExclude);
     } else {
       logger.info(
           "Do not create bugtracker components for {}, since it has no bugtragger space configured!",
-          project.projectKey);
+          project.getProjectKey());
     }
 
     // add the long running execution links from the
     // IJobExecutionAdapter, so the consumer can track them
-    if (project.lastExecutionJobs == null) {
-      project.lastExecutionJobs = new ArrayList<>();
+    if (project.getLastExecutionJobs() == null) {
+      project.setLastExecutionJobs(new ArrayList<>());
     }
     List<ExecutionsData> jobs =
         jenkinsPipelineAdapter.provisionComponentsBasedOnQuickstarters(project);
     logger.debug("New quickstarter job executions: {}", jobs.size());
 
     for (ExecutionsData singleJob : jobs) {
-      project.lastExecutionJobs.add(
-          new ExecutionJob(singleJob.getJobName(), singleJob.getPermalink()));
+      project
+          .getLastExecutionJobs()
+          .add(new ExecutionJob(singleJob.getJobName(), singleJob.getPermalink()));
     }
 
     return project;
@@ -611,7 +621,8 @@ public class ProjectApiController {
 
   /**
    * Get a list with all projects in the ODS prov system. In this case the quickstarters {@link
-   * OpenProjectData#quickstarters} contain also the description of the quickstarter that was used
+   * OpenProjectData#getQuickstarters} contain also the description of the quickstarter that was
+   * used
    */
   @PreAuthorizeAllRoles
   @GetMapping
@@ -635,7 +646,7 @@ public class ProjectApiController {
 
   /**
    * Get a list with all projects in the ODS prov system defined by their key. In this case the
-   * quickstarters {@link OpenProjectData#quickstarters} contain also the description of the
+   * quickstarters {@link OpenProjectData#getQuickstarters} contain also the description of the
    * quickstarter that was used
    *
    * @param id the project's key
@@ -650,10 +661,10 @@ public class ProjectApiController {
       return ResponseEntity.notFound().build();
     }
 
-    if (project.quickstarters != null) {
+    if (project.getQuickstarters() != null) {
       List<Map<String, String>> enhancedStarters = new ArrayList<>();
 
-      for (Map<String, String> quickstarters : project.quickstarters) {
+      for (Map<String, String> quickstarters : project.getQuickstarters()) {
         String componentType = quickstarters.get(OpenProjectData.COMPONENT_TYPE_KEY);
 
         String componentDescription =
@@ -664,7 +675,7 @@ public class ProjectApiController {
         quickstarters.put(OpenProjectData.COMPONENT_DESC_KEY, componentDescription);
         enhancedStarters.add(quickstarters);
       }
-      project.quickstarters = enhancedStarters;
+      project.setQuickstarters(enhancedStarters);
     }
     return ResponseEntity.ok(project);
   }
@@ -689,7 +700,7 @@ public class ProjectApiController {
 
   /**
    * Get all available (project) template keys, which can be used later in {@link
-   * OpenProjectData#projectType}
+   * OpenProjectData#getProjectType}
    *
    * @return a list of available template keys
    */
@@ -738,7 +749,7 @@ public class ProjectApiController {
    * Retrieve the underlying templates from {@link IBugtrackerAdapter} and {@link
    * ICollaborationAdapter}
    *
-   * @param key the project type as in {@link OpenProjectData#projectKey}
+   * @param key the project type as in {@link OpenProjectData#getProjectKey}
    * @return a map with the templates (which are implementation specific)
    */
   @PreAuthorizeAllRoles
@@ -751,7 +762,7 @@ public class ProjectApiController {
     Preconditions.checkNotNull(key, "Null template key is not allowed");
 
     OpenProjectData project = new OpenProjectData();
-    project.projectType = key;
+    project.setProjectType(key);
 
     Map<PROJECT_TEMPLATE, String> templates =
         jiraAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(project);
@@ -812,19 +823,21 @@ public class ProjectApiController {
    */
   public static String createShortenedDescription(OpenProjectData project) {
     Assert.notNull(project, "Parameter project is null!");
-    if (project != null && project.description != null && project.description.length() > 100) {
-      return project.description.substring(0, 99);
+    if (project != null
+        && project.getDescription() != null
+        && project.getDescription().length() > 100) {
+      return project.getDescription().substring(0, 99);
     }
-    return project.description;
+    return project.getDescription();
   }
 
   private void addRepositoryUrlsToQuickstarters(OpenProjectData project) {
-    if (project.quickstarters == null || project.repositories == null) {
-      logger.debug("Repository Url mgmt - nothing to do on project {}", project.projectKey);
+    if (project.getQuickstarters() == null || project.getRepositories() == null) {
+      logger.debug("Repository Url mgmt - nothing to do on project {}", project.getProjectKey());
       return;
     }
 
-    for (Map<String, String> option : project.quickstarters) {
+    for (Map<String, String> option : project.getQuickstarters()) {
       logger.debug("options: " + option);
 
       String projectComponentKey = option.get(OpenProjectData.COMPONENT_ID_KEY);
@@ -832,11 +845,13 @@ public class ProjectApiController {
       // recreate the repo name that the scmadapter (hopefully)
       // also used
       String repoName =
-          bitbucketAdapter.createRepoNameFromComponentName(project.projectKey, projectComponentKey);
+          bitbucketAdapter.createRepoNameFromComponentName(
+              project.getProjectKey(), projectComponentKey);
 
-      logger.debug(format("Trying to find repo %s in %s", repoName, project.repositories.keySet()));
+      logger.debug(
+          format("Trying to find repo %s in %s", repoName, project.getRepositories().keySet()));
 
-      Map<URL_TYPE, String> repoUrls = project.repositories.get(repoName);
+      Map<URL_TYPE, String> repoUrls = project.getRepositories().get(repoName);
 
       if (repoUrls == null) {
         return;
@@ -867,7 +882,7 @@ public class ProjectApiController {
       String error =
           format(
               "Could not delete all components of project %s - leftovers %s",
-              project.projectKey, leftovers);
+              project.getProjectKey(), leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       return ResponseEntity.ok().build();
@@ -884,17 +899,17 @@ public class ProjectApiController {
 
     Preconditions.checkNotNull(deletableComponents, "Cannot delete null components");
     Preconditions.checkNotNull(
-        deletableComponents.quickstarters, "No quickstarters to delete are passed");
+        deletableComponents.getQuickstarters(), "No quickstarters to delete are passed");
 
     OpenProjectData project =
-        filteredStorage.getFilteredSingleProject(deletableComponents.projectKey);
+        filteredStorage.getFilteredSingleProject(deletableComponents.getProjectKey());
 
     if (project == null) {
       return ResponseEntity.notFound().build();
     }
 
     // Quick fix to pass the webhook proxy secret from project
-    deletableComponents.webhookProxySecret = project.webhookProxySecret;
+    deletableComponents.setWebhookProxySecret(project.getWebhookProxySecret());
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, deletableComponents);
@@ -903,7 +918,7 @@ public class ProjectApiController {
       String error =
           format(
               "Could not delete all components of project " + " %s - leftovers %s",
-              project.projectKey, leftovers);
+              project.getProjectKey(), leftovers);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       project.removeQuickstartersFromProject(deletableComponents.getQuickstarters());
@@ -925,7 +940,7 @@ public class ProjectApiController {
       return new HashMap<>();
     }
 
-    logger.error("Starting cleanup of project {} in phase {}", project.projectKey, stage);
+    logger.error("Starting cleanup of project {} in phase {}", project.getProjectKey(), stage);
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> notCleanedUpComponents = new HashMap<>();
 

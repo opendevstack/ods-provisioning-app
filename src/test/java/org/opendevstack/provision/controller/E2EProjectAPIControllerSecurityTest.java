@@ -97,9 +97,9 @@ public class E2EProjectAPIControllerSecurityTest {
   public BiFunction<String, String, HttpStatus> createGetProjectRequest() {
     return (username, credential) -> {
       OpenProjectData project = new OpenProjectData();
-      project.projectKey = "testproject";
+      project.setProjectKey("testproject");
       Map<String, OpenProjectData> projects = new HashMap<>();
-      projects.put(project.projectKey, project);
+      projects.put(project.getProjectKey(), project);
       when(storageAdapter.getProjects()).thenReturn(projects);
 
       var entity = template.withBasicAuth(username, credential).getForEntity(projectAPI, Map.class);

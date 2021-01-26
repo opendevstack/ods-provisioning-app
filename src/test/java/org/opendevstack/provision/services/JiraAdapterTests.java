@@ -134,8 +134,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     String crowdCookieValue = "xyz";
 
     OpenProjectData project = getTestProject(name);
-    project.projectType = "default";
-    project.webhookProxySecret = UUID.randomUUID().toString();
+    project.setProjectType("default");
+    project.setWebhookProxySecret(UUID.randomUUID().toString());
 
     CrowdUserDetails details = mock(CrowdUserDetails.class);
     Authentication authentication = mock(Authentication.class);
@@ -165,26 +165,29 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     OpenProjectData createdProject = spyAdapter.createBugtrackerProjectForODSProject(project);
 
-    assertEquals(getTestProject(name).projectKey, createdProject.projectKey);
-    assertEquals(getTestProject(name).projectName, createdProject.projectName);
+    assertEquals(getTestProject(name).getProjectKey(), createdProject.getProjectKey());
+    assertEquals(getTestProject(name).getProjectName(), createdProject.getProjectName());
     // default template
-    assertEquals(defaultProjectKey, createdProject.projectType);
+    assertEquals(defaultProjectKey, createdProject.getProjectType());
 
     // new template
     OpenProjectData templateProject = getTestProject(name);
-    templateProject.projectType = "newTemplate";
+    templateProject.setProjectType("newTemplate");
 
     projectTemplateKeyNames.add("newTemplate");
 
     OpenProjectData createdProjectWithNewTemplate =
         spyAdapter.createBugtrackerProjectForODSProject(templateProject);
 
-    assertEquals(templateProject.projectKey, createdProjectWithNewTemplate.projectKey);
-    assertEquals(templateProject.projectName, createdProjectWithNewTemplate.projectName);
-    assertEquals("newTemplate", createdProjectWithNewTemplate.projectType);
+    assertEquals(templateProject.getProjectKey(), createdProjectWithNewTemplate.getProjectKey());
+    assertEquals(templateProject.getProjectName(), createdProjectWithNewTemplate.getProjectName());
+    assertEquals("newTemplate", createdProjectWithNewTemplate.getProjectType());
     verify(webhookProxyJiraPropertyUpdater, times(1))
         .addWebhookProxyProperty(
-            spyAdapter, project.projectKey, project.projectType, project.webhookProxySecret);
+            spyAdapter,
+            project.getProjectKey(),
+            project.getProjectType(),
+            project.getWebhookProxySecret());
 
     HttpException thrownEx = null;
     try {
@@ -231,7 +234,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   public void callJiraCreateProjectApi() throws IOException {
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
     LeanJiraProject expectedProject = new LeanJiraProject();
-    expectedProject.key = "1";
+    expectedProject.setKey("1");
 
     FullJiraProject inputProject = new FullJiraProject();
 
@@ -249,10 +252,10 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   @Test
   public void buildJiraProjectPojoFromApiProject() throws Exception {
     OpenProjectData apiInput = getTestProject("TestProject");
-    apiInput.projectKey = "TestP";
+    apiInput.setProjectKey("TestP");
 
     // default or null template
-    apiInput.projectType = null;
+    apiInput.setProjectType(null);
     when(jiraProjectTypePropertyCalculator
             .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
                 apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey))
@@ -265,14 +268,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     FullJiraProject fullJiraProject =
         fullJiraProjectFactory.buildJiraProjectPojoFromApiProject(apiInput);
 
-    assertEquals(apiInput.projectName, fullJiraProject.getName());
-    assertEquals(apiInput.projectKey, fullJiraProject.getKey());
-    assertEquals(jiraTemplateKey, fullJiraProject.projectTemplateKey);
-    assertEquals(jiraTemplateType, fullJiraProject.projectTypeKey);
-    assertEquals(apiInput.projectType, defaultProjectKey);
+    assertEquals(apiInput.getProjectName(), fullJiraProject.getName());
+    assertEquals(apiInput.getProjectKey(), fullJiraProject.getKey());
+    assertEquals(jiraTemplateKey, fullJiraProject.getProjectTemplateKey());
+    assertEquals(jiraTemplateType, fullJiraProject.getProjectTypeKey());
+    assertEquals(apiInput.getProjectType(), defaultProjectKey);
 
     // not default template
-    apiInput.projectType = "not-default";
+    apiInput.setProjectType("not-default");
     String notDefaultTemplateKey = "projectTypeNotDefaultTemplateKey";
     String notDefaultTemplateType = "projectTypeNotDefaultTemplateType";
     when(jiraProjectTypePropertyCalculator
@@ -284,11 +287,11 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 apiInput.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType))
         .thenReturn(notDefaultTemplateType);
 
-    assertEquals(apiInput.projectName, fullJiraProject.getName());
-    assertEquals(apiInput.projectKey, fullJiraProject.getKey());
-    assertEquals(jiraTemplateKey, fullJiraProject.projectTemplateKey);
-    assertEquals(jiraTemplateType, fullJiraProject.projectTypeKey);
-    assertNotEquals(apiInput.projectType, defaultProjectKey);
+    assertEquals(apiInput.getProjectName(), fullJiraProject.getName());
+    assertEquals(apiInput.getProjectKey(), fullJiraProject.getKey());
+    assertEquals(jiraTemplateKey, fullJiraProject.getProjectTemplateKey());
+    assertEquals(jiraTemplateType, fullJiraProject.getProjectTypeKey());
+    assertNotEquals(apiInput.getProjectType(), defaultProjectKey);
   }
 
   @Test
@@ -303,12 +306,12 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     String projectNameTrue = "TESTP";
     OpenProjectData apiInput = getTestProject(projectNameTrue);
-    apiInput.projectKey = projectNameTrue;
+    apiInput.setProjectKey(projectNameTrue);
 
-    apiInput.projectAdminUser = "Clemens";
-    apiInput.projectAdminGroup = "AdminGroup";
-    apiInput.projectUserGroup = "UserGroup";
-    apiInput.projectReadonlyGroup = "ReadonlyGroup";
+    apiInput.setProjectAdminUser("Clemens");
+    apiInput.setProjectAdminGroup("AdminGroup");
+    apiInput.setProjectUserGroup("UserGroup");
+    apiInput.setProjectReadonlyGroup("ReadonlyGroup");
 
     PermissionScheme scheme = new PermissionScheme();
     scheme.setId("permScheme1");
@@ -349,7 +352,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
   @Test
   public void testCreateShortcutsWhenBugtrackerDeactivated() throws Exception {
     OpenProjectData apiInput = getTestProject("testproject");
-    apiInput.bugtrackerSpace = false;
+    apiInput.setBugtrackerSpace(false);
 
     int shortcutsAdded = jiraAdapter.addShortcutsToProject(apiInput);
     assertEquals(-1, shortcutsAdded);
@@ -359,10 +362,10 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
   public static OpenProjectData getTestProject(String name) {
     OpenProjectData apiInput = new OpenProjectData();
-    apiInput.projectName = name;
-    apiInput.description = "Test Description";
-    apiInput.projectKey = "TESTP";
-    apiInput.projectAdminUser = "Clemens";
+    apiInput.setProjectName(name);
+    apiInput.setDescription("Test Description");
+    apiInput.setProjectKey("TESTP");
+    apiInput.setProjectAdminUser("Clemens");
     return apiInput;
   }
 
@@ -388,12 +391,12 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     JiraAdapter mocked = Mockito.spy(jiraAdapter);
     OpenProjectData apiInput = getTestProject("ai00000001");
-    apiInput.projectKey = "ai00000001";
+    apiInput.setProjectKey("ai00000001");
 
     Map<String, Map<URL_TYPE, String>> openDataRepo = new HashMap<>();
 
     openDataRepo.put(legacyRepoData.getName(), legacyRepoData.convertRepoToOpenDataProjectRepo());
-    apiInput.repositories = openDataRepo;
+    apiInput.setRepositories(openDataRepo);
 
     Map<String, String> created =
         mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
@@ -414,8 +417,8 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     // test with uppercase projects
     apiInput = getTestProject("Ai00000001");
-    apiInput.projectKey = "Ai00000001";
-    apiInput.repositories = openDataRepo;
+    apiInput.setProjectKey("Ai00000001");
+    apiInput.setRepositories(openDataRepo);
 
     created = mocked.createComponentsForProjectRepositories(apiInput, new ArrayList<>());
     assertEquals(1, created.size());
@@ -450,14 +453,14 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
       throws IOException {
 
     jiraAdapter.setRestClient(restClient);
-    jiraAdapter.useTechnicalUser = true;
-    jiraAdapter.userName = TEST_USER_NAME;
-    jiraAdapter.userPassword = TEST_USER_PASSWORD;
+    jiraAdapter.setUseTechnicalUser(true);
+    jiraAdapter.setUserName(TEST_USER_NAME);
+    jiraAdapter.setUserPassword(TEST_USER_PASSWORD);
 
     JiraAdapter spyAdapter = Mockito.spy(jiraAdapter);
 
     OpenProjectData project = new OpenProjectData();
-    project.projectKey = "PKEY";
+    project.setProjectKey("PKEY");
 
     IOException ioException = new IOException("throw in unit test");
 
@@ -470,7 +473,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
       assertTrue(e.getMessage().contains(JiraAdapter.ADAPTER_NAME));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
@@ -482,7 +485,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getMessage().contains("Unexpected error"));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
   }
 

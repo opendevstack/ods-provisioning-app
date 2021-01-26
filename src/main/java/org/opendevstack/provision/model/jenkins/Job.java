@@ -22,14 +22,14 @@ import org.opendevstack.provision.config.Quickstarter;
 @Generated(value = {"JSON-to-Pojo-Generator"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Job {
-  public String id;
-  public boolean enabled;
-  public String name;
-  public String description;
 
-  public String gitRepoName;
-  public String jenkinsfilePath;
-  public String branch;
+  private String id;
+  private boolean enabled;
+  private String name;
+  private String description;
+  private String gitRepoName;
+  private String jenkinsfilePath;
+  private String branch;
 
   public Job() {}
 
@@ -121,6 +121,18 @@ public class Job {
 
   public String getBranch() {
     return branch;
+  }
+
+  public void setGitRepoName(String gitRepoName) {
+    this.gitRepoName = gitRepoName;
+  }
+
+  public void setJenkinsfilePath(String jenkinsfilePath) {
+    this.jenkinsfilePath = jenkinsfilePath;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
   }
 
   @Override
