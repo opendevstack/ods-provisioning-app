@@ -155,7 +155,7 @@ public class E2EProjectAPIControllerTest {
     mockHelper = new RestClientMockHelper(restClient);
 
     // disable mail magic
-    realMailAdapter.isMailEnabled = false;
+    realMailAdapter.setMailEnabled(false);
 
     // override configuration in application.properties, some tests depends on cleanupAllowed
     apiController.setCleanupAllowed(true);
@@ -217,7 +217,7 @@ public class E2EProjectAPIControllerTest {
     // read the request
     OpenProjectData data = readTestData("ods-create-project-request", OpenProjectData.class);
 
-    data.specialPermissionSet = specialPermissionSet;
+    data.setSpecialPermissionSet(specialPermissionSet);
 
     // jira server get project response - 404, project does not exists
     mockHelper
@@ -240,8 +240,8 @@ public class E2EProjectAPIControllerTest {
 
     // jira server pre conditions
     String getUserResponse = fileReader.readFileContent("jira-get-user-template");
-    if (data.specialPermissionSet && data.projectAdminUser != null) {
-      getUserResponse = getUserResponse.replace("<%USERNAME%>", data.projectAdminUser);
+    if (data.isSpecialPermissionSet() && data.getProjectAdminUser() != null) {
+      getUserResponse = getUserResponse.replace("<%USERNAME%>", data.getProjectAdminUser());
     } else {
       getUserResponse = getUserResponse.replace("<%USERNAME%>", TEST_ADMIN_USERNAME);
     }
@@ -267,7 +267,7 @@ public class E2EProjectAPIControllerTest {
 
     String getGroup = fileReader.readFileContent("jira-get-group-template");
     HashSet<String> groups = new HashSet<>();
-    if (data.specialPermissionSet && data.projectAdminUser != null) {
+    if (data.isSpecialPermissionSet() && data.getProjectAdminUser() != null) {
       groups.addAll(data.specialPermissionSetGroups());
     }
 
@@ -335,7 +335,7 @@ public class E2EProjectAPIControllerTest {
 
     String confluenceUserTemplate = fileReader.readFileContent("confluence-get-user-template");
     HashSet<String> confluenceUsers = new HashSet<>();
-    confluenceUsers.add(data.projectAdminUser);
+    confluenceUsers.add(data.getProjectAdminUser());
     confluenceUsers.add(TEST_ADMIN_USERNAME);
     confluenceUsers.forEach(
         username -> {
@@ -358,9 +358,9 @@ public class E2EProjectAPIControllerTest {
 
     String confluenceGroupTemplate = fileReader.readFileContent("confluence-get-group-template");
     HashSet<String> confluenceGroups = new HashSet<>();
-    confluenceGroups.add(data.projectAdminGroup);
-    confluenceGroups.add(data.projectReadonlyGroup);
-    confluenceGroups.add(data.projectUserGroup);
+    confluenceGroups.add(data.getProjectAdminGroup());
+    confluenceGroups.add(data.getProjectReadonlyGroup());
+    confluenceGroups.add(data.getProjectUserGroup());
     confluenceGroups.add(adminGroup);
     confluenceGroups.add(userGroup);
 
@@ -528,7 +528,7 @@ public class E2EProjectAPIControllerTest {
                         createJenkinsJobPath(
                             "ods",
                             "create-projects/Jenkinsfile",
-                            "ods-corejob-" + data.projectKey.toLowerCase())))
+                            "ods-corejob-" + data.getProjectKey().toLowerCase())))
                 .bodyMatches(instanceOf(Execution.class))
                 .method(HttpMethod.POST));
     if (fail) {
@@ -618,7 +618,7 @@ public class E2EProjectAPIControllerTest {
     MvcResult resultProjectGetResponse =
         mockMvc
             .perform(
-                get("/api/v2/project/" + data.projectKey)
+                get("/api/v2/project/" + data.getProjectKey())
                     .accept(MediaType.APPLICATION_JSON)
                     .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL)))
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -636,12 +636,12 @@ public class E2EProjectAPIControllerTest {
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
     // verify the execution
-    assertEquals(1, resultProject.lastExecutionJobs.size());
-    ExecutionJob actualJob = resultProject.lastExecutionJobs.iterator().next();
+    assertEquals(1, resultProject.getLastExecutionJobs().size());
+    ExecutionJob actualJob = resultProject.getLastExecutionJobs().iterator().next();
     assertActualJobMatchesInputParams(actualJob, configuredResponse);
 
     // verify 2 repos are created
-    assertEquals(2, resultProject.repositories.size(), "Repository created");
+    assertEquals(2, resultProject.getRepositories().size(), "Repository created");
   }
 
   private void assertActualJobMatchesInputParams(
@@ -681,20 +681,20 @@ public class E2EProjectAPIControllerTest {
         testQuickstarterProvisionOnNewOpenProject(false);
 
     assertNotNull(createdProjectIncludingQuickstarters);
-    assertNotNull(createdProjectIncludingQuickstarters.projectKey);
-    assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
-    assertEquals(1, createdProjectIncludingQuickstarters.quickstarters.size());
+    assertNotNull(createdProjectIncludingQuickstarters.getProjectKey());
+    assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
+    assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
     OpenProjectData toClean = new OpenProjectData();
-    toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
-    toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
+    toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
+    toClean.setQuickstarters(createdProjectIncludingQuickstarters.getQuickstarters());
 
     mockExecuteAdminJob("ods", "delete-projects", "testp");
 
     // verify project is there ..
     mockMvc
         .perform(
-            get("/api/v2/project/" + toClean.projectKey)
+            get("/api/v2/project/" + toClean.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -705,7 +705,7 @@ public class E2EProjectAPIControllerTest {
     // org.opendevstack.provision.controller.ProjectApiController.deleteProject
     mockMvc
         .perform(
-            delete("/api/v2/project/" + toClean.projectKey)
+            delete("/api/v2/project/" + toClean.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -715,7 +715,7 @@ public class E2EProjectAPIControllerTest {
     // verify project really deleted - and not found
     mockMvc
         .perform(
-            get("/api/v2/project/" + toClean.projectKey)
+            get("/api/v2/project/" + toClean.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -731,30 +731,31 @@ public class E2EProjectAPIControllerTest {
         testQuickstarterProvisionOnNewOpenProject(false);
 
     assertNotNull(createdProjectIncludingQuickstarters);
-    assertNotNull(createdProjectIncludingQuickstarters.projectKey);
-    assertNotNull(createdProjectIncludingQuickstarters.quickstarters);
-    assertEquals(1, createdProjectIncludingQuickstarters.quickstarters.size());
+    assertNotNull(createdProjectIncludingQuickstarters.getProjectKey());
+    assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
+    assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
     OpenProjectData toClean = new OpenProjectData();
-    toClean.projectKey = createdProjectIncludingQuickstarters.projectKey;
-    toClean.quickstarters = createdProjectIncludingQuickstarters.quickstarters;
+    toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
+    toClean.setQuickstarters(createdProjectIncludingQuickstarters.getQuickstarters());
 
-    String prefix = createdProjectIncludingQuickstarters.quickstarters.get(0).get("component_id");
+    String prefix =
+        createdProjectIncludingQuickstarters.getQuickstarters().get(0).get("component_id");
 
-    int currentQuickstarterSize = toClean.quickstarters.size();
+    int currentQuickstarterSize = toClean.getQuickstarters().size();
     e2eLogger.info(
         "4 delete, current Quickstarters: "
             + currentQuickstarterSize
             + " project: "
-            + toClean.projectKey
+            + toClean.getProjectKey()
             + "\n"
-            + toClean.quickstarters);
+            + toClean.getQuickstarters());
 
     mockExecuteDeleteComponentAdminJob(
         "testp-cd",
         "delete-components",
         prefix,
-        createdProjectIncludingQuickstarters.webhookProxySecret);
+        createdProjectIncludingQuickstarters.getWebhookProxySecret());
 
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
@@ -783,7 +784,7 @@ public class E2EProjectAPIControllerTest {
     resultProjectGetResponse =
         mockMvc
             .perform(
-                get("/api/v2/project/" + toClean.projectKey)
+                get("/api/v2/project/" + toClean.getProjectKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                     .accept(MediaType.APPLICATION_JSON))
@@ -796,7 +797,7 @@ public class E2EProjectAPIControllerTest {
             .readValue(
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
-    assertEquals(toClean.projectKey, resultProject.projectKey);
+    assertEquals(toClean.getProjectKey(), resultProject.getProjectKey());
     assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
     assertTrue(resultProject.getQuickstarters().isEmpty());
   }
@@ -846,12 +847,12 @@ public class E2EProjectAPIControllerTest {
         readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
 
     // if project does not exist, create it thru the test
-    if (realLocalStorageAdapter.getProject(dataUpdate.projectKey) == null) {
+    if (realLocalStorageAdapter.getProject(dataUpdate.getProjectKey()) == null) {
       testProvisionNewSimpleProjectE2E();
     }
 
     OpenProjectData currentlyStoredProject =
-        realLocalStorageAdapter.getProject(dataUpdate.projectKey);
+        realLocalStorageAdapter.getProject(dataUpdate.getProjectKey());
 
     assertTrue(currentlyStoredProject.getQuickstarters().isEmpty());
 
@@ -953,13 +954,13 @@ public class E2EProjectAPIControllerTest {
     OpenProjectData resultProject =
         new ObjectMapper().readValue(resultUpdateData, OpenProjectData.class);
 
-    List<Map<String, String>> createdQuickstarters = resultProject.quickstarters;
+    List<Map<String, String>> createdQuickstarters = resultProject.getQuickstarters();
 
     assertNotNull(createdQuickstarters);
     assertEquals(1, createdQuickstarters.size());
 
-    assertEquals(1, resultProject.lastExecutionJobs.size());
-    ExecutionJob actualJob = resultProject.lastExecutionJobs.iterator().next();
+    assertEquals(1, resultProject.getLastExecutionJobs().size());
+    ExecutionJob actualJob = resultProject.getLastExecutionJobs().iterator().next();
     assertActualJobMatchesInputParams(actualJob, configuredCreateProjectResponse);
 
     // return the new fully built project for further use
@@ -992,10 +993,10 @@ public class E2EProjectAPIControllerTest {
                 OpenProjectData.class);
 
     // verify 4 repos are there - 2 base 2 qs
-    assertEquals(4, resultLegacyProject.repositories.size());
+    assertEquals(4, resultLegacyProject.getRepositories().size());
 
     // verify 2 quickstarters are there
-    assertEquals(2, resultLegacyProject.quickstarters.size());
+    assertEquals(2, resultLegacyProject.getQuickstarters().size());
   }
 
   @Test

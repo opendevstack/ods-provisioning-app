@@ -17,7 +17,6 @@ package org.opendevstack.provision.services;
 import com.google.common.base.Preconditions;
 import java.util.*;
 import org.opendevstack.provision.adapter.IServiceAdapter;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -46,20 +45,20 @@ public class StorageAdapter implements IServiceAdapter {
       OpenProjectData projectData = project.getValue();
       logger.debug(
           "Project: {} groups: {},{} - permissioned? {}",
-          projectData.projectKey,
-          projectData.projectAdminGroup,
-          projectData.projectUserGroup,
-          projectData.specialPermissionSet);
+          projectData.getProjectKey(),
+          projectData.getProjectAdminGroup(),
+          projectData.getProjectUserGroup(),
+          projectData.isSpecialPermissionSet());
 
-      if (!projectData.specialPermissionSet) {
-        filteredAndOrderedProjects.put(projectData.projectKey, projectData);
+      if (!projectData.isSpecialPermissionSet()) {
+        filteredAndOrderedProjects.put(projectData.getProjectKey(), projectData);
       } else {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         for (GrantedAuthority authority : authentication.getAuthorities()) {
-          if (authority.getAuthority().equalsIgnoreCase(projectData.projectAdminGroup)
-              || authority.getAuthority().equalsIgnoreCase(projectData.projectUserGroup)) {
-            filteredAndOrderedProjects.put(projectData.projectKey, projectData);
+          if (authority.getAuthority().equalsIgnoreCase(projectData.getProjectAdminGroup())
+              || authority.getAuthority().equalsIgnoreCase(projectData.getProjectUserGroup())) {
+            filteredAndOrderedProjects.put(projectData.getProjectKey(), projectData);
             break;
           }
         }
@@ -83,7 +82,7 @@ public class StorageAdapter implements IServiceAdapter {
     Map<String, OpenProjectData> map = new HashMap<>();
 
     for (OpenProjectData fProject : projects) {
-      map.put(fProject.projectKey, fProject);
+      map.put(fProject.getProjectKey(), fProject);
     }
 
     return map;
@@ -95,9 +94,9 @@ public class StorageAdapter implements IServiceAdapter {
 
     Map<String, String> result = new HashMap<>();
 
-    for (OpenProjectData fProject : projectList) {
-      if (filter.equalsIgnoreCase(fProject.projectKey)) {
-        result.put(fProject.projectKey, fProject.description);
+    for (OpenProjectData project : projectList) {
+      if (filter.equalsIgnoreCase(project.getProjectKey())) {
+        result.put(project.getProjectKey(), project.getDescription());
       }
     }
     return result;
@@ -117,15 +116,15 @@ public class StorageAdapter implements IServiceAdapter {
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
 
     if (!stage.equals(LIFECYCLE_STAGE.INITIAL_CREATION)) {
-      logger.debug("Project {} not affected from cleanup", project.projectKey);
+      logger.debug("Project {} not affected from cleanup", project.getProjectKey());
       return leftovers;
     } else {
-      OpenProjectData toBeDeleted = storage.getProject(project.projectKey);
+      OpenProjectData toBeDeleted = storage.getProject(project.getProjectKey());
 
       if (toBeDeleted == null) {
         logger.debug(
             "Project {} not affected from cleanup, " + "as it was never stored",
-            project.projectKey);
+            project.getProjectKey());
         return leftovers;
       }
 
@@ -148,17 +147,17 @@ public class StorageAdapter implements IServiceAdapter {
     // we use the filtering here to enforce security
     Collection<OpenProjectData> userProjects = listProjectHistory().values();
 
-    for (OpenProjectData fProject : userProjects) {
-      if (projectkey.equalsIgnoreCase(fProject.projectKey)) {
-        return fProject;
+    for (OpenProjectData project : userProjects) {
+      if (projectkey.equalsIgnoreCase(project.getProjectKey())) {
+        return project;
       }
     }
     return null;
   }
 
   @Override
-  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(
+      OpenProjectData newProject) {
     throw new UnsupportedOperationException("not implemented yet!");
   }
 }

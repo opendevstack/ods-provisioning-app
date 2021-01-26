@@ -123,10 +123,10 @@ public class ApplicationInfoAPIControllerTest {
 
     // setup test
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = "KEY";
+    data.setProjectKey("KEY");
 
     Map<String, OpenProjectData> historyMap = new HashMap<>();
-    historyMap.put(data.projectKey, data);
+    historyMap.put(data.getProjectKey(), data);
 
     when(storageAdapter.listProjectHistory()).thenReturn(historyMap);
 

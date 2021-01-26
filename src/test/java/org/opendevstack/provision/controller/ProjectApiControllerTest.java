@@ -140,32 +140,32 @@ public class ProjectApiControllerTest {
 
   private void initOpenProjectData() {
     data = new OpenProjectData();
-    data.projectKey = "KEY";
-    data.projectName = "Name";
-    data.description = "Description";
+    data.setProjectKey("KEY");
+    data.setProjectName("Name");
+    data.setDescription("Description");
 
     Map<String, String> someQuickstarter = new HashMap<>();
     someQuickstarter.put("key", "value");
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(someQuickstarter);
-    data.quickstarters = quickstarters;
+    data.setQuickstarters(quickstarters);
 
-    data.platformRuntime = false;
-    data.specialPermissionSet = true;
-    data.projectAdminUser = "clemens";
-    data.projectAdminGroup = "group";
-    data.projectUserGroup = "group";
-    data.projectReadonlyGroup = "group";
+    data.setPlatformRuntime(false);
+    data.setSpecialPermissionSet(true);
+    data.setProjectAdminUser("clemens");
+    data.setProjectAdminGroup("group");
+    data.setProjectUserGroup("group");
+    data.setProjectReadonlyGroup("group");
   }
 
   @Test
   public void addProjectWithoutOCPosNeg() throws Exception {
 
     OpenProjectData bugTrackProject = copyFromProject(data);
-    bugTrackProject.bugtrackerUrl = "bugtracker";
+    bugTrackProject.setBugtrackerUrl("bugtracker");
 
     String collaborationSpaceURL = "collspace";
-    bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
+    bugTrackProject.setCollaborationSpaceUrl(collaborationSpaceURL);
 
     when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(bugTrackProject);
     when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
@@ -207,13 +207,13 @@ public class ProjectApiControllerTest {
               try {
                 apiController.setConfluenceAdapterEnable(confluenceAdapterEnabled);
 
-                data.platformRuntime = true;
-                data.quickstarters = null;
+                data.setPlatformRuntime(true);
+                data.setQuickstarters(null);
 
                 OpenProjectData bugTrackProject = copyFromProject(data);
-                bugTrackProject.bugtrackerUrl = "bugtracker";
+                bugTrackProject.setBugtrackerUrl("bugtracker");
                 String collaborationSpaceURL = "collspace";
-                bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
+                bugTrackProject.setCollaborationSpaceUrl(collaborationSpaceURL);
 
                 when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull()))
                     .thenReturn(bugTrackProject);
@@ -222,12 +222,12 @@ public class ProjectApiControllerTest {
 
                 OpenProjectData projectSCM = copyFromProject(bugTrackProject);
 
-                projectSCM.scmvcsUrl = "scmspace";
+                projectSCM.setScmvcsUrl("scmspace");
 
                 Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
 
                 when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
-                    .thenReturn(projectSCM.scmvcsUrl);
+                    .thenReturn(projectSCM.getScmvcsUrl());
                 when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull()))
                     .thenReturn(repos);
                 when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(
@@ -270,9 +270,9 @@ public class ProjectApiControllerTest {
 
                 // First run platformRuntime and bugtrackerSpace are equal true
                 // 2 and 3 run, either one is true the other is false
-                projectData.platformRuntime = initial.get() || value;
-                projectData.bugtrackerSpace = !projectData.platformRuntime || value;
-                initial.set(projectData.bugtrackerSpace);
+                projectData.setPlatformRuntime(initial.get() || value);
+                projectData.setBugtrackerSpace(!projectData.isPlatformRuntime() || value);
+                initial.set(projectData.isBugtrackerSpace());
 
                 mockMvc
                     .perform(
@@ -356,7 +356,7 @@ public class ProjectApiControllerTest {
   @Test
   public void whenCheckPreconditionsFailThenReturnErrorInResponseBody() throws Exception {
 
-    data.platformRuntime = true;
+    data.setPlatformRuntime(true);
 
     List<CheckPreconditionFailure> preconditionFailures = new ArrayList<>();
     preconditionFailures.add(CheckPreconditionFailure.getUnexistantUserInstance("failure1"));
@@ -403,13 +403,14 @@ public class ProjectApiControllerTest {
   @Test
   public void whenCheckPreconditionsThrowsExceptionThenReturnServerError() throws Exception {
 
-    data.platformRuntime = true;
+    data.setPlatformRuntime(true);
 
     String errorMessage = "thrown in unit test";
     AdapterException thrownInTest = new AdapterException(new RuntimeException(errorMessage));
     when(bitbucketAdapter.checkCreateProjectPreconditions(isNotNull()))
         .thenThrow(
-            new CreateProjectPreconditionException("bitbucket", data.projectKey, thrownInTest));
+            new CreateProjectPreconditionException(
+                "bitbucket", data.getProjectKey(), thrownInTest));
 
     mockMvc
         .perform(
@@ -437,7 +438,7 @@ public class ProjectApiControllerTest {
   @Test
   public void addProjectAgainstExistingOne() throws Exception {
 
-    when(storage.getProject(data.projectKey)).thenReturn(data);
+    when(storage.getProject(data.getProjectKey())).thenReturn(data);
 
     mockMvc
         .perform(
@@ -452,10 +453,10 @@ public class ProjectApiControllerTest {
                 .string(
                     CoreMatchers.containsString(
                         "("
-                            + data.projectKey
+                            + data.getProjectKey()
                             + ") or name "
                             + "("
-                            + data.projectName
+                            + data.getProjectName()
                             + ") already exists")));
 
     // ensure that cleanup was NOT called
@@ -490,8 +491,8 @@ public class ProjectApiControllerTest {
   @Test
   public void addProjectKeyOnlyAndExpectBadRequest() throws Exception {
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = "KEY";
-    data.platformRuntime = true;
+    data.setProjectKey("KEY");
+    data.setPlatformRuntime(true);
 
     mockMvc
         .perform(
@@ -599,11 +600,11 @@ public class ProjectApiControllerTest {
 
     Map<String, OpenProjectData> projects = new HashMap<>();
 
-    projects.put(data.projectKey, data);
+    projects.put(data.getProjectKey(), data);
 
     OpenProjectData copy = copyFromProject(data);
-    copy.projectKey = copy.projectKey + 2;
-    projects.put(copy.projectKey, copy);
+    copy.setProjectKey(copy.getProjectKey() + 2);
+    projects.put(copy.getProjectKey(), copy);
 
     when(storageAdapter.getProjects()).thenReturn(projects);
 
@@ -621,9 +622,9 @@ public class ProjectApiControllerTest {
 
     assertEquals(2, jsonNode.size());
 
-    JsonNode node = jsonNode.findValue(copy.projectKey);
+    JsonNode node = jsonNode.findValue(copy.getProjectKey());
 
-    assertEquals(copy.projectKey, node.get("projectKey").asText());
+    assertEquals(copy.getProjectKey(), node.get("projectKey").asText());
   }
 
   @Test
@@ -646,7 +647,7 @@ public class ProjectApiControllerTest {
         .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andDo(MockMvcResultHandlers.print());
 
-    data.projectKey = "1";
+    data.setProjectKey("1");
 
     when(storageAdapter.getFilteredSingleProject("1")).thenReturn(data);
 
@@ -765,12 +766,12 @@ public class ProjectApiControllerTest {
 
   @Test
   public void updateProjectWithAndWithoutOC() throws Exception {
-    data.platformRuntime = false;
-    data.quickstarters = null;
+    data.setPlatformRuntime(false);
+    data.setQuickstarters(null);
 
     OpenProjectData bugTrackProject = copyFromProject(data);
     String collaborationSpaceURL = "collspace";
-    bugTrackProject.collaborationSpaceUrl = collaborationSpaceURL;
+    bugTrackProject.setCollaborationSpaceUrl(collaborationSpaceURL);
 
     Map<String, Map<URL_TYPE, String>> repos = new HashMap<>();
 
@@ -780,10 +781,10 @@ public class ProjectApiControllerTest {
 
     OpenProjectData projectSCM = copyFromProject(data);
 
-    projectSCM.scmvcsUrl = "scmspace";
+    projectSCM.setScmvcsUrl("scmspace");
 
     when(bitbucketAdapter.createSCMProjectForODSProject(isNotNull()))
-        .thenReturn(projectSCM.scmvcsUrl);
+        .thenReturn(projectSCM.getScmvcsUrl());
     when(bitbucketAdapter.createComponentRepositoriesForODSProject(isNotNull())).thenReturn(repos);
     when(bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(isNotNull(), isNotNull()))
         .thenReturn(repos);
@@ -805,8 +806,8 @@ public class ProjectApiControllerTest {
 
     // upgrade to OC - with minimal set
     OpenProjectData upgrade = new OpenProjectData();
-    upgrade.projectKey = data.projectKey;
-    upgrade.platformRuntime = true;
+    upgrade.setProjectKey(data.getProjectKey());
+    upgrade.setPlatformRuntime(true);
     apiController.setOcUpgradeAllowed(true);
 
     mockMvc
@@ -822,9 +823,9 @@ public class ProjectApiControllerTest {
     Mockito.verify(bitbucketAdapter, times(1)).createSCMProjectForODSProject(isNotNull());
 
     // upgrade to OC with upgrade forbidden
-    data.platformRuntime = false;
+    data.setPlatformRuntime(false);
     when(storage.getProject(anyString())).thenReturn(data);
-    upgrade.platformRuntime = true;
+    upgrade.setPlatformRuntime(true);
 
     apiController.setOcUpgradeAllowed(false);
     mockMvc
@@ -838,7 +839,7 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
 
     // now w/o upgrade
-    upgrade.platformRuntime = false;
+    upgrade.setPlatformRuntime(false);
 
     mockMvc
         .perform(
@@ -853,8 +854,8 @@ public class ProjectApiControllerTest {
     Mockito.verify(bitbucketAdapter).createSCMProjectForODSProject(isNotNull());
 
     // now w/o upgrade
-    data.platformRuntime = true;
-    upgrade.platformRuntime = false;
+    data.setPlatformRuntime(true);
+    upgrade.setPlatformRuntime(false);
 
     mockMvc
         .perform(
@@ -873,23 +874,23 @@ public class ProjectApiControllerTest {
     // allow upgrade
     apiController.setOcUpgradeAllowed(true);
 
-    data.platformRuntime = false;
-    data.quickstarters = null;
+    data.setPlatformRuntime(false);
+    data.setQuickstarters(null);
 
     // existing - store prior
     when(storage.getProject(anyString())).thenReturn(data);
 
     // upgrade to OC - based on a quickstarter
     OpenProjectData upgrade = new OpenProjectData();
-    upgrade.projectKey = data.projectKey;
-    upgrade.platformRuntime = false;
+    upgrade.setProjectKey(data.getProjectKey());
+    upgrade.setPlatformRuntime(false);
 
     Map<String, String> newQS = new HashMap<>();
     newQS.put("component_type", "someComponentType");
     newQS.put("component_id", "someComponentName");
 
-    upgrade.quickstarters = new ArrayList<>();
-    upgrade.quickstarters.add(newQS);
+    upgrade.setQuickstarters(new ArrayList<>());
+    upgrade.getQuickstarters().add(newQS);
 
     // this will error out - because of the test mock, but the key is scm project creation
     mockMvc
@@ -909,16 +910,16 @@ public class ProjectApiControllerTest {
     // allow upgrade
     apiController.setOcUpgradeAllowed(true);
 
-    data.platformRuntime = false;
-    data.quickstarters = null;
+    data.setPlatformRuntime(false);
+    data.setQuickstarters(null);
 
     // existing - store prior
     when(storage.getProject(anyString())).thenReturn(data);
 
     // upgrade to OC - based on a quickstarter
     OpenProjectData upgrade = new OpenProjectData();
-    upgrade.projectKey = data.projectKey;
-    upgrade.platformRuntime = false;
+    upgrade.setProjectKey(data.getProjectKey());
+    upgrade.setPlatformRuntime(false);
 
     BiConsumer<String, Boolean> request =
         (componentId, successful) -> {
@@ -926,8 +927,8 @@ public class ProjectApiControllerTest {
           newQS.put("component_type", "someComponentType");
           newQS.put("component_id", componentId);
 
-          upgrade.quickstarters = new ArrayList<>();
-          upgrade.quickstarters.add(newQS);
+          upgrade.setQuickstarters(new ArrayList<>());
+          upgrade.getQuickstarters().add(newQS);
 
           // this will error out - because of the test mock, but the key is scm project creation
           try {
@@ -955,16 +956,16 @@ public class ProjectApiControllerTest {
 
   @Test
   public void testProjectDescLengh() throws Exception {
-    data.description =
-        "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE";
+    data.setDescription(
+        "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890STOPHERE");
 
     OpenProjectData dataReturn = this.copyFromProject(data);
-    dataReturn.description = ProjectApiController.createShortenedDescription(dataReturn);
+    dataReturn.setDescription(ProjectApiController.createShortenedDescription(dataReturn));
 
-    dataReturn.bugtrackerUrl = "bugtracker";
+    dataReturn.setBugtrackerUrl("bugtracker");
 
     String collaborationSpaceURL = "collspace";
-    dataReturn.collaborationSpaceUrl = collaborationSpaceURL;
+    dataReturn.setCollaborationSpaceUrl(collaborationSpaceURL);
 
     when(jiraAdapter.createBugtrackerProjectForODSProject(isNotNull())).thenReturn(dataReturn);
     when(confluenceAdapter.createCollaborationSpaceForODSProject(isNotNull()))
@@ -984,7 +985,7 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print())
         .andExpect(
             MockMvcResultMatchers.content()
-                .string(CoreMatchers.containsString(dataReturn.description + "\"")));
+                .string(CoreMatchers.containsString(dataReturn.getDescription() + "\"")));
 
     // test with null
     try {
@@ -996,12 +997,12 @@ public class ProjectApiControllerTest {
 
     // test with content
     String description = ProjectApiController.createShortenedDescription(data);
-    assertEquals(dataReturn.description, description);
+    assertEquals(dataReturn.getDescription(), description);
 
     // test with null description
-    data.description = null;
+    data.setDescription(null);
     description = ProjectApiController.createShortenedDescription(data);
-    assertEquals(data.description, description);
+    assertEquals(data.getDescription(), description);
   }
 
   @Test
@@ -1032,17 +1033,18 @@ public class ProjectApiControllerTest {
 
   private OpenProjectData copyFromProject(OpenProjectData origin) {
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = origin.projectKey;
-    data.projectName = origin.projectName;
-    data.description = origin.description;
-    data.platformRuntime = origin.platformRuntime;
-    data.scmvcsUrl = origin.scmvcsUrl;
-    data.quickstarters = origin.quickstarters;
-    data.specialPermissionSet = origin.specialPermissionSet;
-    data.projectAdminUser = origin.projectAdminUser;
-    data.projectAdminGroup = origin.projectAdminGroup;
-    data.projectUserGroup = origin.projectUserGroup;
-    data.projectReadonlyGroup = origin.projectReadonlyGroup;
+    data.setProjectKey(origin.getProjectKey());
+    data.setProjectName(origin.getProjectName());
+    data.setDescription(origin.getDescription());
+    data.setPlatformRuntime(origin.isPlatformRuntime());
+    data.setScmvcsUrl(origin.getScmvcsUrl());
+    data.setQuickstarters(origin.getQuickstarters());
+
+    data.setSpecialPermissionSet(origin.isSpecialPermissionSet());
+    data.setProjectAdminUser(origin.getProjectAdminUser());
+    data.setProjectAdminGroup(origin.getProjectAdminGroup());
+    data.setProjectUserGroup(origin.getProjectUserGroup());
+    data.setProjectReadonlyGroup(origin.getProjectReadonlyGroup());
     return data;
   }
 

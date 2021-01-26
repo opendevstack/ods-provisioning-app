@@ -66,8 +66,8 @@ public class QuickstarterApiControllerTest {
 
   private void initJobs() {
     project = new OpenProjectData();
-    project.projectKey = "TST";
-    project.projectName = "name";
+    project.setProjectKey("TST");
+    project.setProjectName("name");
 
     jobs = new ArrayList<>();
     Job job = new Job();

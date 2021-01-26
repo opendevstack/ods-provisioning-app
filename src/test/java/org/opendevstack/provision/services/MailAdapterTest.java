@@ -41,13 +41,13 @@ public class MailAdapterTest {
 
   @Test
   public void notifyUsersAboutProjectMailEnabled() {
-    mailAdapter.isMailEnabled = true;
+    mailAdapter.setMailEnabled(true);
     mailAdapter.notifyUsersAboutProject(new OpenProjectData());
   }
 
   @Test
   public void notifyUsersAboutProjectMailDisabled() {
-    mailAdapter.isMailEnabled = false;
+    mailAdapter.setMailEnabled(false);
     mailAdapter.notifyUsersAboutProject(new OpenProjectData());
     Mockito.verify(mailSender, Mockito.never()).send(mimeMessage -> {});
   }

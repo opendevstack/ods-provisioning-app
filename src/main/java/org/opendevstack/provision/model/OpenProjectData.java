@@ -30,57 +30,58 @@ public class OpenProjectData {
   /** The quickstarters type as description */
   public static final String COMPONENT_DESC_KEY = "component_description";
   /** The unique name of the project, must not be null */
-  public String projectName = null;
+  private String projectName = null;
   /** Description of the project, can be null */
-  public String description = null;
+  private String description = null;
   /** The unique key of the project, must not be null */
-  public String projectKey = null;
+  private String projectKey = null;
   /** The secret to call webhook_proxy within the new env. Needed 2 create quickstarters */
-  public String webhookProxySecret = null;
+  private String webhookProxySecret = null;
   /** The project specific cd-user */
-  public String cdUser = null;
+  private String cdUser = null;
   /**
    * Map of quickstarters used, to get the chosen name of the quickstarter picked, use {@link
    * #COMPONENT_ID_KEY} against the map contained. To get the quickstarter's type use {@link
    * #COMPONENT_TYPE_KEY}
    */
-  public List<Map<String, String>> quickstarters = null;
+  private List<Map<String, String>> quickstarters = null;
+
   /** create spaces thru {@link IBugtrackerAdapter} and {@link ICollaborationAdapter} */
-  public boolean bugtrackerSpace = true;
+  private boolean bugtrackerSpace = true;
   /** Create Platform projects thru {@link IJobExecutionAdapter} */
-  public boolean platformRuntime = true;
+  private boolean platformRuntime = true;
   /** The url of the bugtracker project */
-  public String bugtrackerUrl = null;
+  private String bugtrackerUrl = null;
   /** The url of the collaboration space */
-  public String collaborationSpaceUrl = null;
+  private String collaborationSpaceUrl = null;
   /** The url of the SCM project */
-  public String scmvcsUrl = null;
+  private String scmvcsUrl = null;
   /**
    * Created project repositories. The key denotes the repository name, the contained map contains
    * the repository links (urls)
    */
-  public Map<String, Map<URL_TYPE, String>> repositories = null;
+  private Map<String, Map<URL_TYPE, String>> repositories = null;
   /** The url of the jenkins / build engine */
-  public String platformBuildEngineUrl = null;
+  private String platformBuildEngineUrl = null;
   /** The url of the cd environment */
-  public String platformCdEnvironmentUrl = null;
+  private String platformCdEnvironmentUrl = null;
   /** The url of the dev environment */
-  public String platformDevEnvironmentUrl = null;
+  private String platformDevEnvironmentUrl = null;
   /** The url of the test environment */
-  public String platformTestEnvironmentUrl = null;
+  private String platformTestEnvironmentUrl = null;
 
   // permissions
   /** The admin group - with admin rights to the project */
-  public String projectAdminGroup = null;
+  private String projectAdminGroup = null;
   /** the user group, needs WRITE access to repositories */
-  public String projectUserGroup = null;
+  private String projectUserGroup = null;
   /** The admin user of the spaces / projects created never NULL */
-  public String projectAdminUser = null;
+  private String projectAdminUser = null;
   /** Name of the readonly group, can be null */
-  public String projectReadonlyGroup = null;
+  private String projectReadonlyGroup = null;
 
   /** Create a permission set within the spaces / projects / repositories */
-  public boolean specialPermissionSet = false;
+  private boolean specialPermissionSet = false;
 
   private Integer specialPermissionSchemeId;
 
@@ -90,13 +91,13 @@ public class OpenProjectData {
    * IJobExecutionAdapter#provisionComponentsBasedOnQuickstarters(OpenProjectData)}
    */
   @JsonIgnoreProperties({"lastExecutionJobs"})
-  public List<ExecutionJob> lastExecutionJobs = null;
+  private List<ExecutionJob> lastExecutionJobs = null;
 
   /** The type of project(s) that should be created, used for templating */
-  public String projectType = null;
+  private String projectType = null;
 
   /** The storage path location */
-  public String physicalLocation = null;
+  private String physicalLocation = null;
 
   private String projectRoleForAdminGroup;
   private String projectRoleForUserGroup;
@@ -264,5 +265,141 @@ public class OpenProjectData {
 
   public void setSpecialPermissionSet(boolean specialPermissionSet) {
     this.specialPermissionSet = specialPermissionSet;
+  }
+
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getWebhookProxySecret() {
+    return webhookProxySecret;
+  }
+
+  public void setWebhookProxySecret(String webhookProxySecret) {
+    this.webhookProxySecret = webhookProxySecret;
+  }
+
+  public String getCdUser() {
+    return cdUser;
+  }
+
+  public void setCdUser(String cdUser) {
+    this.cdUser = cdUser;
+  }
+
+  public void setQuickstarters(List<Map<String, String>> quickstarters) {
+    this.quickstarters = quickstarters;
+  }
+
+  public boolean isBugtrackerSpace() {
+    return bugtrackerSpace;
+  }
+
+  public void setBugtrackerSpace(boolean bugtrackerSpace) {
+    this.bugtrackerSpace = bugtrackerSpace;
+  }
+
+  public boolean isPlatformRuntime() {
+    return platformRuntime;
+  }
+
+  public void setPlatformRuntime(boolean platformRuntime) {
+    this.platformRuntime = platformRuntime;
+  }
+
+  public String getBugtrackerUrl() {
+    return bugtrackerUrl;
+  }
+
+  public void setBugtrackerUrl(String bugtrackerUrl) {
+    this.bugtrackerUrl = bugtrackerUrl;
+  }
+
+  public String getCollaborationSpaceUrl() {
+    return collaborationSpaceUrl;
+  }
+
+  public void setCollaborationSpaceUrl(String collaborationSpaceUrl) {
+    this.collaborationSpaceUrl = collaborationSpaceUrl;
+  }
+
+  public String getScmvcsUrl() {
+    return scmvcsUrl;
+  }
+
+  public void setScmvcsUrl(String scmvcsUrl) {
+    this.scmvcsUrl = scmvcsUrl;
+  }
+
+  public Map<String, Map<URL_TYPE, String>> getRepositories() {
+    return repositories;
+  }
+
+  public void setRepositories(Map<String, Map<URL_TYPE, String>> repositories) {
+    this.repositories = repositories;
+  }
+
+  public String getPlatformBuildEngineUrl() {
+    return platformBuildEngineUrl;
+  }
+
+  public void setPlatformBuildEngineUrl(String platformBuildEngineUrl) {
+    this.platformBuildEngineUrl = platformBuildEngineUrl;
+  }
+
+  public String getPlatformCdEnvironmentUrl() {
+    return platformCdEnvironmentUrl;
+  }
+
+  public void setPlatformCdEnvironmentUrl(String platformCdEnvironmentUrl) {
+    this.platformCdEnvironmentUrl = platformCdEnvironmentUrl;
+  }
+
+  public String getPlatformDevEnvironmentUrl() {
+    return platformDevEnvironmentUrl;
+  }
+
+  public void setPlatformDevEnvironmentUrl(String platformDevEnvironmentUrl) {
+    this.platformDevEnvironmentUrl = platformDevEnvironmentUrl;
+  }
+
+  public String getPlatformTestEnvironmentUrl() {
+    return platformTestEnvironmentUrl;
+  }
+
+  public void setPlatformTestEnvironmentUrl(String platformTestEnvironmentUrl) {
+    this.platformTestEnvironmentUrl = platformTestEnvironmentUrl;
+  }
+
+  public List<ExecutionJob> getLastExecutionJobs() {
+    return lastExecutionJobs;
+  }
+
+  public void setLastExecutionJobs(List<ExecutionJob> lastExecutionJobs) {
+    this.lastExecutionJobs = lastExecutionJobs;
+  }
+
+  public void setProjectType(String projectType) {
+    this.projectType = projectType;
+  }
+
+  public String getPhysicalLocation() {
+    return physicalLocation;
+  }
+
+  public void setPhysicalLocation(String physicalLocation) {
+    this.physicalLocation = physicalLocation;
   }
 }

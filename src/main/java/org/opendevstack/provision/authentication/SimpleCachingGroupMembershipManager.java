@@ -34,9 +34,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleCachingGroupMembershipManager extends CachingGroupMembershipManager {
   /** security server restClient */
-  final SecurityServerClient securityServerClient;
+  private final SecurityServerClient securityServerClient;
   /** cache */
-  final BasicCache basicCache;
+  private final BasicCache basicCache;
 
   private static final Logger logger =
       LoggerFactory.getLogger(SimpleCachingGroupMembershipManager.class);

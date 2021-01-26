@@ -92,20 +92,20 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     SOAPGroup group = mockGroupExists("xxx", true);
 
     OpenProjectData data = new OpenProjectData();
-    data.projectAdminGroup = group.getName();
-    data.projectUserGroup = group.getName();
-    data.projectReadonlyGroup = group.getName();
-    data.projectAdminUser = principal.getName();
+    data.setProjectAdminGroup(group.getName());
+    data.setProjectUserGroup(group.getName());
+    data.setProjectReadonlyGroup(group.getName());
+    data.setProjectAdminUser(principal.getName());
 
     idMgr.validateIdSettingsOfProject(data);
 
-    data.projectUserGroup = "doesNotExistUG";
-    data.projectAdminGroup = "doesNotExistAD";
-    data.projectReadonlyGroup = "doesNotExistRO";
+    data.setProjectUserGroup("doesNotExistUG");
+    data.setProjectAdminGroup("doesNotExistAD");
+    data.setProjectReadonlyGroup("doesNotExistRO");
 
-    mockGroupExists(data.projectUserGroup, false);
-    mockGroupExists(data.projectAdminGroup, false);
-    mockGroupExists(data.projectReadonlyGroup, false);
+    mockGroupExists(data.getProjectUserGroup(), false);
+    mockGroupExists(data.getProjectAdminGroup(), false);
+    mockGroupExists(data.getProjectReadonlyGroup(), false);
 
     Exception testE = null;
     try {
@@ -114,9 +114,9 @@ public class CrowdProjectIdentityMgmtAdapterTest {
       testE = idEx;
     }
     assertNotNull(testE);
-    assertTrue(testE.getMessage().contains(data.projectUserGroup));
-    assertTrue(testE.getMessage().contains(data.projectAdminGroup));
-    assertTrue(testE.getMessage().contains(data.projectReadonlyGroup));
+    assertTrue(testE.getMessage().contains(data.getProjectUserGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectAdminGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectReadonlyGroup()));
 
     mockPrincipalExists(principal.getName(), false);
     testE = null;
@@ -126,8 +126,8 @@ public class CrowdProjectIdentityMgmtAdapterTest {
       testE = idEx;
     }
     assertNotNull(testE);
-    assertTrue(testE.getMessage().contains(data.projectUserGroup));
-    assertTrue(testE.getMessage().contains(data.projectAdminUser));
+    assertTrue(testE.getMessage().contains(data.getProjectUserGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectAdminUser()));
   }
 
   public SOAPGroup mockGroupExists(String groupName, boolean existsGroup) {

@@ -35,22 +35,22 @@ public class OpenProjectDataValidatorTest {
   @BeforeEach
   public void setup() {
     data = new OpenProjectData();
-    data.projectKey = "KEY";
-    data.projectName = "Name";
-    data.description = "Description";
+    data.setProjectKey("KEY");
+    data.setProjectName("Name");
+    data.setDescription("Description");
 
     Map<String, String> someQuickstarter = new HashMap<>();
     someQuickstarter.put("key", "value");
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(someQuickstarter);
-    data.quickstarters = quickstarters;
+    data.setQuickstarters(quickstarters);
 
-    data.platformRuntime = false;
-    data.specialPermissionSet = true;
-    data.projectAdminUser = "clemens";
-    data.projectAdminGroup = "group";
-    data.projectUserGroup = "group";
-    data.projectReadonlyGroup = "group";
+    data.setPlatformRuntime(false);
+    data.setSpecialPermissionSet(true);
+    data.setProjectAdminUser("clemens");
+    data.setProjectAdminGroup("group");
+    data.setProjectUserGroup("group");
+    data.setProjectReadonlyGroup("group");
   }
 
   @Test
@@ -61,7 +61,7 @@ public class OpenProjectDataValidatorTest {
     // case component id is null
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, null);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("null"));
     }
@@ -70,7 +70,7 @@ public class OpenProjectDataValidatorTest {
     String empty = "";
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, empty);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("empty"));
     }
@@ -80,7 +80,7 @@ public class OpenProjectDataValidatorTest {
         Strings.repeat("=", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH + 1);
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, tooLong);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       String errorMessage = e.getMessage();
       assertTrue(errorMessage.contains(tooLong));
@@ -95,7 +95,7 @@ public class OpenProjectDataValidatorTest {
         Strings.repeat("=", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MIN_LENGTH - 1);
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, tooShort);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains(tooShort));
     }
@@ -104,7 +104,7 @@ public class OpenProjectDataValidatorTest {
     String validLength =
         Strings.repeat("n", OpenProjectDataValidator.API_ALLOWED_COMPONENT_ID_MAX_LENGTH);
     data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validLength);
-    data.quickstarters.forEach(validator);
+    data.getQuickstarters().forEach(validator);
   }
 
   @Test
@@ -116,7 +116,7 @@ public class OpenProjectDataValidatorTest {
     // case component type is null
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, null);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("null"));
       assertTrue(e.getMessage().contains(COMPONENT_TYPE_KEY));
@@ -126,7 +126,7 @@ public class OpenProjectDataValidatorTest {
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, "value1");
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, null);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("null"));
       assertTrue(e.getMessage().contains(COMPONENT_ID_KEY));
@@ -137,7 +137,7 @@ public class OpenProjectDataValidatorTest {
     try {
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, same);
       data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, same);
-      data.quickstarters.forEach(validator);
+      data.getQuickstarters().forEach(validator);
     } catch (IllegalArgumentException e) {
       assertTrue(e.getMessage().contains("is equal"));
     }
@@ -145,7 +145,7 @@ public class OpenProjectDataValidatorTest {
     // case component type not equals component id
     data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, "value1");
     data.getQuickstarters().stream().findFirst().get().put(COMPONENT_TYPE_KEY, "value2");
-    data.quickstarters.forEach(validator);
+    data.getQuickstarters().forEach(validator);
   }
 
   /**
@@ -180,7 +180,7 @@ public class OpenProjectDataValidatorTest {
         notValid -> {
           try {
             data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
-            data.quickstarters.forEach(validator);
+            data.getQuickstarters().forEach(validator);
             fail(notValid + " is a not valid component id!");
           } catch (IllegalArgumentException e) {
             assertTrue(e.getMessage().contains("not valid name"));
@@ -193,7 +193,7 @@ public class OpenProjectDataValidatorTest {
             notValid -> {
               try {
                 data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, notValid);
-                data.quickstarters.forEach(validator);
+                data.getQuickstarters().forEach(validator);
                 fail(notValid + " is a not valid component id!");
               } catch (IllegalArgumentException e) {
                 assertTrue(e.getMessage().contains("not valid name"));
@@ -203,7 +203,7 @@ public class OpenProjectDataValidatorTest {
     validNames.forEach(
         validName -> {
           data.getQuickstarters().stream().findFirst().get().put(COMPONENT_ID_KEY, validName);
-          data.quickstarters.forEach(validator);
+          data.getQuickstarters().forEach(validator);
         });
   }
 

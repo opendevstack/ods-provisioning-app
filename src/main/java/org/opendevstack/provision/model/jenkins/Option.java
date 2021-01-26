@@ -20,8 +20,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class Option {
-  public String name;
-  public String value;
+  private String name;
+  private String value;
 
   public Option(String name, String value) {
     this.name = name;

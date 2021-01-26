@@ -44,27 +44,30 @@ public class OpenshiftService {
     try {
       Assert.notNull(newProject, "Parameter 'newProject' is null!");
       Assert.notNull(
-          newProject.projectKey, "Properties 'projectKey' of parameter 'newProject' is null!");
-
-      logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
-
-      List<CheckPreconditionFailure> preconditionFailures =
-          createProjectKeyExistsCheck(newProject.projectKey);
+          newProject.getProjectKey(), "Properties 'projectKey' of parameter 'newProject' is null!");
 
       logger.info(
-          "done with check create project preconditions for project '{}'!", newProject.projectKey);
+          "checking create project preconditions for project '{}'!", newProject.getProjectKey());
+
+      List<CheckPreconditionFailure> preconditionFailures =
+          createProjectKeyExistsCheck(newProject.getProjectKey());
+
+      logger.info(
+          "done with check create project preconditions for project '{}'!",
+          newProject.getProjectKey());
 
       return preconditionFailures;
 
     } catch (AdapterException e) {
-      throw new CreateProjectPreconditionException(SERVICE_NAME, newProject.projectKey, e);
+      throw new CreateProjectPreconditionException(SERVICE_NAME, newProject.getProjectKey(), e);
     } catch (Exception e) {
       String message =
           String.format(
               "Unexpected error when checking precondition for creation of project '%s'",
-              newProject.projectKey);
+              newProject.getProjectKey());
       logger.error(message, e);
-      throw new CreateProjectPreconditionException(SERVICE_NAME, newProject.projectKey, message);
+      throw new CreateProjectPreconditionException(
+          SERVICE_NAME, newProject.getProjectKey(), message);
     }
   }
 

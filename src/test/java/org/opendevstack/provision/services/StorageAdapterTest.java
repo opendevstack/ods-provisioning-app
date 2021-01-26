@@ -52,36 +52,36 @@ public class StorageAdapterTest {
     try {
       // open project
       OpenProjectData data = new OpenProjectData();
-      data.projectName = "testproject";
-      data.projectKey = "Z_KEY";
-      data.projectAdminGroup = "testgroup";
+      data.setProjectName("testproject");
+      data.setProjectKey("Z_KEY");
+      data.setProjectAdminGroup("testgroup");
 
       // case sensitive right group
       OpenProjectData dataProtected = new OpenProjectData();
-      dataProtected.projectName = "testprojectProtected";
-      dataProtected.projectKey = "A_KEY";
-      dataProtected.projectAdminGroup = "testgroup";
-      dataProtected.specialPermissionSet = true;
+      dataProtected.setProjectName("testprojectProtected");
+      dataProtected.setProjectKey("A_KEY");
+      dataProtected.setProjectAdminGroup("testgroup");
+      dataProtected.setSpecialPermissionSet(true);
 
       // wrong group
       OpenProjectData dataProtectedWrong = new OpenProjectData();
-      dataProtectedWrong.projectName = "testprojectProtectedW";
-      dataProtectedWrong.projectKey = "testprojectProtectedW";
-      dataProtectedWrong.projectAdminGroup = "testgroupW";
-      dataProtectedWrong.specialPermissionSet = true;
+      dataProtectedWrong.setProjectName("testprojectProtectedW");
+      dataProtectedWrong.setProjectKey("testprojectProtectedW");
+      dataProtectedWrong.setProjectAdminGroup("testgroupW");
+      dataProtectedWrong.setSpecialPermissionSet(true);
 
       // group upper lower case
       OpenProjectData dataProtectedCase = new OpenProjectData();
-      dataProtectedCase.projectName = "testprojectProtectedC";
-      dataProtectedCase.projectKey = "F_KEY";
-      dataProtectedCase.projectAdminGroup = "testGroup";
-      dataProtectedCase.specialPermissionSet = true;
+      dataProtectedCase.setProjectName("testprojectProtectedC");
+      dataProtectedCase.setProjectKey("F_KEY");
+      dataProtectedCase.setProjectAdminGroup("testGroup");
+      dataProtectedCase.setSpecialPermissionSet(true);
 
       Map<String, OpenProjectData> projects = new HashMap<>();
-      projects.put(data.projectKey, data);
-      projects.put(dataProtected.projectKey, dataProtected);
-      projects.put(dataProtectedWrong.projectKey, dataProtectedWrong);
-      projects.put(dataProtectedCase.projectKey, dataProtectedCase);
+      projects.put(data.getProjectKey(), data);
+      projects.put(dataProtected.getProjectKey(), dataProtected);
+      projects.put(dataProtectedWrong.getProjectKey(), dataProtectedWrong);
+      projects.put(dataProtectedCase.getProjectKey(), dataProtectedCase);
 
       Mockito.when(storage.listProjectHistory()).thenReturn(projects);
       adapter.setStorage(storage);
@@ -92,7 +92,7 @@ public class StorageAdapterTest {
       assertEquals(3, testresult.size());
       assertEquals(
           Lists.newArrayList("A_KEY", "F_KEY", "Z_KEY"), new ArrayList<>(testresult.keySet()));
-      assertFalse(testresult.containsKey(dataProtectedWrong.projectKey));
+      assertFalse(testresult.containsKey(dataProtectedWrong.getProjectKey()));
     } finally {
       SecurityContextHolder.clearContext();
     }
@@ -106,17 +106,17 @@ public class StorageAdapterTest {
     Map<String, OpenProjectData> projects = new HashMap<>();
 
     OpenProjectData data = new OpenProjectData();
-    data.projectName = "testproject";
-    data.projectKey = "Z_KEY";
-    data.projectAdminGroup = "testgroup";
+    data.setProjectName("testproject");
+    data.setProjectKey("Z_KEY");
+    data.setProjectAdminGroup("testgroup");
 
-    projects.put(data.projectKey, data);
+    projects.put(data.getProjectKey(), data);
 
     when(storage.listProjectHistory()).thenReturn(projects);
 
     Map<String, OpenProjectData> result = adapter.getProjects();
 
     assertEquals(projects.size(), result.size());
-    assertEquals(data, result.get(data.projectKey));
+    assertEquals(data, result.get(data.getProjectKey()));
   }
 }

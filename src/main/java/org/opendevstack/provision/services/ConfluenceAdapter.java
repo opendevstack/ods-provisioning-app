@@ -47,7 +47,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-/** Service to interact with and add Spaces */
 @Service
 @ConditionalOnProperty(
     name = "adapters.confluence.enabled",
@@ -115,11 +114,11 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   @Value("${project.template.default.key}")
   private String defaultProjectKey;
 
-  @Autowired ConfigurableEnvironment environment;
+  @Autowired private ConfigurableEnvironment environment;
 
   @Qualifier("projectTemplateKeyNames")
   @Autowired
-  List<String> projectTemplateKeyNames;
+  private List<String> projectTemplateKeyNames;
 
   public ConfluenceAdapter() {
     super(ADAPTER_NAME);
@@ -129,7 +128,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     SpaceData space = callCreateSpaceApi(createSpaceData(project));
     String spaceUrl = space.getUrl();
 
-    if (project.specialPermissionSet) {
+    if (project.isSpecialPermissionSet()) {
       try {
         updateSpacePermissions(project);
       } catch (Exception createPermissions) {
@@ -137,7 +136,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
         // create the set
         logger.error(
             "Could not create project: "
-                + project.projectKey
+                + project.getProjectKey()
                 + "\n Exception: "
                 + createPermissions.getMessage());
       }
@@ -158,25 +157,25 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   }
 
   public Space createSpaceData(OpenProjectData project) throws IOException {
-    String confluenceBlueprintId = getBluePrintId(project.projectType);
+    String confluenceBlueprintId = getBluePrintId(project.getProjectType());
     String jiraServerId = getJiraServerId();
 
     Space space = new Space();
     space.setSpaceBlueprintId(confluenceBlueprintId);
-    space.setName(project.projectName);
-    space.setSpaceKey(project.projectKey);
-    space.setDescription(project.description);
+    space.setName(project.getProjectName());
+    space.setSpaceKey(project.getProjectKey());
+    space.setDescription(project.getDescription());
 
     Context context = new Context();
-    context.setName(project.projectName);
-    context.setSpaceKey(project.projectKey);
+    context.setName(project.getProjectName());
+    context.setSpaceKey(project.getProjectKey());
     context.setAtlToken("undefined");
     context.setNoPageTitlePrefix("true");
     context.setJiraServer(jiraServerId);
     context.setJiraServerId(jiraServerId);
-    context.setProjectKey(project.projectKey);
-    context.setProjectName(project.projectName);
-    context.setDescription(project.description);
+    context.setProjectKey(project.getProjectKey());
+    context.setProjectName(project.getProjectName());
+    context.setDescription(project.getDescription());
     space.setContext(context);
     return space;
   }
@@ -200,7 +199,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     String url = String.format(CONFLUENCE_API_BLUEPRINT_PATTERN, confluenceUri, confluenceApiPath);
     List<Blueprint> blueprints = getSpaceTemplateList(url, new TypeReference<>() {});
     OpenProjectData project = new OpenProjectData();
-    project.projectType = projectTypeKey;
+    project.setProjectType(projectTypeKey);
     String template =
         retrieveInternalProjectTypeAndTemplateFromProjectType(project)
             .get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY);
@@ -243,14 +242,14 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
         // we know it's a singular pseudo json line
         permissionset = reader.readLine();
-        permissionset = permissionset.replace(SPACE_NAME_KEY, data.projectKey);
+        permissionset = permissionset.replace(SPACE_NAME_KEY, data.getProjectKey());
 
         if (permissionFilename.contains(ADMIN_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.projectAdminGroup);
+          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectAdminGroup());
         } else if (permissionFilename.contains(USER_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.projectUserGroup);
+          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectUserGroup());
         } else if (permissionFilename.contains(READONLY_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.projectReadonlyGroup);
+          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectReadonlyGroup());
         } else if (permissionFilename.contains(KEYUSER_GROUP)) {
           permissionset = permissionset.replace(SPACE_GROUP_KEY, globalKeyuserRoleName);
         }
@@ -278,7 +277,7 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       OpenProjectData project) {
     Preconditions.checkNotNull(project, "project cannot be null");
 
-    String projectTypeKey = project.projectType;
+    String projectTypeKey = project.getProjectType();
 
     String confluencetemplateKeyPrefix = "confluence.blueprint.key.";
 
@@ -309,30 +308,30 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
 
     if (stage.equals(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION)
-        || (!project.bugtrackerSpace && project.collaborationSpaceUrl == null)) {
-      logger.debug("Project {} not affected from cleanup", project.projectKey);
+        || (!project.isBugtrackerSpace() && project.getCollaborationSpaceUrl() == null)) {
+      logger.debug("Project {} not affected from cleanup", project.getProjectKey());
       return leftovers;
     }
 
-    if (project.collaborationSpaceUrl == null) {
-      logger.debug("Project {} not affected from cleanup", project.projectKey);
+    if (project.getCollaborationSpaceUrl() == null) {
+      logger.debug("Project {} not affected from cleanup", project.getProjectKey());
       return new HashMap<>();
     }
 
     logger.debug(
         "Cleaning up collaboration space: {} with url {}",
-        project.projectKey,
-        project.collaborationSpaceUrl);
+        project.getProjectKey(),
+        project.getCollaborationSpaceUrl());
 
     String confluenceProjectPath =
-        String.format("%s/api/space/%s", getAdapterApiUri(), project.projectKey);
+        String.format("%s/api/space/%s", getAdapterApiUri(), project.getProjectKey());
 
     try {
       getRestClient().execute(httpDelete().body("").url(confluenceProjectPath));
 
-      project.collaborationSpaceUrl = null;
+      project.setCollaborationSpaceUrl(null);
     } catch (Exception cex) {
-      logger.error("Could not clean up project {} -  error: {}", project.projectKey, cex);
+      logger.error("Could not clean up project {} -  error: {}", project.getProjectKey(), cex);
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.COLLABORATION_SPACE, 1);
     }
 
@@ -355,9 +354,10 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     try {
       Assert.notNull(newProject, "Parameter 'newProject' is null!");
       Assert.notNull(
-          newProject.projectKey, "Properties 'projectKey' of parameter 'newProject' is null!");
+          newProject.getProjectKey(), "Properties 'projectKey' of parameter 'newProject' is null!");
 
-      logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
+      logger.info(
+          "checking create project preconditions for project '{}'!", newProject.getProjectKey());
 
       List<CheckPreconditionFailure> preconditionFailures =
           createProjectKeyExistsCheck(newProject.getProjectKey())
@@ -366,19 +366,21 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
               .apply(new ArrayList<>());
 
       logger.info(
-          "done with check create project preconditions for project '{}'!", newProject.projectKey);
+          "done with check create project preconditions for project '{}'!",
+          newProject.getProjectKey());
 
       return Collections.unmodifiableList(preconditionFailures);
 
     } catch (AdapterException e) {
-      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, e);
+      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.getProjectKey(), e);
     } catch (Exception e) {
       String message =
           String.format(
               "Unexpected error when checking precondition for creation of project '%s'",
-              newProject.projectKey);
+              newProject.getProjectKey());
       logger.error(message, e);
-      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, message);
+      throw new CreateProjectPreconditionException(
+          ADAPTER_NAME, newProject.getProjectKey(), message);
     }
   }
 
@@ -466,11 +468,11 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       String permissionFilename = permissionFile.getFilename();
 
       if (permissionFilename.contains(ADMIN_GROUP)) {
-        addIfNotEmpty.accept(groupsRequired, data.projectAdminGroup);
+        addIfNotEmpty.accept(groupsRequired, data.getProjectAdminGroup());
       } else if (permissionFilename.contains(USER_GROUP)) {
-        addIfNotEmpty.accept(groupsRequired, data.projectUserGroup);
+        addIfNotEmpty.accept(groupsRequired, data.getProjectUserGroup());
       } else if (permissionFilename.contains(READONLY_GROUP)) {
-        addIfNotEmpty.accept(groupsRequired, data.projectReadonlyGroup);
+        addIfNotEmpty.accept(groupsRequired, data.getProjectReadonlyGroup());
       } else if (permissionFilename.contains(KEYUSER_GROUP)) {
         addIfNotEmpty.accept(groupsRequired, globalKeyuserRoleName);
       }
@@ -488,9 +490,9 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       usersToCheck.add(getUserName());
 
       // 2: special perm set admin user
-      if (project.bugtrackerSpace && project.specialPermissionSet) {
-        if (project.projectAdminUser != null && !project.projectAdminUser.isEmpty()) {
-          usersToCheck.add(project.projectAdminUser);
+      if (project.isBugtrackerSpace() && project.isSpecialPermissionSet()) {
+        if (project.getProjectAdminUser() != null && !project.getProjectAdminUser().isEmpty()) {
+          usersToCheck.add(project.getProjectAdminUser());
         }
       }
 
@@ -598,5 +600,13 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     } catch (IOException e) {
       throw new AdapterException(e);
     }
+  }
+
+  public ConfigurableEnvironment getEnvironment() {
+    return environment;
+  }
+
+  public List<String> getProjectTemplateKeyNames() {
+    return projectTemplateKeyNames;
   }
 }

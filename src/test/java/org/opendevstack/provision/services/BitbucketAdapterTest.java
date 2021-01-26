@@ -137,18 +137,18 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     SecurityContextHolder.setContext(securityContext);
 
     OpenProjectData projectData = getReturnOpenProjectData();
-    projectData.repositories = new HashMap<>();
+    projectData.setRepositories(new HashMap<>());
 
     Map<String, String> quickstart = new HashMap<>();
     quickstart.put("component_id", "testid");
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(quickstart);
 
-    projectData.quickstarters = quickstarters;
+    projectData.setQuickstarters(quickstarters);
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
     repoData.setName("testRepoName");
-    projectData.projectKey = "testkey";
+    projectData.setProjectKey("testkey");
 
     Mockito.doNothing()
         .when(spyAdapter)
@@ -204,11 +204,11 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = "testkey";
-    data.projectName = "testproject";
-    data.description = "this is a discription";
-    data.specialPermissionSet = true;
-    data.projectAdminUser = "someadmin";
+    data.setProjectKey("testkey");
+    data.setProjectName("testproject");
+    data.setDescription("this is a discription");
+    data.setSpecialPermissionSet(true);
+    data.setProjectAdminUser("someadmin");
 
     spyAdapter.setRestClient(restClient);
 
@@ -255,10 +255,10 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     String uri = "http://192.168.56.31:7990/rest/api/1.0/projects";
 
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = "testkey";
-    data.projectName = "testproject";
-    data.description = "this is a discription";
-    data.specialPermissionSet = false;
+    data.setProjectKey("testkey");
+    data.setProjectName("testproject");
+    data.setDescription("this is a discription");
+    data.setSpecialPermissionSet(false);
 
     BitbucketProjectData expected = new BitbucketProjectData();
     expected.setDescription("this is a discription");
@@ -330,16 +330,16 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
 
     OpenProjectData projectData = new OpenProjectData();
-    projectData.repositories = new HashMap<>();
-    projectData.projectKey = "12423qtr";
+    projectData.setRepositories(new HashMap<>());
+    projectData.setProjectKey("12423qtr");
     String crowdCookieValue = "cookieValue";
     String[] auxRepos = new String[] {"auxrepo1", "auxrepo2"};
 
     Repository repo1 = new Repository();
-    repo1.setName(String.format("%s-%s", projectData.projectKey.toLowerCase(), "auxrepo1"));
+    repo1.setName(String.format("%s-%s", projectData.getProjectKey().toLowerCase(), "auxrepo1"));
 
     Repository repo2 = new Repository();
-    repo1.setName(String.format("%s-%s", projectData.projectKey.toLowerCase(), "auxrepo2"));
+    repo1.setName(String.format("%s-%s", projectData.getProjectKey().toLowerCase(), "auxrepo2"));
 
     RepositoryData repoData1 = new RepositoryData();
     repoData1.setName("repoData1");
@@ -349,7 +349,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     spyAdapter.createAuxiliaryRepositoriesForODSProject(projectData, auxRepos);
     Map<String, Map<URL_TYPE, String>> actual;
-    actual = projectData.repositories;
+    actual = projectData.getRepositories();
 
     assertEquals(repoData1.convertRepoToOpenDataProjectRepo(), actual);
   }
@@ -357,8 +357,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void testCreateWebhooks() throws Exception {
     OpenProjectData projectData = new OpenProjectData();
-    projectData.repositories = new HashMap<>();
-    projectData.projectKey = "12423qtr";
+    projectData.setRepositories(new HashMap<>());
+    projectData.setProjectKey("12423qtr");
 
     RepositoryData repoData1 = new RepositoryData();
     repoData1.setName("repoData1");
@@ -379,8 +379,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   public void testCreateNoWebhookForReleaseManager() {
 
     OpenProjectData projectData = new OpenProjectData();
-    projectData.projectKey = "PWRM";
-    projectData.projectKey = "12423qtr";
+    projectData.setProjectKey("PWRM");
+    projectData.setProjectKey("12423qtr");
 
     RepositoryData repoData1 = new RepositoryData();
     repoData1.setName("repoData1");
@@ -408,8 +408,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private OpenProjectData getReturnOpenProjectData() {
     OpenProjectData data = new OpenProjectData();
-    data.quickstarters = getReturnQuickstarters();
-    data.projectKey = "testkey";
+    data.setQuickstarters(getReturnQuickstarters());
+    data.setProjectKey("testkey");
     return data;
   }
 
@@ -492,11 +492,11 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(0, newResult.size());
 
     // Case error, user does not exists!
-    project.cdUser = "this_cd_user_not_exist".toUpperCase();
+    project.setCdUser("this_cd_user_not_exist".toUpperCase());
     checkUser = spyAdapter.createCheckUser(project);
     newResult = checkUser.apply(result);
     assertEquals(1, newResult.size());
-    assertTrue(newResult.get(0).toString().contains(project.cdUser));
+    assertTrue(newResult.get(0).toString().contains(project.getCdUser()));
   }
 
   @Test
@@ -549,14 +549,14 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       throws IOException {
 
     bitbucketAdapter.setRestClient(restClient);
-    bitbucketAdapter.useTechnicalUser = true;
-    bitbucketAdapter.userName = TEST_USER_NAME;
-    bitbucketAdapter.userPassword = TEST_USER_PASSWORD;
+    bitbucketAdapter.setUseTechnicalUser(true);
+    bitbucketAdapter.setUserName(TEST_USER_NAME);
+    bitbucketAdapter.setUserPassword(TEST_USER_PASSWORD);
 
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
 
     OpenProjectData project = new OpenProjectData();
-    project.projectKey = "PKEY";
+    project.setProjectKey("PKEY");
 
     IOException ioException = new IOException("throw in unit test");
 
@@ -569,7 +569,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
       assertTrue(e.getMessage().contains(BitbucketAdapter.ADAPTER_NAME));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
@@ -581,7 +581,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getMessage().contains("Unexpected error"));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
   }
 }
