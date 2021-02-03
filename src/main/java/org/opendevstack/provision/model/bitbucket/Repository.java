@@ -27,9 +27,9 @@ public class Repository {
   private boolean forkable = true;
 
   @JsonIgnoreProperties({"adminGroup", "userGroup"})
-  String adminGroup;
+  private String adminGroup;
 
-  String userGroup;
+  private String userGroup;
 
   public String getName() {
     return name;

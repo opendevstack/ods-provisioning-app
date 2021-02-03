@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-/** Service for mail interaction with the user in the provisioning app */
 @Service
 public class MailAdapter {
 
@@ -46,7 +45,7 @@ public class MailAdapter {
 
   // open because of testing
   @Value("${mail.enabled:false}")
-  public boolean isMailEnabled;
+  private boolean isMailEnabled;
 
   @Autowired private TemplateEngine templateEngine;
 
@@ -67,27 +66,27 @@ public class MailAdapter {
           messageHelper.setFrom(mailSenderAddress);
           messageHelper.setTo(recipient);
           messageHelper.setSubject("ODS Project provision update");
-          messageHelper.setText(build(data), true);
+          messageHelper.setText(buildText(data), true);
         };
 
     Thread sendThread =
         new Thread(
             () -> {
               try {
-                MDC.put(STR_LOGFILE_KEY, data.projectKey);
+                MDC.put(STR_LOGFILE_KEY, data.getProjectKey());
                 mailSender.send(messagePreparator);
               } catch (MailException e) {
-                logger.error("Error in sending mail for project: " + data.projectKey, e);
+                logger.error("Error in sending mail for project: " + data.getProjectKey(), e);
               } finally {
                 MDC.remove(STR_LOGFILE_KEY);
               }
             });
 
     sendThread.start();
-    logger.debug("Mail for project: {} sent", data.projectKey);
+    logger.debug("Mail for project: {} sent", data.getProjectKey());
   }
 
-  String build(OpenProjectData data) {
+  private String buildText(OpenProjectData data) {
     try {
       Context context = new Context();
       context.setVariable("project", data);
@@ -96,5 +95,9 @@ public class MailAdapter {
       logger.error("Error in creating mail template", ex);
     }
     return "";
+  }
+
+  public void setMailEnabled(boolean mailEnabled) {
+    isMailEnabled = mailEnabled;
   }
 }

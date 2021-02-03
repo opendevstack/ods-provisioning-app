@@ -46,6 +46,10 @@
 }
 
 .searchbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--box-background-color);
   padding: 15px 15px 0 15px;
   border-bottom: 1px solid var(--primary-lighter-color);
 

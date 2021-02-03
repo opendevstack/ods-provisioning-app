@@ -22,7 +22,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IServiceAdapter;
@@ -43,13 +41,10 @@ import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -59,24 +54,18 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext
 public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConfluenceAdapterTest.class);
-
   public static final String TEST_USER_NAME = "testUserName";
   public static final String TEST_USER_PASSWORD = "testUserPassword";
 
-  private ObjectMapper objectMapper;
-
-  private static TestDataFileReader fileReader =
+  private static final TestDataFileReader fileReader =
       new TestDataFileReader(TestDataFileReader.TEST_DATA_FILE_DIR);
+
+  @Autowired private ConfluenceAdapter confluenceAdapter;
 
   @MockBean private IODSAuthnzAdapter authnzAdapter;
 
-  @Autowired @InjectMocks ConfluenceAdapter confluenceAdapter;
-
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
-
-  @Autowired ConfigurableEnvironment environment;
 
   @BeforeEach
   public void initTests() {
@@ -114,9 +103,9 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void updateSpacePermissions() throws Exception {
     OpenProjectData project = JiraAdapterTests.getTestProject("name");
-    project.projectAdminGroup = "adminGroup";
-    project.projectUserGroup = "userGroup";
-    project.projectReadonlyGroup = "readGroup";
+    project.setProjectAdminGroup("adminGroup");
+    project.setProjectUserGroup("userGroup");
+    project.setProjectReadonlyGroup("readGroup");
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(String.class);
     int permissionSets = confluenceAdapter.updateSpacePermissions(project);
@@ -125,15 +114,15 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     verifyExecute(
         matchesClientCall()
             .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.projectAdminGroup))));
+            .bodyMatches(hasToString(containsString(project.getProjectAdminGroup()))));
     verifyExecute(
         matchesClientCall()
             .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.projectUserGroup))));
+            .bodyMatches(hasToString(containsString(project.getProjectUserGroup()))));
     verifyExecute(
         matchesClientCall()
             .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.projectReadonlyGroup))));
+            .bodyMatches(hasToString(containsString(project.getProjectReadonlyGroup()))));
     assertEquals(3, permissionSets);
   }
 
@@ -141,11 +130,11 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
   public void testCreateSpaceData() throws Exception {
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
     OpenProjectData project = JiraAdapterTests.getTestProject("name");
-    project.projectAdminGroup = "adminGroup";
-    project.projectUserGroup = "adminGroup";
-    project.projectReadonlyGroup = "adminGroup";
+    project.setProjectAdminGroup("adminGroup");
+    project.setProjectUserGroup("adminGroup");
+    project.setProjectReadonlyGroup("adminGroup");
 
-    List blList = new ArrayList<>();
+    var blList = new ArrayList<>();
     Blueprint bPrint = new Blueprint();
     bPrint.setBlueprintModuleCompleteKey(confluenceBlueprintKey);
     bPrint.setContentBlueprintId("1234");
@@ -162,13 +151,13 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     Space space = spyAdapter.createSpaceData(project);
 
     assertNotNull(space);
-    assertEquals(project.projectName, space.getName());
-    assertEquals(project.projectKey, space.getSpaceKey());
+    assertEquals(project.getProjectName(), space.getName());
+    assertEquals(project.getProjectKey(), space.getSpaceKey());
 
     assertNotNull(space.getContext());
 
-    assertEquals(project.projectName, space.getContext().getProjectName());
-    assertEquals(project.projectKey, space.getContext().getProjectKey());
+    assertEquals(project.getProjectName(), space.getContext().getProjectName());
+    assertEquals(project.getProjectKey(), space.getContext().getProjectKey());
   }
 
   @Test
@@ -183,7 +172,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     assertEquals(1, templates.size());
     assertEquals(defaultTemplateName, templates.get(IServiceAdapter.PROJECT_TEMPLATE.TEMPLATE_KEY));
 
-    project.projectType = "notExistant";
+    project.setProjectType("notExistant");
     templates = confluenceAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(project);
 
     assertEquals(1, templates.size());
@@ -191,13 +180,13 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     // add new template
     confluenceAdapter
-        .environment
+        .getEnvironment()
         .getSystemProperties()
         .put("confluence.blueprint.key.testTemplate", "template");
 
-    confluenceAdapter.projectTemplateKeyNames.add("testTemplate");
+    confluenceAdapter.getProjectTemplateKeyNames().add("testTemplate");
 
-    project.projectType = "testTemplate";
+    project.setProjectType("testTemplate");
 
     templates = confluenceAdapter.retrieveInternalProjectTypeAndTemplateFromProjectType(project);
 
@@ -215,14 +204,14 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       throws IOException {
 
     confluenceAdapter.setRestClient(restClient);
-    confluenceAdapter.useTechnicalUser = true;
-    confluenceAdapter.userName = TEST_USER_NAME;
-    confluenceAdapter.userPassword = TEST_USER_PASSWORD;
+    confluenceAdapter.setUseTechnicalUser(true);
+    confluenceAdapter.setUserName(TEST_USER_NAME);
+    confluenceAdapter.setUserPassword(TEST_USER_PASSWORD);
 
     ConfluenceAdapter spyAdapter = Mockito.spy(confluenceAdapter);
 
     OpenProjectData project = new OpenProjectData();
-    project.projectKey = "PKEY";
+    project.setProjectKey("PKEY");
 
     IOException ioException = new IOException("throw in unit test");
     try {
@@ -234,7 +223,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getCause().getCause().getMessage().contains(ioException.getMessage()));
       assertTrue(e.getMessage().contains(ConfluenceAdapter.ADAPTER_NAME));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
 
     NullPointerException npe = new NullPointerException("npe throw in unit test");
@@ -246,7 +235,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
 
     } catch (CreateProjectPreconditionException e) {
       assertTrue(e.getMessage().contains("Unexpected error"));
-      assertTrue(e.getMessage().contains(project.projectKey));
+      assertTrue(e.getMessage().contains(project.getProjectKey()));
     }
   }
 
@@ -269,7 +258,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
       checkProjectKeyExists.apply(new ArrayList<>());
       fail();
     } catch (Exception e) {
-      assertTrue(IllegalArgumentException.class.isInstance(e));
+      assertTrue(e instanceof IllegalArgumentException);
     }
 
     // Case IOException throw from rest client!
