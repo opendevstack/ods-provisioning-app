@@ -132,7 +132,9 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any());
 
-    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData)
+        .when(spyAdapter)
+        .callCreateRepoApi(anyString(), any(Repository.class), eq(projectData.getCdUser()));
 
     Map<String, Map<URL_TYPE, String>> result =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
@@ -173,7 +175,9 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     Mockito.doNothing()
         .when(spyAdapter)
         .createWebHooksForRepository(repoData, projectData, "testComponent");
-    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData)
+        .when(spyAdapter)
+        .callCreateRepoApi(anyString(), any(Repository.class), eq(projectData.getCdUser()));
 
     Map<String, Map<URL_TYPE, String>> result =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
@@ -209,7 +213,9 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repoData.setLinks(links);
 
     Mockito.doNothing().when(spyAdapter).createWebHooksForRepository(any(), any(), any());
-    doReturn(repoData).when(spyAdapter).callCreateRepoApi(anyString(), any(Repository.class));
+    doReturn(repoData)
+        .when(spyAdapter)
+        .callCreateRepoApi(anyString(), any(Repository.class), eq(projectData.getCdUser()));
 
     Map<String, Map<URL_TYPE, String>> actual =
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
@@ -324,7 +330,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repo.setForkable(true);
     String projectKey = "testkey";
     String basePath = "http://192.168.56.31:7990/rest/api/1.0";
-    String uri = "http://192.168.56.31:7990/rest/api/1.0/testkey/repos";
+    String cdUser = "testCdUser";
 
     RepositoryData expected = new RepositoryData();
 
@@ -334,13 +340,13 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     Mockito.doNothing().when(spyAdapter).setRepositoryAdminPermissions(any(), any(), any(), any());
 
-    RepositoryData actual = spyAdapter.callCreateRepoApi(projectKey, repo);
+    RepositoryData actual = spyAdapter.callCreateRepoApi(projectKey, repo, cdUser);
 
     verify(spyAdapter)
         .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("groups"), any());
 
     verify(spyAdapter)
-        .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());
+        .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), eq(cdUser));
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     assertEquals(expected, actual);
@@ -353,20 +359,20 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData projectData = new OpenProjectData();
     projectData.repositories = new HashMap<>();
     projectData.projectKey = "12423qtr";
-    String crowdCookieValue = "cookieValue";
     String[] auxRepos = new String[] {"auxrepo1", "auxrepo2"};
 
     Repository repo1 = new Repository();
     repo1.setName(String.format("%s-%s", projectData.projectKey.toLowerCase(), "auxrepo1"));
 
-    Repository repo2 = new Repository();
     repo1.setName(String.format("%s-%s", projectData.projectKey.toLowerCase(), "auxrepo2"));
 
     RepositoryData repoData1 = new RepositoryData();
     repoData1.setName("repoData1");
     repoData1.setLinks(generateRepoLinks(new String[] {"link1", "link2"}));
 
-    doReturn(repoData1).when(spyAdapter).callCreateRepoApi(any(), any());
+    doReturn(repoData1)
+        .when(spyAdapter)
+        .callCreateRepoApi(any(), any(), eq(projectData.getCdUser()));
 
     spyAdapter.createAuxiliaryRepositoriesForODSProject(projectData, auxRepos);
     Map<String, Map<URL_TYPE, String>> actual;
@@ -431,6 +437,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData data = new OpenProjectData();
     data.quickstarters = getReturnQuickstarters();
     data.projectKey = "testkey";
+    data.cdUser = "testCUser";
     return data;
   }
 
@@ -609,6 +616,50 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     } catch (CreateProjectPreconditionException e) {
       Assert.assertTrue(e.getMessage().contains("Unexpected error"));
       Assert.assertTrue(e.getMessage().contains(project.projectKey));
+    }
+  }
+
+  @Test
+  public void givenCreateComponentRepository_whenCDUserIsMissing_thenDefaultCDAddedToRepo() {
+
+    String defaultCdUser = "defaultCdUser";
+    OpenProjectData project = new OpenProjectData();
+    project.setCdUser(null);
+
+    String resolved =
+        BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(project, defaultCdUser);
+    Assert.assertEquals(defaultCdUser, resolved);
+  }
+
+  @Test
+  public void
+      givenCreateComponentRepository_whenCDUserIsNotMissing_thenProjectCDUserIsAddedToRepo() {
+
+    String defaultCdUser = "defaultCdUser";
+    OpenProjectData project = new OpenProjectData();
+    String passedCdUser = "passedCdUser";
+    project.setCdUser(passedCdUser);
+
+    String resolved =
+        BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(project, defaultCdUser);
+    Assert.assertEquals(passedCdUser, resolved);
+  }
+
+  @Test
+  public void givneResolveToDefaultIfCDUserMissingInProject_whenParameterIsNull_ThenError() {
+
+    try {
+      BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(null, "notNull");
+      fail();
+    } catch (IllegalArgumentException e) {
+      // Expected
+    }
+
+    try {
+      BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(new OpenProjectData(), null);
+      fail();
+    } catch (IllegalArgumentException e) {
+      // Expected
     }
   }
 }
