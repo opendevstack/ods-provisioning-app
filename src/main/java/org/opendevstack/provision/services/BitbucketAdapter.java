@@ -128,8 +128,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   public static final String BITBUCKET_API_ADMIN_USERS_PATTERN =
       BASE_PATTERN + BITBUCKET_API_ADMIN_USERS;
 
-  private static final String ID_GROUPS = "groups";
-  private static final String ID_USERS = "users";
+  public static final String ID_GROUPS = "groups";
+  public static final String ID_USERS = "users";
 
   public enum PROJECT_PERMISSIONS {
     PROJECT_ADMIN,
@@ -480,7 +480,10 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         Map<URL_TYPE, String> componentRepository = null;
 
         try {
-          RepositoryData result = callCreateRepoApi(project.projectKey, repo);
+          String cdUser =
+              BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(project, technicalUser);
+
+          RepositoryData result = callCreateRepoApi(project.projectKey, repo, cdUser);
           createWebHooksForRepository(
               result, project, option.get(OpenProjectData.COMPONENT_TYPE_KEY));
 
@@ -516,6 +519,18 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     return createdRepositories;
   }
 
+  public static String resolveToDefaultIfCDUserMissingInProject(
+      OpenProjectData project, String defaultCDUser) {
+    Assert.notNull(project, "Parameter 'project' is null!");
+    Assert.notNull(defaultCDUser, "Parameter 'defaultCDUser' is null!");
+
+    if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
+      return project.cdUser;
+    } else {
+      return defaultCDUser;
+    }
+  }
+
   @Override
   public Map<String, Map<URL_TYPE, String>> createAuxiliaryRepositoriesForODSProject(
       OpenProjectData project, String[] auxiliaryRepos) {
@@ -534,7 +549,10 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       }
 
       try {
-        RepositoryData result = callCreateRepoApi(project.projectKey, repo);
+        String cdUser =
+            BitbucketAdapter.resolveToDefaultIfCDUserMissingInProject(project, technicalUser);
+
+        RepositoryData result = callCreateRepoApi(project.projectKey, repo, cdUser);
         repositories.put(result.getName(), result.convertRepoToOpenDataProjectRepo());
       } catch (IOException ex) {
         logger.error("Error in creating auxiliary repo", ex);
@@ -643,7 +661,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     return projectData;
   }
 
-  protected RepositoryData callCreateRepoApi(String projectKey, Repository repo)
+  protected RepositoryData callCreateRepoApi(String projectKey, Repository repo, String cdUser)
       throws IOException {
     String path = String.format("%s/%s/repos", getAdapterApiUri(), projectKey);
 
@@ -657,7 +675,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
               repo.getName(), projectKey));
     }
     setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
-    setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
+    setRepositoryWritePermissions(data, projectKey, ID_USERS, cdUser);
     if (grantRepositoryWriteToAllOpenDevStackUsers) {
       logger.info(
           "Grant write to every member of {} to repository {}",

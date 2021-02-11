@@ -269,4 +269,12 @@ public class OpenProjectData {
   public void setSpecialPermissionSet(boolean specialPermissionSet) {
     this.specialPermissionSet = specialPermissionSet;
   }
+
+  public String getCdUser() {
+    return cdUser;
+  }
+
+  public void setCdUser(String cdUser) {
+    this.cdUser = cdUser;
+  }
 }
