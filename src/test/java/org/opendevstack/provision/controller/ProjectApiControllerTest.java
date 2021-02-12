@@ -109,6 +109,9 @@ public class ProjectApiControllerTest {
   @Value("${idmanager.group.opendevstack-administrators}")
   private String roleAdmin;
 
+  @Value("${bitbucket.technical.user}")
+  private String defaultCDUser;
+
   private MockMvc mockMvc;
 
   private OpenProjectData data;
@@ -789,6 +792,8 @@ public class ProjectApiControllerTest {
         .thenReturn(collaborationSpaceURL);
 
     OpenProjectData projectSCM = copyFromProject(data);
+    String projectCdUser = "projectCdUser";
+    data.setCdUser(projectCdUser);
 
     projectSCM.scmvcsUrl = "scmspace";
 
@@ -829,7 +834,8 @@ public class ProjectApiControllerTest {
         .andDo(MockMvcResultHandlers.print());
 
     Mockito.verify(jenkinsPipelineAdapter, times(1)).createPlatformProjects(isNotNull());
-    Mockito.verify(bitbucketAdapter, times(1)).createSCMProjectForODSProject(isNotNull());
+    Mockito.verify(bitbucketAdapter, times(1))
+        .createSCMProjectForODSProject(argThat(arg -> arg.getCdUser().equals(projectCdUser)));
 
     // upgrade to OC with upgrade forbidden
     data.platformRuntime = false;

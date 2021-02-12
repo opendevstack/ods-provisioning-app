@@ -179,4 +179,12 @@ public class OpenProjectData {
 
     return Collections.unmodifiableSet(groups);
   }
+
+  public String getCdUser() {
+    return cdUser;
+  }
+
+  public void setCdUser(String cdUser) {
+    this.cdUser = cdUser;
+  }
 }
