@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))
+
 ## [3.0] - 2020-08-11
 
 ### Added

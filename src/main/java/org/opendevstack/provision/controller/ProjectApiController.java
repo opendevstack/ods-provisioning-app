@@ -392,6 +392,8 @@ public class ProjectApiController {
       updatedProject.projectName = storedExistingProject.projectName;
       updatedProject.webhookProxySecret = storedExistingProject.webhookProxySecret;
 
+      updatedProject.setCdUser(storedExistingProject.getCdUser());
+
       // add the scm url & bugtracker space bool
       updatedProject.scmvcsUrl = storedExistingProject.scmvcsUrl;
       updatedProject.bugtrackerSpace = storedExistingProject.bugtrackerSpace;
