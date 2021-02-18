@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.services.openshift.OpenshiftClient;

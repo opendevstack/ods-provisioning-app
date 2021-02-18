@@ -33,9 +33,9 @@ public class BaseServiceAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseServiceAdapter.class);
 
-  boolean useTechnicalUser;
-  protected String userName;
-  protected String userPassword;
+  private boolean useTechnicalUser;
+  private String userName;
+  private String userPassword;
   private final String configurationPrefix;
 
   @Autowired IODSAuthnzAdapter manager;
@@ -129,5 +129,21 @@ public class BaseServiceAdapter {
 
   public RestClient getRestClient() {
     return restClient;
+  }
+
+  public boolean isUseTechnicalUser() {
+    return useTechnicalUser;
+  }
+
+  public void setUseTechnicalUser(boolean useTechnicalUser) {
+    this.useTechnicalUser = useTechnicalUser;
+  }
+
+  public void setUserName(String userName) {
+    this.userName = userName;
+  }
+
+  public void setUserPassword(String userPassword) {
+    this.userPassword = userPassword;
   }
 }

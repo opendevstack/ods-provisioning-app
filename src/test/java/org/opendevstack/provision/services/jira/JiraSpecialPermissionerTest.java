@@ -159,7 +159,7 @@ public class JiraSpecialPermissionerTest {
       String projectKey, String projectRole, Integer schemeId, String projectTemplateType) {
     OpenProjectData project = new OpenProjectData();
     project.setProjectKey(projectKey);
-    project.projectType = projectTemplateType;
+    project.setProjectType(projectTemplateType);
     project.setProjectAdminGroup("adminGroup");
     project.setProjectUserGroup("userGroup");
     project.setProjectReadonlyGroup("readonlyGroup");

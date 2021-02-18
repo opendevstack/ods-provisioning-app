@@ -2,10 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { AuthenticationService } from '../authentication/services/authentication.service';
 
 @Injectable()
 export class HttpRequestInterceptor implements HttpInterceptor {
-  constructor() {}
+  constructor(private router: Router, private authenticationService: AuthenticationService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const credentials = {
@@ -17,15 +19,17 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     switch (req.method) {
       case 'PUT':
       case 'POST':
-        httpOptions = {
-          ...credentials,
-          headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
-        };
+        if (req.url != "/j_security_check") {
+          httpOptions = {
+            ...credentials,
+            headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
+          };
+        }
         break;
       case 'GET':
         httpOptions = {
           ...credentials,
-          headers: new HttpHeaders().set('Accept', 'application/json; charset=UTF-8')
+          headers: req.headers.append('Accept', 'application/json; charset=UTF-8')
         };
         break;
       default:
@@ -36,8 +40,13 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        // TODO
-        // - Send error to logging service (backend + browser console <- based on env setting
+        if (error.status === 401) {
+          const route = !this.authenticationService.sso ? 'login' : '';
+          this.router.navigateByUrl(`/${route}`);
+        }
+
+        // TODO Improvement idea:
+        // - Send error to backend logging service
         // - Eventually show error details in a modal dialog in the browser (based on an env setting)
         console.error('HttpRequestInterceptor: HTTP Error', error);
 

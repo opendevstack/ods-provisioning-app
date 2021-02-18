@@ -4,13 +4,13 @@
       <div class="logo">
         <h1>ODS Provisioning</h1>
       </div>
-      <div class="user-area" [hidden]="router.url.indexOf('/logout') !== -1">
+      <div class="user-area" *ngIf="showLogoutButton()">
         <div class="user-area__logout">
           <a
             mat-mini-fab
             class="logout-btn"
             title="Logout"
-            [routerLink]="'logout'"
+            [routerLink]="'do-logout'"
             data-test-logout-btn>
             <mat-icon svgIcon="power" aria-hidden="false" aria-label="'Logout'"></mat-icon>
           </a>
@@ -34,8 +34,7 @@
 
     <ng-container *ngIf="!isError; else globalError">
       <div class="container">
-
-        <div class="sidebar">
+        <div class="sidebar" *ngIf="!hideSidebar">
           <app-sidebar
             [projects]="projects"
             [isNewProjectFormActive]="isNewProjectFormActive"

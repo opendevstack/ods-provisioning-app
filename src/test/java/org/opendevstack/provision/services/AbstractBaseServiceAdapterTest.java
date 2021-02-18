@@ -2,7 +2,6 @@ package org.opendevstack.provision.services;
 
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.verification.VerificationMode;
 import org.opendevstack.provision.util.RestClientCallArgumentMatcher;
@@ -22,7 +21,6 @@ public abstract class AbstractBaseServiceAdapterTest {
 
   @BeforeEach
   public void beforeTest() {
-    MockitoAnnotations.initMocks(this);
     mockHelper = new RestClientMockHelper(restClient);
   }
 

@@ -53,7 +53,7 @@ public class CrowdAuthenticationManagerTest {
   @SuppressWarnings("squid:S2068")
   static final String TEST_CRED = "test";
 
-  @Autowired CrowdAuthenticationManager manager;
+  @Autowired private CrowdAuthenticationManager manager;
 
   @Mock private SecurityServerClient securityServerClient;
 

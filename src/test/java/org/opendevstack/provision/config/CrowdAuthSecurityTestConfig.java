@@ -11,66 +11,34 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.opendevstack.provision.authentication.crowd;
+package org.opendevstack.provision.config;
+
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.TEST_VALID_CREDENTIAL;
 
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Configuration of BasicAuth for testing purposes.
- *
- * <p>Never move it to src/main/java folder!
- */
 @Configuration
+@Profile("utestcrowd")
 @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "utestcrowd")
 public class CrowdAuthSecurityTestConfig {
-
-  public static final String TEST_USER_USERNAME = "user";
-  public static final String TEST_ADMIN_USERNAME = "admin";
-  public static final String TEST_NOT_PERMISSIONED_USER_USERNAME = "not-permissioned-user";
-  public static final String TEST_REALM = "test-realm";
-  public static final String TEST_VALID_CREDENTIAL = "validsecret";
-
-  @Value("${idmanager.group.opendevstack-users}")
-  private String roleUser;
-
-  @Value("${idmanager.group.opendevstack-administrators}")
-  private String roleAdmin;
 
   @Bean
   public AuthenticationProvider authenticationProvider(
       @Qualifier("testUsersAndRoles") @Autowired Map<String, String> testUsersAndRoles) {
-    TestingAuthenticationProvider provider = new TestingAuthenticationProvider(testUsersAndRoles);
-    return provider;
-  }
-
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-
-  @Bean(name = "testUsersAndRoles")
-  public Map<String, String> testUsersAndRoles() {
-    Map<String, String> users = new HashMap<>();
-    users.put(TEST_USER_USERNAME, roleUser);
-    users.put(TEST_ADMIN_USERNAME, roleAdmin);
-    users.put(TEST_NOT_PERMISSIONED_USER_USERNAME, "not-opendevstack-user");
-    return users;
+    return new TestingAuthenticationProvider(testUsersAndRoles);
   }
 
   private class TestingAuthenticationProvider
@@ -98,18 +66,10 @@ public class CrowdAuthSecurityTestConfig {
           return null;
         }
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(
-                authentication.getPrincipal(),
-                authentication.getCredentials(),
-                List.of(
-                    new GrantedAuthority() {
-                      @Override
-                      public String getAuthority() {
-                        return users.get(username);
-                      }
-                    }));
-        return authenticationToken;
+        return new UsernamePasswordAuthenticationToken(
+            authentication.getPrincipal(),
+            authentication.getCredentials(),
+            List.of((GrantedAuthority) () -> users.get(username)));
       }
     }
 

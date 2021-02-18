@@ -19,7 +19,6 @@ import { QuickstarterListComponent } from './components/quickstarter-list.compon
 import { QuickstarterAddComponent } from './components/quickstarter-add.component';
 import { ProjectModule } from '../project/project.module';
 import { ConfirmationModule } from '../confirmation/confirmation.module';
-import { CustomErrorHandlerModule } from '../error-handler/custom-error-handler.module';
 
 @NgModule({
   declarations: [ProjectPageComponent, ProjectHeaderComponent, QuickstarterListComponent, QuickstarterAddComponent],
@@ -31,7 +30,6 @@ import { CustomErrorHandlerModule } from '../error-handler/custom-error-handler.
         component: ProjectPageComponent
       }
     ]),
-    CustomErrorHandlerModule,
     ProjectModule,
     LoadingIndicatorModule,
     MatIconModule,

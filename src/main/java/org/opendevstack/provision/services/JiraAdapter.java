@@ -85,7 +85,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   public String jiraTemplateKey;
 
   @Value("${jira.project.template.type}")
-  public String jiraTemplateType;
+  private String jiraTemplateType;
 
   @Value("${jira.project.notification.scheme.id:10000}")
   private String jiraNotificationSchemeId;
@@ -127,17 +127,17 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     } catch (HttpException jiracreateException) {
       logger.debug(
           "error creating project with template {}: {}",
-          toBeCreated.projectTemplateKey,
+          toBeCreated.getProjectTemplateKey(),
           jiracreateException.getMessage());
       if (jiracreateException.getResponseCode() == 400) {
         logger.info(
             "Template {} did not work, falling back to default {}",
-            toBeCreated.projectTemplateKey,
+            toBeCreated.getProjectTemplateKey(),
             jiraTemplateKey);
-        toBeCreated.projectTypeKey = jiraTemplateType;
-        toBeCreated.projectTemplateKey = jiraTemplateKey;
+        toBeCreated.setProjectTypeKey(jiraTemplateType);
+        toBeCreated.setProjectTemplateKey(jiraTemplateKey);
         created = callJiraCreateProjectApi(toBeCreated);
-        project.projectType = defaultProjectKey;
+        project.setProjectType(defaultProjectKey);
       } else {
         throw jiracreateException;
       }
@@ -195,12 +195,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
   @Override
   public int addShortcutsToProject(OpenProjectData data) {
-    if (!data.bugtrackerSpace) {
+    if (!data.isBugtrackerSpace()) {
       return -1;
     }
 
     String path =
-        String.format("%s/rest/projects/1.0/project/%s/shortcut", jiraUri, data.projectKey);
+        String.format("%s/rest/projects/1.0/project/%s/shortcut", jiraUri, data.getProjectKey());
 
     List<Shortcut> shortcuts = new ArrayList<>();
 
@@ -210,8 +210,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     if (confluenceAdapterEnable) {
       Shortcut shortcutConfluence = new Shortcut();
       shortcutConfluence.setId("" + id++);
-      shortcutConfluence.setName("Confluence: " + data.projectKey);
-      shortcutConfluence.setUrl(data.collaborationSpaceUrl);
+      shortcutConfluence.setName("Confluence: " + data.getProjectKey());
+      shortcutConfluence.setUrl(data.getCollaborationSpaceUrl());
       shortcutConfluence.setIcon("");
       shortcuts.add(shortcutConfluence);
     } else {
@@ -220,32 +220,32 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
           confluenceAdapterEnable);
     }
 
-    if (data.platformRuntime) {
+    if (data.isPlatformRuntime()) {
       Shortcut shortcutBB = new Shortcut();
       shortcutBB.setId("" + id++);
-      shortcutBB.setName("GIT: " + data.projectKey);
-      shortcutBB.setUrl(data.scmvcsUrl);
+      shortcutBB.setName("GIT: " + data.getProjectKey());
+      shortcutBB.setUrl(data.getScmvcsUrl());
       shortcutBB.setIcon("");
       shortcuts.add(shortcutBB);
 
       Shortcut shortcutJenkins = new Shortcut();
       shortcutJenkins.setId("" + id++);
       shortcutJenkins.setName("Jenkins");
-      shortcutJenkins.setUrl(data.platformBuildEngineUrl);
+      shortcutJenkins.setUrl(data.getPlatformBuildEngineUrl());
       shortcutJenkins.setIcon("");
       shortcuts.add(shortcutJenkins);
 
       Shortcut shortcutOCDev = new Shortcut();
       shortcutOCDev.setId("" + id++);
-      shortcutOCDev.setName("OC Dev " + data.projectKey);
-      shortcutOCDev.setUrl(data.platformDevEnvironmentUrl);
+      shortcutOCDev.setName("OC Dev " + data.getProjectKey());
+      shortcutOCDev.setUrl(data.getPlatformDevEnvironmentUrl());
       shortcutOCDev.setIcon("");
       shortcuts.add(shortcutOCDev);
 
       Shortcut shortcutOCTest = new Shortcut();
       shortcutOCTest.setId("" + id);
-      shortcutOCTest.setName("OC Test " + data.projectKey);
-      shortcutOCTest.setUrl(data.platformTestEnvironmentUrl);
+      shortcutOCTest.setName("OC Test " + data.getProjectKey());
+      shortcutOCTest.setUrl(data.getPlatformTestEnvironmentUrl());
       shortcutOCTest.setIcon("");
       shortcuts.add(shortcutOCTest);
     }
@@ -301,21 +301,21 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     try {
       logger.info("Creating new jira project [projectKey={}]", project.getProjectKey());
 
-      Preconditions.checkNotNull(project.projectKey);
-      Preconditions.checkNotNull(project.projectName);
+      Preconditions.checkNotNull(project.getProjectKey());
+      Preconditions.checkNotNull(project.getProjectName());
 
-      project.projectAdminUser = resolveProjectAdminUser(project);
+      project.setProjectAdminUser(resolveProjectAdminUser(project));
 
       // This create a project with permission scheme id if any was configured
       LeanJiraProject newJiraProject = createProjectInJira(project);
       logger.debug("Created project: {}", newJiraProject);
 
-      project.bugtrackerUrl = String.format("%s/browse/%s", jiraUri, newJiraProject.getKey());
+      project.setBugtrackerUrl(String.format("%s/browse/%s", jiraUri, newJiraProject.getKey()));
 
       addSpecialPermission(project);
 
       addWebhookProxyUrlToJiraProject(
-          project.projectKey, project.getProjectType(), project.webhookProxySecret);
+          project.getProjectKey(), project.getProjectType(), project.getWebhookProxySecret());
 
       return project;
     } catch (IOException eCreationException) {
@@ -339,7 +339,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     } else {
       logger.info(
           "Ignoring special permission set action for project because is disabled by configuration! [projectKey={},jira.specialpermissionschema.enabled={}]",
-          project.projectKey,
+          project.getProjectKey(),
           isSpecialPermissionSchemeEnabled());
     }
   }
@@ -370,12 +370,12 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
   }
 
   public String resolveProjectAdminUser(OpenProjectData project) {
-    if (!(project.specialPermissionSet && isSpecialPermissionSchemeEnabled())
-        || project.projectAdminUser == null
-        || project.projectAdminUser.trim().length() == 0) {
+    if (!(project.isSpecialPermissionSet() && isSpecialPermissionSchemeEnabled())
+        || project.getProjectAdminUser() == null
+        || project.getProjectAdminUser().trim().length() == 0) {
       return getUserName();
     } else {
-      return project.projectAdminUser;
+      return project.getProjectAdminUser();
     }
   }
 
@@ -388,13 +388,13 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         PROJECT_TEMPLATE.TEMPLATE_KEY,
         jiraProjectTypePropertyCalculator
             .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-                project.projectType, JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
+                project.getProjectType(), JiraAdapter.JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey));
 
     template.put(
         PROJECT_TEMPLATE.TEMPLATE_TYPE_KEY,
         jiraProjectTypePropertyCalculator
             .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-                project.projectType, JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
+                project.getProjectType(), JiraAdapter.JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType));
 
     return template;
   }
@@ -407,17 +407,17 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
       return new HashMap<>();
     }
     Preconditions.checkNotNull(data, "data input cannot be null");
-    Preconditions.checkNotNull(data.projectKey, "project key cannot be null");
+    Preconditions.checkNotNull(data.getProjectKey(), "project key cannot be null");
     String path = String.format("%s%s/component", jiraUri, jiraApiPath);
 
     Map<String, String> createdComponents = new HashMap<>();
 
-    Map<String, Map<URL_TYPE, String>> repositories = data.repositories;
+    Map<String, Map<URL_TYPE, String>> repositories = data.getRepositories();
     if (repositories != null) {
       for (Entry<String, Map<URL_TYPE, String>> repo : repositories.entrySet()) {
         String href = repo.getValue().get(URL_TYPE.URL_BROWSE_HTTP);
 
-        logger.debug("Found repo {} {} for project {} ", repo.getKey(), href, data.projectKey);
+        logger.debug("Found repo {} {} for project {} ", repo.getKey(), href, data.getProjectKey());
 
         if (exclusions != null && exclusions.contains(repo.getKey())) {
           logger.debug(
@@ -432,8 +432,9 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
         Component component = new Component();
         component.setName(
             String.format(
-                "Technology%s", repo.getKey().replaceFirst(data.projectKey.toLowerCase(), "")));
-        component.setProject(data.projectKey);
+                "Technology%s",
+                repo.getKey().replaceFirst(data.getProjectKey().toLowerCase(), "")));
+        component.setProject(data.getProjectKey());
         component.setDescription(
             String.format("Technology component %s stored at %s", repo.getKey(), href));
         try {
@@ -471,41 +472,48 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
     if (stage.equals(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION)
-        || (!project.bugtrackerSpace && project.bugtrackerUrl == null)) {
-      logger.debug("Project {} not affected from cleanup", project.projectKey);
+        || (!project.isBugtrackerSpace() && project.getBugtrackerUrl() == null)) {
+      logger.debug("Project {} not affected from cleanup", project.getProjectKey());
       return leftovers;
     }
     String jiraProjectPath =
         String.format(
-            JiraRestApi.JIRA_API_PROJECT_FILTER_PATTERN, jiraUri, jiraApiPath, project.projectKey);
+            JiraRestApi.JIRA_API_PROJECT_FILTER_PATTERN,
+            jiraUri,
+            jiraApiPath,
+            project.getProjectKey());
 
     logger.debug(
-        "Cleaning up bugtracker space: {} with url {}", project.projectKey, project.bugtrackerUrl);
+        "Cleaning up bugtracker space: {} with url {}",
+        project.getProjectKey(),
+        project.getBugtrackerUrl());
 
     try {
       RestClientCall callJiraProjectDelete = httpDelete().url(jiraProjectPath).returnType(null);
       getRestClient().execute(callJiraProjectDelete);
 
-      project.bugtrackerUrl = null;
+      project.setBugtrackerUrl(null);
     } catch (Exception cex) {
       logger.error(
-          "Could not clean up jira project {} error: {}", project.projectKey, cex.getMessage());
+          "Could not clean up jira project {} error: {}",
+          project.getProjectKey(),
+          cex.getMessage());
       leftovers.put(CLEANUP_LEFTOVER_COMPONENTS.BUGTRACKER_PROJECT, 1);
     }
 
     try {
-      if (project.specialPermissionSet) {
+      if (project.isSpecialPermissionSet()) {
         String permissionSchemeUrl = String.format("%s/permissionscheme", jiraProjectPath);
 
         RestClientCall callGetScheme =
             httpGet().url(permissionSchemeUrl).returnType(PermissionSchemeResponse.class);
         PermissionSchemeResponse permissionScheme = getRestClient().execute(callGetScheme);
-        if (permissionScheme.getName().contains(project.projectKey)) {
+        if (permissionScheme.getName().contains(project.getProjectKey())) {
           logger.debug(
               "Cleaning up permissionset {} {} - for project: {}",
               permissionScheme.getId(),
               permissionScheme.getName(),
-              project.projectKey);
+              project.getProjectKey());
         } else {
           logger.debug(
               "NOT Cleaning up permissionset {} {}, because it's a standard one",
@@ -526,7 +534,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     } catch (Exception cex) {
       logger.error(
           "Could not clean up jira project permission set {} error: {}",
-          project.projectKey,
+          project.getProjectKey(),
           cex.getMessage());
       // the reason to NOT add it to the list here - is that we have check code in
       // #createSpecialPermissions
@@ -564,34 +572,37 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     try {
       Assert.notNull(newProject, "Parameter 'newProject' is null!");
       Assert.notNull(
-          newProject.projectKey, "Properties 'projectKey' of parameter 'newProject' is null!");
+          newProject.getProjectKey(), "Properties 'projectKey' of parameter 'newProject' is null!");
 
-      logger.info("checking create project preconditions for project '{}'!", newProject.projectKey);
+      logger.info(
+          "checking create project preconditions for project '{}'!", newProject.getProjectKey());
 
       List<CheckPreconditionFailure> preconditionFailures =
           createProjectAdminUserExistsCheck(resolveProjectAdminUser(newProject))
               .andThen(createUserCanCreateProjectCheck(getUserName()))
               .andThen(createRequiredGroupExistsCheck(newProject))
               .andThen(
-                  createProjectKeyExistsCheck(newProject.projectKey)
+                  createProjectKeyExistsCheck(newProject.getProjectKey())
                       .andThen(createSpecialPermissionSchemeIdCheck(newProject))
                       .andThen(createRoleExistsCheck(newProject)))
               .apply(new ArrayList<>());
 
       logger.info(
-          "done with check create project preconditions for project '{}'!", newProject.projectKey);
+          "done with check create project preconditions for project '{}'!",
+          newProject.getProjectKey());
 
       return Collections.unmodifiableList(preconditionFailures);
 
     } catch (AdapterException e) {
-      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, e);
+      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.getProjectKey(), e);
     } catch (Exception e) {
       String message =
           String.format(
               "Unexpected error when checking precondition for creation of project '%s'",
-              newProject.projectKey);
+              newProject.getProjectKey());
       logger.error(message, e);
-      throw new CreateProjectPreconditionException(ADAPTER_NAME, newProject.projectKey, message);
+      throw new CreateProjectPreconditionException(
+          ADAPTER_NAME, newProject.getProjectKey(), message);
     }
   }
 
@@ -762,7 +773,7 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     return preconditionFailures -> {
       List<String> groups = new ArrayList<>();
 
-      if (Boolean.TRUE.equals(newProject.specialPermissionSet)) {
+      if (Boolean.TRUE.equals(newProject.isSpecialPermissionSet())) {
         groups.addAll(newProject.specialPermissionSetGroups());
       }
 

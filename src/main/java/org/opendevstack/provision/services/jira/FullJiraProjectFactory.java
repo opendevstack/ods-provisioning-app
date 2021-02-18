@@ -50,12 +50,12 @@ public class FullJiraProjectFactory {
     String templateKey =
         jiraProjectTypePropertyCalculator
             .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-                projectData.projectType, JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
+                projectData.getProjectType(), JIRA_TEMPLATE_KEY_PREFIX, jiraTemplateKey);
 
     String templateType =
         jiraProjectTypePropertyCalculator
             .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
-                projectData.projectType, JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
+                projectData.getProjectType(), JIRA_TEMPLATE_TYPE_PREFIX, jiraTemplateType);
 
     String permissionSchemeId = null;
     if (jiraProjectTemplateProperties
@@ -69,30 +69,30 @@ public class FullJiraProjectFactory {
                   .getPermissionSchemeId());
       logger.info(
           "Found permission scheme id for project type [projectKey={}, projectType={}, permissionSchemeId={}]",
-          projectData.projectKey,
+          projectData.getProjectKey(),
           projectData.getProjectType(),
           permissionSchemeId);
     } else {
       logger.info(
           "No permission scheme id was setup for project type [projectKey={}, projectType={}]",
-          projectData.projectKey,
+          projectData.getProjectKey(),
           jiraTemplateKey);
     }
 
     if (jiraTemplateKey.equals(templateKey)) {
       // TODO: fix this... it is a side effect that could be difficult to find and debug!
-      projectData.projectType = defaultProjectKey;
+      projectData.setProjectType(defaultProjectKey);
     }
 
     logger.debug(
-        "Creating project of type: {} for project: {}", templateKey, projectData.projectKey);
+        "Creating project of type: {} for project: {}", templateKey, projectData.getProjectKey());
 
     return new FullJiraProject(
         null,
-        projectData.projectKey,
-        projectData.projectName,
-        projectData.description,
-        projectData.projectAdminUser,
+        projectData.getProjectKey(),
+        projectData.getProjectName(),
+        projectData.getDescription(),
+        projectData.getProjectAdminUser(),
         templateKey,
         templateType,
         jiraNotificationSchemeId,

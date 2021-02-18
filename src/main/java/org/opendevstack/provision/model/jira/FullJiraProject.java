@@ -31,7 +31,7 @@ import java.net.URI;
 public class FullJiraProject extends LeanJiraProject {
 
   @JsonProperty("lead")
-  public String lead;
+  private String lead;
 
   public FullJiraProject() {
     super(null, null, null, null, null, null, null, null);
@@ -56,6 +56,10 @@ public class FullJiraProject extends LeanJiraProject {
         projectTypeKey,
         notificationSchemeId,
         permissionSchemeId);
+    this.lead = lead;
+  }
+
+  public void setLead(String lead) {
     this.lead = lead;
   }
 }

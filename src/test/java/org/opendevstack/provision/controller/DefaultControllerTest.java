@@ -32,6 +32,7 @@ import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManage
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,11 +41,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
-@ActiveProfiles({"crowd", "utestcrowd", "quickstarters"})
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles({"crowd", "quickstarters"})
 public class DefaultControllerTest {
 
   @MockBean private IJobExecutionAdapter jobExecutionAdapter;
@@ -55,24 +55,16 @@ public class DefaultControllerTest {
 
   @Autowired private DefaultController defaultController;
 
-  @Autowired private WebApplicationContext context;
-
   @Autowired private ISCMAdapter realBitbucketAdapter;
 
   @Autowired private IBugtrackerAdapter realJiraAdapter;
 
   @Autowired private ICollaborationAdapter realConfluenceAdapter;
 
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
   @BeforeEach
   public void setUp() {
-
-    mockMvc =
-        MockMvcBuilders.webAppContextSetup(context)
-            // .apply(SecurityMockMvcConfigurers.springSecurity())
-            .build();
-
     // reset to default value
     defaultController.setSpafrontendEnabled(false);
   }
@@ -194,17 +186,14 @@ public class DefaultControllerTest {
   }
 
   @Test
-  public void testNFERouting() throws Exception {
+  public void givenDefaultControllerRouting_whenKnownRoutes_thenRouteToHome() throws Exception {
 
-    // All routes should serve nfe/index.html when spaFrontEndEnabled equals true
     defaultController.setSpafrontendEnabled(true);
 
     List<String> routes =
         new ArrayList<>(
             List.of(
                 DefaultController.ROUTE_HOME,
-                DefaultController.ROUTE_HOME,
-                DefaultController.ROUTE_NEWFRONTEND,
                 DefaultController.ROUTE_PROVISION,
                 DefaultController.ROUTE_LOGIN,
                 DefaultController.ROUTE_HISTORY,
@@ -217,7 +206,8 @@ public class DefaultControllerTest {
             mockMvc
                 .perform(get(route))
                 .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.redirectedUrl(DefaultController.ROUTE_ROOT));
+                .andExpect(
+                    MockMvcResultMatchers.redirectedUrl(DefaultController.RESOURCE_NFE_INDEX));
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

@@ -145,11 +145,11 @@ public class JiraSpecialPermissioner {
         PermissionScheme singleScheme =
             new ObjectMapper().readValue(permissionFile.getInputStream(), PermissionScheme.class);
 
-        String permissionSchemeName = project.projectKey + " PERMISSION SCHEME";
+        String permissionSchemeName = project.getProjectKey() + " PERMISSION SCHEME";
 
         singleScheme.setName(permissionSchemeName);
 
-        String description = project.description;
+        String description = project.getDescription();
         if (description != null && description.length() > 0) {
           singleScheme.setDescription(description);
         } else {
@@ -161,11 +161,11 @@ public class JiraSpecialPermissioner {
           String group = permission.getHolder().getParameter();
 
           if ("adminGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectAdminGroup);
+            permission.getHolder().setParameter(project.getProjectAdminGroup());
           } else if ("userGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectUserGroup);
+            permission.getHolder().setParameter(project.getProjectUserGroup());
           } else if ("readonlyGroup".equals(group)) {
-            permission.getHolder().setParameter(project.projectReadonlyGroup);
+            permission.getHolder().setParameter(project.getProjectReadonlyGroup());
           } else if ("keyuserGroup".equals(group)) {
             permission.getHolder().setParameter(globalKeyuserRoleName);
           }
@@ -194,7 +194,7 @@ public class JiraSpecialPermissioner {
       // can create / link the set
       logger.error(
           "Could not update jira project permissionset: {} Exception: {} ",
-          project.projectKey,
+          project.getProjectKey(),
           createPermissions.getMessage());
     }
     return;

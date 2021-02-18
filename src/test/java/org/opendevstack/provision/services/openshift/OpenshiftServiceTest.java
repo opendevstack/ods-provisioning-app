@@ -20,24 +20,21 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opendevstack.provision.adapter.exception.AdapterException;
 import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@DirtiesContext
-@ActiveProfiles("utest")
+@ExtendWith(MockitoExtension.class)
 public class OpenshiftServiceTest {
 
-  @MockBean private OpenshiftClient openshiftClient;
+  @InjectMocks private OpenshiftService openshiftService;
 
-  @Autowired private OpenshiftService openshiftService;
+  @Mock private OpenshiftClient openshiftClient;
 
   @BeforeEach
   public void setup() {

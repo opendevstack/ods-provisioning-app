@@ -1,0 +1,66 @@
+<div class="page">
+  <ng-container *ngIf="isLoading">
+    <app-loading-indicator></app-loading-indicator>
+  </ng-container>
+
+  <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="intendFormSubmit()" novalidate id="form">
+  <div class="box">
+    <div class="page__header">
+      <h3 class="mat-h3">Login</h3>
+    </div>
+    <div class="page__content">
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="formfield__input">
+            <mat-label>Username</mat-label>
+            <input
+              matInput
+              placeholder="Username"
+              formControlName="username"
+              appRemoveWhitespaces
+              maxlength="80"
+              required
+              data-test-input-username />
+          </mat-form-field>
+          <mat-error
+            class="formfield__error"
+            *ngIf="hasErrorByType(form.get('username'), 'required')">
+            Username is required
+          </mat-error>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="formfield__input">
+            <mat-label>Password</mat-label>
+            <input
+              type="password"
+              matInput
+              placeholder="Password"
+              formControlName="password"
+              appRemoveWhitespaces
+              maxlength="80"
+              required
+              data-test-input-password />
+          </mat-form-field>
+          <mat-error
+            class="formfield__error"
+            *ngIf="hasErrorByType(form.get('password'), 'required')">
+            Password is required
+          </mat-error>
+        </div>
+      </div>
+    </div>
+
+    <div class="page__footer">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center">
+        <div class="error">
+          <p *ngIf="isLoginError">Login failed. Please check your credentials and try again.</p>
+        </div>
+        <button type="submit" mat-raised-button color="accent" [disabled]="!form.valid">Login</button>
+      </div>
+    </div>
+
+  </div>
+  </form>
+</div>
