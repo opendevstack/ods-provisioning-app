@@ -118,7 +118,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
       logger.info("Added Basic Auth entry point!");
       sec.httpBasic()
           .realmName(crowdApplicationName)
-          .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.OK));
+          .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
     }
 
     sec.addFilter(crowdSSOAuthenticationProcessingFilter())
