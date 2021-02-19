@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionListener;
 import net.sf.ehcache.CacheManager;
 import org.jetbrains.annotations.NotNull;
-import org.opendevstack.provision.authentication.FormBasedEntryPoint;
 import org.opendevstack.provision.authentication.ProvAppHttpSessionListener;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
@@ -57,15 +56,13 @@ import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -121,7 +118,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
       logger.info("Added Basic Auth entry point!");
       sec.httpBasic()
           .realmName(crowdApplicationName)
-          .authenticationEntryPoint(new FormBasedEntryPoint());
+          .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.OK));
     }
 
     sec.addFilter(crowdSSOAuthenticationProcessingFilter())
