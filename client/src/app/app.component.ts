@@ -69,15 +69,6 @@ export class AppComponent implements OnInit {
     return this.authenticationService.sso;
   }
 
-  showLogoutButton() {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart && (event.url === 'login' || event.url === 'logout')) {
-        return false;
-      }
-      return !this.isSsoActive();
-    });
-  }
-
   getEditModeStatus() {
     this.editMode.getEditModeFlag.subscribe((editMode: EditModeFlag) => {
       if (editMode.enabled) {

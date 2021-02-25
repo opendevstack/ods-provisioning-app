@@ -30,7 +30,7 @@ const routes: Routes = [
     loadChildren: () => import('../login/login.module').then(m => m.LoginModule)
   },
   {
-    path: 'do-logout',
+    path: 'logout',
     loadChildren: () => import('../logout/logout.module').then(m => m.LogoutModule)
   },
   {

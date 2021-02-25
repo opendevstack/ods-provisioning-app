@@ -4,13 +4,13 @@
       <div class="logo">
         <h1>ODS Provisioning</h1>
       </div>
-      <div class="user-area" *ngIf="showLogoutButton()">
+      <div class="user-area" [hidden]>
         <div class="user-area__logout">
           <a
             mat-mini-fab
             class="logout-btn"
             title="Logout"
-            [routerLink]="'do-logout'"
+            [routerLink]="'logout'"
             data-test-logout-btn>
             <mat-icon svgIcon="power" aria-hidden="false" aria-label="'Logout'"></mat-icon>
           </a>

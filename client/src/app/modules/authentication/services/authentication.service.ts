@@ -23,15 +23,14 @@ export class AuthenticationService {
   }
 
   login(username: string, password: string): any {
-
-    let formData: FormData = new FormData()
-    formData.append("username", username);
-    formData.append("password", password);
+    let formData: FormData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
 
     const headers = new HttpHeaders();
     headers.append('Content-Type', 'multipart/form-data');
 
-    return this.httpClient.post<any>(this.apiAuthUrl, formData, {headers: headers});
+    return this.httpClient.post<any>(this.apiAuthUrl, formData, { headers: headers });
   }
 
   logout(): any {
