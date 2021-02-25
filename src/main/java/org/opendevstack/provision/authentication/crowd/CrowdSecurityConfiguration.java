@@ -244,14 +244,11 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   public static void logSuccessAuthentication(Authentication authentication) {
     try {
-      String username = null;
-
       if (authentication.getPrincipal() instanceof CrowdUserDetails) {
         CrowdUserDetails userDetails = (CrowdUserDetails) authentication.getPrincipal();
-        username = userDetails.getUsername();
+        String username = userDetails.getUsername();
+        logger.info("Successful authentication [username=" + username + "]");
       }
-
-      logger.info("Successful authentication [username=" + username + "]");
 
     } catch (Exception ex) {
       logger.debug("Error trying to resolve username of expired session!", ex);
