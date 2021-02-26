@@ -19,7 +19,7 @@ export class HttpRequestInterceptor implements HttpInterceptor {
     switch (req.method) {
       case 'PUT':
       case 'POST':
-        if (req.url != "/j_security_check") {
+        if (req.url != '/j_security_check') {
           httpOptions = {
             ...credentials,
             headers: new HttpHeaders().set('Content-Type', 'application/json; charset=UTF-8')
@@ -40,10 +40,7 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          const route = !this.authenticationService.sso ? 'login' : '';
-          this.router.navigateByUrl(`/${route}`);
-        }
+        this.router.navigateByUrl(this.authenticationService.sso ? '/' : '/login');
 
         // TODO Improvement idea:
         // - Send error to backend logging service
