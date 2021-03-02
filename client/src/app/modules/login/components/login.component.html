@@ -9,47 +9,39 @@
       <h3 class="mat-h3">Login</h3>
     </div>
     <div class="page__content">
-      <div class="row">
-        <div class="col">
-          <mat-form-field class="formfield__input">
-            <mat-label>Username</mat-label>
-            <input
-              matInput
-              placeholder="Username"
-              formControlName="username"
-              appRemoveWhitespaces
-              maxlength="80"
-              required
-              data-test-input-username />
-          </mat-form-field>
-          <mat-error
-            class="formfield__error"
-            *ngIf="hasErrorByType(form.get('username'), 'required')">
-            Username is required
-          </mat-error>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <mat-form-field class="formfield__input">
-            <mat-label>Password</mat-label>
-            <input
-              type="password"
-              matInput
-              placeholder="Password"
-              formControlName="password"
-              appRemoveWhitespaces
-              maxlength="80"
-              required
-              data-test-input-password />
-          </mat-form-field>
-          <mat-error
-            class="formfield__error"
-            *ngIf="hasErrorByType(form.get('password'), 'required')">
-            Password is required
-          </mat-error>
-        </div>
-      </div>
+      <mat-form-field class="formfield__input">
+        <mat-label>Username</mat-label>
+        <input
+          matInput
+          placeholder="Username"
+          formControlName="username"
+          appRemoveWhitespaces
+          maxlength="80"
+          required
+          data-test-input-username />
+      </mat-form-field>
+      <mat-error
+        class="formfield__error"
+        *ngIf="hasErrorByType(form.get('username'), 'required')">
+        Username is required
+      </mat-error>
+      <mat-form-field class="formfield__input">
+        <mat-label>Password</mat-label>
+        <input
+          type="password"
+          matInput
+          placeholder="Password"
+          formControlName="password"
+          appRemoveWhitespaces
+          maxlength="80"
+          required
+          data-test-input-password />
+      </mat-form-field>
+      <mat-error
+        class="formfield__error"
+        *ngIf="hasErrorByType(form.get('password'), 'required')">
+        Password is required
+      </mat-error>
     </div>
 
     <div class="page__footer">

@@ -40,7 +40,9 @@ export class HttpRequestInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        this.router.navigateByUrl(this.authenticationService.sso ? '/' : '/login');
+        if (error.status === 401) {
+          this.router.navigateByUrl(this.authenticationService.sso ? '/' : '/login');
+        }
 
         // TODO Improvement idea:
         // - Send error to backend logging service

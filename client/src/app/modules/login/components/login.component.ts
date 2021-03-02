@@ -1,5 +1,4 @@
-import { Component, OnDestroy, OnInit, Renderer2 } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { FormBaseComponent } from '../../app-form/components/form-base.component';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthenticationService } from '../../authentication/services/authentication.service';
@@ -11,9 +10,7 @@ import { Router } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent extends FormBaseComponent implements OnInit, OnDestroy {
-  destroy$ = new Subject<boolean>();
-
+export class LoginComponent extends FormBaseComponent implements OnInit {
   isLoading: boolean;
   isLoginError = false;
 
@@ -38,11 +35,6 @@ export class LoginComponent extends FormBaseComponent implements OnInit, OnDestr
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.unsubscribe();
-  }
-
   private initializeFormGroup(): void {
     this.form = this.formBuilder.group({
       username: ['', [Validators.required]],
@@ -51,19 +43,20 @@ export class LoginComponent extends FormBaseComponent implements OnInit, OnDestr
   }
 
   private initiateLogin(): void {
+    const [username, password] = [this.form.controls.username.value, this.form.controls.password.value];
     this.isLoading = true;
     this.authenticationService
-      .login(this.form.controls.username.value, this.form.controls.password.value)
+      .login(username, password)
       .pipe(first())
       .subscribe(
         () => {
+          this.form.reset();
           this.renderer.removeClass(document.body, 'status-user-auth');
           this.router.navigateByUrl('/');
         },
         () => {
           this.isLoading = false;
           this.isLoginError = true;
-          return EMPTY;
         }
       );
   }

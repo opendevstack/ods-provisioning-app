@@ -98,7 +98,13 @@ export class AppComponent implements OnInit {
   private loadAllProjects() {
     this.projectService
       .getAllProjects()
-      .pipe(catchError(() => EMPTY))
+      .pipe(
+        catchError(() => {
+          this.isLoading = false;
+          this.isError = true;
+          return EMPTY;
+        })
+      )
       .subscribe((response: ProjectData[]) => {
         this.projects = response;
         this.isLoading = false;
