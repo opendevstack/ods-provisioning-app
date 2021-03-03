@@ -186,17 +186,14 @@ public class DefaultControllerTest {
   }
 
   @Test
-  public void testNFERouting() throws Exception {
+  public void givenDefaultControllerRouting_whenKnownRoutes_thenRouteToHome() throws Exception {
 
-    // All routes should serve nfe/index.html when spaFrontEndEnabled equals true
     defaultController.setSpafrontendEnabled(true);
 
     List<String> routes =
         new ArrayList<>(
             List.of(
                 DefaultController.ROUTE_HOME,
-                DefaultController.ROUTE_HOME,
-                DefaultController.ROUTE_NEWFRONTEND,
                 DefaultController.ROUTE_PROVISION,
                 DefaultController.ROUTE_LOGIN,
                 DefaultController.ROUTE_HISTORY,
@@ -209,7 +206,8 @@ public class DefaultControllerTest {
             mockMvc
                 .perform(get(route))
                 .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.redirectedUrl(DefaultController.ROUTE_ROOT));
+                .andExpect(
+                    MockMvcResultMatchers.redirectedUrl(DefaultController.RESOURCE_NFE_INDEX));
           } catch (Exception e) {
             throw new RuntimeException(e);
           }

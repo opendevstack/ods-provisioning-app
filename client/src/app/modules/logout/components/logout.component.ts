@@ -1,23 +1,24 @@
-import { Component, OnDestroy, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { BrowserService } from '../../browser/services/browser.service';
-import { Subject } from 'rxjs';
+import { AuthenticationService } from '../../authentication/services/authentication.service';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-logout',
   templateUrl: './logout.component.html'
 })
-export class LogoutComponent implements OnInit, OnDestroy {
-  destroy$ = new Subject<boolean>();
+export class LogoutComponent implements OnInit {
+  isLoading = true;
 
-  constructor(private browserService: BrowserService, private renderer: Renderer2) {}
+  constructor(private browserService: BrowserService, private renderer: Renderer2, private authenticationService: AuthenticationService) {}
 
   ngOnInit(): void {
-    this.browserService.deleteCookieByName('JSESSIONID');
-    this.renderer.addClass(document.body, 'status-user-logged-out');
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.unsubscribe();
+    this.renderer.addClass(document.body, 'status-user-auth');
+    this.authenticationService
+      .logout()
+      .pipe(first())
+      .subscribe(() => {
+        this.isLoading = false;
+      });
   }
 }

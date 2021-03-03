@@ -5,3 +5,5 @@ export const API_PROJECT_URL = new InjectionToken<string>('apiProjectUrl');
 export const API_GENERATE_PROJECT_KEY_URL = new InjectionToken<string>('apiGenerateProjectKeyUrl');
 export const API_PROJECT_TEMPLATES_URL = new InjectionToken<string>('apiProjectTemplatesUrl');
 export const API_ALL_QUICKSTARTERS_URL = new InjectionToken<string>('apiAllQuickstartersUrl');
+export const API_AUTH_URL = new InjectionToken<string>('apiAuthUrl');
+export const API_LOGOUT_URL = new InjectionToken<string>('apiLogoutUrl');

@@ -4,6 +4,7 @@
 
 ### Added
 
+- Handle form based auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637)) 
 - Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
 - Add support for odsbox for local development([#579](https://github.com/opendevstack/ods-provisioning-app/issues/579))
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
@@ -13,6 +14,7 @@
 
 ### Fixed
 
+- Handle basic auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
 - Fix SPA searchbar layout ([#664](https://github.com/opendevstack/ods-provisioning-app/issues/664))
 - Wrong exception logging of bitbucket project key pre flight check ([#655](https://github.com/opendevstack/ods-provisioning-app/issues/655))
 - Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))

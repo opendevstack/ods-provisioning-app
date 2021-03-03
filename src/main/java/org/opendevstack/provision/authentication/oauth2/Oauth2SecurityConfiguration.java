@@ -101,7 +101,6 @@ public class Oauth2SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     sec.oauth2Login()
-        // .loginPage(LOGIN_URI)
         .failureUrl("/login?error")
         .defaultSuccessUrl("/home")
         .userInfoEndpoint()

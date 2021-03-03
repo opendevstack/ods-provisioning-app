@@ -6,6 +6,7 @@ import { ProjectPageModule } from '../project-page/project-page.module';
 import { StorageModule } from '../storage/storage.module';
 import { NewProjectModule } from '../new-project/new-project.module';
 import { ProjectModule } from '../project/project.module';
+import { AuthenticationModule } from '../authentication/authentication.module';
 
 const routes: Routes = [
   {
@@ -23,6 +24,10 @@ const routes: Routes = [
   {
     path: 'about',
     loadChildren: () => import('../about-page/about-page.module').then(m => m.AboutPageModule)
+  },
+  {
+    path: 'login',
+    loadChildren: () => import('../login/login.module').then(m => m.LoginModule)
   },
   {
     path: 'logout',
@@ -62,9 +67,12 @@ const routes: Routes = [
       apiProjectTemplatesUrl: environment.apiProjectTemplatesUrl,
       apiGenerateProjectKeyUrl: environment.apiGenerateProjectKeyUrl
     }),
-    NewProjectModule
+    NewProjectModule,
+    AuthenticationModule.withOptions({
+      apiAuthUrl: environment.apiAuthUrl,
+      apiLogoutUrl: environment.apiLogoutUrl
+    })
   ],
-  exports: [RouterModule],
-  providers: []
+  exports: [RouterModule]
 })
 export class AppRoutingModule {}
