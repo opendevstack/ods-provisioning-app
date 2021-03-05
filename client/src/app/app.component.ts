@@ -10,6 +10,7 @@ import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { ProjectService } from './modules/project/services/project.service';
 import { ProjectData, ProjectStorage } from './domain/project';
 import { AuthenticationService } from './modules/authentication/services/authentication.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -65,8 +66,13 @@ export class AppComponent implements OnInit {
     });
   }
 
-  private isSsoActive() {
-    return this.authenticationService.sso;
+  showLogoutButton() {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart && (event.url === 'login' || event.url === 'logout')) {
+        return false;
+      }
+      return true;
+    });
   }
 
   getEditModeStatus() {
@@ -99,10 +105,14 @@ export class AppComponent implements OnInit {
     this.projectService
       .getAllProjects()
       .pipe(
-        catchError(() => {
+        catchError((response: HttpErrorResponse) => {
+          if (response.error.status === 401) {
+            // interceptor takes control and redirects to login
+            return EMPTY;
+          }
+          // show generic error page
           this.isLoading = false;
           this.isError = true;
-          return EMPTY;
         })
       )
       .subscribe((response: ProjectData[]) => {

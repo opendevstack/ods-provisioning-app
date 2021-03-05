@@ -34,6 +34,6 @@ export class AuthenticationService {
   }
 
   logout(): any {
-    return this.httpClient.post<any>(this.apiLogoutUrl, '');
+    return this.httpClient.get<any>(this.apiLogoutUrl);
   }
 }
