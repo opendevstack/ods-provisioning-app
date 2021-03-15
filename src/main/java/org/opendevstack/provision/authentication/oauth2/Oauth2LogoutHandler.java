@@ -22,49 +22,56 @@ public class Oauth2LogoutHandler implements LogoutHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Oauth2LogoutHandler.class);
 
   public static final String LOGOUT_PATH = Oauth2SecurityConfiguration.LOGIN_URI + "?logout";
+  public static final String PROTOCOL_OPENID_CONNECT_LOGOUT_REDIRECT_URI =
+      "/protocol/openid-connect/logout?redirect_uri=";
 
-  @Value("${idmanager.url}")
+  private boolean spafrontendEnabled;
+
   private String idManagerUrl;
 
-  @Value("${idmanager.realm}")
   private String idManagerRealm;
 
-  @Value("${idmanager.disable-logout-from-idm:false}")
-  private boolean disableRedirectLogoutToIdentityManager;
+  private boolean logoutFromIDP;
 
   public Oauth2LogoutHandler() {
-    LOG.info(
-        "Logout from identity manager is {}!",
-        disableRedirectLogoutToIdentityManager ? "enabled" : "disabled");
+    LOG.info("Logout from identity manager is {}!", logoutFromIDP ? "enabled" : "disabled");
+  }
+
+  public Oauth2LogoutHandler(
+      @Value("${frontend.spa.enabled:false}") boolean spafrontendEnabled,
+      @Value("${idmanager.disable-logout-from-idm:false}") boolean logoutFromIDP,
+      @Value("${idmanager.url}") String idManagerUrl,
+      @Value("${idmanager.realm}") String idManagerRealm) {
+    this.spafrontendEnabled = spafrontendEnabled;
+    this.logoutFromIDP = logoutFromIDP;
+    this.idManagerUrl = idManagerUrl;
+    this.idManagerRealm = idManagerRealm;
   }
 
   @Override
   public void logout(
       HttpServletRequest httpServletRequest,
-      HttpServletResponse httpServletResponse,
+      HttpServletResponse response,
       Authentication authentication) {
     try {
 
-      if (disableRedirectLogoutToIdentityManager) {
+      if (logoutFromIDP()) {
+        response.sendRedirect(buildIDPLogoutUrl(httpServletRequest, response));
 
-        httpServletResponse.sendRedirect(LOGOUT_PATH);
+      } else if (spafrontendEnabled) {
+        response.setStatus(HttpServletResponse.SC_OK);
 
       } else {
-
-        String redirectUri = buildRedirectUri(httpServletRequest, httpServletResponse);
-
-        String logoutUrl =
-            idManagerUrl
-                + "/auth/realms/"
-                + idManagerRealm
-                + "/protocol/openid-connect/logout?redirect_uri="
-                + redirectUri;
-        httpServletResponse.sendRedirect(logoutUrl);
+        response.sendRedirect(LOGOUT_PATH);
       }
 
     } catch (IOException e) {
       LOG.warn("Cannot send redirect", e);
     }
+  }
+
+  private boolean logoutFromIDP() {
+    return logoutFromIDP;
   }
 
   /**
@@ -75,7 +82,7 @@ public class Oauth2LogoutHandler implements LogoutHandler {
    * @param httpServletResponse servlet response
    * @return the redirect uri
    */
-  private String buildRedirectUri(
+  private String buildIDPLogoutUrl(
       HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
     StringBuilder url = new StringBuilder();
     url.append(httpServletRequest.getScheme())
@@ -86,6 +93,16 @@ public class Oauth2LogoutHandler implements LogoutHandler {
       url.append(":").append(serverPort);
     }
     url.append(httpServletRequest.getContextPath()).append("/login");
-    return httpServletResponse.encodeRedirectURL(url.toString());
+
+    String redirectUri = httpServletResponse.encodeRedirectURL(url.toString());
+
+    String logoutUrl =
+        idManagerUrl
+            + "/auth/realms/"
+            + idManagerRealm
+            + PROTOCOL_OPENID_CONNECT_LOGOUT_REDIRECT_URI
+            + redirectUri;
+
+    return logoutUrl;
   }
 }
