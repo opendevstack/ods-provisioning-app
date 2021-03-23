@@ -22,6 +22,7 @@ export class AppComponent implements OnInit {
   isError: boolean;
   isNewProjectFormActive = false;
   hideSidebar = false;
+  showLogoutButton = true;
 
   projects: ProjectData[] = [];
 
@@ -55,24 +56,8 @@ export class AppComponent implements OnInit {
         this.isLoading = false;
       }
     });
-  }
 
-  private setSsoMode() {
-    this.authenticationService.sso = true;
-    this.router.navigate([], {
-      queryParams: {
-        sso: null
-      }
-    });
-  }
-
-  showLogoutButton() {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationStart && (event.url === 'login' || event.url === 'logout')) {
-        return false;
-      }
-      return true;
-    });
+    this.checkShowLogoutButton();
   }
 
   getEditModeStatus() {
@@ -89,10 +74,29 @@ export class AppComponent implements OnInit {
     });
   }
 
+  private checkShowLogoutButton() {
+    return this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart && (event.url === '/login' || event.url === '/logout')) {
+        this.showLogoutButton = false;
+      }
+    });
+  }
+
+  private setSsoMode() {
+    this.authenticationService.sso = true;
+    this.router.navigate([], {
+      queryParams: {
+        sso: null
+      }
+    });
+  }
+
   private checkRedirectToProjectDetail() {
     const projectKey = this.getProjectKeyFormStorage();
     if (projectKey) {
       this.router.navigateByUrl(`/project/${projectKey}`);
+    } else {
+      this.router.navigateByUrl('/project');
     }
   }
 
@@ -106,13 +110,10 @@ export class AppComponent implements OnInit {
       .getAllProjects()
       .pipe(
         catchError((response: HttpErrorResponse) => {
-          if (response.error.status === 401) {
-            // interceptor takes control and redirects to login
-            return EMPTY;
-          }
           // show generic error page
           this.isLoading = false;
           this.isError = true;
+          return EMPTY;
         })
       )
       .subscribe((response: ProjectData[]) => {
