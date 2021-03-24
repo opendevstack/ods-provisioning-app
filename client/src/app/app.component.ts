@@ -6,7 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
 import { StorageService } from './modules/storage/services/storage.service';
-import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
 import { ProjectService } from './modules/project/services/project.service';
 import { ProjectData, ProjectStorage } from './domain/project';
 import { AuthenticationService } from './modules/authentication/services/authentication.service';
@@ -21,13 +21,13 @@ export class AppComponent implements OnInit {
   isError: boolean;
   isNewProjectFormActive = false;
   hideSidebar = false;
+  showLogoutButton = true;
 
   projects: ProjectData[] = [];
 
   constructor(
     public editMode: EditModeService,
     public router: Router,
-    private activatedRoute: ActivatedRoute,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
@@ -40,33 +40,18 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.activatedRoute.queryParams.subscribe(params => {
-      if (params['sso']) {
-        this.setSsoMode();
-      }
-    });
+    this.authenticationService.checkAndSetSsoMode();
 
     this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         if (event.url === '/') {
           this.loadAllProjects();
+        } else if (event.url === '/login' || event.url === '/logout') {
+          this.showLogoutButton = false;
+          this.isLoading = false;
         }
-        this.isLoading = false;
       }
     });
-  }
-
-  private setSsoMode() {
-    this.authenticationService.sso = true;
-    this.router.navigate([], {
-      queryParams: {
-        sso: null
-      }
-    });
-  }
-
-  private isSsoActive() {
-    return this.authenticationService.sso;
   }
 
   getEditModeStatus() {
@@ -87,6 +72,8 @@ export class AppComponent implements OnInit {
     const projectKey = this.getProjectKeyFormStorage();
     if (projectKey) {
       this.router.navigateByUrl(`/project/${projectKey}`);
+    } else {
+      this.router.navigateByUrl('/project');
     }
   }
 
@@ -100,6 +87,7 @@ export class AppComponent implements OnInit {
       .getAllProjects()
       .pipe(
         catchError(() => {
+          // show generic error page
           this.isLoading = false;
           this.isError = true;
           return EMPTY;

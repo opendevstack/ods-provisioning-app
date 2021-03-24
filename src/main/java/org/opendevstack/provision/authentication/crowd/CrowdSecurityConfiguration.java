@@ -142,7 +142,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         .permitAll()
         .and()
         .logout()
-        .addLogoutHandler(crowdLogoutHandler())
+        .addLogoutHandler(logoutHandler())
         .permitAll()
         .and();
   }
@@ -162,11 +162,19 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
-  public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
-    CrowdLogoutHandler clh = new CrowdLogoutHandler();
-    clh.setHttpAuthenticator(httpAuthenticator());
-    return clh;
+  //  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
+  public CrowdLogoutHandler logoutHandler() throws IOException {
+
+    if (spafrontendEnabled) {
+      OKResponseCrowdLogoutHandler handler = new OKResponseCrowdLogoutHandler();
+      handler.setHttpAuthenticator(httpAuthenticator());
+      return handler;
+
+    } else {
+      CrowdLogoutHandler clh = new CrowdLogoutHandler();
+      clh.setHttpAuthenticator(httpAuthenticator());
+      return clh;
+    }
   }
 
   @Bean
