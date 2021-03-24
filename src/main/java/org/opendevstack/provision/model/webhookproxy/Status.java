@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Status {
   private String phase;
-  Config config;
+  private Config config;
 
   public String getPhase() {
     return phase;

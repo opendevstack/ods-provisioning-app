@@ -24,17 +24,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class CrowdProjectIdentityMgmtAdapterTest {
 
-  @Mock CrowdAuthenticationManager manager;
+  @InjectMocks private CrowdProjectIdentityMgmtAdapter idMgr;
 
-  @InjectMocks CrowdProjectIdentityMgmtAdapter idMgr;
+  @Mock private IODSAuthnzAdapter manager;
 
   @Test
   public void testGroupExists() {
@@ -92,20 +92,20 @@ public class CrowdProjectIdentityMgmtAdapterTest {
     SOAPGroup group = mockGroupExists("xxx", true);
 
     OpenProjectData data = new OpenProjectData();
-    data.projectAdminGroup = group.getName();
-    data.projectUserGroup = group.getName();
-    data.projectReadonlyGroup = group.getName();
-    data.projectAdminUser = principal.getName();
+    data.setProjectAdminGroup(group.getName());
+    data.setProjectUserGroup(group.getName());
+    data.setProjectReadonlyGroup(group.getName());
+    data.setProjectAdminUser(principal.getName());
 
     idMgr.validateIdSettingsOfProject(data);
 
-    data.projectUserGroup = "doesNotExistUG";
-    data.projectAdminGroup = "doesNotExistAD";
-    data.projectReadonlyGroup = "doesNotExistRO";
+    data.setProjectUserGroup("doesNotExistUG");
+    data.setProjectAdminGroup("doesNotExistAD");
+    data.setProjectReadonlyGroup("doesNotExistRO");
 
-    mockGroupExists(data.projectUserGroup, false);
-    mockGroupExists(data.projectAdminGroup, false);
-    mockGroupExists(data.projectReadonlyGroup, false);
+    mockGroupExists(data.getProjectUserGroup(), false);
+    mockGroupExists(data.getProjectAdminGroup(), false);
+    mockGroupExists(data.getProjectReadonlyGroup(), false);
 
     Exception testE = null;
     try {
@@ -114,9 +114,9 @@ public class CrowdProjectIdentityMgmtAdapterTest {
       testE = idEx;
     }
     assertNotNull(testE);
-    assertTrue(testE.getMessage().contains(data.projectUserGroup));
-    assertTrue(testE.getMessage().contains(data.projectAdminGroup));
-    assertTrue(testE.getMessage().contains(data.projectReadonlyGroup));
+    assertTrue(testE.getMessage().contains(data.getProjectUserGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectAdminGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectReadonlyGroup()));
 
     mockPrincipalExists(principal.getName(), false);
     testE = null;
@@ -126,8 +126,8 @@ public class CrowdProjectIdentityMgmtAdapterTest {
       testE = idEx;
     }
     assertNotNull(testE);
-    assertTrue(testE.getMessage().contains(data.projectUserGroup));
-    assertTrue(testE.getMessage().contains(data.projectAdminUser));
+    assertTrue(testE.getMessage().contains(data.getProjectUserGroup()));
+    assertTrue(testE.getMessage().contains(data.getProjectAdminUser()));
   }
 
   public SOAPGroup mockGroupExists(String groupName, boolean existsGroup) {

@@ -12,54 +12,30 @@ public class OpenProjectInfo {
   }
 
   public String getProjectKey() {
-    return project.projectKey;
+    return project.getProjectKey();
   }
 
   public String getProjectName() {
-    return project.projectName;
-  }
-
-  public boolean hasBugtrackerSpace() {
-    return project.bugtrackerSpace;
-  }
-
-  public boolean hasPlatformRuntime() {
-    return project.platformRuntime;
+    return project.getProjectName();
   }
 
   public String getDescription() {
-    return project.description;
+    return project.getDescription();
   }
 
   public String getCDUser() {
-    return project.cdUser;
+    return project.getCdUser();
   }
 
   public String getCollaborationSpaceUrl() {
-    return project.collaborationSpaceUrl;
-  }
-
-  public String getPlatformBuildEngineUrl() {
-    return project.platformBuildEngineUrl;
+    return project.getCollaborationSpaceUrl();
   }
 
   public String getPlatformCdEnvironmentUrl() {
-    return project.platformCdEnvironmentUrl;
-  }
-
-  public String getPlatformDevEnvironmentUrl() {
-    return project.platformDevEnvironmentUrl;
-  }
-
-  public String getPlatformTestEnvironmentUrl() {
-    return project.platformTestEnvironmentUrl;
-  }
-
-  public String getBugtrackerUrl() {
-    return project.bugtrackerUrl;
+    return project.getPlatformCdEnvironmentUrl();
   }
 
   public String getSCMVCSUrl() {
-    return project.scmvcsUrl;
+    return project.getScmvcsUrl();
   }
 }

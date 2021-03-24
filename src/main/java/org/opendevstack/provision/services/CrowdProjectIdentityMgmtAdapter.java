@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.IProjectIdentityMgmtAdapter;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
@@ -40,17 +39,17 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
 
     long startTime = System.currentTimeMillis();
 
-    if (!groupExists(project.projectAdminGroup)) {
-      projectCheckStatus.put("adminGroup", project.projectAdminGroup);
+    if (!groupExists(project.getProjectAdminGroup())) {
+      projectCheckStatus.put("adminGroup", project.getProjectAdminGroup());
     }
-    if (!groupExists(project.projectUserGroup)) {
-      projectCheckStatus.put("userGroup", project.projectUserGroup);
+    if (!groupExists(project.getProjectUserGroup())) {
+      projectCheckStatus.put("userGroup", project.getProjectUserGroup());
     }
-    if (!groupExists(project.projectReadonlyGroup)) {
-      projectCheckStatus.put("readonlyGroup", project.projectReadonlyGroup);
+    if (!groupExists(project.getProjectReadonlyGroup())) {
+      projectCheckStatus.put("readonlyGroup", project.getProjectReadonlyGroup());
     }
-    if (!userExists(project.projectAdminUser)) {
-      projectCheckStatus.put("admin", project.projectAdminUser);
+    if (!userExists(project.getProjectAdminUser())) {
+      projectCheckStatus.put("admin", project.getProjectAdminUser());
     }
 
     logger.debug("identityCheck Name took (ms): {}", System.currentTimeMillis() - startTime);
@@ -112,7 +111,7 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
     return createGroupInternal(projectName);
   }
 
-  String createGroupInternal(String groupName) throws IdMgmtException {
+  public String createGroupInternal(String groupName) throws IdMgmtException {
     if (groupName == null || groupName.trim().length() == 0)
       throw new IdMgmtException("Cannot create a null group!");
 
@@ -141,8 +140,8 @@ public class CrowdProjectIdentityMgmtAdapter implements IProjectIdentityMgmtAdap
   }
 
   @Override
-  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(
+      OpenProjectData newProject) {
     throw new UnsupportedOperationException("not implemented yet!");
   }
 }

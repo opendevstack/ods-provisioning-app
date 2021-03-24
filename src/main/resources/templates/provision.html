@@ -104,7 +104,7 @@
 
                     <div class="form-group pull-right input-group col-xs-5">
                         <input type="text" class="form-control" th:name="quickstart-comp-id-1" placeholder="Component Id"
-                               minlength="3" maxlength="40" pattern="^(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$"
+                               minlength="3" maxlength="40" pattern="^(?!tests)(([A-Za-z][-A-Za-z]*)?[A-Za-z])?$"
                                data-equalsqsid-error="Component id must be different than quickstarter type!"
                                data-unique-error="The component id already exists!"/>
                         <span class="input-group-btn">

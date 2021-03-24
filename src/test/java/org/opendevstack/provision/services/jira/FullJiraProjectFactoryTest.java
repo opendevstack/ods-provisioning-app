@@ -87,7 +87,7 @@ public class FullJiraProjectFactoryTest {
   private OpenProjectData createOpenProjectData(String projectKey, String projectTemplateType) {
     OpenProjectData project = new OpenProjectData();
     project.setProjectKey(projectKey);
-    project.projectType = projectTemplateType;
+    project.setProjectType(projectTemplateType);
     return project;
   }
 }

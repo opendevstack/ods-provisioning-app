@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
-import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionException;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.config.Quickstarter;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
@@ -71,56 +70,56 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   public static final String DELETE_PROJECTS_JOB_ID = JenkinsPipelineProperties.DELETE_PROJECTS;
 
   @Value("${openshift.jenkins.admin.webhookproxy.host}")
-  protected String adminWebhookProxyHost;
+  private String adminWebhookProxyHost;
 
   @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
-  protected String projectWebhookProxyHostPattern;
+  private String projectWebhookProxyHostPattern;
 
   @Value("${openshift.jenkins.trigger.secret}")
   private String openshiftJenkinsTriggerSecret;
 
   @Value("${artifact.group.pattern}")
-  protected String groupPattern;
+  private String groupPattern;
 
   @Value("${openshift.apps.basedomain}")
-  protected String projectOpenshiftBaseDomain;
+  private String projectOpenshiftBaseDomain;
 
   @Value("${openshift.console.uri}")
-  protected String projectOpenshiftConsoleUri;
+  private String projectOpenshiftConsoleUri;
 
   @Value("${openshift.test.project.name.pattern}")
-  protected String projectOpenshiftTestProjectPattern;
+  private String projectOpenshiftTestProjectPattern;
 
   @Value("${openshift.dev.project.name.pattern}")
-  protected String projectOpenshiftDevProjectPattern;
+  private String projectOpenshiftDevProjectPattern;
 
   @Value("${openshift.cd.project.name.pattern}")
-  protected String projectOpenshiftCdProjectPattern;
+  private String projectOpenshiftCdProjectPattern;
 
   @Value("${openshift.jenkins.project.name.pattern}")
-  protected String projectOpenshiftJenkinsProjectPattern;
+  private String projectOpenshiftJenkinsProjectPattern;
 
-  @Autowired protected JenkinsPipelineProperties jenkinsPipelineProperties;
+  @Autowired private JenkinsPipelineProperties jenkinsPipelineProperties;
 
   @Value("${bitbucket.uri}")
-  protected String bitbucketUri;
+  private String bitbucketUri;
 
   @Value("${bitbucket.opendevstack.project}")
-  protected String bitbucketOdsProject;
+  private String bitbucketOdsProject;
 
   @Value("${ods.namespace}")
-  protected String odsNamespace;
+  private String odsNamespace;
 
   @Value("${ods.image-tag}")
-  protected String odsImageTag;
+  private String odsImageTag;
 
   @Value("${ods.git-ref}")
-  protected String odsGitRef;
+  private String odsGitRef;
 
   private List<Job> quickstarterJobs;
 
   @Value("${bitbucket.technical.user}")
-  protected String generalCdUser;
+  private String generalCdUser;
 
   @Value("${jenkinspipeline.create-project.default-project-groups:''}")
   private String defaultEntitlementGroups;
@@ -175,24 +174,24 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   public List<ExecutionsData> provisionComponentsBasedOnQuickstarters(OpenProjectData project)
       throws IOException {
-    if (project == null || project.quickstarters == null) {
+    if (project == null || project.getQuickstarters() == null) {
       return new ArrayList<>();
     }
 
     List<ExecutionsData> executionList = new ArrayList<>();
-    if (project.quickstarters != null) {
-      for (Map<String, String> options : project.quickstarters) {
+    if (project.getQuickstarters() != null) {
+      for (Map<String, String> options : project.getQuickstarters()) {
         String jobId = options.get(OpenProjectData.COMPONENT_TYPE_KEY);
         String groupId =
-            String.format(groupPattern, project.projectKey.toLowerCase()).replace('_', '-');
+            String.format(groupPattern, project.getProjectKey().toLowerCase()).replace('_', '-');
         String packageName =
             String.format(
                 "%s.%s",
-                String.format(groupPattern, project.projectKey.toLowerCase()),
+                String.format(groupPattern, project.getProjectKey().toLowerCase()),
                 options.get(OpenProjectData.COMPONENT_ID_KEY).replace('-', '_'));
 
         options.put("GROUP_ID", groupId);
-        options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
+        options.put(PROJECT_ID_KEY, project.getProjectKey().toLowerCase());
         options.put("PACKAGE_NAME", packageName);
         options.put("ODS_NAMESPACE", odsNamespace);
         options.put("ODS_BITBUCKET_PROJECT", bitbucketOdsProject);
@@ -200,13 +199,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("ODS_GIT_REF", odsGitRef);
 
         String triggerSecret =
-            project.webhookProxySecret != null
-                ? project.webhookProxySecret
+            project.getWebhookProxySecret() != null
+                ? project.getWebhookProxySecret()
                 : openshiftJenkinsTriggerSecret;
 
         final Job job =
             getQuickstarterJobs().stream()
-                .filter(x -> x.id.equals(jobId))
+                .filter(x -> x.getId().equals(jobId))
                 .findFirst()
                 .orElseThrow(
                     () ->
@@ -244,12 +243,12 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
     options.put(
         "PIPELINE_TRIGGER_SECRET",
-        Base64.getEncoder().encodeToString(project.webhookProxySecret.getBytes()));
+        Base64.getEncoder().encodeToString(project.getWebhookProxySecret().getBytes()));
 
     String projectCdUser = generalCdUser;
     String cdUserType = "general";
-    if (project.cdUser != null && !project.cdUser.trim().isEmpty()) {
-      projectCdUser = project.cdUser;
+    if (project.getCdUser() != null && !project.getCdUser().trim().isEmpty()) {
+      projectCdUser = project.getCdUser();
       cdUserType = "project";
     }
 
@@ -257,35 +256,35 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put("CD_USER_ID_B64", Base64.getEncoder().encodeToString(projectCdUser.getBytes()));
 
     try {
-      options.put(PROJECT_ID_KEY, project.projectKey.toLowerCase());
+      options.put(PROJECT_ID_KEY, project.getProjectKey().toLowerCase());
 
       if (addDefaultEntitlementGroups()) {
         addOrAppendToEntry(options, "PROJECT_GROUPS", defaultEntitlementGroups, ",");
       }
 
-      if (project.specialPermissionSet) {
+      if (project.isSpecialPermissionSet()) {
         String entitlementGroups =
             "ADMINGROUP="
-                + project.projectAdminGroup
+                + project.getProjectAdminGroup()
                 + ","
                 + "USERGROUP="
-                + project.projectUserGroup
+                + project.getProjectUserGroup()
                 + ","
                 + "READONLYGROUP="
-                + project.projectReadonlyGroup;
+                + project.getProjectReadonlyGroup();
 
         logger.debug(
             "project id: {} passed project owner: {} passed groups: {}",
-            project.projectKey,
-            project.projectAdminUser,
+            project.getProjectKey(),
+            project.getProjectAdminUser(),
             entitlementGroups);
 
-        options.put("PROJECT_ADMIN", project.projectAdminUser);
+        options.put("PROJECT_ADMIN", project.getProjectAdminUser());
         addOrAppendToEntry(options, "PROJECT_GROUPS", entitlementGroups, ",");
 
       } else {
         // someone is always logged in :)
-        logger.debug("project id: {} admin: {}", project.projectKey, getUserName());
+        logger.debug("project id: {} admin: {}", project.getProjectKey(), getUserName());
         options.put("PROJECT_ADMIN", getUserName());
       }
 
@@ -304,42 +303,43 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
       // access link to openshift app domain
-      project.platformBuildEngineUrl =
+      project.setPlatformBuildEngineUrl(
           "https://"
               + String.format(
                   projectOpenshiftJenkinsProjectPattern,
-                  project.projectKey.toLowerCase(),
-                  projectOpenshiftBaseDomain);
+                  project.getProjectKey().toLowerCase(),
+                  projectOpenshiftBaseDomain));
 
       // we can only add the console based links - as no routes are created per
       // default
-      project.platformCdEnvironmentUrl =
+      project.setPlatformCdEnvironmentUrl(
           String.format(
               projectOpenshiftCdProjectPattern,
               projectOpenshiftConsoleUri.trim(),
-              project.projectKey.toLowerCase());
+              project.getProjectKey().toLowerCase()));
 
-      project.platformDevEnvironmentUrl =
+      project.setPlatformDevEnvironmentUrl(
           String.format(
               projectOpenshiftDevProjectPattern,
               projectOpenshiftConsoleUri.trim(),
-              project.projectKey.toLowerCase());
+              project.getProjectKey().toLowerCase()));
 
-      project.platformTestEnvironmentUrl =
+      project.setPlatformTestEnvironmentUrl(
           String.format(
               projectOpenshiftTestProjectPattern,
               projectOpenshiftConsoleUri.trim(),
-              project.projectKey.toLowerCase());
+              project.getProjectKey().toLowerCase()));
 
-      project.lastExecutionJobs = new ArrayList<>();
+      project.setLastExecutionJobs(new ArrayList<>());
       ExecutionJob executionJob = new ExecutionJob(data.getJobName(), data.getPermalink());
-      project.lastExecutionJobs.add(executionJob);
+      project.getLastExecutionJobs().add(executionJob);
       logger.debug("Project creation job: {} ", executionJob);
       return project;
     } catch (IOException ex) {
       String error =
           String.format(
-              "Cannot execute job for project %s, error: %s", project.projectKey, ex.getMessage());
+              "Cannot execute job for project %s, error: %s",
+              project.getProjectKey(), ex.getMessage());
       logger.error(error, ex);
       throw ex;
     }
@@ -386,7 +386,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
           getRestClient()
               .execute(
                   notAuthenticatedCall(HttpVerb.POST)
-                      .url(execution.url)
+                      .url(execution.getUrl())
                       .body(execution)
                       .returnType(CreateProjectResponse.class));
       logger.info("Webhook proxy returned " + data.toString());
@@ -405,7 +405,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       executionsData.setPermalink(href);
       return executionsData;
     } catch (IOException ex) {
-      String url = null != execution.url ? execution.url : "null'";
+      String url = null != execution.getUrl() ? execution.getUrl() : "null'";
       logger.error("Error starting job {} for url '{}' - details:", jobNameOrId, url, ex);
       throw ex;
     }
@@ -426,26 +426,26 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       String url =
           buildAdminJobExecutionUrl(
               job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
-      execution.url = url;
-      execution.branch = job.branch;
-      execution.repository = job.gitRepoName;
-      execution.project = bitbucketOdsProject;
+      execution.setUrl(url);
+      execution.setBranch(job.getBranch());
+      execution.setRepository(job.getGitRepoName());
+      execution.setProject(bitbucketOdsProject);
 
     } else {
       String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
 
-      execution.url =
+      execution.setUrl(
           JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
-              job, componentId, webhookProxySecret, webhookProxyHost);
-      execution.branch = job.branch;
-      execution.repository = job.gitRepoName;
-      execution.project = bitbucketOdsProject;
+              job, componentId, webhookProxySecret, webhookProxyHost));
+      execution.setBranch(job.getBranch());
+      execution.setRepository(job.getGitRepoName());
+      execution.setProject(bitbucketOdsProject);
     }
     if (options != null) {
       execution.setOptions(options);
     }
 
-    logger.info("Execution url={}", execution.url);
+    logger.info("Execution url={}", execution.getUrl());
 
     return execution;
   }
@@ -467,7 +467,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         + "/build?trigger_secret="
         + webhookProxySecret
         + "&jenkinsfile_path="
-        + job.jenkinsfilePath;
+        + job.getJenkinsfilePath();
   }
 
   public static String buildAdminJobExecutionUrl(
@@ -481,7 +481,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     String componentName =
         EXECUTION_URL_ADMIN_JOB_COMP_PREFIX + "-" + (deleteComponentJob ? componentId : projID);
     // yes, validating component name before calling jenkins
-    if (job.id.equals(CREATE_PROJECTS_JOB_ID)) {
+    if (job.getId().equals(CREATE_PROJECTS_JOB_ID)) {
       validateComponentName(PROJECT_ID_VALIDATOR_LIST, componentName);
     }
     return baseUrl + "&component=" + componentName;
@@ -531,8 +531,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> cleanupWholeProjects(OpenProjectData project) {
-    if (project.lastExecutionJobs != null && !project.lastExecutionJobs.isEmpty()) {
-      String componentId = project.projectKey.toLowerCase();
+    if (project.getLastExecutionJobs() != null && !project.getLastExecutionJobs().isEmpty()) {
+      String componentId = project.getProjectKey().toLowerCase();
       Quickstarter deleteProjectAdminJob =
           jenkinsPipelineProperties.getDeleteProjectsQuickstarter();
 
@@ -540,13 +540,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       // Note: the secret passed here is the corresponding to the ODS CD webhook proxy
       return runDeleteAdminJob(
           deleteProjectAdminJob,
-          project.projectKey,
+          project.getProjectKey(),
           openshiftJenkinsTriggerSecret,
           componentId,
           objectType);
     }
 
-    logger.debug("Project {} not affected from cleanup", project.projectKey);
+    logger.debug("Project {} not affected from cleanup", project.getProjectKey());
     return Collections.emptyMap();
   }
 
@@ -560,8 +560,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                 component ->
                     runDeleteAdminJob(
                         jenkinsPipelineProperties.getDeleteComponentsQuickstarter(),
-                        project.projectKey,
-                        project.webhookProxySecret, // Note: the secret passed here is the
+                        project.getProjectKey(),
+                        project.getWebhookProxySecret(), // Note: the secret passed here is the
                         // corresponding to the project CD webhook proxy
                         component,
                         CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER))
@@ -620,8 +620,130 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   @Override
-  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(OpenProjectData newProject)
-      throws CreateProjectPreconditionException {
+  public List<CheckPreconditionFailure> checkCreateProjectPreconditions(
+      OpenProjectData newProject) {
     throw new UnsupportedOperationException("not implemented yet!");
+  }
+
+  public String getAdminWebhookProxyHost() {
+    return adminWebhookProxyHost;
+  }
+
+  public void setAdminWebhookProxyHost(String adminWebhookProxyHost) {
+    this.adminWebhookProxyHost = adminWebhookProxyHost;
+  }
+
+  public void setProjectWebhookProxyHostPattern(String projectWebhookProxyHostPattern) {
+    this.projectWebhookProxyHostPattern = projectWebhookProxyHostPattern;
+  }
+
+  public void setGroupPattern(String groupPattern) {
+    this.groupPattern = groupPattern;
+  }
+
+  public void setProjectOpenshiftBaseDomain(String projectOpenshiftBaseDomain) {
+    this.projectOpenshiftBaseDomain = projectOpenshiftBaseDomain;
+  }
+
+  public void setProjectOpenshiftConsoleUri(String projectOpenshiftConsoleUri) {
+    this.projectOpenshiftConsoleUri = projectOpenshiftConsoleUri;
+  }
+
+  public String getProjectOpenshiftTestProjectPattern() {
+    return projectOpenshiftTestProjectPattern;
+  }
+
+  public void setProjectOpenshiftTestProjectPattern(String projectOpenshiftTestProjectPattern) {
+    this.projectOpenshiftTestProjectPattern = projectOpenshiftTestProjectPattern;
+  }
+
+  public String getProjectOpenshiftDevProjectPattern() {
+    return projectOpenshiftDevProjectPattern;
+  }
+
+  public void setProjectOpenshiftDevProjectPattern(String projectOpenshiftDevProjectPattern) {
+    this.projectOpenshiftDevProjectPattern = projectOpenshiftDevProjectPattern;
+  }
+
+  public void setProjectOpenshiftCdProjectPattern(String projectOpenshiftCdProjectPattern) {
+    this.projectOpenshiftCdProjectPattern = projectOpenshiftCdProjectPattern;
+  }
+
+  public void setProjectOpenshiftJenkinsProjectPattern(
+      String projectOpenshiftJenkinsProjectPattern) {
+    this.projectOpenshiftJenkinsProjectPattern = projectOpenshiftJenkinsProjectPattern;
+  }
+
+  public void setJenkinsPipelineProperties(JenkinsPipelineProperties jenkinsPipelineProperties) {
+    this.jenkinsPipelineProperties = jenkinsPipelineProperties;
+  }
+
+  public String getBitbucketUri() {
+    return bitbucketUri;
+  }
+
+  public void setBitbucketUri(String bitbucketUri) {
+    this.bitbucketUri = bitbucketUri;
+  }
+
+  public String getBitbucketOdsProject() {
+    return bitbucketOdsProject;
+  }
+
+  public void setBitbucketOdsProject(String bitbucketOdsProject) {
+    this.bitbucketOdsProject = bitbucketOdsProject;
+  }
+
+  public String getOdsNamespace() {
+    return odsNamespace;
+  }
+
+  public void setOdsNamespace(String odsNamespace) {
+    this.odsNamespace = odsNamespace;
+  }
+
+  public String getOdsImageTag() {
+    return odsImageTag;
+  }
+
+  public void setOdsImageTag(String odsImageTag) {
+    this.odsImageTag = odsImageTag;
+  }
+
+  public String getOdsGitRef() {
+    return odsGitRef;
+  }
+
+  public void setOdsGitRef(String odsGitRef) {
+    this.odsGitRef = odsGitRef;
+  }
+
+  public void setQuickstarterJobs(List<Job> quickstarterJobs) {
+    this.quickstarterJobs = quickstarterJobs;
+  }
+
+  public void setGeneralCdUser(String generalCdUser) {
+    this.generalCdUser = generalCdUser;
+  }
+
+  public String getDefaultEntitlementGroups() {
+    return defaultEntitlementGroups;
+  }
+
+  public void setDefaultEntitlementGroups(String defaultEntitlementGroups) {
+    this.defaultEntitlementGroups = defaultEntitlementGroups;
+  }
+
+  public Map<String, Job> getNameToJobMappings() {
+    return nameToJobMappings;
+  }
+
+  public Map<String, String> getLegacyComponentTypeToNameMappings() {
+    return legacyComponentTypeToNameMappings;
+  }
+
+  public void setLegacyComponentTypeToNameMappings(
+      Map<String, String> legacyComponentTypeToNameMappings) {
+    this.legacyComponentTypeToNameMappings = legacyComponentTypeToNameMappings;
   }
 }

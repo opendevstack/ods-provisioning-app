@@ -65,16 +65,16 @@ public class LocalStorageTest {
       OpenProjectData project = localStorage.getProject("Test");
 
       // try the new field
-      project.bugtrackerSpace = false;
-      String currentPath = project.physicalLocation;
+      project.setBugtrackerSpace(false);
+      String currentPath = project.getPhysicalLocation();
       assertNotNull(currentPath);
       assertTrue(localStorage.updateStoredProject(project));
-      project = localStorage.getProject(project.projectKey);
+      project = localStorage.getProject(project.getProjectKey());
 
       assertNotNull(project);
-      assertFalse(project.bugtrackerSpace);
+      assertFalse(project.isBugtrackerSpace());
 
-      Map<String, Map<URL_TYPE, String>> repositories = project.repositories;
+      Map<String, Map<URL_TYPE, String>> repositories = project.getRepositories();
 
       assertNotNull(repositories);
       Map<URL_TYPE, String> occonfigrepo = repositories.get("odsew-occonfig-artifacts");
@@ -83,7 +83,7 @@ public class LocalStorageTest {
 
       assertEquals(3, occonfigrepo.size());
 
-      assertEquals(currentPath, project.physicalLocation);
+      assertEquals(currentPath, project.getPhysicalLocation());
     } catch (Exception allErr) {
       throw allErr;
     } finally {
@@ -95,26 +95,26 @@ public class LocalStorageTest {
   @Test
   public void storeProject() throws Exception {
     OpenProjectData project = new OpenProjectData();
-    project.projectKey = "clemens";
+    project.setProjectKey("clemens");
     String filePath = localStorage.storeProject(project);
-    assertNotNull(project.physicalLocation);
+    assertNotNull(project.getPhysicalLocation());
 
     assertNotNull(filePath);
 
-    project = localStorage.getProject(project.projectKey);
+    project = localStorage.getProject(project.getProjectKey());
 
     assertNotNull(project);
-    assertTrue(project.bugtrackerSpace);
-    assertEquals("clemens", project.projectKey);
+    assertTrue(project.isBugtrackerSpace());
+    assertEquals("clemens", project.getProjectKey());
 
     // try the new field
-    project.bugtrackerSpace = false;
+    project.setBugtrackerSpace(false);
     localStorage.updateStoredProject(project);
-    project = localStorage.getProject(project.projectKey);
+    project = localStorage.getProject(project.getProjectKey());
 
     assertNotNull(project);
-    assertFalse(project.bugtrackerSpace);
-    assertNotNull(project.physicalLocation);
+    assertFalse(project.isBugtrackerSpace());
+    assertNotNull(project.getPhysicalLocation());
 
     (new File(filePath)).delete();
   }
@@ -136,7 +136,7 @@ public class LocalStorageTest {
 
     assertFalse(history.isEmpty());
 
-    assertEquals("Test", history.values().iterator().next().projectName);
+    assertEquals("Test", history.values().iterator().next().getProjectName());
   }
 
   @Test
@@ -155,9 +155,9 @@ public class LocalStorageTest {
     single.when = "2017-17-21";
     single.what = "test";
 
-    data.aboutDataList = new ArrayList<>();
-    data.aboutDataList.add(single);
-    data.aboutDataList.add(single2);
+    data.setAboutDataList(new ArrayList<>());
+    data.getAboutDataList().add(single);
+    data.getAboutDataList().add(single2);
 
     String testWrite = localStorage.storeAboutChangesData(data);
     logger.debug("AboutChanges: " + testWrite);
@@ -172,10 +172,10 @@ public class LocalStorageTest {
     AboutChangesData data = localStorage.listAboutChangesData();
 
     assertNotNull(data);
-    assertNotNull(data.aboutDataList);
-    assertTrue(data.aboutDataList.size() > 0);
+    assertNotNull(data.getAboutDataList());
+    assertTrue(data.getAboutDataList().size() > 0);
 
-    AboutChangesData.AboutRecordData single = data.aboutDataList.get(0);
+    AboutChangesData.AboutRecordData single = data.getAboutDataList().get(0);
 
     assertEquals("clemens", single.who);
   }

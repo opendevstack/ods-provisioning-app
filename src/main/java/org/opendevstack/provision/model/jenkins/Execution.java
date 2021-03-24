@@ -26,11 +26,11 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @JsonIgnoreProperties({"options"})
 public class Execution {
 
-  public List<Option> env = new LinkedList<>();
-  public String branch;
-  public String repository;
-  public String project;
-  public String url;
+  private List<Option> env = new LinkedList<>();
+  private String branch;
+  private String repository;
+  private String project;
+  private String url;
 
   public void setOptions(Map<String, String> options) {
     options.keySet().stream().forEach(x -> env.add(new Option(x, options.get(x))));
@@ -38,7 +38,7 @@ public class Execution {
 
   public String getOptionValue(String name) {
     return env.stream()
-        .filter(o -> o.name.equals(name))
+        .filter(o -> o.getName().equals(name))
         .findFirst()
         .map(Option::getValue)
         .orElse("");
@@ -53,5 +53,45 @@ public class Execution {
         .append("project", project)
         .append("url", url)
         .toString();
+  }
+
+  public List<Option> getEnv() {
+    return env;
+  }
+
+  public void setEnv(List<Option> env) {
+    this.env = env;
+  }
+
+  public String getBranch() {
+    return branch;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
+
+  public String getRepository() {
+    return repository;
+  }
+
+  public void setRepository(String repository) {
+    this.repository = repository;
+  }
+
+  public String getProject() {
+    return project;
+  }
+
+  public void setProject(String project) {
+    this.project = project;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
   }
 }

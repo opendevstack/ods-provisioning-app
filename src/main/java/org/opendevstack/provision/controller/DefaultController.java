@@ -111,7 +111,7 @@ public class DefaultController {
   }
 
   @RequestMapping(ROUTE_HOME)
-  String home(Model model) {
+  public String home(Model model) {
 
     if (isSpafrontendEnabled()) {
       return REDIRECT_TO_ROOT_CONTEXT;
@@ -125,13 +125,13 @@ public class DefaultController {
   }
 
   @RequestMapping(ROUTE_NFE_AND_ALL_RESOURCES_IN_PATH)
-  String nfe(Model model) {
+  public String nfe(Model model) {
     return newfrontend(model);
   }
 
   // Support launch SPA new frontend from template based frontend
   @RequestMapping(ROUTE_NEWFRONTEND)
-  String newfrontend(Model model) {
+  public String newfrontend(Model model) {
 
     if (isSpafrontendEnabled()) {
       return REDIRECT_TO_ROOT_CONTEXT;
@@ -145,7 +145,7 @@ public class DefaultController {
   }
 
   @RequestMapping(ROUTE_PROVISION)
-  String provisionProject(Model model) {
+  public String provisionProject(Model model) {
 
     if (isSpafrontendEnabled()) {
       return REDIRECT_TO_ROOT_CONTEXT;
@@ -181,7 +181,7 @@ public class DefaultController {
   }
 
   @RequestMapping(ROUTE_HISTORY)
-  String history(Model model) {
+  public String history(Model model) {
 
     if (isSpafrontendEnabled()) {
       return REDIRECT_TO_ROOT_CONTEXT;
@@ -196,7 +196,7 @@ public class DefaultController {
   }
 
   @RequestMapping(ROUTE_ABOUT)
-  String about(Model model) {
+  public String about(Model model) {
 
     if (isSpafrontendEnabled()) {
       return REDIRECT_TO_ROOT_CONTEXT;
@@ -207,7 +207,7 @@ public class DefaultController {
     }
 
     model.addAttribute("classActiveAbout", ACTIVE);
-    model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().aboutDataList);
+    model.addAttribute("aboutChanges", storageAdapter.listAboutChangesData().getAboutDataList());
 
     // add endpoint map
     Map<String, String> endpoints = new HashMap<>();

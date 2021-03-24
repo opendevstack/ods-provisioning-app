@@ -14,7 +14,7 @@
 package org.opendevstack.provision.controller;
 
 import static org.mockito.Mockito.when;
-import static org.opendevstack.provision.authentication.basic.BasicAuthSecurityTestConfig.*;
+import static org.opendevstack.provision.config.AuthSecurityTestConfig.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 import java.util.HashMap;
@@ -31,12 +31,11 @@ import org.opendevstack.provision.authentication.UserRolesHolder;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,17 +43,14 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 @ActiveProfiles("utest")
 @DirtiesContext
 public class ApplicationInfoAPIControllerTest {
 
-  private MockMvc mockMvc;
-
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private MockMvc mockMvc;
 
   @MockBean private StorageAdapter storageAdapter;
 
@@ -68,10 +64,6 @@ public class ApplicationInfoAPIControllerTest {
 
   @MockBean private ICollaborationAdapter confluenceAdapter;
 
-  @Qualifier("testUsersAndRoles")
-  @Autowired
-  private Map<String, String> testUsersAndRoles;
-
   @Value("${idmanager.group.opendevstack-users}")
   private String idmanagerUserGroup;
 
@@ -80,12 +72,6 @@ public class ApplicationInfoAPIControllerTest {
 
   @BeforeEach
   public void setup() {
-
-    mockMvc =
-        MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply(SecurityMockMvcConfigurers.springSecurity())
-            .build();
-
     when(mockAuthnzAdapter.getUserName()).thenReturn(TEST_ADMIN_USERNAME);
     when(mockAuthnzAdapter.getUserEmail()).thenReturn(TEST_ADMIN_EMAIL);
     when(mockAuthnzAdapter.getUserPassword()).thenReturn(TEST_VALID_CREDENTIAL);
@@ -137,10 +123,10 @@ public class ApplicationInfoAPIControllerTest {
 
     // setup test
     OpenProjectData data = new OpenProjectData();
-    data.projectKey = "KEY";
+    data.setProjectKey("KEY");
 
     Map<String, OpenProjectData> historyMap = new HashMap<>();
-    historyMap.put(data.projectKey, data);
+    historyMap.put(data.getProjectKey(), data);
 
     when(storageAdapter.listProjectHistory()).thenReturn(historyMap);
 

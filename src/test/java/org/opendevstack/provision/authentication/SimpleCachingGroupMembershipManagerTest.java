@@ -21,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @DirtiesContext
-/** Testclass for the simple caching manager */
 @ActiveProfiles("crowd")
 public class SimpleCachingGroupMembershipManagerTest {
 

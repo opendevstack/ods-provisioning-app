@@ -32,28 +32,28 @@ import java.net.URI;
 public class LeanJiraProject {
 
   @JsonProperty("projectTemplateKey")
-  public String projectTemplateKey; // e.g. com.pyxis.greenhopper.jira:gh-scrum-template
+  private String projectTemplateKey; // e.g. com.pyxis.greenhopper.jira:gh-scrum-template
 
   @JsonProperty("projectTypeKey")
-  public String projectTypeKey; // eg business or software
+  private String projectTypeKey; // eg business or software
 
   @JsonProperty("key")
-  public String key;
+  private String key;
 
   @JsonProperty("name")
-  public String name;
+  private String name;
 
   @JsonProperty("description")
-  public String description;
+  private String description;
 
   @JsonProperty("notificationScheme")
-  public String notificationScheme; // the notificationSchemeId
+  private String notificationScheme; // the notificationSchemeId
 
   @JsonProperty("permissionScheme")
   private String permissionScheme;
 
   @JsonProperty("self")
-  public URI self;
+  private URI self;
 
   public LeanJiraProject() {}
 
@@ -113,5 +113,37 @@ public class LeanJiraProject {
   @JsonIgnore
   public String getNotificationScheme() {
     return notificationScheme;
+  }
+
+  public void setProjectTemplateKey(String projectTemplateKey) {
+    this.projectTemplateKey = projectTemplateKey;
+  }
+
+  public void setProjectTypeKey(String projectTypeKey) {
+    this.projectTypeKey = projectTypeKey;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public void setPermissionScheme(String permissionScheme) {
+    this.permissionScheme = permissionScheme;
+  }
+
+  public URI getSelf() {
+    return self;
+  }
+
+  public void setSelf(URI self) {
+    this.self = self;
   }
 }

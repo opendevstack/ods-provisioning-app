@@ -15,7 +15,6 @@
 package org.opendevstack.provision.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import org.opendevstack.provision.model.bitbucket.Link;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Deprecated
+// TODO remove deprecated class
 public class ProjectData {
   /** The unique name of the project, must not be null */
   public String name = null;
@@ -118,88 +118,6 @@ public class ProjectData {
   }
 
   /**
-   * Create a legacy project from a new one
-   *
-   * @param open the new style project pojo
-   * @return the old style pojo
-   */
-  public static ProjectData fromOpenProjectData(OpenProjectData open) {
-    ProjectData legacyProject = new ProjectData();
-
-    legacyProject.key = open.projectKey;
-    legacyProject.name = open.projectName;
-    legacyProject.description = open.description;
-
-    // roles & users
-    legacyProject.createpermissionset = open.specialPermissionSet;
-    legacyProject.admin = open.projectAdminUser;
-    legacyProject.adminGroup = open.projectAdminGroup;
-    legacyProject.readonlyGroup = open.projectReadonlyGroup;
-    legacyProject.userGroup = open.projectUserGroup;
-
-    // quickstarters and repos
-    Map<String, Map<URL_TYPE, String>> openRepositories = open.repositories;
-
-    Map<String, Map<String, List<Link>>> legacyRepositories = new HashMap<>();
-
-    if (openRepositories != null) {
-      for (Map.Entry<String, Map<URL_TYPE, String>> openRepo : openRepositories.entrySet()) {
-        String openRepoName = openRepo.getKey();
-
-        Map<URL_TYPE, String> openRepoLinks = openRepo.getValue();
-
-        if (openRepoLinks == null) {
-          continue;
-        }
-
-        List<Link> cloneLinks = new ArrayList<>();
-        Link sshLink = new Link();
-        sshLink.setName("ssh");
-        sshLink.setHref(openRepoLinks.get(URL_TYPE.URL_CLONE_SSH));
-        cloneLinks.add(sshLink);
-
-        Link httpLink = new Link();
-        httpLink.setName("http");
-        httpLink.setHref(openRepoLinks.get(URL_TYPE.URL_CLONE_HTTP));
-        cloneLinks.add(httpLink);
-
-        Map<String, List<Link>> legacyRepoMap = new HashMap<>();
-        legacyRepoMap.put("clone", cloneLinks);
-
-        List<Link> browseLinks = new ArrayList<>();
-        Link browseLink = new Link();
-        browseLink.setName("null");
-        browseLink.setHref(openRepoLinks.get(URL_TYPE.URL_BROWSE_HTTP));
-        browseLinks.add(browseLink);
-
-        legacyRepoMap.put("self", browseLinks);
-
-        legacyRepositories.put(openRepoName, legacyRepoMap);
-      }
-    }
-
-    legacyProject.repositories = legacyRepositories;
-
-    legacyProject.quickstart = open.quickstarters;
-
-    // urls & config
-    legacyProject.jiraconfluencespace = open.bugtrackerSpace;
-    legacyProject.jiraUrl = open.bugtrackerUrl;
-    legacyProject.confluenceUrl = open.collaborationSpaceUrl;
-
-    legacyProject.openshiftproject = open.platformRuntime;
-    legacyProject.bitbucketUrl = open.scmvcsUrl;
-    legacyProject.openshiftConsoleDevEnvUrl = open.platformDevEnvironmentUrl;
-    legacyProject.openshiftConsoleTestEnvUrl = open.platformTestEnvironmentUrl;
-    legacyProject.openshiftJenkinsUrl = open.platformBuildEngineUrl;
-
-    // state
-    legacyProject.lastJobs = open.lastExecutionJobs;
-
-    return legacyProject;
-  }
-
-  /**
    * Create a new Open project from this legacy
    *
    * @param project the legacy project
@@ -208,16 +126,16 @@ public class ProjectData {
   public static OpenProjectData toOpenProjectData(ProjectData project) {
     OpenProjectData open = new OpenProjectData();
 
-    open.projectKey = project.key;
-    open.projectName = project.name;
-    open.description = project.description;
+    open.setProjectKey(project.key);
+    open.setProjectName(project.name);
+    open.setDescription(project.description);
 
     // roles & users
-    open.specialPermissionSet = project.createpermissionset;
-    open.projectAdminUser = project.admin;
-    open.projectAdminGroup = project.adminGroup;
-    open.projectReadonlyGroup = project.readonlyGroup;
-    open.projectUserGroup = project.userGroup;
+    open.setSpecialPermissionSet(project.createpermissionset);
+    open.setProjectAdminUser(project.admin);
+    open.setProjectAdminGroup(project.adminGroup);
+    open.setProjectReadonlyGroup(project.readonlyGroup);
+    open.setProjectUserGroup(project.userGroup);
 
     // quickstarters and repos
 
@@ -253,23 +171,23 @@ public class ProjectData {
       }
     }
 
-    open.repositories = repositories;
-    open.quickstarters = project.quickstart;
+    open.setRepositories(repositories);
+    open.setQuickstarters(project.quickstart);
 
     // urls & config
-    open.bugtrackerSpace = project.jiraconfluencespace;
-    open.scmvcsUrl = project.bitbucketUrl;
+    open.setBugtrackerSpace(project.jiraconfluencespace);
+    open.setScmvcsUrl(project.bitbucketUrl);
 
-    open.bugtrackerUrl = project.jiraUrl;
-    open.collaborationSpaceUrl = project.confluenceUrl;
+    open.setBugtrackerUrl(project.jiraUrl);
+    open.setCollaborationSpaceUrl(project.confluenceUrl);
 
-    open.platformRuntime = project.openshiftproject;
-    open.platformDevEnvironmentUrl = project.openshiftConsoleDevEnvUrl;
-    open.platformTestEnvironmentUrl = project.openshiftConsoleTestEnvUrl;
-    open.platformBuildEngineUrl = project.openshiftJenkinsUrl;
+    open.setPlatformRuntime(project.openshiftproject);
+    open.setPlatformDevEnvironmentUrl(project.openshiftConsoleDevEnvUrl);
+    open.setPlatformTestEnvironmentUrl(project.openshiftConsoleTestEnvUrl);
+    open.setPlatformBuildEngineUrl(project.openshiftJenkinsUrl);
 
     // state
-    open.lastExecutionJobs = project.lastJobs;
+    open.setLastExecutionJobs(project.lastJobs);
 
     return open;
   }
