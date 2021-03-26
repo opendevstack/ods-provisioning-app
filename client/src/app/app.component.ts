@@ -2,13 +2,14 @@ import { Component, OnInit, Renderer2 } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EditModeService } from './modules/edit-mode/services/edit-mode.service';
-import { catchError, filter } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { EditModeFlag } from './modules/edit-mode/domain/edit-mode';
 import { StorageService } from './modules/storage/services/storage.service';
 import { NavigationStart, Router } from '@angular/router';
 import { ProjectService } from './modules/project/services/project.service';
 import { ProjectData, ProjectStorage } from './domain/project';
+import { AuthenticationService } from './modules/authentication/services/authentication.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,8 @@ export class AppComponent implements OnInit {
   isLoading = true;
   isError: boolean;
   isNewProjectFormActive = false;
+  hideSidebar = false;
+  showLogoutButton = true;
 
   projects: ProjectData[] = [];
 
@@ -29,15 +32,26 @@ export class AppComponent implements OnInit {
     private domSanitizer: DomSanitizer,
     private renderer: Renderer2,
     private projectService: ProjectService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private authenticationService: AuthenticationService
   ) {
     this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/mdi-custom-icons.svg'));
     this.matIconRegistry.addSvgIconSet(this.domSanitizer.bypassSecurityTrustResourceUrl('assets/icons/tech-stack.svg'));
   }
 
   ngOnInit() {
-    this.checkRedirectToProjectDetail();
-    this.loadAllProjects();
+    this.authenticationService.checkAndSetSsoMode();
+
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationStart) {
+        if (event.url === '/') {
+          this.loadAllProjects();
+        } else if (event.url === '/login' || event.url === '/logout') {
+          this.showLogoutButton = false;
+          this.isLoading = false;
+        }
+      }
+    });
   }
 
   getEditModeStatus() {
@@ -55,12 +69,12 @@ export class AppComponent implements OnInit {
   }
 
   private checkRedirectToProjectDetail() {
-    this.router.events.pipe(filter(event => event instanceof NavigationStart && event.url === '/')).subscribe(() => {
-      const projectKey = this.getProjectKeyFormStorage();
-      if (projectKey) {
-        this.router.navigateByUrl(`/project/${projectKey}`);
-      }
-    });
+    const projectKey = this.getProjectKeyFormStorage();
+    if (projectKey) {
+      this.router.navigateByUrl(`/project/${projectKey}`);
+    } else {
+      this.router.navigateByUrl('/project');
+    }
   }
 
   private getProjectKeyFormStorage(): string | undefined {
@@ -73,8 +87,9 @@ export class AppComponent implements OnInit {
       .getAllProjects()
       .pipe(
         catchError(() => {
-          this.isError = true;
+          // show generic error page
           this.isLoading = false;
+          this.isError = true;
           return EMPTY;
         })
       )
@@ -82,6 +97,8 @@ export class AppComponent implements OnInit {
         this.projects = response;
         this.isLoading = false;
         this.isError = false;
+        this.hideSidebar = false;
+        this.checkRedirectToProjectDetail();
       });
   }
 }

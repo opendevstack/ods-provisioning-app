@@ -41,12 +41,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionListener;
 import net.sf.ehcache.CacheManager;
+import org.jetbrains.annotations.NotNull;
 import org.opendevstack.provision.authentication.ProvAppHttpSessionListener;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
@@ -54,16 +56,17 @@ import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/** Class for setting the security configuration and security related configurations */
 @Configuration
 @EnableWebSecurity
 @EnableCaching
@@ -72,6 +75,9 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(CrowdSecurityConfiguration.class);
+
+  @Value("${idmanager.realm:provision}")
+  private String idManagerRealm;
 
   @Value("${crowd.application.name}")
   String crowdApplicationName;
@@ -88,12 +94,12 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Value("${provision.auth.basic-auth.enabled:true}")
   private boolean isBasicAuthEnabled;
 
-  /**
-   * Configure the security for the spring application
-   *
-   * @param http
-   * @throws Exception
-   */
+  @Value("${frontend.spa.enabled:false}")
+  private boolean spafrontendEnabled;
+
+  @Autowired(required = false)
+  private BasicAuthenticationEntryPoint basicAuthEntryPoint;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
 
@@ -110,13 +116,22 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     if (isBasicAuthEnabled) {
       logger.info("Added Basic Auth entry point!");
-      sec.httpBasic().realmName(crowdApplicationName);
+      sec.httpBasic()
+          .realmName(crowdApplicationName)
+          .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
     }
 
     sec.addFilter(crowdSSOAuthenticationProcessingFilter())
         .authorizeRequests()
         .antMatchers(
-            "/", "/fragments/**", "/webjars/**", "/js/**", "/json/**", "/favicon.ico", "/login")
+            "/",
+            "/fragments/**",
+            "/webjars/**",
+            "/js/**",
+            "/json/**",
+            "/favicon.ico",
+            "/login",
+            "/nfe/**")
         .permitAll()
         .anyRequest()
         .authenticated()
@@ -125,20 +140,13 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     sec.formLogin()
         .loginPage("/login")
         .permitAll()
-        .defaultSuccessUrl("/home")
         .and()
         .logout()
-        .addLogoutHandler(crowdLogoutHandler())
+        .addLogoutHandler(logoutHandler())
         .permitAll()
         .and();
   }
 
-  /**
-   * Get the properties used for crowd authentication
-   *
-   * @return
-   * @throws IOException
-   */
   public Properties getProps() throws IOException {
 
     Properties prop = new Properties();
@@ -153,26 +161,22 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return prop;
   }
 
-  /**
-   * Define a logout handler to perform a clean crowd logout
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
-  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
-  public CrowdLogoutHandler crowdLogoutHandler() throws IOException {
-    CrowdLogoutHandler clh = new CrowdLogoutHandler();
-    clh.setHttpAuthenticator(httpAuthenticator());
-    return clh;
+  //  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
+  public CrowdLogoutHandler logoutHandler() throws IOException {
+
+    if (spafrontendEnabled) {
+      OKResponseCrowdLogoutHandler handler = new OKResponseCrowdLogoutHandler();
+      handler.setHttpAuthenticator(httpAuthenticator());
+      return handler;
+
+    } else {
+      CrowdLogoutHandler clh = new CrowdLogoutHandler();
+      clh.setHttpAuthenticator(httpAuthenticator());
+      return clh;
+    }
   }
 
-  /**
-   * Set a filter intercepting the login form to process a crowd authentication
-   *
-   * @return
-   * @throws Exception
-   */
   @Bean
   public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter() throws Exception {
     SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
@@ -192,13 +196,19 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return new SSOAuthProcessingFilterBasicAuthHandler(isBasicAuthEnabled);
   }
 
-  /**
-   * Define a success handler to proceed after a crowd authentication, if it has been successful
-   *
-   * @return
-   */
   @Bean
   public AuthenticationSuccessHandler authenticationSuccessHandler() {
+
+    if (spafrontendEnabled) {
+      return createAuthSuccessHandlerThatReturnsOK();
+    } else {
+      return createAuthSuccessHandlerThatRedirectsToHome();
+    }
+  }
+
+  @NotNull
+  public SavedRequestAwareAuthenticationSuccessHandler
+      createAuthSuccessHandlerThatRedirectsToHome() {
     SavedRequestAwareAuthenticationSuccessHandler successHandler =
         new SavedRequestAwareAuthenticationSuccessHandler() {
 
@@ -211,19 +221,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
             super.onAuthenticationSuccess(request, response, authentication);
 
-            try {
-              String username = null;
-
-              if (authentication.getPrincipal() instanceof CrowdUserDetails) {
-                CrowdUserDetails userDetails = (CrowdUserDetails) authentication.getPrincipal();
-                username = userDetails.getUsername();
-              }
-
-              logger.info("Successful authentication [username=" + username + "]");
-
-            } catch (Exception ex) {
-              logger.debug("Error trying to resolve username of expired session!", ex);
-            }
+            CrowdSecurityConfiguration.logSuccessAuthentication(authentication);
           }
         };
     successHandler.setDefaultTargetUrl("/home");
@@ -232,11 +230,39 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return successHandler;
   }
 
-  /**
-   * define an failure handler in case of an authentication failure
-   *
-   * @return
-   */
+  @NotNull
+  public SimpleUrlAuthenticationSuccessHandler createAuthSuccessHandlerThatReturnsOK() {
+    SimpleUrlAuthenticationSuccessHandler handler =
+        new SimpleUrlAuthenticationSuccessHandler() {
+
+          @Override
+          public void onAuthenticationSuccess(
+              HttpServletRequest request,
+              HttpServletResponse response,
+              Authentication authentication) {
+
+            clearAuthenticationAttributes(request);
+            response.setStatus(HttpServletResponse.SC_OK);
+
+            CrowdSecurityConfiguration.logSuccessAuthentication(authentication);
+          }
+        };
+    return handler;
+  }
+
+  public static void logSuccessAuthentication(Authentication authentication) {
+    try {
+      if (authentication.getPrincipal() instanceof CrowdUserDetails) {
+        CrowdUserDetails userDetails = (CrowdUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        logger.info("Successful authentication [username=" + username + "]");
+      }
+
+    } catch (Exception ex) {
+      logger.debug("Error trying to resolve username of expired session!", ex);
+    }
+  }
+
   @Bean
   public AuthenticationFailureHandler authenticationFailureHandler() {
     UsernameStoringAuthenticationFailureHandler failureHandler =
@@ -246,12 +272,6 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return failureHandler;
   }
 
-  /**
-   * Define a bean for the soap restClient used to authenticate against crowd
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   @ConditionalOnProperty(
       name = "provision.auth.provider",
@@ -262,21 +282,11 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
         SoapClientPropertiesImpl.newInstanceFromProperties(getProps()));
   }
 
-  /**
-   * Define a basic cache for userdata caching
-   *
-   * @return
-   */
   @Bean
   public BasicCache getCache() {
     return new CacheImpl(getCacheManager());
   }
 
-  /**
-   * Define a cache manager for eh-cache
-   *
-   * @return
-   */
   @Bean
   public CacheManager getCacheManager() {
     return getEhCacheFactory().getObject();
@@ -289,67 +299,31 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return factoryBean;
   }
 
-  /**
-   * define a custom authentication manager, which is able to hold the password
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public AuthenticationManager crowdAuthenticationManager() throws IOException {
     return new CrowdAuthenticationManager(securityServerClient());
   }
 
-  /**
-   * Define the authenticator for the secure restClient
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public HttpAuthenticator httpAuthenticator() throws IOException {
     return new HttpAuthenticatorImpl(crowdAuthenticationManager());
   }
 
-  /**
-   * Define a custom user manager for handling crowd users
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public UserManager userManager() throws IOException {
     return new CachingUserManager(securityServerClient(), getCache());
   }
 
-  /**
-   * Define a manager for handling crowd groups
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public GroupManager groupManager() throws IOException {
     return new CachingGroupManager(securityServerClient(), getCache());
   }
 
-  /**
-   * Configure the manager uses for the authentication provider
-   *
-   * @param auth
-   * @throws Exception
-   */
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth.authenticationProvider(crowdAuthenticationProvider());
   }
 
-  /**
-   * Define crowd user details for usage in security context
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
@@ -361,12 +335,6 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return cusd;
   }
 
-  /**
-   * Define the crowd authentication provider
-   *
-   * @return
-   * @throws IOException
-   */
   @Bean
   public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
@@ -389,5 +357,22 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
           }
           return username;
         });
+  }
+
+  @Bean
+  public WebMvcConfigurer corsConfigurer() {
+    return new WebMvcConfigurer() {
+      @Override
+      public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/").allowedOrigins("http://localhost:4200");
+      }
+    };
+  }
+
+  @Bean
+  public BasicAuthenticationEntryPoint basicAuthEntryPoint() {
+    BasicAuthenticationEntryPoint entryPoint = new BasicAuthenticationEntryPoint();
+    entryPoint.setRealmName(idManagerRealm);
+    return entryPoint;
   }
 }

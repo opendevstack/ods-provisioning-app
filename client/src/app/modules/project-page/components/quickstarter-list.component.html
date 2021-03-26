@@ -75,7 +75,7 @@
     <ng-container *ngIf="hasPlatformRuntime; else noPlatformRuntime">
       <div class="infobox" data-test-qs-list-platform-runtime-yes>
         <div class="infobox__img">
-          <img src="assets/icons/quickstarter-not-found.svg" alt="No quickstarters applied yet" />
+          <img src="assets/icons/quickstarters.svg" alt="No quickstarters applied yet" />
         </div>
         <div class="infobox__headline">No quickstarters applied yet</div>
         <div class="infobox__subline">Add new components to your project</div>
@@ -93,7 +93,7 @@
     <ng-template #noPlatformRuntime>
       <div class="infobox" data-test-qs-list-platform-runtime-no>
         <div class="infobox__img">
-          <img src="assets/icons/quickstarter-not-found.svg" alt="No quickstarters possible" />
+          <img src="assets/icons/quickstarters.svg" alt="No quickstarters possible" />
         </div>
         <div class="infobox__headline">No quickstarters possible in this project</div>
         <div class="infobox__subline">Quickstarters can only be applied in OpenShift projects</div>

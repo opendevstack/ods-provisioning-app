@@ -36,24 +36,24 @@ public class DefaultController {
 
   private static final Logger logger = LoggerFactory.getLogger(DefaultController.class);
 
-  public static final String REDIRECT_TO_ROOT_CONTEXT = "redirect:/";
-  public static final String REDIRECT_TO_HOME = "redirect:/home";
-  public static final String REDIRECT_TO_SPA_FRONTEND_INDEX_HTML = "redirect:/nfe/index.html";
-  public static final String REDIRECT_TO_LOGIN = "redirect:/login";
-  public static final String REDIRECT_TO_LOGIN_WITH_LOGOUT = "redirect:/login?logout";
+  public static final String OAUTH_2_PROVIDER_KEY = "oauth2";
 
   public static final String ROUTE_ROOT = "/";
   public static final String ROUTE_HOME = "/home";
-  public static final String ROUTE_NEWFRONTEND = "/newfrontend";
   public static final String ROUTE_PROVISION = "/provision";
   public static final String ROUTE_LOGIN = "/login";
   public static final String ROUTE_LOGIN_WITH_LOGOUT_OPTION = "/login?logout";
   public static final String ROUTE_HISTORY = "/history";
   public static final String ROUTE_ABOUT = "/about";
   public static final String ROUTE_LOGOUT = "/logout";
-  public static final String ROUTE_NFE_AND_ALL_RESOURCES_IN_PATH = "/nfe/{path:[^\\.]*}";
   public static final String ROUTE_ROOT_AND_ALL_RESOURCES_IN_PATH = "/{path:[^\\.]*}";
   public static final String FORWARD_TO_ROOT = "forward:/";
+  public static final String RESOURCE_NFE_INDEX = "/nfe/index.html";
+
+  public static final String REDIRECT_TO_HOME = "redirect:/home";
+  public static final String REDIRECT_TO_SPA_FRONTEND_INDEX_HTML = "redirect:" + RESOURCE_NFE_INDEX;
+  public static final String REDIRECT_TO_LOGIN = "redirect:/login";
+  public static final String REDIRECT_TO_LOGIN_WITH_LOGOUT = "redirect:/login?logout";
 
   private StorageAdapter storageAdapter;
 
@@ -105,7 +105,7 @@ public class DefaultController {
     }
 
     if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
+      return redirectToLogin();
     }
     return REDIRECT_TO_HOME;
   }
@@ -114,45 +114,34 @@ public class DefaultController {
   public String home(Model model) {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
+      return redirectToLogin();
     }
     model.addAttribute("classActiveHome", ACTIVE);
     return "home";
   }
 
-  @RequestMapping(ROUTE_NFE_AND_ALL_RESOURCES_IN_PATH)
-  public String nfe(Model model) {
-    return newfrontend(model);
-  }
+  private String redirectToNFEContext() {
 
-  // Support launch SPA new frontend from template based frontend
-  @RequestMapping(ROUTE_NEWFRONTEND)
-  public String newfrontend(Model model) {
-
-    if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+    if (isAuthProviderOauth2()) {
+      return REDIRECT_TO_SPA_FRONTEND_INDEX_HTML + "?sso=" + isAuthProviderOauth2();
+    } else {
+      return REDIRECT_TO_SPA_FRONTEND_INDEX_HTML;
     }
-
-    if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
-    }
-    model.addAttribute("classActiveHome", ACTIVE);
-    return REDIRECT_TO_SPA_FRONTEND_INDEX_HTML;
   }
 
   @RequestMapping(ROUTE_PROVISION)
   public String provisionProject(Model model) {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
+      return redirectToLogin();
     } else {
       model.addAttribute("jiraProjects", storageAdapter.listProjectHistory());
       model.addAttribute("quickStarter", jenkinspipelineAdapter.getQuickstarterJobs());
@@ -171,7 +160,7 @@ public class DefaultController {
   public String login(Model model) {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     if (isAuthProviderOauth2()) {
@@ -184,11 +173,11 @@ public class DefaultController {
   public String history(Model model) {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
+      return redirectToLogin();
     }
     model.addAttribute("classActiveHistory", ACTIVE);
     model.addAttribute("projectHistory", storageAdapter.listProjectHistory());
@@ -199,11 +188,11 @@ public class DefaultController {
   public String about(Model model) {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     if (!isAuthenticated()) {
-      return REDIRECT_TO_LOGIN;
+      return redirectToLogin();
     }
 
     model.addAttribute("classActiveAbout", ACTIVE);
@@ -229,6 +218,10 @@ public class DefaultController {
     return "about";
   }
 
+  private String redirectToLogin() {
+    return REDIRECT_TO_LOGIN;
+  }
+
   public static Set<String> getUserRoles() {
     SecurityContext securityContext = SecurityContextHolder.getContext();
     Authentication authentication = securityContext.getAuthentication();
@@ -244,7 +237,7 @@ public class DefaultController {
   public String logoutPage() {
 
     if (isSpafrontendEnabled()) {
-      return REDIRECT_TO_ROOT_CONTEXT;
+      return redirectToNFEContext();
     }
 
     try {
@@ -290,7 +283,7 @@ public class DefaultController {
   }
 
   private boolean isAuthProviderOauth2() {
-    return authProvider.equals("oauth2");
+    return authProvider.equals(OAUTH_2_PROVIDER_KEY);
   }
 
   public boolean isSpafrontendEnabled() {

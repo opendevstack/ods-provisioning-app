@@ -22,6 +22,7 @@ import java.net.SocketTimeoutException;
 import okhttp3.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.opendevstack.provision.controller.ProjectAPI;
 import org.opendevstack.provision.util.CredentialsInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,9 +56,9 @@ public class RestClientTest {
   @Test
   public void callHttpNotAuthorized() {
     try {
-      RestClientCall call = validGetCall();
+      RestClientCall call = validGetCall("/" + ProjectAPI.API_V2_PROJECT);
       call.basicAuthenticated(new CredentialsInfo("unknow_user", "secret"));
-      client.execute(call);
+      Object execute = client.execute(call);
       fail();
     } catch (IOException e) {
       assertTrue(e.getMessage().contains("Errorcode: 401"));
@@ -82,8 +83,15 @@ public class RestClientTest {
   }
 
   public RestClientCall validGetCall() {
+    return validGetCall("");
+  }
+
+  public RestClientCall validGetCall(String path) {
     return RestClientCall.get()
-        .url(String.format("http://localhost:%d", randomServerPort))
+        .url(
+            String.format(
+                "http://localhost:%d%s",
+                randomServerPort, path == null || path.isEmpty() ? "" : path))
         .mediaType(MediaType.parse("application/xhtml+xml"))
         .returnType(String.class);
   }

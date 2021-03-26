@@ -47,3 +47,5 @@ Thumbs.db
 
 # app
 proxy.conf.json
+sslcert/
+/local.package.json

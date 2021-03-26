@@ -4,11 +4,8 @@
       "host": "<Your Host>",
       "protocol": "https:"
     },
-    "secure": false,
+    "secure": true,
     "changeOrigin": true,
-    "logLevel": "info",
-    "headers": {
-      "Authorization": "Basic <Your Authorization Key>"
-    }
+    "logLevel": "info"
   }
 }
