@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add swagger-ui support ([#679](https://github.com/opendevstack/ods-provisioning-app/pull/679))
 - Handle logout in SPA ([#675](https://github.com/opendevstack/ods-provisioning-app/issues/675)) 
 - Handle form based auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637)) 
 - Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
