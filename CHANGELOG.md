@@ -5,8 +5,8 @@
 ### Added
 
 - Add swagger-ui support ([#679](https://github.com/opendevstack/ods-provisioning-app/pull/679))
-- Handle logout in SPA ([#675](https://github.com/opendevstack/ods-provisioning-app/issues/675)) 
-- Handle form based auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637)) 
+- Handle logout in SPA ([#675](https://github.com/opendevstack/ods-provisioning-app/issues/675))
+- Handle form based auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
 - Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
 - Add support for odsbox for local development([#579](https://github.com/opendevstack/ods-provisioning-app/issues/579))
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
@@ -16,6 +16,7 @@
 
 ### Fixed
 
+- Bump y18n from 4.0.0 to 4.0.1 in /client ([#680](https://github.com/opendevstack/ods-provisioning-app/pull/680))
 - Handle basic auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
 - Fix SPA searchbar layout ([#664](https://github.com/opendevstack/ods-provisioning-app/issues/664))
 - Wrong exception logging of bitbucket project key pre flight check ([#655](https://github.com/opendevstack/ods-provisioning-app/issues/655))
