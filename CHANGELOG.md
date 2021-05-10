@@ -16,6 +16,7 @@
 
 ### Fixed
 
+- Bump url-parse from 1.4.7 to 1.5.1 in /client ([684](https://github.com/opendevstack/ods-provisioning-app/pull/684))
 - Bump hosted-git-info from 2.8.8 to 2.8.9 in /client ([#683](https://github.com/opendevstack/ods-provisioning-app/pull/683))
 - Bump y18n from 4.0.0 to 4.0.1 in /client ([#680](https://github.com/opendevstack/ods-provisioning-app/pull/680))
 - Handle basic auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
