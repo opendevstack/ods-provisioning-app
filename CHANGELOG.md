@@ -16,6 +16,7 @@
 
 ### Fixed
 
+- Bump browserslist from 4.11.0 to 4.16.6 in /client ([686](https://github.com/opendevstack/ods-provisioning-app/pull/686))
 - Bump lodash from 4.17.19 to 4.17.21 in /client ([685](https://github.com/opendevstack/ods-provisioning-app/pull/685))
 - Bump url-parse from 1.4.7 to 1.5.1 in /client ([684](https://github.com/opendevstack/ods-provisioning-app/pull/684))
 - Bump hosted-git-info from 2.8.8 to 2.8.9 in /client ([#683](https://github.com/opendevstack/ods-provisioning-app/pull/683))
