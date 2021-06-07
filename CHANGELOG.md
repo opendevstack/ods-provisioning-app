@@ -16,6 +16,7 @@
 
 ### Fixed
 
+- Bump ws from 6.2.1 to 6.2.2 in /client ([#689](https://github.com/opendevstack/ods-provisioning-app/pull/689))
 - Bump dns-packet from 1.3.1 to 1.3.4 in /client ([#688](https://github.com/opendevstack/ods-provisioning-app/pull/688))
 - Bump elliptic from 6.5.3 to 6.5.4 in /client ([#687](https://github.com/opendevstack/ods-provisioning-app/pull/687))
 - Bump browserslist from 4.11.0 to 4.16.6 in /client ([#686](https://github.com/opendevstack/ods-provisioning-app/pull/686))
