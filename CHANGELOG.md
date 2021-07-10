@@ -4,6 +4,9 @@
 
 ### Added
 
+- Add swagger-ui support ([#679](https://github.com/opendevstack/ods-provisioning-app/pull/679))
+- Handle logout in SPA ([#675](https://github.com/opendevstack/ods-provisioning-app/issues/675))
+- Handle form based auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
 - Add default permissions to project groups on project creation ([#636](https://github.com/opendevstack/ods-provisioning-app/pull/636))
 - Add support for odsbox for local development([#579](https://github.com/opendevstack/ods-provisioning-app/issues/579))
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
@@ -13,6 +16,15 @@
 
 ### Fixed
 
+- Bump ws from 6.2.1 to 6.2.2 in /client ([#689](https://github.com/opendevstack/ods-provisioning-app/pull/689))
+- Bump dns-packet from 1.3.1 to 1.3.4 in /client ([#688](https://github.com/opendevstack/ods-provisioning-app/pull/688))
+- Bump elliptic from 6.5.3 to 6.5.4 in /client ([#687](https://github.com/opendevstack/ods-provisioning-app/pull/687))
+- Bump browserslist from 4.11.0 to 4.16.6 in /client ([#686](https://github.com/opendevstack/ods-provisioning-app/pull/686))
+- Bump lodash from 4.17.19 to 4.17.21 in /client ([#685](https://github.com/opendevstack/ods-provisioning-app/pull/685))
+- Bump url-parse from 1.4.7 to 1.5.1 in /client ([#684](https://github.com/opendevstack/ods-provisioning-app/pull/684))
+- Bump hosted-git-info from 2.8.8 to 2.8.9 in /client ([#683](https://github.com/opendevstack/ods-provisioning-app/pull/683))
+- Bump y18n from 4.0.0 to 4.0.1 in /client ([#680](https://github.com/opendevstack/ods-provisioning-app/pull/680))
+- Handle basic auth in SPA ([#637](https://github.com/opendevstack/ods-provisioning-app/issues/637))
 - Fix SPA searchbar layout ([#664](https://github.com/opendevstack/ods-provisioning-app/issues/664))
 - Wrong exception logging of bitbucket project key pre flight check ([#655](https://github.com/opendevstack/ods-provisioning-app/issues/655))
 - Show an error message when the component id does not match the regex expression ([#624](https://github.com/opendevstack/ods-provisioning-app/issues/624))

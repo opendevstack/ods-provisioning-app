@@ -1,7 +1,11 @@
-<div class="empty-content" data-test-login>
+<ng-container *ngIf="isLoading">
+  <app-loading-indicator></app-loading-indicator>
+</ng-container>
+
+<div class="empty-content" data-test-login *ngIf="!isLoading">
   <div class="infobox">
     <div class="infobox__img">
-      <img src="assets/icons/quickstarter-not-found.svg" alt="Logged out" />
+      <img src="assets/icons/quickstarters.svg" alt="Logged out" />
     </div>
     <div class="infobox__headline">Logout successfully</div>
     <div class="infobox__subline">You might login again</div>
