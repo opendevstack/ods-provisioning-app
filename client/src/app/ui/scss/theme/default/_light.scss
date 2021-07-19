@@ -1,3 +1,4 @@
+@use '~@angular/material' as mat;
 body {
   --primary-color: #336699;
   --primary-lighter-color: #c2d1e0;
@@ -26,7 +27,7 @@ $mat-light-primary: (
     darker: #555555
   )
 );
-$light-theme-primary: mat-palette($mat-light-primary, main, lighter, darker);
+$light-theme-primary: mat.define-palette($mat-light-primary, main, lighter, darker);
 
 body {
   --accent-color: #2770d2;
@@ -45,7 +46,7 @@ $mat-light-accent: (
   )
 
 );
-$light-theme-accent: mat-palette($mat-light-accent, main, lighter, darker);
+$light-theme-accent: mat.define-palette($mat-light-accent, main, lighter, darker);
 
 body {
   --warn-color: #c31e18;
@@ -63,10 +64,10 @@ $mat-light-warn: (
     darker: #ffffff
   )
 );
-$light-theme-warn: mat-palette($mat-light-warn, main, lighter, darker);;
+$light-theme-warn: mat.define-palette($mat-light-warn, main, lighter, darker);;
 
-$light-theme: mat-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
+$light-theme: mat.define-light-theme($light-theme-primary, $light-theme-accent, $light-theme-warn);
 
 body {
-  @include angular-material-theme($light-theme);
+  @include mat.all-component-themes($light-theme);
 }
