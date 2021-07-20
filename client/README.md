@@ -16,7 +16,6 @@ To contribute to the further development, see section "Contributions welcome!" f
 - [Jest](https://jestjs.io/) as unit testing framework
 - [Prettier](https://prettier.io/) as pre-commit-hook
 - [SASS Lint](https://github.com/sasstools/sass-lint) to check scss files
-- [Yarn](https://yarnpkg.com/) as package manager
 
 See package.json for up-to-date version information.
 
@@ -24,8 +23,8 @@ See package.json for up-to-date version information.
 
 ### 1. Install dependencies
 
-- Install YARN globally: `npm install -g yarn`
-- Run `yarn`, this will install all dependencies
+- Eventually, install NPM first
+- Run `npm install` to install all dependencies
 
 ### 2. Configure API access from localhost
 
@@ -37,14 +36,14 @@ Doing this there's no need to run Spring Boot locally.
 
 ### 3. Test the setup
 
-Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app
+Run `npm run start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app
 will automatically reload if you change any of the source files.
 
 ## Development
 
 ### Dev Server
 
-`yarn start:dev`: Starts a live reload dev server on `http://localhost:4200/`
+`npm run start:dev`: Starts a live reload dev server on `http://localhost:4200/`
 
 ### Dev Server with SSL localhost
 
@@ -60,16 +59,16 @@ behaves correctly. Although not ideal, we discovered this as the most effortless
 
 ### Build
 
-`yarn build`: The build artifacts will be stored in the `dist/` directory. `yarn build:prod` will be used for the pipeline.
+`npm run build`: The build artifacts will be stored in the `dist/` directory. `yarn build:prod` will be used for the pipeline.
 
 ### Tests
 
-- Unittests: `yarn test` / `yarn test:watch`
+- Unittests: `npm run test` / `npm run test:watch`
 - E2E (Cypress): TODO
 
 ### Linting
 
-- `yarn lint`: Linting for Typescript and SCSS files.
+- `npm run lint`: Linting for Typescript and SCSS files.
 
 ### Prettier
 

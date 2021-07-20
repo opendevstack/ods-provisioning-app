@@ -183,15 +183,15 @@ gradleLint {
     rules = ['unused-dependency']
 }
 
-task yarnBuild(type:Exec) {
+task npmBuild(type:Exec) {
 
     workingDir 'client'
 
     //on windows:
-    commandLine 'cmd', '/c', 'yarn', 'build'
+    commandLine 'cmd', '/c', 'npm', 'run', 'build'
 
     //on linux
-    commandLine 'yarn', 'build'
+    commandLine 'npm', 'run', 'build'
 }
 
-bootRun.dependsOn yarnBuild
+bootRun.dependsOn npmBuild

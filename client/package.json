@@ -11,8 +11,8 @@
     "build:prod": "ng build --baseHref=/nfe/ --configuration=production",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "ng lint && yarn lint:sass",
-    "lint:fix": "ng lint --fix && yarn lint:sass",
+    "lint": "ng lint && npm run lint:sass",
+    "lint:fix": "ng lint --fix && npm run lint:sass",
     "lint:sass": "sass-lint --verbose --no-exit",
     "format:fix:staged": "pretty-quick --staged --verbose --pattern \"**/*.{js,json,md,ts}\""
   },
@@ -102,7 +102,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn format:fix:staged"
+      "pre-commit": "npm run format:fix:staged"
     }
   }
 }
