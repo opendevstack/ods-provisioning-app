@@ -15,7 +15,6 @@ To contribute to the further development, see section "Contributions welcome!" f
 - [Angular](https://angular.io/) as single page application framework
 - [Jest](https://jestjs.io/) as unit testing framework
 - [Prettier](https://prettier.io/) as pre-commit-hook
-- [SASS Lint](https://github.com/sasstools/sass-lint) to check scss files
 
 See package.json for up-to-date version information.
 

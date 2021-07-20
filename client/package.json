@@ -11,9 +11,8 @@
     "build:prod": "ng build --baseHref=/nfe/ --configuration=production",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "ng lint && npm run lint:sass",
-    "lint:fix": "ng lint --fix && npm run lint:sass",
-    "lint:sass": "sass-lint --verbose --no-exit",
+    "lint": "ng lint",
+    "lint:fix": "ng lint --fix",
     "format:fix:staged": "pretty-quick --staged --verbose --pattern \"**/*.{js,json,md,ts}\""
   },
   "private": true,
@@ -60,7 +59,6 @@
     "prettier": "2.1.2",
     "pretty-quick": "^2.0.1",
     "protractor": "~7.0.0",
-    "sass-lint": "^1.13.1",
     "ts-node": "^10.1.0",
     "typescript": "~4.3.5"
   },
