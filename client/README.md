@@ -6,15 +6,16 @@ This first version of the new frontend stack was introduced as an experimental f
 ([original issue](https://github.com/opendevstack/ods-provisioning-app/issues/518)). It can be activated for users with a
 `frontend.spa.enabled` feature flag in Spring Boot.
 
-OpenDevStack NEXT will include this new frontend activated by default (without featue flag).
+OpenDevStack NEXT will include this new frontend activated by default (without feature flag).
 
 To contribute to the further development, see section "Contributions welcome!" further down.
 
 ## Stack
 
-- [Angular](https://angular.io/) as single page application framework
-- [Jest](https://jestjs.io/) as unit testing framework
-- [Prettier](https://prettier.io/) as pre-commit-hook
+- [Angular](https://angular.io/)
+- [Jest](https://jestjs.io/)
+- [ESLint](https://eslint.org/)
+- [Prettier](https://prettier.io/) 
 
 See package.json for up-to-date version information.
 
@@ -58,7 +59,8 @@ behaves correctly. Although not ideal, we discovered this as the most effortless
 
 ### Build
 
-`npm run build`: The build artifacts will be stored in the `dist/` directory. `yarn build:prod` will be used for the pipeline.
+- `npm run build`: The build artifacts will be stored in the `dist/` directory.
+- `npm run build:prod` will be used for the pipeline.
 
 ### Tests
 
@@ -67,12 +69,7 @@ behaves correctly. Although not ideal, we discovered this as the most effortless
 
 ### Linting
 
-- `npm run lint`: Linting for Typescript and SCSS files.
-
-### Prettier
-
-Prettier is used as a pre-commit hook to format js, json, md, ts files. Formatting of html files has been temporarily removed due to
-inflexibility in context of Angular component markup.
+- `npm run lint`: Linting for Typescript (using [angular-eslint](https://github.com/angular-eslint/angular-eslint)) incl. Prettier as an eslint rule. This npm task also runs as a pre-commit hook.
 
 ## Contributions welcome!
 

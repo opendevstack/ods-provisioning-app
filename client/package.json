@@ -3,8 +3,6 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prettier": "prettier --write \"**/*.{js,json,md,ts,component.html}\"",
-    "prettier:check": "prettier --check \"**/*.{js,json,css,scss,less,md,ts,html,component.html}\"",
     "start:dev": "ng serve --proxy-config proxy.conf.json",
     "start": "ng serve",
     "build": "ng build --baseHref=/nfe/",
@@ -12,8 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "ng lint",
-    "lint:fix": "ng lint --fix",
-    "format:fix:staged": "pretty-quick --staged --verbose --pattern \"**/*.{js,json,md,ts}\""
+    "lint:fix": "ng lint --fix"
   },
   "private": true,
   "dependencies": {
@@ -49,9 +46,9 @@
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
     "bootstrap": "^4.4.1",
-    "eslint": "^7.26.0",
+    "eslint": "^7.31.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-prettier": "^3.4.0",
     "husky": "4.2.3",
     "jest": "^25.2.3",
     "jest-preset-angular": "8.1.2",
@@ -100,7 +97,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run format:fix:staged"
+      "pre-commit": "npm run lint"
     }
   }
 }
