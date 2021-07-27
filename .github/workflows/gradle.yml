@@ -22,7 +22,7 @@ jobs:
         distribution: 'adopt' # See 'Supported distributions' for available options
         java-version: '11'
     - name: Build provisioning-app BE (copy the FE artifacts to 'build/resources/main/static/nfe')
-      run: ./gradlew clean spotlessCheck build
+      run: ./gradlew clean spotlessCheck build -i
       env:
         NO_NEXUS: true
     - uses: actions/cache@v1
