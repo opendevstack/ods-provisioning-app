@@ -100,6 +100,8 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Autowired(required = false)
   private BasicAuthenticationEntryPoint basicAuthEntryPoint;
 
+  private static CacheImpl basicCache;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
 
@@ -284,7 +286,10 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Bean
   public BasicCache getCache() {
-    return new CacheImpl(getCacheManager());
+    if (basicCache == null) {
+      basicCache = new CacheImpl(getCacheManager());
+    }
+    return basicCache;
   }
 
   @Bean
