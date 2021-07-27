@@ -100,7 +100,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Autowired(required = false)
   private BasicAuthenticationEntryPoint basicAuthEntryPoint;
 
-  private static CacheImpl basicCache;
+  private CacheImpl basicCache;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
