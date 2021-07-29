@@ -22,10 +22,6 @@ const routes: Routes = [
     loadChildren: () => import('../new-project/new-project.module').then(m => m.NewProjectModule)
   },
   {
-    path: 'about',
-    loadChildren: () => import('../about-page/about-page.module').then(m => m.AboutPageModule)
-  },
-  {
     path: 'login',
     loadChildren: () => import('../login/login.module').then(m => m.LoginModule)
   },
