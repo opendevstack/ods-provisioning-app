@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [4.0] - 2021-18-11
+
 ### Added
 
 - SPA dependencies update incl. Angular 12 ([#692](https://github.com/opendevstack/ods-provisioning-app/issues/692))
