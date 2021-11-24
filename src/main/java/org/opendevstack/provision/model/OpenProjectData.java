@@ -125,14 +125,14 @@ public class OpenProjectData {
       if (quickStarterToRemove.get(COMPONENT_ID_KEY) == null) {
         throw new NullPointerException("Cannot delete quickstarter with id null!");
       }
-    }
-    for (Map<String, String> quickStarterToRemove : quickstartersToRemove) {
+      // loop over the currently provisioned quickstarters, and find the
+      // one with similar id - to then remove it.
       List<Map<String, String>> currentQuickstarters = getQuickstarters();
       for (int i = 0; i < currentQuickstarters.size(); i++) {
         Map<String, String> currentQuickstarter = currentQuickstarters.get(i);
         if (currentQuickstarter
             .get(COMPONENT_ID_KEY)
-            .equals(quickStarterToRemove.get(COMPONENT_ID_KEY))) {
+            .equalsIgnoreCase(quickStarterToRemove.get(COMPONENT_ID_KEY))) {
           quickstarters.remove(i);
         }
       }
