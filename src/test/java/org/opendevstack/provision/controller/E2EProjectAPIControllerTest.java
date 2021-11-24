@@ -685,9 +685,10 @@ public class E2EProjectAPIControllerTest {
     assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
     assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
-    OpenProjectData toClean = new OpenProjectData();
+    OpenProjectData toClean =
+        readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
+
     toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
-    toClean.setQuickstarters(createdProjectIncludingQuickstarters.getQuickstarters());
 
     mockExecuteAdminJob("ods", "delete-projects", "testp");
 
@@ -735,9 +736,10 @@ public class E2EProjectAPIControllerTest {
     assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
     assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
-    OpenProjectData toClean = new OpenProjectData();
+    OpenProjectData toClean =
+        readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
+
     toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
-    toClean.setQuickstarters(createdProjectIncludingQuickstarters.getQuickstarters());
 
     String prefix =
         createdProjectIncludingQuickstarters.getQuickstarters().get(0).get("component_id");
@@ -772,7 +774,7 @@ public class E2EProjectAPIControllerTest {
             .andReturn();
 
     e2eLogger.info(
-        "Delete response: " + resultProjectGetResponse.getResponse().getContentAsString());
+        "Delete response (qs): " + resultProjectGetResponse.getResponse().getContentAsString());
 
     OpenProjectData resultProject =
         new ObjectMapper()
@@ -955,6 +957,8 @@ public class E2EProjectAPIControllerTest {
         new ObjectMapper().readValue(resultUpdateData, OpenProjectData.class);
 
     List<Map<String, String>> createdQuickstarters = resultProject.getQuickstarters();
+
+    e2eLogger.info("Provisioned quickstarter{}", createdQuickstarters);
 
     assertNotNull(createdQuickstarters);
     assertEquals(1, createdQuickstarters.size());
