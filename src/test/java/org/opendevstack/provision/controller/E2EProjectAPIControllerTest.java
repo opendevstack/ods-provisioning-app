@@ -736,6 +736,7 @@ public class E2EProjectAPIControllerTest {
     assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
     assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
+    // take the same data as in the request to create the quickstarter
     OpenProjectData toClean =
         readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
 
@@ -744,13 +745,15 @@ public class E2EProjectAPIControllerTest {
     String prefix =
         createdProjectIncludingQuickstarters.getQuickstarters().get(0).get("component_id");
 
-    int currentQuickstarterSize = toClean.getQuickstarters().size();
+    int currentRepositorySize = createdProjectIncludingQuickstarters.getRepositories().size();
+    int currentQuickstarterSize = createdProjectIncludingQuickstarters.getQuickstarters().size();
+
     e2eLogger.info(
         "4 delete, current Quickstarters: "
             + currentQuickstarterSize
             + " project: "
             + toClean.getProjectKey()
-            + "\n"
+            + "\n to clean: "
             + toClean.getQuickstarters());
 
     mockExecuteDeleteComponentAdminJob(
@@ -781,8 +784,12 @@ public class E2EProjectAPIControllerTest {
             .readValue(
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
+    // quickstarter size decreased by 1
     assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
+    // repos MUST stay untouched
+    assertEquals(currentRepositorySize, resultProject.getRepositories().size());
 
+    // retrieve the project again
     resultProjectGetResponse =
         mockMvc
             .perform(
@@ -800,6 +807,7 @@ public class E2EProjectAPIControllerTest {
                 resultProjectGetResponse.getResponse().getContentAsString(), OpenProjectData.class);
 
     assertEquals(toClean.getProjectKey(), resultProject.getProjectKey());
+    // verify old (before cleaning) quickstarters are now -1
     assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
     assertTrue(resultProject.getQuickstarters().isEmpty());
   }
