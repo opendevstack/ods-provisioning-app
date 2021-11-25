@@ -118,13 +118,28 @@ public class OpenProjectData {
 
   public List<Map<String, String>> removeQuickstartersFromProject(
       List<Map<String, String>> quickstartersToRemove) {
+    List<Map<String, String>> removedQuickstarters = new ArrayList<Map<String, String>>();
     if (quickstartersToRemove == null) {
-      return this.quickstarters;
+      return removedQuickstarters;
     }
-    for (Map<String, String> quickstarter : quickstartersToRemove) {
-      quickstarters.remove(quickstarter);
+    for (Map<String, String> quickStarterToRemove : quickstartersToRemove) {
+      if (quickStarterToRemove.get(COMPONENT_ID_KEY) == null) {
+        throw new NullPointerException("Cannot delete quickstarter with id null!");
+      }
+      // loop over the currently provisioned quickstarters, and find the
+      // one with similar id - to then remove it.
+      List<Map<String, String>> currentQuickstarters = getQuickstarters();
+      for (int i = 0; i < currentQuickstarters.size(); i++) {
+        Map<String, String> currentQuickstarter = currentQuickstarters.get(i);
+        if (currentQuickstarter
+            .get(COMPONENT_ID_KEY)
+            .equalsIgnoreCase(quickStarterToRemove.get(COMPONENT_ID_KEY))) {
+          quickstarters.remove(i);
+          removedQuickstarters.add(currentQuickstarter);
+        }
+      }
     }
-    return quickstarters;
+    return removedQuickstarters;
   }
 
   @Override
