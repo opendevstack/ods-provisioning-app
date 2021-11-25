@@ -118,8 +118,9 @@ public class OpenProjectData {
 
   public List<Map<String, String>> removeQuickstartersFromProject(
       List<Map<String, String>> quickstartersToRemove) {
+    List<Map<String, String>> removedQuickstarters = new ArrayList<Map<String, String>>();
     if (quickstartersToRemove == null) {
-      return this.quickstarters;
+      return removedQuickstarters;
     }
     for (Map<String, String> quickStarterToRemove : quickstartersToRemove) {
       if (quickStarterToRemove.get(COMPONENT_ID_KEY) == null) {
@@ -134,10 +135,11 @@ public class OpenProjectData {
             .get(COMPONENT_ID_KEY)
             .equalsIgnoreCase(quickStarterToRemove.get(COMPONENT_ID_KEY))) {
           quickstarters.remove(i);
+          removedQuickstarters.add(currentQuickstarter);
         }
       }
     }
-    return quickstarters;
+    return removedQuickstarters;
   }
 
   @Override
