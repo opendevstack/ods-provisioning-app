@@ -685,17 +685,12 @@ public class E2EProjectAPIControllerTest {
     assertNotNull(createdProjectIncludingQuickstarters.getQuickstarters());
     assertEquals(1, createdProjectIncludingQuickstarters.getQuickstarters().size());
 
-    OpenProjectData toClean =
-        readTestData("ods-update-project-python-qs-request", OpenProjectData.class);
-
-    toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
-
     mockExecuteAdminJob("ods", "delete-projects", "testp");
 
     // verify project is there ..
     mockMvc
         .perform(
-            get("/api/v2/project/" + toClean.getProjectKey())
+            get("/api/v2/project/" + createdProjectIncludingQuickstarters.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -706,7 +701,7 @@ public class E2EProjectAPIControllerTest {
     // org.opendevstack.provision.controller.ProjectApiController.deleteProject
     mockMvc
         .perform(
-            delete("/api/v2/project/" + toClean.getProjectKey())
+            delete("/api/v2/project/" + createdProjectIncludingQuickstarters.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -716,7 +711,7 @@ public class E2EProjectAPIControllerTest {
     // verify project really deleted - and not found
     mockMvc
         .perform(
-            get("/api/v2/project/" + toClean.getProjectKey())
+            get("/api/v2/project/" + createdProjectIncludingQuickstarters.getProjectKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(httpBasic(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL))
                 .accept(MediaType.APPLICATION_JSON))
@@ -743,7 +738,10 @@ public class E2EProjectAPIControllerTest {
     toClean.setProjectKey(createdProjectIncludingQuickstarters.getProjectKey());
 
     String prefix =
-        createdProjectIncludingQuickstarters.getQuickstarters().get(0).get("component_id");
+        createdProjectIncludingQuickstarters
+            .getQuickstarters()
+            .get(0)
+            .get(OpenProjectData.COMPONENT_ID_KEY);
 
     int currentRepositorySize = createdProjectIncludingQuickstarters.getRepositories().size();
     int currentQuickstarterSize = createdProjectIncludingQuickstarters.getQuickstarters().size();
