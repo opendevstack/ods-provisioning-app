@@ -543,7 +543,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
           project.getProjectKey(),
           openshiftJenkinsTriggerSecret,
           componentId,
-          objectType);
+          objectType,
+          project);
     }
 
     logger.debug("Project {} not affected from cleanup", project.getProjectKey());
@@ -564,7 +565,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                         project.getWebhookProxySecret(), // Note: the secret passed here is the
                         // corresponding to the project CD webhook proxy
                         component,
-                        CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER))
+                        CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
+                        project))
             .filter(m -> !m.isEmpty())
             .mapToInt(e -> 1)
             .sum();
@@ -583,7 +585,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       String projectKey,
       String webhookProxySecret,
       String componentId,
-      CLEANUP_LEFTOVER_COMPONENTS objectType) {
+      CLEANUP_LEFTOVER_COMPONENTS objectType,
+      OpenProjectData project) {
     String projectId = projectKey.toLowerCase();
     Map<String, String> options = buildAdminJobOptions(projectId, componentId);
     Job job = new Job(adminQuickstarter, odsGitRef);
@@ -592,8 +595,18 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       logger.debug("Calling job {} for project {}", job.getId(), projectKey);
       ExecutionsData data = prepareAndExecuteJob(job, options, webhookProxySecret);
       logger.info("Result of cleanup: {}", data.toString());
+      ExecutionJob result = new ExecutionJob();
+      result.setName(data.getJobName());
+      result.setUrl(data.getPermalink());
+      List<ExecutionJob> currentJobs = project.getLastExecutionJobs();
+      if (currentJobs == null) {
+        currentJobs = new ArrayList<ExecutionJob>();
+        project.setLastExecutionJobs(currentJobs);
+      }
+      currentJobs.add(result);
       return Collections.emptyMap();
     } catch (RuntimeException | IOException e) {
+      e.printStackTrace();
       logger.debug(
           "Could not start job {} for project {}/component {} : {}",
           job.getId(),
