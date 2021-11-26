@@ -787,6 +787,17 @@ public class E2EProjectAPIControllerTest {
     // repos MUST stay untouched
     assertEquals(currentRepositorySize, resultProject.getRepositories().size());
 
+    // verify delete qucikstarter job is now as last execution
+    assertTrue(
+        resultProject.getLastExecutionJobs() != null
+            && resultProject.getLastExecutionJobs().get(0) != null);
+
+    String deleteComponentJob = resultProject.getLastExecutionJobs().get(0).getUrl();
+
+    assertNotEquals(
+        createdProjectIncludingQuickstarters.getLastExecutionJobs().get(0).getUrl(),
+        deleteComponentJob);
+
     // retrieve the project again
     resultProjectGetResponse =
         mockMvc
@@ -808,6 +819,14 @@ public class E2EProjectAPIControllerTest {
     // verify old (before cleaning) quickstarters are now -1
     assertEquals((currentQuickstarterSize - 1), resultProject.getQuickstarters().size());
     assertTrue(resultProject.getQuickstarters().isEmpty());
+
+    // verify delete job is persisted
+    assertTrue(
+        resultProject.getLastExecutionJobs() != null
+            && resultProject.getLastExecutionJobs().get(0) != null);
+
+    // verify delete qucikstarter job is now as last execution
+    assertEquals(resultProject.getLastExecutionJobs().get(0).getUrl(), deleteComponentJob);
   }
 
   private void mockExecuteAdminJob(String namespace, String jobName, String prefix)
