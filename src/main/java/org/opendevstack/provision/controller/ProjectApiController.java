@@ -922,6 +922,7 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       project.removeQuickstartersFromProject(deletableComponents.getQuickstarters());
+      project.setLastExecutionJobs(deletableComponents.getLastExecutionJobs());
       this.directStorage.updateStoredProject(project);
       return ResponseEntity.ok(project);
     }
