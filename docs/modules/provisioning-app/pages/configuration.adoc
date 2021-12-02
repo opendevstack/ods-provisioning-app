@@ -337,7 +337,7 @@ If you need to disable it, you can add this property to the application properti
 services.openshift.enabled=false
 ```
 
-If you need to display a disclaimer you add this property to the application properties:
+If you need to display a disclaimer in the front-end you can add this property to the application properties:
 ```
 provision.ui.disclaimer=<DISCLAIMER_TEXT>
 ```
