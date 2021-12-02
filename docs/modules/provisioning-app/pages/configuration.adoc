@@ -322,6 +322,12 @@ jira.admin_user=jira_admin
 Note: if the pair of properties is not defined for a third party tool, the logged in user's credentials are used to authenticate against the application.
 The credentials are read by caling the method _getUserName_ and _getUserPassword_ from https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/java/org/opendevstack/provision/adapter/IODSAuthnzAdapter[IODSAuthnzAdapter]]. See also implementation of _org.opendevstack.provision.services.BaseServiceAdapter#authenticatedCall()_
 
+If you need to display a disclaimer in the front-end you can add this property to the application properties:
+```
+provision.ui.disclaimer=<DISCLAIMER_TEXT>
+```
+NOTE: this property is not supported yet in the single page front-end.
+
 == FAQ
 
 . Where is the provision app deployed? +

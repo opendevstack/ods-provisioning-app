@@ -9,6 +9,7 @@
 - Setup webhook in jira projects on project creation event ([#452](https://github.com/opendevstack/ods-provisioning-app/issues/452))
 - Parameterise jira project type templates ([#404](https://github.com/opendevstack/ods-provisioning-app/issues/404))
 - Provision app should support reuse of shared schemes for Jira & not create permission schemes every time ([#151](https://github.com/opendevstack/ods-provisioning-app/issues/151))
+- Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706)) 
 
 ### Fixed
 
