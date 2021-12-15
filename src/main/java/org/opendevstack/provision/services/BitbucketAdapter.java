@@ -468,6 +468,11 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         Repository repo = new Repository();
         repo.setName(repoName);
 
+        String repoDescription = option.get(OpenProjectData.COMPONENT_DESC_KEY);
+        if (repoDescription != null) {
+          repo.setDescription(repoDescription);
+        }
+
         if (project.isSpecialPermissionSet()) {
           repo.setAdminGroup(project.getProjectAdminGroup());
           repo.setUserGroup(project.getProjectUserGroup());
@@ -523,6 +528,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       Repository repo = new Repository();
       String repoName = createRepoNameFromComponentName(project.getProjectKey(), name);
       repo.setName(repoName);
+      repo.setDescription("ODS generated repo: " + name);
 
       if (project.isSpecialPermissionSet()) {
         repo.setAdminGroup(project.getProjectAdminGroup());
