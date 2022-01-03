@@ -32,6 +32,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
@@ -58,6 +59,9 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext
 @ActiveProfiles({"utest", "quickstarters"})
 public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
+
+  public static final String TEST_COMPONENT_ID_KEY = "testid";
+  public static final String TEST_COMPONENT_DESCRIPTION = "test component description";
 
   @Value("${openshift.jenkins.project.webhookproxy.events}")
   private List<String> webhookEvents;
@@ -140,7 +144,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.setRepositories(new HashMap<>());
 
     Map<String, String> quickstart = new HashMap<>();
-    quickstart.put("component_id", "testid");
+    quickstart.put(OpenProjectData.COMPONENT_ID_KEY, TEST_COMPONENT_ID_KEY);
+    quickstart.put(OpenProjectData.COMPONENT_DESC_KEY, TEST_COMPONENT_DESCRIPTION);
     List<Map<String, String>> quickstarters = new ArrayList<>();
     quickstarters.add(quickstart);
 
@@ -148,7 +153,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     RepositoryData repoData = new RepositoryData();
     repoData.setLinks(getReturnLinks());
     repoData.setName("testRepoName");
-    projectData.setProjectKey("testkey");
+    String projectKey = "testkey";
+    projectData.setProjectKey(projectKey);
 
     Mockito.doNothing()
         .when(spyAdapter)
@@ -162,6 +168,12 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
       Map<URL_TYPE, String> resultLinkMap = entry.getValue();
       assertEquals(repoData.convertRepoToOpenDataProjectRepo(), resultLinkMap);
     }
+
+    ArgumentCaptor<Repository> argumentCaptor = ArgumentCaptor.forClass(Repository.class);
+    verify(spyAdapter, times(1)).callCreateRepoApi(eq(projectKey), argumentCaptor.capture());
+    Repository repo = argumentCaptor.getValue();
+    assertEquals(TEST_COMPONENT_DESCRIPTION, repo.getDescription());
+    assertNotNull(repo.getName());
   }
 
   @Test
@@ -195,6 +207,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
         spyAdapter.createComponentRepositoriesForODSProject(projectData);
 
     assertEquals(new HashMap<String, Map<URL_TYPE, String>>(), actual);
+
+    verify(spyAdapter, times(0)).callCreateRepoApi(anyString(), any());
   }
 
   @Test
