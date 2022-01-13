@@ -95,9 +95,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${idmanager.group.opendevstack-users}")
   private String openDevStackUsersGroupName;
 
-  @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
-  private boolean grantRepositoryWriteToAllOpenDevStackUsers;
-
   @Value("${openshift.jenkins.project.webhookproxy.events}")
   private List<String> webhookEvents;
 
@@ -664,20 +661,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-    setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
+    //setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getAdminGroup());
     setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
-    if (grantRepositoryWriteToAllOpenDevStackUsers) {
-      logger.info(
-          "Grant write to every member of {} to repository {}",
-          openDevStackUsersGroupName,
-          data.getSlug());
-      setRepositoryPermissions(
-          data.getSlug(),
-          projectKey,
-          ID_GROUPS,
-          openDevStackUsersGroupName,
-          REPOSITORY_PERMISSIONS.REPO_WRITE);
-    }
     return data;
   }
 
