@@ -329,9 +329,6 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     RepositoryData actual = spyAdapter.callCreateRepoApi(projectKey, repo);
 
-    //verify(spyAdapter)
-    //    .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("groups"), any());
-
     verify(spyAdapter)
         .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());
 

@@ -661,7 +661,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-    //setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getAdminGroup());
     setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
     return data;
   }
