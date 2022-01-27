@@ -86,6 +86,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
 
+  @Value("${bitbucket.default.admin.group}")
+  private String defaultAdminGroup;
+
   @Value("${bitbucket.technical.user}")
   private String technicalUser;
 
@@ -474,14 +477,17 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
           repo.setAdminGroup(project.getProjectAdminGroup());
           repo.setUserGroup(project.getProjectUserGroup());
         } else {
-          repo.setAdminGroup(defaultUserGroup);
+          repo.setAdminGroup(
+              defaultAdminGroup != null && !defaultAdminGroup.isEmpty()
+                  ? defaultAdminGroup
+                  : defaultUserGroup);
           repo.setUserGroup(defaultUserGroup);
         }
 
         Map<URL_TYPE, String> componentRepository = null;
 
         try {
-          RepositoryData result = callCreateRepoApi(project.getProjectKey(), repo);
+          RepositoryData result = callCreateRepoApi(project, repo);
           createWebHooksForRepository(
               result, project, option.get(OpenProjectData.COMPONENT_TYPE_KEY));
 
@@ -531,12 +537,15 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         repo.setAdminGroup(project.getProjectAdminGroup());
         repo.setUserGroup(project.getProjectUserGroup());
       } else {
-        repo.setAdminGroup(globalKeyuserRoleName);
+        repo.setAdminGroup(
+            defaultAdminGroup != null && !defaultAdminGroup.isEmpty()
+                ? defaultAdminGroup
+                : defaultUserGroup);
         repo.setUserGroup(defaultUserGroup);
       }
 
       try {
-        RepositoryData result = callCreateRepoApi(project.getProjectKey(), repo);
+        RepositoryData result = callCreateRepoApi(project, repo);
         repositories.put(result.getName(), result.convertRepoToOpenDataProjectRepo());
       } catch (IOException ex) {
         logger.error("Error in creating auxiliary repo", ex);
@@ -648,8 +657,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     return projectData;
   }
 
-  protected RepositoryData callCreateRepoApi(String projectKey, Repository repo)
+  protected RepositoryData callCreateRepoApi(OpenProjectData project, Repository repo)
       throws IOException {
+    String projectKey = project.getProjectKey();
     String path = String.format("%s/%s/repos", getAdapterApiUri(), projectKey);
 
     RepositoryData data =
@@ -660,6 +670,12 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
               "Repo %s, for project %s could not be created"
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
+    }
+    if (!project.isSpecialPermissionSet()) {
+      String adminGroup = repo.getAdminGroup();
+      if (adminGroup != null && !adminGroup.isEmpty()) {
+        setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, adminGroup);
+      }
     }
     setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
     return data;
