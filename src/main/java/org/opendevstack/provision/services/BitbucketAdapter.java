@@ -477,10 +477,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
           repo.setAdminGroup(project.getProjectAdminGroup());
           repo.setUserGroup(project.getProjectUserGroup());
         } else {
-          repo.setAdminGroup(
-              defaultAdminGroup != null && !defaultAdminGroup.isEmpty()
-                  ? defaultAdminGroup
-                  : defaultUserGroup);
+          repo.setAdminGroup(defaultAdminGroup);
           repo.setUserGroup(defaultUserGroup);
         }
 
@@ -537,10 +534,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         repo.setAdminGroup(project.getProjectAdminGroup());
         repo.setUserGroup(project.getProjectUserGroup());
       } else {
-        repo.setAdminGroup(
-            defaultAdminGroup != null && !defaultAdminGroup.isEmpty()
-                ? defaultAdminGroup
-                : defaultUserGroup);
+        repo.setAdminGroup(defaultAdminGroup);
         repo.setUserGroup(defaultUserGroup);
       }
 
