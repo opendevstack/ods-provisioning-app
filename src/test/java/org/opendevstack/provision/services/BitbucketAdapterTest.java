@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
@@ -246,16 +247,33 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
+    InOrder order = inOrder(spyAdapter);
+
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // once for each group
-    verify(spyAdapter, Mockito.times(4))
+    order
+        .verify(spyAdapter)
         .setProjectPermissions(
-            eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
-    verify(spyAdapter, Mockito.times(4))
+            eq(expected),
+            eq("groups"),
+            any(),
+            eq(BitbucketAdapter.PROJECT_PERMISSIONS.PROJECT_READ));
+    order
+        .verify(spyAdapter)
         .setProjectPermissions(
-            eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
+            eq(expected),
+            eq("groups"),
+            any(),
+            eq(BitbucketAdapter.PROJECT_PERMISSIONS.PROJECT_WRITE));
+    order
+        .verify(spyAdapter, Mockito.times(2))
+        .setProjectPermissions(
+            eq(expected),
+            eq("groups"),
+            any(),
+            eq(BitbucketAdapter.PROJECT_PERMISSIONS.PROJECT_ADMIN));
     // one for the tech user!
     verify(spyAdapter, Mockito.times(1))
         .setProjectPermissions(
@@ -294,13 +312,26 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
     doReturn(uri).when(spyAdapter).getAdapterApiUri();
 
+    InOrder order = inOrder(spyAdapter);
+
     BitbucketProjectData actual = spyAdapter.callCreateProjectApi(data);
 
     verifyExecute(matchesClientCall().method(HttpMethod.POST));
     // only for the keyuser Group
-    verify(spyAdapter, Mockito.times(2))
+    order
+        .verify(spyAdapter)
         .setProjectPermissions(
-            eq(expected), eq("groups"), any(), any(BitbucketAdapter.PROJECT_PERMISSIONS.class));
+            eq(expected),
+            eq("groups"),
+            any(),
+            eq(BitbucketAdapter.PROJECT_PERMISSIONS.PROJECT_READ));
+    order
+        .verify(spyAdapter)
+        .setProjectPermissions(
+            eq(expected),
+            eq("groups"),
+            any(),
+            eq(BitbucketAdapter.PROJECT_PERMISSIONS.PROJECT_WRITE));
 
     // one for the tech user!
     verify(spyAdapter, Mockito.times(1))
@@ -314,7 +345,7 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
   }
 
   @Test
-  public void callCreateRepoApiTest() throws Exception {
+  public void callCreateRepoApiTestWithoutAdminGroup() throws Exception {
     BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
     spyAdapter.setRestClient(restClient);
 
@@ -322,20 +353,92 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     repo.setName("testrepo");
     repo.setScmId("testscmid");
     repo.setForkable(true);
+    repo.setAdminGroup("");
     String projectKey = "testkey";
     OpenProjectData project = new OpenProjectData();
     project.setProjectKey(projectKey);
+    project.setSpecialPermissionSet(false);
     String basePath = "http://192.168.56.31:7990/rest/api/1.0";
 
     RepositoryData expected = new RepositoryData();
+    RepositoryData actual;
 
     doReturn(basePath).when(spyAdapter).getAdapterApiUri();
 
     mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
 
-    Mockito.doNothing().when(spyAdapter).setRepositoryAdminPermissions(any(), any(), any(), any());
+    actual = spyAdapter.callCreateRepoApi(project, repo);
 
-    RepositoryData actual = spyAdapter.callCreateRepoApi(project, repo);
+    verify(spyAdapter, never()).setRepositoryAdminPermissions(any(), any(), eq("groups"), any());
+
+    verify(spyAdapter)
+        .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());
+
+    verifyExecute(matchesClientCall().method(HttpMethod.POST));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void callCreateRepoApiTestWithAdminGroup() throws Exception {
+    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    Repository repo = new Repository();
+    repo.setName("testrepo");
+    repo.setScmId("testscmid");
+    repo.setForkable(true);
+    repo.setAdminGroup("admins");
+    String projectKey = "testkey";
+    OpenProjectData project = new OpenProjectData();
+    project.setProjectKey(projectKey);
+    project.setSpecialPermissionSet(false);
+    String basePath = "http://192.168.56.31:7990/rest/api/1.0";
+
+    RepositoryData expected = new RepositoryData();
+    RepositoryData actual;
+
+    doReturn(basePath).when(spyAdapter).getAdapterApiUri();
+
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
+
+    actual = spyAdapter.callCreateRepoApi(project, repo);
+
+    verify(spyAdapter)
+        .setRepositoryAdminPermissions(eq(expected), eq(projectKey), eq("groups"), eq("admins"));
+
+    verify(spyAdapter)
+        .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());
+
+    verifyExecute(matchesClientCall().method(HttpMethod.POST));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void callCreateRepoApiTestWithSpecialPermissionSet() throws Exception {
+    BitbucketAdapter spyAdapter = Mockito.spy(bitbucketAdapter);
+    spyAdapter.setRestClient(restClient);
+
+    Repository repo = new Repository();
+    repo.setName("testrepo");
+    repo.setScmId("testscmid");
+    repo.setForkable(true);
+    repo.setAdminGroup("admins");
+    String projectKey = "testkey";
+    OpenProjectData project = new OpenProjectData();
+    project.setProjectKey(projectKey);
+    project.setSpecialPermissionSet(true);
+    String basePath = "http://192.168.56.31:7990/rest/api/1.0";
+
+    RepositoryData expected = new RepositoryData();
+    RepositoryData actual;
+
+    doReturn(basePath).when(spyAdapter).getAdapterApiUri();
+
+    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(expected);
+
+    actual = spyAdapter.callCreateRepoApi(project, repo);
+
+    verify(spyAdapter, never()).setRepositoryAdminPermissions(any(), any(), eq("groups"), any());
 
     verify(spyAdapter)
         .setRepositoryWritePermissions(eq(expected), eq(projectKey), eq("users"), any());

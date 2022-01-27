@@ -597,24 +597,24 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     BitbucketProjectData projectData = getRestClient().execute(call);
     if (project.isSpecialPermissionSet()) {
       setProjectPermissions(
+          projectData,
+          ID_GROUPS,
+          project.getProjectReadonlyGroup(),
+          PROJECT_PERMISSIONS.PROJECT_READ);
+      setProjectPermissions(
+          projectData, ID_GROUPS, project.getProjectUserGroup(), PROJECT_PERMISSIONS.PROJECT_WRITE);
+      setProjectPermissions(
           projectData, ID_GROUPS, globalKeyuserRoleName, PROJECT_PERMISSIONS.PROJECT_ADMIN);
       setProjectPermissions(
           projectData,
           ID_GROUPS,
           project.getProjectAdminGroup(),
           PROJECT_PERMISSIONS.PROJECT_ADMIN);
-      setProjectPermissions(
-          projectData, ID_GROUPS, project.getProjectUserGroup(), PROJECT_PERMISSIONS.PROJECT_WRITE);
-      setProjectPermissions(
-          projectData,
-          ID_GROUPS,
-          project.getProjectReadonlyGroup(),
-          PROJECT_PERMISSIONS.PROJECT_READ);
     } else {
       setProjectPermissions(
-          projectData, ID_GROUPS, defaultUserGroup, PROJECT_PERMISSIONS.PROJECT_WRITE);
-      setProjectPermissions(
           projectData, ID_GROUPS, openDevStackUsersGroupName, PROJECT_PERMISSIONS.PROJECT_READ);
+      setProjectPermissions(
+          projectData, ID_GROUPS, defaultUserGroup, PROJECT_PERMISSIONS.PROJECT_WRITE);
     }
 
     String projectCdUser = technicalUser;
