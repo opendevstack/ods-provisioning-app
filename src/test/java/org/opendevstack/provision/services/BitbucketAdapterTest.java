@@ -63,6 +63,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
 
   public static final String TEST_COMPONENT_ID_KEY = "testid";
   public static final String TEST_COMPONENT_DESCRIPTION = "test component description";
+  public static final String TEST_DEFAULT_ADMIN_GROUP = "opendevstack-administrators";
+  public static final String TEST_DEFAULT_USER_GROUP = "opendevstack-users";
 
   @Value("${openshift.jenkins.project.webhookproxy.events}")
   private List<String> webhookEvents;
@@ -179,6 +181,8 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     Repository repo = argumentCaptor.getValue();
     assertEquals(TEST_COMPONENT_DESCRIPTION, repo.getDescription());
     assertNotNull(repo.getName());
+    assertEquals(TEST_DEFAULT_ADMIN_GROUP, repo.getAdminGroup());
+    assertEquals(TEST_DEFAULT_USER_GROUP, repo.getUserGroup());
   }
 
   @Test
@@ -470,6 +474,13 @@ public class BitbucketAdapterTest extends AbstractBaseServiceAdapterTest {
     doReturn(repoData1).when(spyAdapter).callCreateRepoApi(any(), any());
 
     spyAdapter.createAuxiliaryRepositoriesForODSProject(projectData, auxRepos);
+    verify(spyAdapter, times(2))
+        .callCreateRepoApi(
+            eq(projectData),
+            argThat(
+                repo ->
+                    TEST_DEFAULT_ADMIN_GROUP.equals(repo.getAdminGroup())
+                        && TEST_DEFAULT_USER_GROUP.equals(repo.getUserGroup())));
     Map<String, Map<URL_TYPE, String>> actual;
     actual = projectData.getRepositories();
 
