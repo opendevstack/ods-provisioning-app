@@ -484,7 +484,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         Map<URL_TYPE, String> componentRepository = null;
 
         try {
-          RepositoryData result = callCreateRepoApi(project, repo);
+          RepositoryData result =
+              callCreateRepoApi(project.getProjectKey(), project.isSpecialPermissionSet(), repo);
           createWebHooksForRepository(
               result, project, option.get(OpenProjectData.COMPONENT_TYPE_KEY));
 
@@ -539,7 +540,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       }
 
       try {
-        RepositoryData result = callCreateRepoApi(project, repo);
+        RepositoryData result =
+            callCreateRepoApi(project.getProjectKey(), project.isSpecialPermissionSet(), repo);
         repositories.put(result.getName(), result.convertRepoToOpenDataProjectRepo());
       } catch (IOException ex) {
         logger.error("Error in creating auxiliary repo", ex);
@@ -651,9 +653,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     return projectData;
   }
 
-  protected RepositoryData callCreateRepoApi(OpenProjectData project, Repository repo)
-      throws IOException {
-    String projectKey = project.getProjectKey();
+  protected RepositoryData callCreateRepoApi(
+      String projectKey, boolean isSpecialPermissionSet, Repository repo) throws IOException {
     String path = String.format("%s/%s/repos", getAdapterApiUri(), projectKey);
 
     RepositoryData data =
@@ -665,7 +666,7 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-    if (!project.isSpecialPermissionSet()) {
+    if (!isSpecialPermissionSet) {
       String adminGroup = repo.getAdminGroup();
       if (adminGroup != null && !adminGroup.isEmpty()) {
         setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, adminGroup);
