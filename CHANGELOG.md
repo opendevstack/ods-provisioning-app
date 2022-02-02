@@ -1,13 +1,13 @@
 # Changelog
 
 ## Unreleased
-- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
 
 ### Fixed
 - DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
 - Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706))
 - API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#710](https://github.com/opendevstack/ods-provisioning-app/issues/710))
 - Missing bitbucket repository description on repository creation event ([#713](https://github.com/opendevstack/ods-provisioning-app/issues/713))
+- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
 
 ## [4.0] - 2021-11-18
 
