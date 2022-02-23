@@ -47,6 +47,7 @@
 - Improve authorization of quickstarter endpoint ([#572](https://github.com/opendevstack/ods-provisioning-app/issues/572))
 - Unknown exception (e.g. existing JIRA project) raised in REST create project endpoint / addProject causes removal of existing projects ([#514](https://github.com/opendevstack/ods-provisioning-app/issues/514))
 - Logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
+- Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 
