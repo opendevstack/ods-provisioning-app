@@ -43,6 +43,7 @@
 - DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
 - API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#790](https://github.com/opendevstack/ods-provisioning-app/issues/790))
 - Add missing bitbucket repository description on repository creation event ([#712](https://github.com/opendevstack/ods-provisioning-app/issues/712))
+- Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 
