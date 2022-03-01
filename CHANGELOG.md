@@ -8,6 +8,7 @@
 - API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#710](https://github.com/opendevstack/ods-provisioning-app/issues/710))
 - Missing bitbucket repository description on repository creation event ([#713](https://github.com/opendevstack/ods-provisioning-app/issues/713))
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
 
 ## [4.0] - 2021-11-18
 
