@@ -144,7 +144,7 @@ NOTE: If no `permission-scheme-id` with the corresponding `project-to-role-*` ma
 
 === Add Webhook Proxy URL to jira project properties based on project type
 It is possible to configure the Provisioning App to add to jira project the Webhook Proxy URL as project property.
-Jira provides an REST API for this purpose (https://docs.atlassian.com/software/jira/docs/api/REST/8.5.3/#api/2/project/{projectIdOrKey}/properties-setProperty)[Jira Properties API])
+Jira provides an REST API for this purpose (https://docs.atlassian.com/software/jira/docs/api/REST/8.5.3/#api/2/project/\{projectIdOrKey}/properties-setProperty)[Jira Properties API])
 
 This functionality can be configured for each project type.
 To enable this you will need to:
