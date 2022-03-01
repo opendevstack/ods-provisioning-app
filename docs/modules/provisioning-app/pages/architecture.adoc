@@ -172,7 +172,7 @@ The process for new operations to be called is:
 
 == Consuming REST APIs via curl
 
-Basic Auth authentication is the recommended way to consume REST API. How to enable Basic Auth authentication is explained xref:provisioning-app:configuration.adoc:Authentication Crowd Configuration[here].
+Basic Auth authentication is the recommended way to consume REST API. How to enable Basic Auth authentication is explained in xref:provisioning-app:configuration.adoc#_authentication_crowd_configuration[Authentication Crowd Configuration].
 
 The following sample script could be used to provision a new project, add a quickstarter to a project or remove a project.
 It uses Basic Auth to authenticate the request.
