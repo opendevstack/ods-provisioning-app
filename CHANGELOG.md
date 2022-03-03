@@ -2,6 +2,7 @@
 
 ## Unreleased
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
 
 ### Added
 
