@@ -128,6 +128,9 @@ public class ProjectApiController {
         checkPreconditionsEnabled);
   }
 
+  @Value("${project-api-controller.delay:0}")
+  private long delay;
+
   /**
    * Create a new projectand process subsequent calls to dependent services, to create a complete
    * project stack.
@@ -142,7 +145,14 @@ public class ProjectApiController {
       @RequestBody OpenProjectData newProject,
       @RequestParam(ADD_PROJECT_PARAM_NAME_ONLY_CHECK_PRECONDITIONS)
           Optional<Boolean> onlyCheckPreconditions,
-      @RequestHeader(value = "Content-Type", required = false) String contentType) {
+      @RequestHeader(value = "Content-Type", required = false) String contentType)
+      throws InterruptedException {
+
+    if (delay > 0) {
+      logger.info("WAITING " + delay + " milliseconds");
+      Thread.sleep(delay);
+      logger.info("WAITING DONE!");
+    }
 
     if (newProject == null
         || newProject.getProjectKey() == null
