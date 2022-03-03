@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 @ConditionalOnProperty(
     name = "services.openshift.enabled",
     havingValue = "true",
-    matchIfMissing = true)
+    matchIfMissing = false)
 public class OpenshiftServiceConfig {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenshiftServiceConfig.class);
