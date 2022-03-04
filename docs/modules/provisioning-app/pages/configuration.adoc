@@ -413,10 +413,10 @@ To disable the confluence adapter you can add this property to the application p
 adapters.confluence.enabled=false
 ```
 
-The Openshift Service can be used to verify that a project key does not exist in the cluster before provisioning a project.
-If you want to enable it, you can add this property to the application properties:
+The Openshift Service currently is used to verify that a project key does not exist in the cluster before provisioning a project.
+If you need to disable it, you can add this property to the application properties:
 ```
-services.openshift.enabled=true
+services.openshift.enabled=false
 ```
 
 If you need to display a disclaimer in the front-end you can add this property to the application properties:

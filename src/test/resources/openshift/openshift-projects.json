@@ -1,0 +1,71 @@
+{
+  "kind": "ProjectList",
+  "apiVersion": "project.openshift.io/v1",
+  "metadata": {
+
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "testproject-dev",
+        "uid": "7058cee2-1718-4ec6-80e9-06a45da35d72",
+        "resourceVersion": "411425233",
+        "creationTimestamp": "2021-10-06T12:27:58Z",
+        "labels": {
+          "kubernetes.io/metadata.name": "testproject-dev",
+          "openshift-pipelines.tekton.dev/namespace-reconcile-version": "v1.5"
+        },
+        "annotations": {
+          "openshift.io/description": "",
+          "openshift.io/display-name": "",
+          "openshift.io/requester": "system:serviceaccount:ods:testproject",
+          "openshift.io/sa.scc.mcs": "s0:c39,c9",
+          "openshift.io/sa.scc.supplemental-groups": "1001500000/10000",
+          "openshift.io/sa.scc.uid-range": "1001500000/10000"
+        },
+        "managedFields": [
+          {
+            "manager": "cluster-policy-controller",
+            "operation": "Update",
+            "apiVersion": "v1",
+            "time": "2021-10-06T12:27:58Z",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {"f:metadata":{"f:annotations":{"f:openshift.io/sa.scc.mcs":{},"f:openshift.io/sa.scc.supplemental-groups":{},"f:openshift.io/sa.scc.uid-range":{}}}}
+          },
+          {
+            "manager": "openshift-apiserver",
+            "operation": "Update",
+            "apiVersion": "v1",
+            "time": "2021-10-06T12:27:58Z",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {"f:metadata":{"f:annotations":{".":{},"f:openshift.io/description":{},"f:openshift.io/display-name":{},"f:openshift.io/requester":{}},"f:labels":{".":{},"f:kubernetes.io/metadata.name":{}}}}
+          },
+          {
+            "manager": "openshift-controller-manager",
+            "operation": "Update",
+            "apiVersion": "v1",
+            "time": "2021-10-06T12:27:58Z",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {"f:spec":{"f:finalizers":{}}}
+          },
+          {
+            "manager": "openshift-pipelines-operator",
+            "operation": "Update",
+            "apiVersion": "v1",
+            "time": "2021-10-06T12:27:59Z",
+            "fieldsType": "FieldsV1",
+            "fieldsV1": {"f:metadata":{"f:labels":{"f:openshift-pipelines.tekton.dev/namespace-reconcile-version":{}}}}
+          }
+        ]
+      },
+      "spec": {
+        "finalizers": [
+          "kubernetes"
+        ]
+      },
+      "status": {
+        "phase": "Active"
+      }
+    }
+  ]
+}

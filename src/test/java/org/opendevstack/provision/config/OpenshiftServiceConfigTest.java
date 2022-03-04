@@ -13,7 +13,7 @@
  */
 package org.opendevstack.provision.config;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import org.opendevstack.provision.services.openshift.OpenshiftClient;
@@ -28,15 +28,13 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("utest")
 public class OpenshiftServiceConfigTest {
 
-  @Autowired(required = false)
-  private OpenshiftClient openshiftClient;
+  @Autowired private OpenshiftClient openshiftClient;
 
-  @Autowired(required = false)
-  private OpenshiftService openshiftService;
+  @Autowired private OpenshiftService openshiftService;
 
   @Test
   public void test() {
-    assertNull(openshiftClient);
-    assertNull(openshiftService);
+    assertNotNull(openshiftClient);
+    assertNotNull(openshiftService);
   }
 }
