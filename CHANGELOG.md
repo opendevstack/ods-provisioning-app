@@ -3,6 +3,7 @@
 ## Unreleased
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
 - Update OpenShift client to use fabric8 OpenShift client (OpenShift 4 compatible) ([#720](https://github.com/opendevstack/ods-provisioning-app/pull/720))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
 
 ### Added
 

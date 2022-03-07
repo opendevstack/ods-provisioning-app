@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 @ConditionalOnProperty(
     name = "services.openshift.enabled",
     havingValue = "true",
-    matchIfMissing = true)
+    matchIfMissing = false)
 public class OpenshiftServiceConfig {
 
   @Value("${openshift.api.uri}")
