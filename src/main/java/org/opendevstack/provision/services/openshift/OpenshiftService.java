@@ -95,6 +95,8 @@ public class OpenshiftService {
       return preconditionFailures;
 
     } catch (Exception ex) {
+      logger.error(
+          "Exception trying to verify if project exists in openshift (project={})", projectKey, ex);
       throw new AdapterException(ex);
     }
   }
