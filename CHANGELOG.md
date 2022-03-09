@@ -9,6 +9,7 @@
 - Missing bitbucket repository description on repository creation event ([#713](https://github.com/opendevstack/ods-provisioning-app/issues/713))
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
 - Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+- ODS AMI E2E quickstarter prov app fails due to no nexus equal true ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
 
 ## [4.0] - 2021-11-18
 
