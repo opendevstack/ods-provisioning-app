@@ -4,6 +4,7 @@
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
 - Update OpenShift client to use fabric8 OpenShift client (OpenShift 4 compatible) ([#720](https://github.com/opendevstack/ods-provisioning-app/pull/720))
 - Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+- ODS AMI E2E quickstarter prov app fails due to no nexus equal false ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
 
 ### Added
 
