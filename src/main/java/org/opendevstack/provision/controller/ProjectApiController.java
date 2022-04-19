@@ -533,7 +533,7 @@ public class ProjectApiController {
     }
 
     // create auxilaries - for design and for the ocp artifacts
-    String[] auxiliaryRepositories = {};  // formerly {"occonfig-artifacts", "design"};
+    String[] auxiliaryRepositories = {}; // formerly {"occonfig-artifacts", "design"};
 
     if (project.getScmvcsUrl() == null) {
       // create the bugtracker project
