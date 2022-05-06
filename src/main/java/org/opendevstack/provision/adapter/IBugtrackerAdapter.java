@@ -17,7 +17,6 @@ package org.opendevstack.provision.adapter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
 /** Service interface for a bugtracker */
