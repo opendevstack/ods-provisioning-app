@@ -332,34 +332,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     verifyExecute(wantedArgument);
   }
 
-  @Test
-  public void testCreateShortcuts() throws Exception {
-    JiraAdapter mocked = Mockito.spy(jiraAdapter);
-
-    OpenProjectData apiInput = getTestProject("testproject");
-
-    int shortcutsAdded = mocked.addShortcutsToProject(apiInput);
-
-    assertEquals(5, shortcutsAdded);
-
-    verifyExecute(
-        matchesClientCall()
-            .url(containsString("/rest/projects/1.0/project/TESTP/shortcut"))
-            .method(HttpMethod.POST),
-        5);
-  }
-
-  @Test
-  public void testCreateShortcutsWhenBugtrackerDeactivated() throws Exception {
-    OpenProjectData apiInput = getTestProject("testproject");
-    apiInput.setBugtrackerSpace(false);
-
-    int shortcutsAdded = jiraAdapter.addShortcutsToProject(apiInput);
-    assertEquals(-1, shortcutsAdded);
-
-    verifyExecute(matchesClientCall().method(HttpMethod.POST), never());
-  }
-
   public static OpenProjectData getTestProject(String name) {
     OpenProjectData apiInput = new OpenProjectData();
     apiInput.setProjectName(name);

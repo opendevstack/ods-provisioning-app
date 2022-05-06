@@ -42,16 +42,6 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
       throws IOException;
 
   /**
-   * Add shortcuts / links to other tools used based on the {@link OpenProjectData} fields, e.g.
-   * platform engine urls This method is called AFTER all provisioning of a new project has taken
-   * place in {@link ProjectApiController#addProject(OpenProjectData)}
-   *
-   * @param project the project filled with all available information
-   * @return the number of shortcuts created
-   */
-  public int addShortcutsToProject(OpenProjectData project);
-
-  /**
    * Verify if a project key & name exists
    *
    * @param projectKeyName the name or key of a given project
