@@ -17,7 +17,6 @@ package org.opendevstack.provision.adapter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import org.opendevstack.provision.controller.ProjectApiController;
 import org.opendevstack.provision.model.OpenProjectData;
 
 /** Service interface for a bugtracker */
@@ -40,16 +39,6 @@ public interface IBugtrackerAdapter extends IServiceAdapter {
    */
   public OpenProjectData createBugtrackerProjectForODSProject(OpenProjectData project)
       throws IOException;
-
-  /**
-   * Add shortcuts / links to other tools used based on the {@link OpenProjectData} fields, e.g.
-   * platform engine urls This method is called AFTER all provisioning of a new project has taken
-   * place in {@link ProjectApiController#addProject(OpenProjectData)}
-   *
-   * @param project the project filled with all available information
-   * @return the number of shortcuts created
-   */
-  public int addShortcutsToProject(OpenProjectData project);
 
   /**
    * Verify if a project key & name exists
