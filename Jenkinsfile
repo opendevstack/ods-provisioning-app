@@ -35,12 +35,16 @@ def stageBuild(def context) {
         retryNum=0
         downloadResult=1
         while [ 0 -ne $downloadResult ] && [ 5 -gt $retryNum ]; do
-            ./gradlew dependencies
+            set -x
+            ./gradlew -i dependencies
+            set +x
             downloadResult=$?
             let "retryNum=retryNum+1"
         done
 
-        ./gradlew clean build --stacktrace --no-daemon
+        set -x
+        ./gradlew -i clean build --full-stacktrace --no-daemon
+        set +x
       ''', returnStatus: true)
       if (status != 0) {
         error "Build failed!"
