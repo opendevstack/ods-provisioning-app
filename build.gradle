@@ -107,7 +107,7 @@ dependencies {
 
     implementation('commons-io:commons-io:2.11.0')
     implementation('commons-httpclient:commons-httpclient:3.1')
-    implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14')
+    implementation('com.atlassian.security:atlassian-cookie-tools:4.0.0')
     implementation('javax.validation:validation-api:2.0.1.Final')
     implementation('com.atlassian.crowd:crowd-integration-springsecurity:1000.82.0') {
         exclude(group: 'commons-httpclient')

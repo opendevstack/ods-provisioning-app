@@ -39,7 +39,7 @@ def stageBuild(def context) {
             downloadResult=$?
             let "retryNum=retryNum+1"
         done
-        
+
         ./gradlew clean build --stacktrace --no-daemon
       ''', returnStatus: true)
       if (status != 0) {
