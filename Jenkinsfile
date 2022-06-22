@@ -28,7 +28,20 @@ def stageBuild(def context) {
   }
   stage('Build and Unit Test') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
-      def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
+      def status = sh(script: '''
+        ./gradlew --version
+        java -version
+
+        retryNum=0
+        downloadResult=1
+        while [ 0 -ne $downloadResult ] && [ 5 -gt $retryNum ]; do
+            ./gradlew dependencies
+            downloadResult=$?
+            let "retryNum=retryNum+1"
+        done
+        
+        ./gradlew clean build --stacktrace --no-daemon
+      ''', returnStatus: true)
       if (status != 0) {
         error "Build failed!"
       }
