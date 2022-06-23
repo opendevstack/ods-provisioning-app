@@ -29,8 +29,9 @@ def stageBuild(def context) {
   stage('Build and Unit Test') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
       def status = sh(script: '''
-        ./gradlew --version
-        java -version
+        ./gradlew --version || echo 'ERROR: Could not get gradle version.'
+        java -version || echo 'ERROR: Could not get java version.'
+        echo "$JAVA_HOME" || echo "ERROR: JAVA_HOME has NOT been set."
 
         retryNum=0
         downloadResult=1
