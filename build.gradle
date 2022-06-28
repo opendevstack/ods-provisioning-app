@@ -203,3 +203,12 @@ task npmBuild(type:Exec) {
 }
 
 bootRun.dependsOn npmBuild
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        // com.atlassian.platform:platform:3.5.2
+        if(it.requested.name == 'platform') {
+            it.useTarget 'com.atlassian.platform:platform:3.5.24'
+        }
+    }
+}
