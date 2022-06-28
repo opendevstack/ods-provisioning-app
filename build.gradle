@@ -107,7 +107,11 @@ dependencies {
 
     implementation('commons-io:commons-io:2.11.0')
     implementation('commons-httpclient:commons-httpclient:3.1')
-    implementation('com.atlassian.platform:platform:3.5.24')
+    implementation('com.atlassian.platform:platform') {
+        version {
+            strictly '3.5.24'
+        }
+    }
     implementation('com.atlassian.security:atlassian-security:3.2.14') {
         exclude(group: 'com.atlassian.platform', module: 'platform')
     }
@@ -212,3 +216,7 @@ configurations.all {
         }
     }
 }
+
+// configurations.implementation {
+//    exclude group: 'com.google.code.findbugs', module: 'jsr305'
+// }
