@@ -50,6 +50,15 @@ repositories {
     } else {
         println("INFO: using repository 'mavenCentral', because property no_nexus=$no_nexus")
         mavenCentral()
+        maven() {
+            url "https://packages.atlassian.com/mvn/maven-atlassian-external/"
+        }
+        maven() {
+            url "https://packages.atlassian.com/maven-public/"
+        }
+        maven() {
+            url "https://maven.atlassian.com/content/repositories/atlassian-public/"
+        }
     }
 }
 
