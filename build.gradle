@@ -35,6 +35,7 @@ sourceCompatibility = 1.11
 
 repositories {
     if (!no_nexus) {
+        println("INFO: using nexus repositories, because property no_nexus=$no_nexus and nexus_url=${nexus_url}")
         def nexusMaven = { repoUrl ->
             maven {
                 credentials {
@@ -44,12 +45,11 @@ repositories {
                 url repoUrl
             }
         }
-        nexusMaven("${nexus_url}/repository/jcenter/")
         nexusMaven("${nexus_url}/repository/maven-public/")
         nexusMaven("${nexus_url}/repository/atlassian_public/")
     } else {
+        println("INFO: using repository 'mavenCentral', because property no_nexus=$no_nexus")
         mavenCentral()
-        jcenter()
     }
 }
 

@@ -38,7 +38,7 @@ def stageBuild(def context) {
         downloadResult=1
         while [ 0 -ne $downloadResult ] && [ 5 -gt $retryNum ]; do
             set -x
-            ./gradlew -i dependencies
+            ./gradlew -i dependencies 2>&1 | grep -i '\(FAILED\|FAILURE\|problem\)'
             set +x
             downloadResult=$?
             let "retryNum=retryNum+1"
