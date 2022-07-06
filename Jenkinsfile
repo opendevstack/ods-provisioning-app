@@ -28,7 +28,26 @@ def stageBuild(def context) {
   }
   stage('Build and Unit Test') {
     withEnv(["TAGVERSION=${context.tagversion}", "NEXUS_USERNAME=${context.nexusUsername}", "NEXUS_PASSWORD=${context.nexusPassword}", "NEXUS_HOST=${context.nexusHost}", "JAVA_OPTS=${javaOpts}","GRADLE_TEST_OPTS=${gradleTestOpts}","ENVIRONMENT=${springBootEnv}"]) {
-      def status = sh(script: "./gradlew clean build --stacktrace --no-daemon", returnStatus: true)
+      def status = sh(script: '''
+        source use-j11.sh || echo 'ERROR: We could NOT setup jdk 11.'
+        ./gradlew --version || echo 'ERROR: Could NOT get gradle version.'
+        java -version || echo 'ERROR: Could NOT get java version.'
+        echo "JAVA_HOME: $JAVA_HOME" || echo "ERROR: JAVA_HOME has NOT been set."
+
+        retryNum=0
+        downloadResult=1
+        while [ 0 -ne $downloadResult ] && [ 5 -gt $retryNum ]; do
+            set -x
+            ./gradlew -i dependencies 
+            set +x
+            downloadResult=$?
+            let "retryNum=retryNum+1"
+        done
+
+        set -x
+        ./gradlew -i clean build --full-stacktrace --no-daemon
+        set +x
+      ''', returnStatus: true)
       if (status != 0) {
         error "Build failed!"
       }

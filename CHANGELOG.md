@@ -6,6 +6,8 @@
 - Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
 - ODS AMI E2E quickstarter prov app fails due to no nexus equal false ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
 - Removed creation of shortcuts ([#735](https://github.com/opendevstack/ods-provisioning-app/pull/735))
+- Fixes jcenter repository no more available. ([#737](https://github.com/opendevstack/ods-provisioning-app/pull/737))
+- Fixes could not find com.atlassian.platform:platform:3.5.2 ([#738](https://github.com/opendevstack/ods-provisioning-app/pull/738))
 
 ### Added
 
