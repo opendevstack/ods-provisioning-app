@@ -425,6 +425,12 @@ provision.ui.disclaimer=<DISCLAIMER_TEXT>
 ```
 NOTE: this property is not supported yet in the single page front-end.
 
+If you need to display a disclaimer in the front-end you can add this property to the application properties:
+```
+provision.ui.disclaimer=<DISCLAIMER_TEXT>
+```
+NOTE: this property is not supported yet in the single page front-end.
+
 == FAQ
 
 . Where is the provision app deployed? +

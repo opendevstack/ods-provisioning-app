@@ -13,33 +13,33 @@
  */
 package org.opendevstack.provision.services.openshift;
 
-import com.openshift.restclient.ClientBuilder;
-import com.openshift.restclient.IClient;
-import com.openshift.restclient.model.IResource;
+import static java.util.stream.Collectors.toSet;
+
+import io.fabric8.openshift.api.model.Project;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.OpenShiftClient;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class OpenshiftClient {
 
-  private final IClient iClient;
+  private final OpenShiftClient osClient;
 
   private final String url;
 
-  public OpenshiftClient(String url, String token) {
-    this(url, new ClientBuilder(url).usingToken(token).build());
+  public OpenshiftClient(String url) {
+    this(url, new DefaultOpenShiftClient(url));
   }
 
-  public OpenshiftClient(String url, IClient ocClient) {
+  public OpenshiftClient(String url, OpenShiftClient ocClient) {
     this.url = url;
-    this.iClient = ocClient;
+    this.osClient = ocClient;
   }
 
   public Set<String> projects() {
 
-    List<IResource> projectResource = iClient.list("Project");
-
-    return projectResource.stream().map(project -> project.getName()).collect(Collectors.toSet());
+    List<Project> projects = osClient.projects().list().getItems();
+    return projects.stream().map(p -> p.getMetadata().getName()).collect(toSet());
   }
 
   public String getUrl() {

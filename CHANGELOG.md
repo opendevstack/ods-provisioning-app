@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Update OpenShift client to use fabric8 OpenShift client (OpenShift 4 compatible) ([#720](https://github.com/opendevstack/ods-provisioning-app/pull/720))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+- ODS AMI E2E quickstarter prov app fails due to no nexus equal false ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
+- Removed creation of shortcuts ([#735](https://github.com/opendevstack/ods-provisioning-app/pull/735))
+- Fixes jcenter repository no more available. ([#737](https://github.com/opendevstack/ods-provisioning-app/pull/737))
+- Fixes could not find com.atlassian.platform:platform:3.5.2 ([#738](https://github.com/opendevstack/ods-provisioning-app/pull/738))
 
 ### Fixed
 - DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
@@ -24,6 +31,7 @@
 - Parameterise jira project type templates ([#404](https://github.com/opendevstack/ods-provisioning-app/issues/404))
 - Provision app should support reuse of shared schemes for Jira & not create permission schemes every time ([#151](https://github.com/opendevstack/ods-provisioning-app/issues/151))
 - Add changelog enforcer as GitHub Action to workflow ([#657](https://github.com/opendevstack/ods-provisioning-app/issues/657))
+- Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706)) 
 
 ### Fixed
 
@@ -49,6 +57,10 @@
 - Unknown exception (e.g. existing JIRA project) raised in REST create project endpoint / addProject causes removal of existing projects ([#514](https://github.com/opendevstack/ods-provisioning-app/issues/514))
 - Logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
 - Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
+- DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
+- API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#790](https://github.com/opendevstack/ods-provisioning-app/issues/790))
+- Add missing bitbucket repository description on repository creation event ([#712](https://github.com/opendevstack/ods-provisioning-app/issues/712))
+- Bump antora page version in master (https://github.com/opendevstack/ods-documentation/issues/66)
 
 ## [3.0] - 2020-08-11
 
