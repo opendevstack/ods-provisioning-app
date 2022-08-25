@@ -9,6 +9,16 @@
 - Fixes jcenter repository no more available. ([#737](https://github.com/opendevstack/ods-provisioning-app/pull/737))
 - Fixes could not find com.atlassian.platform:platform:3.5.2 ([#738](https://github.com/opendevstack/ods-provisioning-app/pull/738))
 
+### Fixed
+- DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
+- Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706))
+- API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#710](https://github.com/opendevstack/ods-provisioning-app/issues/710))
+- Missing bitbucket repository description on repository creation event ([#713](https://github.com/opendevstack/ods-provisioning-app/issues/713))
+- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+
+## [4.0] - 2021-11-18
+
 ### Added
 
 - SPA dependencies update incl. Angular 12 ([#692](https://github.com/opendevstack/ods-provisioning-app/issues/692))
@@ -46,6 +56,7 @@
 - Improve authorization of quickstarter endpoint ([#572](https://github.com/opendevstack/ods-provisioning-app/issues/572))
 - Unknown exception (e.g. existing JIRA project) raised in REST create project endpoint / addProject causes removal of existing projects ([#514](https://github.com/opendevstack/ods-provisioning-app/issues/514))
 - Logging in debug level shows too much jwt details ([#486](https://github.com/opendevstack/ods-provisioning-app/issues/486))
+- Drop prerelease of antora page version in 4.x (https://github.com/opendevstack/ods-documentation/issues/66)
 - DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
 - API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#790](https://github.com/opendevstack/ods-provisioning-app/issues/790))
 - Add missing bitbucket repository description on repository creation event ([#712](https://github.com/opendevstack/ods-provisioning-app/issues/712))
