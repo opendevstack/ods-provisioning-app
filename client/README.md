@@ -6,17 +6,16 @@ This first version of the new frontend stack was introduced as an experimental f
 ([original issue](https://github.com/opendevstack/ods-provisioning-app/issues/518)). It can be activated for users with a
 `frontend.spa.enabled` feature flag in Spring Boot.
 
-OpenDevStack NEXT will include this new frontend activated by default (without featue flag).
+OpenDevStack NEXT will include this new frontend activated by default (without feature flag).
 
 To contribute to the further development, see section "Contributions welcome!" further down.
 
 ## Stack
 
-- [Angular](https://angular.io/) as single page application framework
-- [Jest](https://jestjs.io/) as unit testing framework
-- [Prettier](https://prettier.io/) as pre-commit-hook
-- [SASS Lint](https://github.com/sasstools/sass-lint) to check scss files
-- [Yarn](https://yarnpkg.com/) as package manager
+- [Angular](https://angular.io/)
+- [Jest](https://jestjs.io/)
+- [ESLint](https://eslint.org/)
+- [Prettier](https://prettier.io/) 
 
 See package.json for up-to-date version information.
 
@@ -24,8 +23,8 @@ See package.json for up-to-date version information.
 
 ### 1. Install dependencies
 
-- Install YARN globally: `npm install -g yarn`
-- Run `yarn`, this will install all dependencies
+- Eventually, install NPM first
+- Run `npm install` to install all dependencies
 
 ### 2. Configure API access from localhost
 
@@ -37,14 +36,14 @@ Doing this there's no need to run Spring Boot locally.
 
 ### 3. Test the setup
 
-Run `yarn start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app
+Run `npm run start:dev` and when it succeeded open `http://localhost:4200` in your browser. You should see the Angular app starting. The app
 will automatically reload if you change any of the source files.
 
 ## Development
 
 ### Dev Server
 
-`yarn start:dev`: Starts a live reload dev server on `http://localhost:4200/`
+`npm run start:dev`: Starts a live reload dev server on `http://localhost:4200/`
 
 ### Dev Server with SSL localhost
 
@@ -60,21 +59,17 @@ behaves correctly. Although not ideal, we discovered this as the most effortless
 
 ### Build
 
-`yarn build`: The build artifacts will be stored in the `dist/` directory. `yarn build:prod` will be used for the pipeline.
+- `npm run build`: The build artifacts will be stored in the `dist/` directory.
+- `npm run build:prod` will be used for the pipeline.
 
 ### Tests
 
-- Unittests: `yarn test` / `yarn test:watch`
+- Unittests: `npm run test` / `npm run test:watch`
 - E2E (Cypress): TODO
 
 ### Linting
 
-- `yarn lint`: Linting for Typescript and SCSS files.
-
-### Prettier
-
-Prettier is used as a pre-commit hook to format js, json, md, ts files. Formatting of html files has been temporarily removed due to
-inflexibility in context of Angular component markup.
+- `npm run lint`: Linting for Typescript (using [angular-eslint](https://github.com/angular-eslint/angular-eslint)) incl. Prettier as an eslint rule. This npm task also runs as a pre-commit hook.
 
 ## Contributions welcome!
 

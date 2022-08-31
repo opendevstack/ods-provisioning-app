@@ -25,6 +25,7 @@ public class Repository {
   private String name;
   private String scmId = "git";
   private boolean forkable = true;
+  private String description;
 
   @JsonIgnoreProperties({"adminGroup", "userGroup"})
   private String adminGroup;
@@ -69,6 +70,14 @@ public class Repository {
 
   public String getUserGroup() {
     return this.userGroup;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getDescription() {
+    return this.description;
   }
 
   @Override

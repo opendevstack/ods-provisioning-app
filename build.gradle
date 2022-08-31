@@ -35,6 +35,7 @@ sourceCompatibility = 1.11
 
 repositories {
     if (!no_nexus) {
+        println("INFO: using nexus repositories, because property no_nexus=$no_nexus and nexus_url=${nexus_url}")
         def nexusMaven = { repoUrl ->
             maven {
                 credentials {
@@ -44,12 +45,26 @@ repositories {
                 url repoUrl
             }
         }
-        nexusMaven("${nexus_url}/repository/jcenter/")
         nexusMaven("${nexus_url}/repository/maven-public/")
         nexusMaven("${nexus_url}/repository/atlassian_public/")
+        maven() {
+            url "https://packages.atlassian.com/mvn/maven-atlassian-external/"
+        }
+        maven() {
+            url "https://packages.atlassian.com/maven-public/"
+        }
     } else {
+        println("INFO: using repository 'mavenCentral', because property no_nexus=$no_nexus")
         mavenCentral()
-        jcenter()
+        maven() {
+            url "https://maven.atlassian.com/content/repositories/atlassian-public/"
+        }
+        maven() {
+            url "https://packages.atlassian.com/mvn/maven-atlassian-external/"
+        }
+        maven() {
+            url "https://packages.atlassian.com/maven-public/"
+        }
     }
 }
 
@@ -83,7 +98,7 @@ dependencies {
     implementation('org.springframework.security:spring-security-oauth2-jose')
     implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE')
 
-    implementation('com.openshift:openshift-restclient-java:9.0.1.Final') {
+    implementation('io.fabric8:openshift-client:5.12.1') {
         exclude(group: 'org.slf4j', module: 'slf4j-api')
         exclude(group: 'org.slf4j', module: 'slf4j-log4j12')
     }
@@ -105,8 +120,20 @@ dependencies {
     //easy http calls to atlassian JSON APIs
     implementation('com.squareup.okhttp3:okhttp:4.9.0')
 
+    implementation('commons-io:commons-io:2.11.0')
     implementation('commons-httpclient:commons-httpclient:3.1')
-    implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14')
+    implementation('com.atlassian.platform:platform') {
+        version {
+            strictly '3.5.2'
+        } // Cannot upgrade to '3.5.24'
+        transitive = true
+    }
+    implementation('com.atlassian.security:atlassian-security:3.2.14') {
+        transitive = true
+    }
+    implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14') {
+        transitive = true
+    }
     implementation('javax.validation:validation-api:2.0.1.Final')
     implementation('com.atlassian.crowd:crowd-integration-springsecurity:1000.82.0') {
         exclude(group: 'commons-httpclient')
@@ -123,7 +150,7 @@ dependencies {
 
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
     implementation('com.google.guava:guava:30.0-jre')
-
+    testImplementation('com.github.tomakehurst:wiremock-jre8:2.32.0')
 }
 
 bootJar {
@@ -183,15 +210,28 @@ gradleLint {
     rules = ['unused-dependency']
 }
 
-task yarnBuild(type:Exec) {
+task npmBuild(type:Exec) {
 
     workingDir 'client'
 
     //on windows:
-    commandLine 'cmd', '/c', 'yarn', 'build'
+    commandLine 'cmd', '/c', 'npm', 'run', 'build'
 
     //on linux
-    commandLine 'yarn', 'build'
+    commandLine 'npm', 'run', 'build'
 }
 
-bootRun.dependsOn yarnBuild
+bootRun.dependsOn npmBuild
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        // com.atlassian.platform:platform:3.5.2
+        if(it.requested.name == 'platform') {
+            it.useTarget 'com.atlassian.platform:platform:3.5.24'
+        }
+    }
+}
+
+// configurations.implementation {
+//    exclude group: 'com.google.code.findbugs', module: 'jsr305'
+// }

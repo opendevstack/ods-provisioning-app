@@ -13,52 +13,37 @@
  */
 package org.opendevstack.provision.services.openshift;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.openshift.restclient.IClient;
-import com.openshift.restclient.model.IResource;
-import java.util.List;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import java.io.IOException;
+import java.util.Objects;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 public class OpenshiftClientTest {
 
-  @InjectMocks private OpenshiftClient openshiftClient;
-
-  @Mock private IClient ocClient;
-
-  private String url = "http://url.com";
-
-  @BeforeEach
-  public void setup() {
-    openshiftClient = new OpenshiftClient(url, ocClient);
-  }
-
   @Test
-  public void testOpenshiftClientReturnsProjectKeys() {
+  public void testOpenshiftClientReturnsProjectKeys() throws IOException {
 
-    String projectName = "ods";
-    IResource resource = mock(IResource.class);
-    when(resource.getName()).thenReturn(projectName);
-    List.of(resource);
+    byte[] jsonContent =
+        Objects.requireNonNull(getClass().getResourceAsStream("/openshift/openshift-projects.json"))
+            .readAllBytes();
+    WireMockServer wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
+    wireMockServer.start();
+    wireMockServer.stubFor(
+        get("/apis/project.openshift.io/v1/projects")
+            .willReturn(aResponse().withBody(jsonContent)));
+    OpenshiftClient ocClient = new OpenshiftClient(wireMockServer.baseUrl());
 
-    when(ocClient.list("Project")).thenReturn(List.of(resource));
+    Set<String> projects = ocClient.projects();
 
-    Set<String> projects = openshiftClient.projects();
-    assertEquals(1, projects.size());
-    assertTrue(projects.contains(projectName));
-  }
+    assertEquals("testproject-dev", projects.iterator().next());
 
-  @Test
-  public void testGetUrl() {
-    assertEquals(url, openshiftClient.getUrl());
+    wireMockServer.verify(
+        exactly(1), getRequestedFor(urlEqualTo("/apis/project.openshift.io/v1/projects")));
+    wireMockServer.stop();
   }
 }

@@ -86,6 +86,9 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
 
+  @Value("${bitbucket.default.admin.group}")
+  private String defaultAdminGroup;
+
   @Value("${bitbucket.technical.user}")
   private String technicalUser;
 
@@ -94,9 +97,6 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
 
   @Value("${idmanager.group.opendevstack-users}")
   private String openDevStackUsersGroupName;
-
-  @Value("${provision.scm.grant.repository.writetoeveryuser:false}")
-  private boolean grantRepositoryWriteToAllOpenDevStackUsers;
 
   @Value("${openshift.jenkins.project.webhookproxy.events}")
   private List<String> webhookEvents;
@@ -468,18 +468,24 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
         Repository repo = new Repository();
         repo.setName(repoName);
 
+        String repoDescription = option.get(OpenProjectData.COMPONENT_DESC_KEY);
+        if (repoDescription != null) {
+          repo.setDescription(repoDescription);
+        }
+
         if (project.isSpecialPermissionSet()) {
           repo.setAdminGroup(project.getProjectAdminGroup());
           repo.setUserGroup(project.getProjectUserGroup());
         } else {
-          repo.setAdminGroup(defaultUserGroup);
+          repo.setAdminGroup(defaultAdminGroup);
           repo.setUserGroup(defaultUserGroup);
         }
 
         Map<URL_TYPE, String> componentRepository = null;
 
         try {
-          RepositoryData result = callCreateRepoApi(project.getProjectKey(), repo);
+          RepositoryData result =
+              callCreateRepoApi(project.getProjectKey(), project.isSpecialPermissionSet(), repo);
           createWebHooksForRepository(
               result, project, option.get(OpenProjectData.COMPONENT_TYPE_KEY));
 
@@ -523,17 +529,19 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
       Repository repo = new Repository();
       String repoName = createRepoNameFromComponentName(project.getProjectKey(), name);
       repo.setName(repoName);
+      repo.setDescription("ODS generated repo: " + name);
 
       if (project.isSpecialPermissionSet()) {
         repo.setAdminGroup(project.getProjectAdminGroup());
         repo.setUserGroup(project.getProjectUserGroup());
       } else {
-        repo.setAdminGroup(globalKeyuserRoleName);
+        repo.setAdminGroup(defaultAdminGroup);
         repo.setUserGroup(defaultUserGroup);
       }
 
       try {
-        RepositoryData result = callCreateRepoApi(project.getProjectKey(), repo);
+        RepositoryData result =
+            callCreateRepoApi(project.getProjectKey(), project.isSpecialPermissionSet(), repo);
         repositories.put(result.getName(), result.convertRepoToOpenDataProjectRepo());
       } catch (IOException ex) {
         logger.error("Error in creating auxiliary repo", ex);
@@ -591,24 +599,24 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     BitbucketProjectData projectData = getRestClient().execute(call);
     if (project.isSpecialPermissionSet()) {
       setProjectPermissions(
+          projectData,
+          ID_GROUPS,
+          project.getProjectReadonlyGroup(),
+          PROJECT_PERMISSIONS.PROJECT_READ);
+      setProjectPermissions(
+          projectData, ID_GROUPS, project.getProjectUserGroup(), PROJECT_PERMISSIONS.PROJECT_WRITE);
+      setProjectPermissions(
           projectData, ID_GROUPS, globalKeyuserRoleName, PROJECT_PERMISSIONS.PROJECT_ADMIN);
       setProjectPermissions(
           projectData,
           ID_GROUPS,
           project.getProjectAdminGroup(),
           PROJECT_PERMISSIONS.PROJECT_ADMIN);
-      setProjectPermissions(
-          projectData, ID_GROUPS, project.getProjectUserGroup(), PROJECT_PERMISSIONS.PROJECT_WRITE);
-      setProjectPermissions(
-          projectData,
-          ID_GROUPS,
-          project.getProjectReadonlyGroup(),
-          PROJECT_PERMISSIONS.PROJECT_READ);
     } else {
       setProjectPermissions(
-          projectData, ID_GROUPS, defaultUserGroup, PROJECT_PERMISSIONS.PROJECT_WRITE);
-      setProjectPermissions(
           projectData, ID_GROUPS, openDevStackUsersGroupName, PROJECT_PERMISSIONS.PROJECT_READ);
+      setProjectPermissions(
+          projectData, ID_GROUPS, defaultUserGroup, PROJECT_PERMISSIONS.PROJECT_WRITE);
     }
 
     String projectCdUser = technicalUser;
@@ -645,8 +653,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
     return projectData;
   }
 
-  protected RepositoryData callCreateRepoApi(String projectKey, Repository repo)
-      throws IOException {
+  protected RepositoryData callCreateRepoApi(
+      String projectKey, boolean isSpecialPermissionSet, Repository repo) throws IOException {
     String path = String.format("%s/%s/repos", getAdapterApiUri(), projectKey);
 
     RepositoryData data =
@@ -658,20 +666,13 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
                   + " - no response from endpoint, please check logs",
               repo.getName(), projectKey));
     }
-    setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, repo.getUserGroup());
-    setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
-    if (grantRepositoryWriteToAllOpenDevStackUsers) {
-      logger.info(
-          "Grant write to every member of {} to repository {}",
-          openDevStackUsersGroupName,
-          data.getSlug());
-      setRepositoryPermissions(
-          data.getSlug(),
-          projectKey,
-          ID_GROUPS,
-          openDevStackUsersGroupName,
-          REPOSITORY_PERMISSIONS.REPO_WRITE);
+    if (!isSpecialPermissionSet) {
+      String adminGroup = repo.getAdminGroup();
+      if (adminGroup != null && !adminGroup.isEmpty()) {
+        setRepositoryAdminPermissions(data, projectKey, ID_GROUPS, adminGroup);
+      }
     }
+    setRepositoryWritePermissions(data, projectKey, ID_USERS, technicalUser);
     return data;
   }
 

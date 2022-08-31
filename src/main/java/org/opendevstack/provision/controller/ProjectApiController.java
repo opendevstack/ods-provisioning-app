@@ -251,9 +251,6 @@ public class ProjectApiController {
       // create the delivery chain, including scm repos, and platform project
       newProject = createDeliveryChain(newProject);
 
-      // add shortcuts into the space
-      jiraAdapter.addShortcutsToProject(newProject);
-
       // store the project data
       String filePath = directStorage.storeProject(newProject);
       if (filePath != null) {
@@ -922,6 +919,7 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } else {
       project.removeQuickstartersFromProject(deletableComponents.getQuickstarters());
+      project.setLastExecutionJobs(deletableComponents.getLastExecutionJobs());
       this.directStorage.updateStoredProject(project);
       return ResponseEntity.ok(project);
     }

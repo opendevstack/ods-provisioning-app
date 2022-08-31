@@ -6,7 +6,7 @@ import { ProjectData, ProjectLink } from '../../../domain/project';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class ProjectHeaderComponent implements OnInit {
+export class ProjectHeaderComponent {
   @Input() project: ProjectData;
   @Input() projectLinks: ProjectLink[];
   @Input() editMode: boolean;
@@ -17,8 +17,6 @@ export class ProjectHeaderComponent implements OnInit {
   @Output() openNotification = new EventEmitter<string>();
 
   constructor() {}
-
-  ngOnInit(): void {}
 
   emitActivateEditMode(flag: boolean) {
     this.activateEditMode.emit(flag);

@@ -1,20 +1,21 @@
+@use '~@angular/material' as mat;
 // Fonts
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,500');
 
 $fontConfig: (
-  display-4: mat-typography-level(112px, 112px, 300, 'Roboto'),
-  display-3: mat-typography-level(56px, 56px, 400, 'Roboto'),
-  display-2: mat-typography-level(45px, 48px, 400, 'Roboto'),
-  display-1: mat-typography-level(34px, 40px, 400, 'Roboto'),
-  headline: mat-typography-level(24px, 32px, 400, 'Roboto'),
-  title: mat-typography-level(20px, 32px, 500, 'Roboto'),
-  subheading-2: mat-typography-level(16px, 28px, 400, 'Roboto'),
-  subheading-1: mat-typography-level(15px, 24px, 500, 'Roboto'),
-  body-2: mat-typography-level(14px, 24px, 500, 'Roboto'),
-  body-1: mat-typography-level(14px, 20px, 400, 'Roboto'),
-  button: mat-typography-level(14px, 14px, 500, 'Roboto'),
-  caption: mat-typography-level(12px, 20px, 400, 'Roboto'),
-  input: mat-typography-level(inherit, 1.125, 400, 'Roboto')
+  display-4: mat.define-typography-level(112px, 112px, 300, 'Roboto'),
+  display-3: mat.define-typography-level(56px, 56px, 400, 'Roboto'),
+  display-2: mat.define-typography-level(45px, 48px, 400, 'Roboto'),
+  display-1: mat.define-typography-level(34px, 40px, 400, 'Roboto'),
+  headline: mat.define-typography-level(24px, 32px, 400, 'Roboto'),
+  title: mat.define-typography-level(20px, 32px, 500, 'Roboto'),
+  subheading-2: mat.define-typography-level(16px, 28px, 400, 'Roboto'),
+  subheading-1: mat.define-typography-level(15px, 24px, 500, 'Roboto'),
+  body-2: mat.define-typography-level(14px, 24px, 500, 'Roboto'),
+  body-1: mat.define-typography-level(14px, 20px, 400, 'Roboto'),
+  button: mat.define-typography-level(14px, 14px, 500, 'Roboto'),
+  caption: mat.define-typography-level(12px, 20px, 400, 'Roboto'),
+  input: mat.define-typography-level(inherit, 1.125, 400, 'Roboto')
 );
 
-@include mat-core($fontConfig);
+@include mat.core($fontConfig);
