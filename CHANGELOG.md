@@ -1,21 +1,28 @@
 # Changelog
 
 ## Unreleased
-- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
-- Update OpenShift client to use fabric8 OpenShift client (OpenShift 4 compatible) ([#720](https://github.com/opendevstack/ods-provisioning-app/pull/720))
-- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
-- ODS AMI E2E quickstarter prov app fails due to no nexus equal false ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
-- Removed creation of shortcuts ([#735](https://github.com/opendevstack/ods-provisioning-app/pull/735))
-- Fixes jcenter repository no more available. ([#737](https://github.com/opendevstack/ods-provisioning-app/pull/737))
-- Fixes could not find com.atlassian.platform:platform:3.5.2 ([#738](https://github.com/opendevstack/ods-provisioning-app/pull/738))
+
+## [4.1] - 2022-11-17
+
+### Added
+- Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706))
 
 ### Fixed
 - DELETE_COMPONENTS API stores and returns project with deleted quickstarter([#702](https://github.com/opendevstack/ods-provisioning-app/issues/702))
-- Add a configurable ui disclaimer to be set with properties ([#706](https://github.com/opendevstack/ods-provisioning-app/issues/706))
 - API DELETE*: wrong jenkins run job (lastExecutionJobs) returned ([#710](https://github.com/opendevstack/ods-provisioning-app/issues/710))
 - Missing bitbucket repository description on repository creation event ([#713](https://github.com/opendevstack/ods-provisioning-app/issues/713))
 - Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Fix problem assigning admin permissions to bitbucket repositories ([#700](https://github.com/opendevstack/ods-provisioning-app/pull/700))
+- Fixes jcenter repository no more available. ([#737](https://github.com/opendevstack/ods-provisioning-app/pull/737))
+- Fixes could not find com.atlassian.platform:platform:3.5.2 ([#738](https://github.com/opendevstack/ods-provisioning-app/pull/738))
+- ODS AMI E2E quickstarter prov app fails due to no nexus equal false ([#730](https://github.com/opendevstack/ods-provisioning-app/pull/730))
+
+### Changed
 - Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+- Update OpenShift client to use fabric8 OpenShift client (OpenShift 4 compatible) ([#720](https://github.com/opendevstack/ods-provisioning-app/pull/720))
+- Disable openshift service adapter by default ([#721](https://github.com/opendevstack/ods-provisioning-app/pull/721))
+- Removed creation of shortcuts ([#735](https://github.com/opendevstack/ods-provisioning-app/pull/735))
+
 
 ## [4.0] - 2021-11-18
 
