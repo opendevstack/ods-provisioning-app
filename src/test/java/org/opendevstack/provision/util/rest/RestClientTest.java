@@ -32,7 +32,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext
-@ActiveProfiles("crowd")
+@ActiveProfiles("utest")
 public class RestClientTest {
 
   @Value("${local.server.port}")
