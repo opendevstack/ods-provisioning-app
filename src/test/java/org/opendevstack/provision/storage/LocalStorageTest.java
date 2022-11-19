@@ -77,12 +77,6 @@ public class LocalStorageTest {
       Map<String, Map<URL_TYPE, String>> repositories = project.getRepositories();
 
       assertNotNull(repositories);
-      Map<URL_TYPE, String> occonfigrepo = repositories.get("odsew-occonfig-artifacts");
-
-      assertNotNull(occonfigrepo);
-
-      assertEquals(3, occonfigrepo.size());
-
       assertEquals(currentPath, project.getPhysicalLocation());
     } catch (Exception allErr) {
       throw allErr;
