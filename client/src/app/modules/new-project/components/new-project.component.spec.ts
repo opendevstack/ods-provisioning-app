@@ -43,8 +43,11 @@ describe('NewProjectComponent', () => {
     }
   };
 
+  let mockStorageService;
+
   beforeEach(
     waitForAsync(() => {
+      mockStorageService = jasmine.createSpy('saveItem');
       TestBed.configureTestingModule({
         imports: [
           CommonModule,
@@ -70,9 +73,7 @@ describe('NewProjectComponent', () => {
           { provide: API_GENERATE_PROJECT_KEY_URL, useValue: '/api/mock' },
           {
             provide: StorageService,
-            useValue: {
-              saveItem: jest.fn()
-            }
+            useValue: mockStorageService
           }
         ],
         declarations: [NewProjectComponent],
