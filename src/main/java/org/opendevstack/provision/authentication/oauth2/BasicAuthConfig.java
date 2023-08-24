@@ -14,23 +14,25 @@
 
 package org.opendevstack.provision.authentication.oauth2;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
-import com.atlassian.crowd.integration.http.HttpAuthenticatorImpl;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticatorImpl;
+
+import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelperImpl;
+import com.atlassian.crowd.integration.http.util.CrowdHttpValidationFactorExtractorImpl;
+import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
 import com.atlassian.crowd.integration.springsecurity.RemoteCrowdAuthenticationProvider;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
-import com.atlassian.crowd.service.AuthenticationManager;
-import com.atlassian.crowd.service.GroupManager;
-import com.atlassian.crowd.service.UserManager;
-import com.atlassian.crowd.service.cache.*;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
-import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
+
+import com.atlassian.crowd.service.client.ClientProperties;
+import com.atlassian.crowd.service.client.ClientPropertiesImpl;
+import com.atlassian.crowd.service.client.CrowdClient;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.crowd.ProvAppSimpleCachingGroupMembershipManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,61 +65,60 @@ public class BasicAuthConfig {
   @Value("${crowd.cookie.domain}")
   String cookieDomain;
 
-  private SecurityServerClientImpl securityServerClient;
-
   @Bean
   public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     logger.info(
         "Created RemoteCrowdAuthenticationProvider to enable REST API calls with Basic Auth beside OAuth2!");
     return new RemoteCrowdAuthenticationProvider(
-        simpleCrowdAuthenticationManager(), httpAuthenticator(), crowdUserDetailsService());
+            crowdClient(), httpAuthenticator(), crowdUserDetailsService());
   }
 
   @Bean
-  public AuthenticationManager simpleCrowdAuthenticationManager() throws IOException {
-    return new SimpleAuthenticationManager(securityServerClient());
+  public CrowdAuthenticationManager simpleCrowdAuthenticationManager() throws IOException {
+    return new CrowdAuthenticationManager(crowdClient());
   }
 
   @Bean
-  public SecurityServerClient securityServerClient() throws IOException {
-    if (securityServerClient == null) {
-      securityServerClient =
-          new SecurityServerClientImpl(
-              SoapClientPropertiesImpl.newInstanceFromProperties(getProps()));
-    }
-    return securityServerClient;
+  public CrowdClient crowdClient() throws IOException {
+    return new RestCrowdClientFactory().newInstance(getProps());
   }
 
   @Bean
-  public HttpAuthenticator httpAuthenticator() throws IOException {
-    return new HttpAuthenticatorImpl(simpleCrowdAuthenticationManager());
+  public CrowdHttpAuthenticator httpAuthenticator() throws IOException {
+    return new CrowdHttpAuthenticatorImpl(
+            crowdClient(),
+            getProps(),
+            // TODO
+            CrowdHttpTokenHelperImpl.getInstance(CrowdHttpValidationFactorExtractorImpl.getInstance()));
   }
 
-  private Properties getProps() throws IOException {
+  public ClientProperties getProps() throws IOException {
 
     Properties prop = new Properties();
     try (InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream("crowd.properties")) {
+                 Thread.currentThread().getContextClassLoader().getResourceAsStream("crowd.properties")) {
       prop.load(in);
     }
     prop.setProperty("application.name", crowdApplicationName);
     prop.setProperty("application.password", crowdApplicationPassword);
     prop.setProperty("crowd.server.url", crowdServerUrl);
     prop.setProperty("cookie.domain", cookieDomain);
-    return prop;
+
+    return ClientPropertiesImpl.newInstanceFromProperties(prop);
   }
 
   @Bean
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
+   /*
     cusd.setUserManager(userManager());
     cusd.setGroupMembershipManager(
         new ProvAppSimpleCachingGroupMembershipManager(
-            securityServerClient(), userManager(), groupManager(), getCache(), true));
+            securityServerClient(), userManager(), groupManager(), getCache(), true));*/
     cusd.setAuthorityPrefix("");
     return cusd;
   }
-
+/*
   @Bean
   public UserManager userManager() throws IOException {
     return new CachingUserManager(securityServerClient(), getCache());
@@ -126,7 +127,7 @@ public class BasicAuthConfig {
   @Bean
   public BasicCache getCache() {
     return new CacheImpl(getCacheManager());
-  }
+  }*/
 
   @Bean
   public CacheManager getCacheManager() {
@@ -139,11 +140,11 @@ public class BasicAuthConfig {
     factoryBean.setConfigLocation(new ClassPathResource("crowd-ehcache.xml"));
     return factoryBean;
   }
-
+/*
   @Bean
   public GroupManager groupManager() throws IOException {
     return new CachingGroupManager(securityServerClient(), getCache());
-  }
+  }*/
 
   @Bean
   public BasicAuthenticationEntryPoint basicAuthEntryPoint() {

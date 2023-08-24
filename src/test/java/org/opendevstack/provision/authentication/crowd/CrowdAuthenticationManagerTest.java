@@ -70,7 +70,7 @@ public class CrowdAuthenticationManagerTest {
     Mockito.doThrow(new InvalidAuthenticationException(token))
         .when(securityServerClient)
         .invalidateToken("invalid_auth");
-    manager.setSecurityServerClient(securityServerClient);
+    manager.setCrowdClient(securityServerClient);
   }
 
   @Test
@@ -88,7 +88,7 @@ public class CrowdAuthenticationManagerTest {
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
 
-    manager.setSecurityServerClient(client);
+    manager.setCrowdClient(client);
 
     assertNull(manager.authenticate(getContext()));
   }
@@ -99,7 +99,7 @@ public class CrowdAuthenticationManagerTest {
     Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
     Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
 
-    manager.setSecurityServerClient(client);
+    manager.setCrowdClient(client);
 
     assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
   }
@@ -109,7 +109,7 @@ public class CrowdAuthenticationManagerTest {
     SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
     Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
 
-    manager.setSecurityServerClient(client);
+    manager.setCrowdClient(client);
 
     assertEquals("login", manager.authenticate(USER, TEST_CRED));
   }
@@ -137,8 +137,8 @@ public class CrowdAuthenticationManagerTest {
 
   @Test
   public void getSecurityServerClient() {
-    assertNotNull(manager.getSecurityServerClient());
-    assertTrue((manager.getSecurityServerClient() instanceof SecurityServerClient));
+    assertNotNull(manager.getCrowdClient());
+    assertTrue((manager.getCrowdClient() instanceof SecurityServerClient));
   }
 
   private UserAuthenticationContext getContext() {

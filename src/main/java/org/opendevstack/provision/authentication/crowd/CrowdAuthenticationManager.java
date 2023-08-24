@@ -14,18 +14,14 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
-import com.atlassian.crowd.exception.ApplicationAccessDeniedException;
-import com.atlassian.crowd.exception.ExpiredCredentialException;
-import com.atlassian.crowd.exception.GroupNotFoundException;
-import com.atlassian.crowd.exception.InactiveAccountException;
-import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
-import com.atlassian.crowd.integration.soap.SOAPGroup;
+import com.atlassian.crowd.exception.*;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.model.authentication.AuthenticationContext;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
-import com.atlassian.crowd.model.authentication.ValidationFactor;
-import com.atlassian.crowd.service.AuthenticationManager;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
+
+
+import com.atlassian.crowd.model.user.User;
+import com.atlassian.crowd.service.client.CrowdClient;
 import com.google.common.base.Preconditions;
 import java.rmi.RemoteException;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
@@ -35,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -46,17 +44,17 @@ import org.springframework.stereotype.Component;
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(CrowdAuthenticationManager.class);
-  private SecurityServerClient securityServerClient;
+  private CrowdClient crowdClient;
 
   @Autowired private SessionAwarePasswordHolder userPassword;
 
   /**
    * Constructor with secure SOAP restClient for crowd authentication
    *
-   * @param securityServerClient
+   * @param crowdClient
    */
-  public CrowdAuthenticationManager(SecurityServerClient securityServerClient) {
-    this.securityServerClient = securityServerClient;
+  public CrowdAuthenticationManager(CrowdClient crowdClient) {
+    this.crowdClient = crowdClient;
   }
 
   /** @see IODSAuthnzAdapter#getUserPassword() */
@@ -108,27 +106,27 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @return the user's token
    * @throws RemoteException
    * @throws InvalidAuthorizationTokenException
-   * @throws InvalidAuthenticationException
    * @throws InactiveAccountException
    * @throws ApplicationAccessDeniedException
    * @throws ExpiredCredentialException
    */
   @Override
-  public String authenticate(UserAuthenticationContext authenticationContext)
-      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
-    Preconditions.checkNotNull(authenticationContext);
+  public Authentication authenticate(Authentication authentication) {
+    Preconditions.checkNotNull(authentication);
 
+/*
     if (authenticationContext.getApplication() == null) {
+      //TODO
+
       authenticationContext.setApplication(
-          this.getSecurityServerClient().getSoapClientProperties().getApplicationName());
+          this.getCrowdClient().getApplicationName());
     }
 
-    String token = this.getSecurityServerClient().authenticatePrincipal(authenticationContext);
+    String token = this.getCrowdClient().authenticateSSOUser(authenticationContext);
     userPassword.setToken(token);
     userPassword.setUsername(authenticationContext.getName());
-    userPassword.setPassword(authenticationContext.getCredential().getCredential());
-    return token;
+    userPassword.setPassword(authenticationContext.getCredential().getCredential());*/
+    return null;
   }
 
   /**
@@ -142,16 +140,17 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws InactiveAccountException
    * @throws RemoteException
    */
+  /*
   @Override
   public String authenticateWithoutValidatingPassword(
       UserAuthenticationContext authenticationContext)
       throws ApplicationAccessDeniedException, InvalidAuthenticationException,
           InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
     Preconditions.checkNotNull(authenticationContext);
-    return this.getSecurityServerClient()
+    return this.getCrowdClient()
         .createPrincipalToken(
             authenticationContext.getName(), authenticationContext.getValidationFactors());
-  }
+  }*/
 
   /**
    * simple authentication with username and password
@@ -166,18 +165,20 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws ApplicationAccessDeniedException
    * @throws ExpiredCredentialException
    */
-  @Override
+  //@Override
   public String authenticate(String username, String password)
-      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException,
-          InactiveAccountException, ApplicationAccessDeniedException, ExpiredCredentialException {
+          throws InvalidAuthenticationException,
+          InactiveAccountException, ExpiredCredentialException, UserNotFoundException, OperationFailedException, ApplicationPermissionException {
 
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
-    String token = this.getSecurityServerClient().authenticatePrincipalSimple(username, password);
-    userPassword.setToken(token);
+    User user = this.getCrowdClient().authenticateUser(username, password);
+    // TODO
+    // userPassword.setToken();
     userPassword.setUsername(username);
     userPassword.setPassword(password);
-    return token;
+    // TODO
+    return "token";
   }
 
   /**
@@ -191,14 +192,16 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws ApplicationAccessDeniedException
    * @throws InvalidAuthenticationException
    */
+  /*
   @Override
   public boolean isAuthenticated(String token, ValidationFactor[] validationFactors)
       throws RemoteException, InvalidAuthorizationTokenException, ApplicationAccessDeniedException,
           InvalidAuthenticationException {
     Preconditions.checkNotNull(token);
     userPassword.setToken(token);
-    return this.getSecurityServerClient().isValidToken(token, validationFactors);
-  }
+    this.getCrowdClient().validateSSOAuthentication(token, validationFactors.l);
+    return true;
+  }*/
 
   /**
    * Invalidate a session based on a user#s token
@@ -208,16 +211,17 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws InvalidAuthorizationTokenException
    * @throws InvalidAuthenticationException
    */
+
   @Override
   public void invalidate(String token)
-      throws RemoteException, InvalidAuthorizationTokenException, InvalidAuthenticationException {
+          throws InvalidAuthenticationException, OperationFailedException, ApplicationPermissionException {
     Preconditions.checkNotNull(token);
-    this.getSecurityServerClient().invalidateToken(token);
+    this.getCrowdClient().invalidateSSOToken(token);
     userPassword.clear();
   }
 
   @Override
-  public void invalidateIdentity() throws Exception {
+  public void invalidateIdentity() throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException {
     invalidate(getToken());
   }
 
@@ -226,15 +230,15 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    *
    * @return the secure restClient for crowd connect
    */
-  @Override
-  public SecurityServerClient getSecurityServerClient() {
-    return this.securityServerClient;
+  public CrowdClient getCrowdClient() {
+    return this.crowdClient;
   }
 
   @Override
   public boolean existsGroupWithName(String groupName) {
     try {
-      securityServerClient.findGroupByName(groupName);
+      //TODO
+      //crowdClient.findGroupByName(groupName);
       return true;
     } catch (Exception exception) {
       if (!(exception instanceof GroupNotFoundException)) {
@@ -247,7 +251,8 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   @Override
   public boolean existPrincipalWithName(String userName) {
     try {
-      getSecurityServerClient().findPrincipalByName(userName);
+      // TODO
+      //getCrowdClient().findPrincipalByName(userName);
       return true;
     } catch (Exception exception) {
       if (!(exception instanceof UsernameNotFoundException)) {
@@ -260,8 +265,9 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   @Override
   public String addGroup(String groupName) throws IdMgmtException {
     try {
-      String name =
-          securityServerClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
+      String name = "";
+          // TODO
+          //crowdClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
       return name;
     } catch (Exception ex) {
       logger.error("Could not create group {}, error: {}", groupName, ex.getMessage(), ex);
@@ -271,15 +277,18 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
 
   @Override
   public String getAdapterApiUri() {
-    return securityServerClient.getSoapClientProperties().getBaseURL();
+    //return crowdClient.getSoapClientProperties().getBaseURL();
+    //TODO
+    return "";
   }
 
   /**
    * Set the secure restClient for injection in tests
    *
-   * @param securityServerClient
+   * @param crowdClient
    */
-  void setSecurityServerClient(SecurityServerClient securityServerClient) {
-    this.securityServerClient = securityServerClient;
+  void setCrowdClient(CrowdClient crowdClient) {
+    this.crowdClient = crowdClient;
   }
+
 }

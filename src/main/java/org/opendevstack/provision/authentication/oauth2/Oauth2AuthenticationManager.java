@@ -1,5 +1,8 @@
 package org.opendevstack.provision.authentication.oauth2;
 
+import com.atlassian.crowd.exception.ApplicationPermissionException;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.OperationFailedException;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import java.util.Optional;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
@@ -57,6 +60,11 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
         .map(auth -> (DefaultOidcUser) auth.getPrincipal())
         .map(StandardClaimAccessor::getEmail)
         .orElse(null);
+  }
+
+  @Override
+  public void invalidate(String token) throws InvalidAuthenticationException, OperationFailedException, ApplicationPermissionException {
+
   }
 
   @Override

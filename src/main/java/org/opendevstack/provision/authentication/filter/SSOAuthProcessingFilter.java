@@ -14,7 +14,8 @@
 
 package org.opendevstack.provision.authentication.filter;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
+import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelper;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationProcessingFilter;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
 import java.io.IOException;
@@ -22,6 +23,9 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.atlassian.crowd.service.client.ClientProperties;
+import com.atlassian.crowd.service.client.CrowdClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -31,9 +35,13 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
 
   private static final Logger logger = LoggerFactory.getLogger(SSOAuthProcessingFilter.class);
 
-  private HttpAuthenticator httpAuthenticator;
+  private CrowdHttpAuthenticator crowdHttpAuthenticator;
 
   private SSOAuthProcessingFilterBasicAuthStrategy basicAuthHandlerStrategy;
+
+  public SSOAuthProcessingFilter(CrowdHttpTokenHelper tokenHelper, CrowdClient crowdClient, ClientProperties clientProperties) {
+    super(tokenHelper, crowdClient, clientProperties);
+  }
 
   /**
    * Method to handle a successful authentication
@@ -62,8 +70,8 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    *
    * @param httpAuthenticator
    */
-  public void setHttpAuthenticator(HttpAuthenticator httpAuthenticator) {
-    this.httpAuthenticator = httpAuthenticator;
+  public void setHttpAuthenticator(CrowdHttpAuthenticator httpAuthenticator) {
+    this.crowdHttpAuthenticator = httpAuthenticator;
     super.setHttpAuthenticator(httpAuthenticator);
   }
 
@@ -75,12 +83,12 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    * @param response
    * @param authResult
    */
+  /* TODO
   boolean storeTokenIfCrowd(
       HttpServletRequest request, HttpServletResponse response, Authentication authResult) {
     if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
       try {
-        httpAuthenticator.setPrincipalToken(
-            request, response, authResult.getCredentials().toString());
+        crowdHttpAuthenticator.getToken(request);
         return true;
       } catch (Exception e) {
         logger.error("Unable to set Crowd SSO token", e);
@@ -88,10 +96,10 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
       }
     }
     return false;
-  }
+  }*/
 
-  public HttpAuthenticator getAuthenticator() {
-    return httpAuthenticator;
+  public CrowdHttpAuthenticator getAuthenticator() {
+    return crowdHttpAuthenticator;
   }
 
   public void setBasicAuthHandlerStrategy(
