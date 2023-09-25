@@ -63,9 +63,9 @@ public class Oauth2AuthenticationManager implements IODSAuthnzAdapter {
   }
 
   @Override
-  public void invalidate(String token) throws InvalidAuthenticationException, OperationFailedException, ApplicationPermissionException {
-
-  }
+  public void invalidate(String token)
+      throws InvalidAuthenticationException, OperationFailedException,
+          ApplicationPermissionException {}
 
   @Override
   public void setUserPassword(String userPassword) {

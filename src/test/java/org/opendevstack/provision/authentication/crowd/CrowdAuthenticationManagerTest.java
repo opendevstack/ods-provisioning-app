@@ -15,24 +15,29 @@
 package org.opendevstack.provision.authentication.crowd;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.atlassian.crowd.embedded.api.PasswordCredential;
+import com.atlassian.crowd.exception.ApplicationPermissionException;
 import com.atlassian.crowd.exception.InvalidAuthenticationException;
-import com.atlassian.crowd.exception.InvalidAuthorizationTokenException;
+import com.atlassian.crowd.exception.OperationFailedException;
+import com.atlassian.crowd.model.authentication.Session;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
 import com.atlassian.crowd.model.authentication.ValidationFactor;
-import com.atlassian.crowd.service.soap.client.SecurityServerClient;
-import com.atlassian.crowd.service.soap.client.SecurityServerClientImpl;
-import com.atlassian.crowd.service.soap.client.SoapClientProperties;
-import com.atlassian.crowd.service.soap.client.SoapClientPropertiesImpl;
-import java.rmi.RemoteException;
-import java.util.Properties;
+import com.atlassian.crowd.service.client.CrowdClient;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.opendevstack.provision.authentication.TestAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -40,7 +45,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @DirtiesContext
 @WithMockUser(
-    username = CrowdAuthenticationManagerTest.USER,
+    username = CrowdAuthenticationManagerTest.TEST_USER,
     roles = {"ADMIN"})
 @ActiveProfiles("crowd")
 public class CrowdAuthenticationManagerTest {
@@ -48,29 +53,66 @@ public class CrowdAuthenticationManagerTest {
   private static final String TOKEN = "token";
 
   /** This is for tests only */
-  static final String USER = "test";
+  static final String TEST_USER = "test";
 
   @SuppressWarnings("squid:S2068")
   static final String TEST_CRED = "test";
 
   @Autowired private CrowdAuthenticationManager manager;
 
-  @Mock private SecurityServerClient securityServerClient;
+  @Mock private CrowdClient crowdClient;
 
   @BeforeEach
   public void setUp() throws Exception {
     String token = TOKEN;
-    ValidationFactor[] factors = new ValidationFactor[0];
-    Mockito.when(securityServerClient.isValidToken("", factors)).thenReturn(true);
+    List<ValidationFactor> factors = new ArrayList<>();
+    Session testSession = createTestSession();
+    Mockito.when(crowdClient.validateSSOAuthenticationAndGetSession("", factors))
+        .thenReturn(testSession);
 
-    Mockito.doThrow(new RemoteException()).when(securityServerClient).invalidateToken("remote");
-    Mockito.doThrow(new InvalidAuthorizationTokenException())
-        .when(securityServerClient)
-        .invalidateToken("invalid_token");
+    Mockito.doThrow(new ApplicationPermissionException())
+        .when(crowdClient)
+        .invalidateSSOToken("permission_exception");
+    Mockito.doThrow(new OperationFailedException())
+        .when(crowdClient)
+        .invalidateSSOToken("operation_failed");
     Mockito.doThrow(new InvalidAuthenticationException(token))
-        .when(securityServerClient)
-        .invalidateToken("invalid_auth");
-    manager.setCrowdClient(securityServerClient);
+        .when(crowdClient)
+        .invalidateSSOToken("invalid_auth");
+    manager.setCrowdClient(crowdClient);
+  }
+
+  private Session createTestSession() {
+    return new Session() {
+
+      Principal principal =
+          new Principal() {
+            @Override
+            public String getName() {
+              return TEST_USER;
+            }
+          };
+
+      @Override
+      public String getToken() {
+        return "test_token";
+      }
+
+      @Override
+      public Date getCreatedDate() {
+        return null;
+      }
+
+      @Override
+      public Date getExpiryDate() {
+        return null;
+      }
+
+      @Override
+      public Principal getUser() {
+        return principal;
+      }
+    };
   }
 
   @Test
@@ -84,20 +126,25 @@ public class CrowdAuthenticationManagerTest {
 
   @Test
   public void authenticateWithContext() throws Exception {
-    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
-    Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
-    Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
+    CrowdClient client = Mockito.mock(CrowdClient.class);
+    Mockito.when(client.authenticateSSOUser(any(UserAuthenticationContext.class)))
+        .thenReturn("token");
+    TestAuthentication testAuthentication =
+        new TestAuthentication(TEST_USER, TEST_CRED, new ArrayList<GrantedAuthority>());
 
     manager.setCrowdClient(client);
 
-    assertNull(manager.authenticate(getContext()));
+    Authentication authResult = manager.authenticate(testAuthentication);
+    assertNotNull(authResult);
+    assertEquals("token", manager.getToken(), "Unexpected token after authentication");
+    assertEquals(TEST_USER, manager.getUserPassword(), "Unexpected password after authentication");
+    assertEquals(TEST_CRED, manager.getUserName(), "Unexpected username after authentication");
   }
 
   @Test
   public void authenticateWithoutValidatingPassword() throws Exception {
-    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
-    Mockito.when(client.authenticatePrincipal(getContext())).thenReturn(null);
-    Mockito.when(client.getSoapClientProperties()).thenReturn(getProps());
+    CrowdClient client = Mockito.mock(CrowdClient.class);
+    Mockito.when(client.authenticateSSOUser(getContext())).thenReturn(null);
 
     manager.setCrowdClient(client);
 
@@ -106,28 +153,29 @@ public class CrowdAuthenticationManagerTest {
 
   @Test
   public void authenticateWithUsernameAndPassword() throws Exception {
-    SecurityServerClient client = Mockito.mock(SecurityServerClientImpl.class);
-    Mockito.when(client.authenticatePrincipalSimple(USER, TEST_CRED)).thenReturn("login");
+    CrowdClient client = Mockito.mock(CrowdClient.class);
+    Mockito.when(client.authenticateSSOUser(any(UserAuthenticationContext.class)))
+        .thenReturn("login");
 
     manager.setCrowdClient(client);
 
-    assertEquals("login", manager.authenticate(USER, TEST_CRED));
+    assertEquals("login", manager.authenticate(TEST_USER, TEST_CRED));
   }
 
   @Test
   public void isAuthenticated() throws Exception {
-    assertTrue(manager.isAuthenticated("", new ValidationFactor[0]));
+    assertTrue(manager.isAuthenticated("", new ArrayList<ValidationFactor>()));
   }
 
   @Test
-  public void invalidateWithRemoteException() {
-    assertThrows(RemoteException.class, () -> manager.invalidate("remote"));
-  }
-
-  @Test
-  public void invalidateWithInvalidAuthorizationTokenException() {
+  public void invalidateWithApplicationPermissionException() {
     assertThrows(
-        InvalidAuthorizationTokenException.class, () -> manager.invalidate("invalid_token"));
+        ApplicationPermissionException.class, () -> manager.invalidate("permission_exception"));
+  }
+
+  @Test
+  public void invalidateWithOperationFailedException() {
+    assertThrows(OperationFailedException.class, () -> manager.invalidate("operation_failed"));
   }
 
   @Test
@@ -136,24 +184,17 @@ public class CrowdAuthenticationManagerTest {
   }
 
   @Test
-  public void getSecurityServerClient() {
+  public void getCrowdClient() {
     assertNotNull(manager.getCrowdClient());
-    assertTrue((manager.getCrowdClient() instanceof SecurityServerClient));
+    assertTrue((manager.getCrowdClient() instanceof CrowdClient));
   }
 
   private UserAuthenticationContext getContext() {
     UserAuthenticationContext context = new UserAuthenticationContext();
-    context.setName(USER);
+    context.setName(TEST_USER);
     context.setValidationFactors(new ValidationFactor[0]);
-    PasswordCredential credential = new PasswordCredential(USER);
+    PasswordCredential credential = new PasswordCredential(TEST_CRED);
     context.setCredential(credential);
     return context;
-  }
-
-  private SoapClientProperties getProps() {
-    Properties plainProps = new Properties();
-    plainProps.setProperty("application.name", USER);
-    SoapClientProperties props = SoapClientPropertiesImpl.newInstanceFromProperties(plainProps);
-    return props;
   }
 }

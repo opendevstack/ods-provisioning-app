@@ -46,7 +46,8 @@ public interface IODSAuthnzAdapter {
   public String getUserEmail();
 
   void invalidate(String token)
-          throws InvalidAuthenticationException, OperationFailedException, ApplicationPermissionException;
+      throws InvalidAuthenticationException, OperationFailedException,
+          ApplicationPermissionException;
 
   /**
    * Invalidate the currently logged' in identity

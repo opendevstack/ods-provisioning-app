@@ -14,16 +14,16 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
+import com.atlassian.crowd.embedded.api.PasswordCredential;
 import com.atlassian.crowd.exception.*;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
-import com.atlassian.crowd.model.authentication.AuthenticationContext;
 import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
-
-
-import com.atlassian.crowd.model.user.User;
+import com.atlassian.crowd.model.authentication.ValidationFactor;
+import com.atlassian.crowd.model.group.ImmutableGroup;
 import com.atlassian.crowd.service.client.CrowdClient;
 import com.google.common.base.Preconditions;
 import java.rmi.RemoteException;
+import java.util.List;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
@@ -33,9 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 /** Custom Authentication manager to integrate the password storing for authentication */
@@ -44,6 +42,7 @@ import org.springframework.stereotype.Component;
 public class CrowdAuthenticationManager implements AuthenticationManager, IODSAuthnzAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(CrowdAuthenticationManager.class);
+  private String crowdServerUrl;
   private CrowdClient crowdClient;
 
   @Autowired private SessionAwarePasswordHolder userPassword;
@@ -53,8 +52,9 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    *
    * @param crowdClient
    */
-  public CrowdAuthenticationManager(CrowdClient crowdClient) {
+  public CrowdAuthenticationManager(CrowdClient crowdClient, String crowdServerUrl) {
     this.crowdClient = crowdClient;
+    this.crowdServerUrl = crowdServerUrl;
   }
 
   /** @see IODSAuthnzAdapter#getUserPassword() */
@@ -102,7 +102,7 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   /**
    * specific authentication method implementation for crowd integration
    *
-   * @param authenticationContext the auth context passed from spring
+   * @param authentication the auth context passed from spring
    * @return the user's token
    * @throws RemoteException
    * @throws InvalidAuthorizationTokenException
@@ -114,19 +114,35 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   public Authentication authenticate(Authentication authentication) {
     Preconditions.checkNotNull(authentication);
 
-/*
-    if (authenticationContext.getApplication() == null) {
-      //TODO
-
-      authenticationContext.setApplication(
-          this.getCrowdClient().getApplicationName());
+    UserAuthenticationContext authenticationContext = new UserAuthenticationContext();
+    // TODO check if this is what we want
+    authenticationContext.setName(authentication.getName());
+    authenticationContext.setCredential(
+        new PasswordCredential((String) authentication.getCredentials()));
+    String token = null;
+    try {
+      // TODO See what to do with the error
+      token = crowdClient.authenticateSSOUser(authenticationContext);
+    } catch (ApplicationAccessDeniedException e) {
+      throw new RuntimeException(e);
+    } catch (InactiveAccountException e) {
+      throw new RuntimeException(e);
+    } catch (ExpiredCredentialException e) {
+      throw new RuntimeException(e);
+    } catch (ApplicationPermissionException e) {
+      throw new RuntimeException(e);
+    } catch (InvalidAuthenticationException e) {
+      throw new RuntimeException(e);
+    } catch (OperationFailedException e) {
+      throw new RuntimeException(e);
     }
 
-    String token = this.getCrowdClient().authenticateSSOUser(authenticationContext);
     userPassword.setToken(token);
     userPassword.setUsername(authenticationContext.getName());
-    userPassword.setPassword(authenticationContext.getCredential().getCredential());*/
-    return null;
+    // TODO check this
+    userPassword.setPassword(authenticationContext.getCredential().getCredential());
+
+    return authentication;
   }
 
   /**
@@ -140,17 +156,14 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws InactiveAccountException
    * @throws RemoteException
    */
-  /*
-  @Override
   public String authenticateWithoutValidatingPassword(
       UserAuthenticationContext authenticationContext)
       throws ApplicationAccessDeniedException, InvalidAuthenticationException,
-          InvalidAuthorizationTokenException, InactiveAccountException, RemoteException {
+          InactiveAccountException, OperationFailedException, ApplicationPermissionException {
     Preconditions.checkNotNull(authenticationContext);
     return this.getCrowdClient()
-        .createPrincipalToken(
-            authenticationContext.getName(), authenticationContext.getValidationFactors());
-  }*/
+        .authenticateSSOUserWithoutValidatingPassword(authenticationContext);
+  }
 
   /**
    * simple authentication with username and password
@@ -165,20 +178,24 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws ApplicationAccessDeniedException
    * @throws ExpiredCredentialException
    */
-  //@Override
+  // @Override
   public String authenticate(String username, String password)
-          throws InvalidAuthenticationException,
-          InactiveAccountException, ExpiredCredentialException, UserNotFoundException, OperationFailedException, ApplicationPermissionException {
+      throws InvalidAuthenticationException, InactiveAccountException, ExpiredCredentialException,
+          OperationFailedException, ApplicationPermissionException,
+          ApplicationAccessDeniedException {
 
     Preconditions.checkNotNull(username);
     Preconditions.checkNotNull(password);
-    User user = this.getCrowdClient().authenticateUser(username, password);
-    // TODO
-    // userPassword.setToken();
+    UserAuthenticationContext authenticationContext = new UserAuthenticationContext();
+    authenticationContext.setName(username);
+    authenticationContext.setCredential(new PasswordCredential(password));
+    String token = crowdClient.authenticateSSOUser(authenticationContext);
+
+    userPassword.setToken(token);
     userPassword.setUsername(username);
     userPassword.setPassword(password);
-    // TODO
-    return "token";
+
+    return token;
   }
 
   /**
@@ -192,16 +209,14 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws ApplicationAccessDeniedException
    * @throws InvalidAuthenticationException
    */
-  /*
-  @Override
-  public boolean isAuthenticated(String token, ValidationFactor[] validationFactors)
-      throws RemoteException, InvalidAuthorizationTokenException, ApplicationAccessDeniedException,
-          InvalidAuthenticationException {
+  public boolean isAuthenticated(String token, List<ValidationFactor> validationFactors)
+      throws InvalidAuthenticationException, InvalidTokenException, OperationFailedException,
+          ApplicationPermissionException {
     Preconditions.checkNotNull(token);
     userPassword.setToken(token);
-    this.getCrowdClient().validateSSOAuthentication(token, validationFactors.l);
+    this.getCrowdClient().validateSSOAuthentication(token, validationFactors);
     return true;
-  }*/
+  }
 
   /**
    * Invalidate a session based on a user#s token
@@ -211,17 +226,19 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
    * @throws InvalidAuthorizationTokenException
    * @throws InvalidAuthenticationException
    */
-
   @Override
   public void invalidate(String token)
-          throws InvalidAuthenticationException, OperationFailedException, ApplicationPermissionException {
+      throws InvalidAuthenticationException, OperationFailedException,
+          ApplicationPermissionException {
     Preconditions.checkNotNull(token);
     this.getCrowdClient().invalidateSSOToken(token);
     userPassword.clear();
   }
 
   @Override
-  public void invalidateIdentity() throws OperationFailedException, ApplicationPermissionException, InvalidAuthenticationException {
+  public void invalidateIdentity()
+      throws OperationFailedException, ApplicationPermissionException,
+          InvalidAuthenticationException {
     invalidate(getToken());
   }
 
@@ -237,8 +254,7 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   @Override
   public boolean existsGroupWithName(String groupName) {
     try {
-      //TODO
-      //crowdClient.findGroupByName(groupName);
+      crowdClient.getGroup(groupName);
       return true;
     } catch (Exception exception) {
       if (!(exception instanceof GroupNotFoundException)) {
@@ -251,11 +267,10 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   @Override
   public boolean existPrincipalWithName(String userName) {
     try {
-      // TODO
-      //getCrowdClient().findPrincipalByName(userName);
+      crowdClient.getUser(userName);
       return true;
     } catch (Exception exception) {
-      if (!(exception instanceof UsernameNotFoundException)) {
+      if (!(exception instanceof UserNotFoundException)) {
         logger.error("UserFind call failed with:", exception);
       }
       return false;
@@ -265,10 +280,8 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   @Override
   public String addGroup(String groupName) throws IdMgmtException {
     try {
-      String name = "";
-          // TODO
-          //crowdClient.addGroup(new SOAPGroup(groupName, new String[] {})).getName();
-      return name;
+      crowdClient.addGroup(ImmutableGroup.builder(groupName).build());
+      return groupName;
     } catch (Exception ex) {
       logger.error("Could not create group {}, error: {}", groupName, ex.getMessage(), ex);
       throw new IdMgmtException(ex);
@@ -277,9 +290,7 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
 
   @Override
   public String getAdapterApiUri() {
-    //return crowdClient.getSoapClientProperties().getBaseURL();
-    //TODO
-    return "";
+    return crowdServerUrl;
   }
 
   /**
@@ -290,5 +301,4 @@ public class CrowdAuthenticationManager implements AuthenticationManager, IODSAu
   void setCrowdClient(CrowdClient crowdClient) {
     this.crowdClient = crowdClient;
   }
-
 }
