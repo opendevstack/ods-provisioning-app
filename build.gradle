@@ -158,9 +158,9 @@ dependencies {
 
 
     // latest version of excluded libs: refactor this when upgrading to new 'com.atlassian.crowd:crowd-integration-springsecurity'
-   /*
-    implementation('com.google.guava:guava:30.0-jre')
-    testImplementation('com.github.tomakehurst:wiremock-jre8:2.32.0')*/
+
+    //implementation('com.google.guava:guava:30.0-jre')
+    testImplementation('com.github.tomakehurst:wiremock-jre8:2.32.0')
 }
 
 bootJar {

@@ -158,7 +158,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  //  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
+  @ConditionalOnProperty(name = "provision.auth.provider", havingValue = "crowd")
   public CrowdLogoutHandler logoutHandler() throws IOException {
     if (spafrontendEnabled) {
       OKResponseCrowdLogoutHandler handler = new OKResponseCrowdLogoutHandler();
@@ -175,11 +175,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public SSOAuthProcessingFilter crowdSSOAuthenticationProcessingFilter() throws Exception {
     SSOAuthProcessingFilter filter =
-        new SSOAuthProcessingFilter(
-            CrowdHttpTokenHelperImpl.getInstance(
-                CrowdHttpValidationFactorExtractorImpl.getInstance()),
-            crowdClient(),
-            getProps());
+        new SSOAuthProcessingFilter(crowdHttpTokenHelper(), crowdClient(), getProps());
     filter.setBasicAuthHandlerStrategy(ssoFilterBasicAuthHandlerStrategy());
     filter.setHttpAuthenticator(httpAuthenticator());
     filter.setAuthenticationManager(authenticationManager());
@@ -281,8 +277,8 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public CrowdAuthenticationManager crowdAuthenticationManager() throws IOException {
-    return new CrowdAuthenticationManager(crowdClient(), getCrowdServerUrl());
+  public CrowdAuthenticationAdapter crowdAuthenticationAdapter() throws IOException {
+    return new CrowdAuthenticationAdapter(crowdClient());
   }
 
   @Bean
@@ -295,13 +291,10 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return CrowdHttpTokenHelperImpl.getInstance(crowdHttpValidationFactorExtractor());
   }
 
+
   @Bean
   public CrowdHttpAuthenticator httpAuthenticator() throws IOException {
-    return new CrowdHttpAuthenticatorImpl(
-        crowdClient(),
-        getProps(),
-        // TODO
-        CrowdHttpTokenHelperImpl.getInstance(CrowdHttpValidationFactorExtractorImpl.getInstance()));
+    return new CrowdHttpAuthenticatorImpl(crowdClient(), getProps(), crowdHttpTokenHelper());
   }
 
   @Override

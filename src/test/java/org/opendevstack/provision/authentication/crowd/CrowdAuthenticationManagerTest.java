@@ -15,7 +15,6 @@
 package org.opendevstack.provision.authentication.crowd;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 
 import com.atlassian.crowd.embedded.api.PasswordCredential;
 import com.atlassian.crowd.exception.ApplicationPermissionException;
@@ -33,11 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.opendevstack.provision.authentication.TestAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -58,7 +54,7 @@ public class CrowdAuthenticationManagerTest {
   @SuppressWarnings("squid:S2068")
   static final String TEST_CRED = "test";
 
-  @Autowired private CrowdAuthenticationManager manager;
+  @Autowired private CrowdAuthenticationAdapter manager;
 
   @Mock private CrowdClient crowdClient;
 
@@ -122,49 +118,6 @@ public class CrowdAuthenticationManagerTest {
     manager.setUserPassword(pass);
 
     assertEquals(pass, manager.getUserPassword());
-  }
-
-  @Test
-  public void authenticateWithContext() throws Exception {
-    CrowdClient client = Mockito.mock(CrowdClient.class);
-    Mockito.when(client.authenticateSSOUser(any(UserAuthenticationContext.class)))
-        .thenReturn("token");
-    TestAuthentication testAuthentication =
-        new TestAuthentication(TEST_USER, TEST_CRED, new ArrayList<GrantedAuthority>());
-
-    manager.setCrowdClient(client);
-
-    Authentication authResult = manager.authenticate(testAuthentication);
-    assertNotNull(authResult);
-    assertEquals("token", manager.getToken(), "Unexpected token after authentication");
-    assertEquals(TEST_USER, manager.getUserPassword(), "Unexpected password after authentication");
-    assertEquals(TEST_CRED, manager.getUserName(), "Unexpected username after authentication");
-  }
-
-  @Test
-  public void authenticateWithoutValidatingPassword() throws Exception {
-    CrowdClient client = Mockito.mock(CrowdClient.class);
-    Mockito.when(client.authenticateSSOUser(getContext())).thenReturn(null);
-
-    manager.setCrowdClient(client);
-
-    assertNull(manager.authenticateWithoutValidatingPassword(getContext()));
-  }
-
-  @Test
-  public void authenticateWithUsernameAndPassword() throws Exception {
-    CrowdClient client = Mockito.mock(CrowdClient.class);
-    Mockito.when(client.authenticateSSOUser(any(UserAuthenticationContext.class)))
-        .thenReturn("login");
-
-    manager.setCrowdClient(client);
-
-    assertEquals("login", manager.authenticate(TEST_USER, TEST_CRED));
-  }
-
-  @Test
-  public void isAuthenticated() throws Exception {
-    assertTrue(manager.isAuthenticated("", new ArrayList<ValidationFactor>()));
   }
 
   @Test

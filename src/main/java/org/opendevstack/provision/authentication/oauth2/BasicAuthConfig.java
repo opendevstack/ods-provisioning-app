@@ -28,16 +28,13 @@ import com.atlassian.crowd.service.client.CrowdClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import net.sf.ehcache.CacheManager;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 @Configuration
@@ -71,8 +68,8 @@ public class BasicAuthConfig {
   }
 
   @Bean
-  public CrowdAuthenticationManager simpleCrowdAuthenticationManager() throws IOException {
-    return new CrowdAuthenticationManager(crowdClient(), crowdServerUrl);
+  public CrowdAuthenticationAdapter simpleCrowdAuthenticationManager() throws IOException {
+    return new CrowdAuthenticationAdapter(crowdClient());
   }
 
   @Bean
@@ -85,7 +82,6 @@ public class BasicAuthConfig {
     return new CrowdHttpAuthenticatorImpl(
         crowdClient(),
         getProps(),
-        // TODO
         CrowdHttpTokenHelperImpl.getInstance(CrowdHttpValidationFactorExtractorImpl.getInstance()));
   }
 
@@ -107,41 +103,9 @@ public class BasicAuthConfig {
   @Bean
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
     CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
-    /*
-    cusd.setUserManager(userManager());
-    cusd.setGroupMembershipManager(
-        new ProvAppSimpleCachingGroupMembershipManager(
-            securityServerClient(), userManager(), groupManager(), getCache(), true));*/
     cusd.setAuthorityPrefix("");
     return cusd;
   }
-  /*
-  @Bean
-  public UserManager userManager() throws IOException {
-    return new CachingUserManager(securityServerClient(), getCache());
-  }
-
-  @Bean
-  public BasicCache getCache() {
-    return new CacheImpl(getCacheManager());
-  }*/
-
-  @Bean
-  public CacheManager getCacheManager() {
-    return getEhCacheFactory().getObject();
-  }
-
-  @Bean
-  public EhCacheManagerFactoryBean getEhCacheFactory() {
-    EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-    factoryBean.setConfigLocation(new ClassPathResource("crowd-ehcache.xml"));
-    return factoryBean;
-  }
-  /*
-  @Bean
-  public GroupManager groupManager() throws IOException {
-    return new CachingGroupManager(securityServerClient(), getCache());
-  }*/
 
   @Bean
   public BasicAuthenticationEntryPoint basicAuthEntryPoint() {
