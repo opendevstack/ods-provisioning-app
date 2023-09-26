@@ -291,7 +291,6 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
     return CrowdHttpTokenHelperImpl.getInstance(crowdHttpValidationFactorExtractor());
   }
 
-
   @Bean
   public CrowdHttpAuthenticator httpAuthenticator() throws IOException {
     return new CrowdHttpAuthenticatorImpl(crowdClient(), getProps(), crowdHttpTokenHelper());

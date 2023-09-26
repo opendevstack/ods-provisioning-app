@@ -13,53 +13,51 @@
  */
 package org.opendevstack.provision.config;
 
-import static java.util.Map.entry;
-import static org.mockito.Mockito.mock;
-
-import java.util.Map;
-import net.sf.ehcache.CacheManager;
 import org.opendevstack.provision.adapter.IODSAuthnzAdapter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Map;
+
+import static java.util.Map.entry;
+import static org.mockito.Mockito.mock;
 
 @Configuration
 public class AuthSecurityTestConfig {
 
-  public static final String TEST_USER_USERNAME = "user";
-  public static final String TEST_ADMIN_USERNAME = "admin";
-  public static final String TEST_ADMIN_EMAIL = "admin@example.com";
-  public static final String TEST_NOT_PERMISSIONED_USER_USERNAME = "not-permissioned-user";
-  public static final String TEST_VALID_CREDENTIAL = "validsecret";
+    public static final String TEST_USER_USERNAME = "user";
+    public static final String TEST_ADMIN_USERNAME = "admin";
+    public static final String TEST_ADMIN_EMAIL = "admin@example.com";
+    public static final String TEST_NOT_PERMISSIONED_USER_USERNAME = "not-permissioned-user";
+    public static final String TEST_VALID_CREDENTIAL = "validsecret";
 
-  @Value("${idmanager.group.opendevstack-users}")
-  protected String roleUser;
+    @Value("${idmanager.group.opendevstack-users}")
+    protected String roleUser;
 
-  @Value("${idmanager.group.opendevstack-administrators}")
-  protected String roleAdmin;
+    @Value("${idmanager.group.opendevstack-administrators}")
+    protected String roleAdmin;
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean(name = "testUsersAndRoles")
-  public Map<String, String> testUsersAndRoles() {
-    return Map.ofEntries(
-        entry(TEST_USER_USERNAME, roleUser),
-        entry(TEST_ADMIN_USERNAME, roleAdmin),
-        entry(TEST_NOT_PERMISSIONED_USER_USERNAME, "not-opendevstack-user"));
-  }
+    @Bean(name = "testUsersAndRoles")
+    public Map<String, String> testUsersAndRoles() {
+        return Map.ofEntries(
+                entry(TEST_USER_USERNAME, roleUser),
+                entry(TEST_ADMIN_USERNAME, roleAdmin),
+                entry(TEST_NOT_PERMISSIONED_USER_USERNAME, "not-opendevstack-user"));
+    }
 
-  @Bean
-  @Primary
-  public IODSAuthnzAdapter iodsAuthnzAdapter() {
-    return mock(IODSAuthnzAdapter.class);
-  }
+    @Bean
+    @Primary
+    public IODSAuthnzAdapter iodsAuthnzAdapter() {
+        return mock(IODSAuthnzAdapter.class);
+    }
 
 }
