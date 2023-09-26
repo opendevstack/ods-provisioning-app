@@ -249,12 +249,19 @@ public class DefaultController {
   }
 
   private boolean isAuthenticated() {
-    if (isAuthProviderOauth2()) {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (null != authentication) {
+      if (isAuthProviderOauth2()) {
+        return authentication.isAuthenticated();
+      }
 
-      return authentication.isAuthenticated();
+      manager.setUserName(authentication.getName());
+      manager.setUserPassword(authentication.getCredentials().toString());
+
+      return (authentication.isAuthenticated() && manager.getUserPassword() != null);
     }
-    return (manager.getUserPassword() != null);
+
+    return false;
   }
 
   @Autowired

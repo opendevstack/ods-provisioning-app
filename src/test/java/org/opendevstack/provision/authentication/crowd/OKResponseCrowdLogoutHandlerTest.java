@@ -3,7 +3,7 @@ package org.opendevstack.provision.authentication.crowd;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ public class OKResponseCrowdLogoutHandlerTest {
 
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
-  @Mock private HttpAuthenticator authenticator;
+  @Mock private CrowdHttpAuthenticator authenticator;
   @Mock private Authentication authentication;
 
   @Test

@@ -50,11 +50,13 @@ However there is a special knob to tighten security (which can be passed with th
 . user group: read / write rights on the generated projects / spaces / repositories
 . readonly group: read rights on the generated projects / spaces / repositories
 
+Moreover, a specific CD user (technical user for the continuous delivery platform) can optionally be specified.
+
 The configuration for the permission sets are configured:
 
 . JIRA Project is provisioned with its own permissionset defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates/jira.permission.all.txt[src/main/resources/permission-templates/jira.permission.all.txt]
 . Confluence Project is provisioned with special permission set defined in https://github.com/opendevstack/ods-provisioning-app/blob/master/src/main/resources/permission-templates[src/main/resources/permission-templates/confluence.permission.*]
-. Bitbucket Project is provisioned with tight read & write roles
+. Bitbucket Project is provisioned with the permissions detailed in the section <<Bitbucket permissions>>.
 . Openshift Project roles linked to the passed groups (`READONLY` - `view`, `ADMINGROUP` - `admin`, `USERS` - `edit`)
 
 Furthermore if you need to define default permission for openshift (e.g. to setup membership permission for cluster admins) you can add this to your application properties:
@@ -62,7 +64,87 @@ Furthermore if you need to define default permission for openshift (e.g. to setu
 jenkinspipeline.create-project.default-project-groups=ADMINGROUP=<MY_CLUSTER_ADMIN_GROUP_NAME>
 ```
 
-In case special permissions sets are defined this the default project groups will be appended to the lis of permissions sets.
+In case special permissions sets are defined this the default project groups will be appended to the list of permissions sets.
+
+=== Bitbucket permissions
+Permissions are set both at project and repository levels.
+
+Whenever the same user or group is assigned different permissions in the same project or repository,
+the actual permissions assigned are the higher-level ones.
+
+For example, if a group is assigned read-only and R/W permissions in the same project,
+it will get R/W permissions on it. If a user is assigned both R/W and admin permissions in a repository,
+it will get admin permissions on it.
+
+The mentioned properties in the following subsections have default values specified in the `application.properties` file.
+Their values can be overridden in the corresponding config map.
+
+==== Project level
+Permissions set at project level depend on whether the special permission set has been specified or not.
+
+If the special permission set has been specified, these are the permissions set at project level:
+
+|===
+|Type |Who? |Permission
+
+|Group|`${global.keyuser.role.name}`|Admin
+|Group|admin group|Admin
+|Group|user group|R/W
+|Group|readonly group|Read only
+|User|CD user (Default:  `${bitbucket.technical.user}`)|R/W
+|===
+
+Additionally, whenever a specific CD User is specified on project creation,
+this user gets read permissions in all repositories specified as readable repos
+(such as link:https://github.com/opendevstack/ods-jenkins-shared-library[ods-jenkins-shared-library]
+and link:https://github.com/opendevstack/ods-quickstarters[ods-quickstarters]).
+
+Note that, if a specific CD user has not been specified,
+it defaults to the value of the `bitbucket.technical.user` property.
+
+If the special permission set has not been specified, these are the default permissions assigned to the project:
+
+|===
+|Type |Who? |Permission
+
+|Group|`${bitbucket.default.user.group}`|R/W
+|Group|`${idmanager.group.opendevstack-users}`|Read only
+|User|CD user (Default:  `${bitbucket.technical.user}`)|R/W
+|===
+
+Additionally, whenever a specific CD User is specified on project creation,
+this user gets read permissions in all repositories specified as readable repos
+(such as link:https://github.com/opendevstack/ods-jenkins-shared-library[ods-jenkins-shared-library]
+and link:https://github.com/opendevstack/ods-quickstarters[ods-quickstarters]).
+
+Note that no admin permissions are assigned to the project when a special permission set has not been specified.
+The only project-level administrators are the global Bitbucket administrators, in this case.
+
+==== Repository level
+Repositories belonging to a project inherit the project permissions.
+Some additional permissions are assigned at repository level.
+
+The following tables show the permissions specified at repository level.
+
+These are the permissions assigned to the repository when a special permission set has been specified:
+
+|===
+|Type |Who? |Permission
+
+|User|`${bitbucket.technical.user}`|R/W
+|===
+
+These are the permissions assigned to the repository when a special permission set has not been specified:
+
+|===
+|Type |Who? |Permission
+
+|Group|`${bitbucket.default.admin.group}` (default: `${bitbucket.default.user.group}`)|Admin
+|User|`${bitbucket.technical.user}`|R/W
+|===
+
+If the `bitbucket.default.admin.group` property is specified with an empty value,
+no admin permissions are assigned at repository level.
 
 == Project/Space types based on templates
 
@@ -144,7 +226,7 @@ NOTE: If no `permission-scheme-id` with the corresponding `project-to-role-*` ma
 
 === Add Webhook Proxy URL to jira project properties based on project type
 It is possible to configure the Provisioning App to add to jira project the Webhook Proxy URL as project property.
-Jira provides an REST API for this purpose (https://docs.atlassian.com/software/jira/docs/api/REST/8.5.3/#api/2/project/{projectIdOrKey}/properties-setProperty)[Jira Properties API])
+Jira provides an REST API for this purpose (https://docs.atlassian.com/software/jira/docs/api/REST/8.5.3/#api/2/project/\{projectIdOrKey}/properties-setProperty)[Jira Properties API])
 
 This functionality can be configured for each project type.
 To enable this you will need to:
@@ -324,18 +406,30 @@ The credentials are read by caling the method _getUserName_ and _getUserPassword
 
 === Other configuration
 
-To adapt the provisioning app to your infrastructure following properties will help you to disable some adapters/services.
+To adapt the provisioning app to your infrastructure following properties will help you to enable/disable some adapters/services.
 
 To disable the confluence adapter you can add this property to the application properties:
 ```
 adapters.confluence.enabled=false
 ```
 
-The Openshift Service currently is used to verify that a project key does not exists in the cluster before provisioning a project.
-If you need to disable it, you can add this property to the application properties:
+The Openshift Service can be used to verify that a project key does not exist in the cluster before provisioning a project.
+If you want to enable it, you can add this property to the application properties:
 ```
-services.openshift.enabled=false
+services.openshift.enabled=true
 ```
+
+If you need to display a disclaimer in the front-end you can add this property to the application properties:
+```
+provision.ui.disclaimer=<DISCLAIMER_TEXT>
+```
+NOTE: this property is not supported yet in the single page front-end.
+
+If you need to display a disclaimer in the front-end you can add this property to the application properties:
+```
+provision.ui.disclaimer=<DISCLAIMER_TEXT>
+```
+NOTE: this property is not supported yet in the single page front-end.
 
 == FAQ
 

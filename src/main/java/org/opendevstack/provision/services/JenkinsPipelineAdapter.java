@@ -538,12 +538,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       CLEANUP_LEFTOVER_COMPONENTS objectType = CLEANUP_LEFTOVER_COMPONENTS.PLTF_PROJECT;
       // Note: the secret passed here is the corresponding to the ODS CD webhook proxy
-      return runDeleteAdminJob(
+      return runDeleteAdminJobAndSetAsLastExecutionJobToProject(
           deleteProjectAdminJob,
           project.getProjectKey(),
           openshiftJenkinsTriggerSecret,
           componentId,
-          objectType);
+          objectType,
+          project);
     }
 
     logger.debug("Project {} not affected from cleanup", project.getProjectKey());
@@ -558,13 +559,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
             .map(q1 -> q1.get(OpenProjectData.COMPONENT_ID_KEY))
             .map(
                 component ->
-                    runDeleteAdminJob(
+                    runDeleteAdminJobAndSetAsLastExecutionJobToProject(
                         jenkinsPipelineProperties.getDeleteComponentsQuickstarter(),
                         project.getProjectKey(),
                         project.getWebhookProxySecret(), // Note: the secret passed here is the
                         // corresponding to the project CD webhook proxy
                         component,
-                        CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER))
+                        CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
+                        project))
             .filter(m -> !m.isEmpty())
             .mapToInt(e -> 1)
             .sum();
@@ -578,12 +580,14 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     }
   }
 
-  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> runDeleteAdminJob(
-      Quickstarter adminQuickstarter,
-      String projectKey,
-      String webhookProxySecret,
-      String componentId,
-      CLEANUP_LEFTOVER_COMPONENTS objectType) {
+  private Map<CLEANUP_LEFTOVER_COMPONENTS, Integer>
+      runDeleteAdminJobAndSetAsLastExecutionJobToProject(
+          Quickstarter adminQuickstarter,
+          String projectKey,
+          String webhookProxySecret,
+          String componentId,
+          CLEANUP_LEFTOVER_COMPONENTS objectType,
+          OpenProjectData project) {
     String projectId = projectKey.toLowerCase();
     Map<String, String> options = buildAdminJobOptions(projectId, componentId);
     Job job = new Job(adminQuickstarter, odsGitRef);
@@ -592,6 +596,17 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       logger.debug("Calling job {} for project {}", job.getId(), projectKey);
       ExecutionsData data = prepareAndExecuteJob(job, options, webhookProxySecret);
       logger.info("Result of cleanup: {}", data.toString());
+
+      if (project.getLastExecutionJobs() == null) {
+        project.setLastExecutionJobs(new ArrayList<ExecutionJob>());
+      }
+
+      ExecutionJob result = new ExecutionJob();
+      result.setName(data.getJobName());
+      result.setUrl(data.getPermalink());
+
+      project.getLastExecutionJobs().add(result);
+
       return Collections.emptyMap();
     } catch (RuntimeException | IOException e) {
       logger.debug(
@@ -599,7 +614,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
           job.getId(),
           projectKey,
           componentId,
-          e.getMessage());
+          e.getMessage(),
+          e);
       Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers = new HashMap<>();
 
       leftovers.put(objectType, 1);

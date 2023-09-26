@@ -25,5 +25,8 @@ After provisioning the quickstarter, you’ll have a new repository in your Bitb
 
 . Why are three OpenShift projects created when I provision a new project? +
 The `<project-key>-dev` and `<project-key>-test` namespaces are **runtime** namespaces. Depending on which branch you merge / commit your code into, images will be built & deployed in one of the two (further information on how this is done - can be found in the xref:jenkins-shared-library:component-pipeline.adoc[Component Pipeline] +
-In contrast to this, the `<project-key>-cd` namespace hosts a project-specific instance of xref:jenkins:master.adoc[Jenkins Master] and xref:jenkins:webhook-proxy.adoc[Webhook Proxy]. When a build is triggered, builder pods (= deployments of xref:jenkins:slave-base.adoc[Jenkins slaves]) are created in this project. +
+In contrast to this, the `<project-key>-cd` namespace hosts a project-specific instance of xref:jenkins:master.adoc[Jenkins Master] and xref:jenkins:webhook-proxy.adoc[Webhook Proxy]. When a build is triggered, builder pods (= deployments of xref:jenkins:agent-base.adoc[Jenkins agents]) are created in this project. +
 This was a cautious design choice to give a project team as much power as possible when it comes to configuration of Jenkins.
+. What permissions are assigned when a new Bitbucket project or repository is created? +
+The assigned permissions are detailed xref:configuration.adoc#_bitbucket_permissions[here].
+

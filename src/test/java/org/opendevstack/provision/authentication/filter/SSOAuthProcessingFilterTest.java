@@ -19,8 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
+import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelper;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
+import com.atlassian.crowd.service.client.ClientProperties;
+import com.atlassian.crowd.service.client.CrowdClient;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 public class SSOAuthProcessingFilterTest {
 
-  @MockBean private HttpAuthenticator httpAuthenticator;
+  @MockBean private CrowdHttpAuthenticator crowdHttpAuthenticator;
 
   @MockBean private HttpServletRequest request;
 
@@ -40,20 +43,28 @@ public class SSOAuthProcessingFilterTest {
 
   @MockBean private SSOAuthProcessingFilterBasicAuthStrategy basicAuthStrategy;
 
-  private SSOAuthProcessingFilter filter = new SSOAuthProcessingFilter();
+  @MockBean private CrowdClient crowdClient;
+
+  @MockBean private CrowdHttpTokenHelper crowdHttpTokenHelper;
+
+  @MockBean private ClientProperties clientProperties;
+
+  private SSOAuthProcessingFilter filter;
 
   @BeforeEach
   public void setup() {
+    // TODO instantiate params
+    filter = new SSOAuthProcessingFilter(crowdHttpTokenHelper, crowdClient, clientProperties);
     filter.setBasicAuthHandlerStrategy(basicAuthStrategy);
-    filter.setHttpAuthenticator(httpAuthenticator);
+    filter.setHttpAuthenticator(crowdHttpAuthenticator);
   }
 
   @Test
   public void storeCrowdToken() {
     CrowdSSOAuthenticationToken token = new CrowdSSOAuthenticationToken("token");
 
-    assertTrue(filter.storeTokenIfCrowd(request, response, token));
-    assertFalse(filter.storeTokenIfCrowd(request, response, null));
+    assertTrue(filter.storeTokenIfCrowdMethodUsed(request, response, token));
+    assertFalse(filter.storeTokenIfCrowdMethodUsed(request, response, null));
   }
 
   @Test

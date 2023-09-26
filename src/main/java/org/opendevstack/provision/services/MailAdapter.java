@@ -49,10 +49,12 @@ public class MailAdapter {
 
   @Autowired private TemplateEngine templateEngine;
 
-  @Autowired
+  // @Autowired
   public MailAdapter(JavaMailSender mailSender) {
     this.mailSender = mailSender;
   }
+
+  public MailAdapter() {}
 
   public void notifyUsersAboutProject(OpenProjectData data) {
     if (!isMailEnabled) {

@@ -7,6 +7,18 @@
         <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/font-awesome.min.css}"/>
         <!--<link rel="stylesheet" th:href="@{/css/main.css}"-->
         <!--href="../../css/main.css" />-->
+        <style>
+            .disclaimer-banner {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .disclaimer-banner a {
+                color: white;
+                font-weight: bold;
+                text-decoration: underline;
+            }
+        </style>
     </div>
 </head>
 <body>
@@ -28,6 +40,10 @@
             </div>
         </div>
     </nav>
+    <div th:if="${@environment.getProperty('provision.ui.disclaimer') != null && @environment.getProperty('provision.ui.disclaimer') != ''}" class="navbar navbar-dark bg-primary text-light disclaimer-banner">
+        <div class="text-center" th:utext="${@environment.getProperty('provision.ui.disclaimer')}">
+        </div>
+    </div>
 </div>
 
 </body>
