@@ -22,17 +22,20 @@ import com.atlassian.crowd.integration.http.util.CrowdHttpValidationFactorExtrac
 import com.atlassian.crowd.integration.http.util.CrowdHttpValidationFactorExtractorImpl;
 import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
 import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
+import com.atlassian.crowd.integration.springsecurity.CrowdSSOTokenInvalidException;
 import com.atlassian.crowd.integration.springsecurity.RemoteCrowdAuthenticationProvider;
 import com.atlassian.crowd.integration.springsecurity.UsernameStoringAuthenticationFailureHandler;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
+import com.atlassian.crowd.model.user.UserWithAttributes;
 import com.atlassian.crowd.service.client.ClientProperties;
 import com.atlassian.crowd.service.client.ClientPropertiesImpl;
 import com.atlassian.crowd.service.client.CrowdClient;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -51,12 +54,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -303,9 +310,34 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Bean
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
-    CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl();
+    CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl() {
+      @Override
+      public CrowdUserDetails loadUserByUsername(String username) throws UsernameNotFoundException, DataAccessException {
+        return updateCrowdUserDetails(super.loadUserByUsername(username));
+      }
+
+      @Override
+      public CrowdUserDetails loadUserByToken(String token) throws CrowdSSOTokenInvalidException, DataAccessException {
+        return updateCrowdUserDetails(super.loadUserByToken(token));
+      }
+
+      /**
+       * Return the groups of user in LowerCase to avoid problems with the rest of authorization.
+       * @param crowdUserDetails CrowdUserDetails obtained with Authorities not processed
+       * @return CrowdUserDetails with Authorities in lowercase
+       */
+      CrowdUserDetails updateCrowdUserDetails(CrowdUserDetails crowdUserDetails) {
+        ArrayList authorities = new ArrayList<GrantedAuthority>();
+        crowdUserDetails.getAuthorities().forEach(
+                authority -> authorities.add(new SimpleGrantedAuthority(authority.getAuthority().toLowerCase())));
+
+        return new CrowdUserDetails(crowdUserDetails.getRemotePrincipal(), authorities);
+      }
+
+    };
     cusd.setCrowdClient(crowdClient());
     cusd.setAuthorityPrefix("");
+
     return cusd;
   }
 
