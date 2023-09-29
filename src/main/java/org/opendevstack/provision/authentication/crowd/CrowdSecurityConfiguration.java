@@ -28,7 +28,6 @@ import com.atlassian.crowd.integration.springsecurity.UsernameStoringAuthenticat
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
-import com.atlassian.crowd.model.user.UserWithAttributes;
 import com.atlassian.crowd.service.client.ClientProperties;
 import com.atlassian.crowd.service.client.ClientPropertiesImpl;
 import com.atlassian.crowd.service.client.CrowdClient;
@@ -310,31 +309,39 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Bean
   public CrowdUserDetailsService crowdUserDetailsService() throws IOException {
-    CrowdUserDetailsServiceImpl cusd = new CrowdUserDetailsServiceImpl() {
-      @Override
-      public CrowdUserDetails loadUserByUsername(String username) throws UsernameNotFoundException, DataAccessException {
-        return updateCrowdUserDetails(super.loadUserByUsername(username));
-      }
+    CrowdUserDetailsServiceImpl cusd =
+        new CrowdUserDetailsServiceImpl() {
+          @Override
+          public CrowdUserDetails loadUserByUsername(String username)
+              throws UsernameNotFoundException, DataAccessException {
+            return updateCrowdUserDetails(super.loadUserByUsername(username));
+          }
 
-      @Override
-      public CrowdUserDetails loadUserByToken(String token) throws CrowdSSOTokenInvalidException, DataAccessException {
-        return updateCrowdUserDetails(super.loadUserByToken(token));
-      }
+          @Override
+          public CrowdUserDetails loadUserByToken(String token)
+              throws CrowdSSOTokenInvalidException, DataAccessException {
+            return updateCrowdUserDetails(super.loadUserByToken(token));
+          }
 
-      /**
-       * Return the groups of user in LowerCase to avoid problems with the rest of authorization.
-       * @param crowdUserDetails CrowdUserDetails obtained with Authorities not processed
-       * @return CrowdUserDetails with Authorities in lowercase
-       */
-      CrowdUserDetails updateCrowdUserDetails(CrowdUserDetails crowdUserDetails) {
-        ArrayList authorities = new ArrayList<GrantedAuthority>();
-        crowdUserDetails.getAuthorities().forEach(
-                authority -> authorities.add(new SimpleGrantedAuthority(authority.getAuthority().toLowerCase())));
+          /**
+           * Return the groups of user in LowerCase to avoid problems with the rest of
+           * authorization.
+           *
+           * @param crowdUserDetails CrowdUserDetails obtained with Authorities not processed
+           * @return CrowdUserDetails with Authorities in lowercase
+           */
+          CrowdUserDetails updateCrowdUserDetails(CrowdUserDetails crowdUserDetails) {
+            ArrayList authorities = new ArrayList<GrantedAuthority>();
+            crowdUserDetails
+                .getAuthorities()
+                .forEach(
+                    authority ->
+                        authorities.add(
+                            new SimpleGrantedAuthority(authority.getAuthority().toLowerCase())));
 
-        return new CrowdUserDetails(crowdUserDetails.getRemotePrincipal(), authorities);
-      }
-
-    };
+            return new CrowdUserDetails(crowdUserDetails.getRemotePrincipal(), authorities);
+          }
+        };
     cusd.setCrowdClient(crowdClient());
     cusd.setAuthorityPrefix("");
 
