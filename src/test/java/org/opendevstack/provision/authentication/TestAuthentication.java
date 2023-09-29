@@ -32,7 +32,6 @@ public class TestAuthentication implements Authentication {
   @Override
   public Collection<GrantedAuthority> getAuthorities() {
     if (authorities != null) {
-      // TODO check if we need to return a new list of auths
       return authorities;
     } else {
       List<GrantedAuthority> auths = new ArrayList<>();

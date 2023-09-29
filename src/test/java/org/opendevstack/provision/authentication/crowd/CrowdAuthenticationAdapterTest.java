@@ -41,10 +41,10 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @DirtiesContext
 @WithMockUser(
-    username = CrowdAuthenticationManagerTest.TEST_USER,
+    username = CrowdAuthenticationAdapterTest.TEST_USER,
     roles = {"ADMIN"})
 @ActiveProfiles("crowd")
-public class CrowdAuthenticationManagerTest {
+public class CrowdAuthenticationAdapterTest {
 
   private static final String TOKEN = "token";
 

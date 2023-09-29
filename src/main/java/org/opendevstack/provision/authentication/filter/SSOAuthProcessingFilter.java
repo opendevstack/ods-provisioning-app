@@ -89,7 +89,6 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
       HttpServletRequest request, HttpServletResponse response, Authentication authResult) {
     if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
       try {
-        // TODO check if this suffices
         super.storeTokenIfCrowd(request, response, authResult);
         return true;
       } catch (Exception e) {
