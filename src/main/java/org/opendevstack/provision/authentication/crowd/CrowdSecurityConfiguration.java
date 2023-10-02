@@ -21,10 +21,7 @@ import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelperImpl;
 import com.atlassian.crowd.integration.http.util.CrowdHttpValidationFactorExtractor;
 import com.atlassian.crowd.integration.http.util.CrowdHttpValidationFactorExtractorImpl;
 import com.atlassian.crowd.integration.rest.service.factory.RestCrowdClientFactory;
-import com.atlassian.crowd.integration.springsecurity.CrowdLogoutHandler;
-import com.atlassian.crowd.integration.springsecurity.CrowdSSOTokenInvalidException;
-import com.atlassian.crowd.integration.springsecurity.RemoteCrowdAuthenticationProvider;
-import com.atlassian.crowd.integration.springsecurity.UsernameStoringAuthenticationFailureHandler;
+import com.atlassian.crowd.integration.springsecurity.*;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
@@ -55,6 +52,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -351,7 +349,21 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
-        crowdClient(), httpAuthenticator(), crowdUserDetailsService());
+        crowdClient(), httpAuthenticator(), crowdUserDetailsService()) {
+
+      /**
+       * Added support for Basic Authentication using WebAuthenticationDetails
+       *
+       * @param authenticationToken AbstractAuthenticationToken
+       * @return support status
+       */
+      public boolean supports(AbstractAuthenticationToken authenticationToken) {
+        // support all non-SSO authentication requests (for compatibility)
+        return (authenticationToken.getDetails() == null
+            || authenticationToken.getDetails() instanceof CrowdSSOAuthenticationDetails
+            || authenticationToken.getDetails() instanceof WebAuthenticationDetails);
+      }
+    };
   }
 
   @Bean
