@@ -14,10 +14,14 @@
 
 package org.opendevstack.provision.authentication.filter;
 
+import com.atlassian.crowd.exception.ApplicationPermissionException;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.OperationFailedException;
 import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
 import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelper;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationProcessingFilter;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
+import com.atlassian.crowd.model.authentication.CookieConfiguration;
 import com.atlassian.crowd.service.client.ClientProperties;
 import com.atlassian.crowd.service.client.CrowdClient;
 import java.io.IOException;
@@ -118,5 +122,15 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
     }
 
     return super.requiresAuthentication(request, response);
+  }
+
+  @Override
+  protected CookieConfiguration getCookieConfiguration()
+      throws OperationFailedException, InvalidAuthenticationException,
+          ApplicationPermissionException {
+    return new CookieConfiguration(
+        clientProperties.getSSOCookieDomainName(),
+        super.getCookieConfiguration().isSecure(),
+        clientProperties.getCookieTokenKey());
   }
 }
