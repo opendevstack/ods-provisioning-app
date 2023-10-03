@@ -273,7 +273,7 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public AuthenticationFailureHandler authenticationFailureHandler() {
     UsernameStoringAuthenticationFailureHandler failureHandler =
-        new UsernameStoringAuthenticationFailureHandler("TODO_USERNAME");
+        new UsernameStoringAuthenticationFailureHandler("username");
     failureHandler.setDefaultFailureUrl("/login?error=true");
     failureHandler.setUseForward(true);
     return failureHandler;
