@@ -85,7 +85,7 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void homeWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
     mockMvc
         .perform(get("/home"))
@@ -96,7 +96,7 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void provisionWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(jobExecutionAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
     defaultController.setJobExecutionAdapter(jobExecutionAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
@@ -136,7 +136,7 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void historyWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
@@ -151,7 +151,7 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void aboutWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(storageAdapter.listAboutChangesData()).thenReturn(new AboutChangesData());
     defaultController.setStorageAdapter(storageAdapter);
     defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);

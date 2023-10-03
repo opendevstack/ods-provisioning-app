@@ -14,6 +14,8 @@
 
 package org.opendevstack.provision.authentication.crowd;
 
+import com.atlassian.crowd.embedded.api.PasswordCredential;
+import com.atlassian.crowd.exception.*;
 import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
 import com.atlassian.crowd.integration.http.CrowdHttpAuthenticatorImpl;
 import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelper;
@@ -25,6 +27,8 @@ import com.atlassian.crowd.integration.springsecurity.*;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsService;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetailsServiceImpl;
+import com.atlassian.crowd.model.authentication.UserAuthenticationContext;
+import com.atlassian.crowd.model.authentication.ValidationFactor;
 import com.atlassian.crowd.service.client.ClientProperties;
 import com.atlassian.crowd.service.client.ClientPropertiesImpl;
 import com.atlassian.crowd.service.client.CrowdClient;
@@ -32,6 +36,7 @@ import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSessionListener;
 import org.jetbrains.annotations.NotNull;
 import org.opendevstack.provision.authentication.ProvAppHttpSessionListener;
+import org.opendevstack.provision.authentication.SessionAwarePasswordHolder;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilter;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthHandler;
 import org.opendevstack.provision.authentication.filter.SSOAuthProcessingFilterBasicAuthStrategy;
@@ -98,6 +104,8 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Autowired(required = false)
   private BasicAuthenticationEntryPoint basicAuthEntryPoint;
+
+  @Autowired private SessionAwarePasswordHolder userPassword;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -350,6 +358,42 @@ public class CrowdSecurityConfiguration extends WebSecurityConfigurerAdapter {
   public RemoteCrowdAuthenticationProvider crowdAuthenticationProvider() throws IOException {
     return new RemoteCrowdAuthenticationProvider(
         crowdClient(), httpAuthenticator(), crowdUserDetailsService()) {
+
+      /**
+       * Added suppport for store password to connect with Atlassian.
+       *
+       * @param username username of the remote user.
+       * @param password password of the remote user.
+       * @param validationFactors validation factors from the remote user.
+       * @return
+       * @throws InactiveAccountException
+       * @throws ExpiredCredentialException
+       * @throws ApplicationPermissionException
+       * @throws InvalidAuthenticationException
+       * @throws OperationFailedException
+       * @throws ApplicationAccessDeniedException
+       */
+      @Override
+      protected String authenticate(
+          String username, String password, List<ValidationFactor> validationFactors)
+          throws InactiveAccountException, ExpiredCredentialException,
+              ApplicationPermissionException, InvalidAuthenticationException,
+              OperationFailedException, ApplicationAccessDeniedException {
+        UserAuthenticationContext userAuthenticationContext =
+            new UserAuthenticationContext(
+                username,
+                PasswordCredential.unencrypted(password),
+                validationFactors.toArray(new ValidationFactor[validationFactors.size()]),
+                null);
+        String token = authenticationManager.authenticateSSOUser(userAuthenticationContext);
+
+        // Store credentials info in
+        userPassword.setToken(token);
+        userPassword.setUsername(userAuthenticationContext.getName());
+        userPassword.setPassword(userAuthenticationContext.getCredential().getCredential());
+
+        return token;
+      }
 
       /**
        * Added support for Basic Authentication using WebAuthenticationDetails
