@@ -255,10 +255,7 @@ public class DefaultController {
         return authentication.isAuthenticated();
       }
 
-      manager.setUserName(authentication.getName());
-      manager.setUserPassword(authentication.getCredentials().toString());
-
-      return (authentication.isAuthenticated() && manager.getUserPassword() != null);
+      return (authentication.isAuthenticated() && manager.getToken() != null);
     }
 
     return false;

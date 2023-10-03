@@ -61,7 +61,7 @@ public class CrowdAuthenticationAdapter implements IODSAuthnzAdapter {
 
   /** @see IODSAuthnzAdapter#getToken() */
   public String getToken() {
-    return userPassword.getPassword();
+    return userPassword.getToken();
   }
 
   /** @see IODSAuthnzAdapter#getUserEmail() () */
