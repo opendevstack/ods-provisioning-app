@@ -121,10 +121,7 @@ public class ProjectApiControllerTest {
     GrantedAuthority auth = () -> roleAdmin;
     SecurityContextHolder.getContext()
         .setAuthentication(
-            new TestAuthentication(
-                TEST_ADMIN_USERNAME,
-                TEST_VALID_CREDENTIAL,
-                List.of(auth).toArray(GrantedAuthority[]::new)));
+            new TestAuthentication(TEST_ADMIN_USERNAME, TEST_VALID_CREDENTIAL, List.of(auth)));
 
     initOpenProjectData();
 

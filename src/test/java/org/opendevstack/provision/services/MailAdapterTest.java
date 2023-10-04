@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationAdapter;
 import org.opendevstack.provision.model.OpenProjectData;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -29,14 +29,14 @@ public class MailAdapterTest {
 
   private MailAdapter mailAdapter;
 
-  @Mock private CrowdAuthenticationManager crowdAuthenticationManager;
+  @Mock private CrowdAuthenticationAdapter crowdAuthenticationAdapter;
 
   @Mock private JavaMailSender mailSender;
 
   @BeforeEach
   public void setUp() {
     mailAdapter = new MailAdapter(mailSender);
-    mailAdapter.manager = crowdAuthenticationManager;
+    mailAdapter.manager = crowdAuthenticationAdapter;
   }
 
   @Test

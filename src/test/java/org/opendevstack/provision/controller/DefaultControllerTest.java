@@ -27,15 +27,13 @@ import org.opendevstack.provision.adapter.IBugtrackerAdapter;
 import org.opendevstack.provision.adapter.ICollaborationAdapter;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.adapter.ISCMAdapter;
-import org.opendevstack.provision.authentication.TestAuthentication;
-import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationManager;
+import org.opendevstack.provision.authentication.crowd.CrowdAuthenticationAdapter;
 import org.opendevstack.provision.model.AboutChangesData;
 import org.opendevstack.provision.services.StorageAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,7 +49,7 @@ public class DefaultControllerTest {
 
   @MockBean private StorageAdapter storageAdapter;
 
-  @MockBean private CrowdAuthenticationManager crowdAuthenticationManager;
+  @MockBean private CrowdAuthenticationAdapter crowdAuthenticationAdapter;
 
   @Autowired private DefaultController defaultController;
 
@@ -77,8 +75,7 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void homeWithoutAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
+    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn(null);
     mockMvc
         .perform(get("/home"))
         .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
@@ -88,8 +85,8 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void homeWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
+    defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
     mockMvc
         .perform(get("/home"))
         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -99,11 +96,10 @@ public class DefaultControllerTest {
   @Test
   @WithMockUser(username = "test")
   public void provisionWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(jobExecutionAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
     defaultController.setJobExecutionAdapter(jobExecutionAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
-    SecurityContextHolder.getContext().setAuthentication(new TestAuthentication());
+    defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
     mockMvc
         .perform(get("/provision"))
         .andDo(MockMvcResultHandlers.print())
@@ -113,9 +109,8 @@ public class DefaultControllerTest {
   @Test
   public void provisionWithoutAuth() throws Exception {
     Mockito.when(jobExecutionAdapter.getQuickstarterJobs()).thenReturn(new ArrayList<>());
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
+    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn(null);
     defaultController.setJobExecutionAdapter(jobExecutionAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     mockMvc
         .perform(get("/provision"))
         .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
@@ -124,28 +119,27 @@ public class DefaultControllerTest {
 
   @Test
   public void login() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
+    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn(null);
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     mockMvc.perform(get("/login")).andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
   }
 
   @Test
   public void history() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
+    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn(null);
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
     mockMvc.perform(get("/history")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 
   @Test
+  @WithMockUser(username = "test")
   public void historyWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(storageAdapter.listProjectHistory()).thenReturn(new HashMap<>());
     defaultController.setStorageAdapter(storageAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
+    defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
     mockMvc.perform(get("/history")).andExpect(MockMvcResultMatchers.status().isOk());
   }
 
@@ -155,11 +149,12 @@ public class DefaultControllerTest {
   }
 
   @Test
+  @WithMockUser(username = "test")
   public void aboutWithAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn("logged_in");
+    Mockito.when(crowdAuthenticationAdapter.getToken()).thenReturn("logged_in");
     Mockito.when(storageAdapter.listAboutChangesData()).thenReturn(new AboutChangesData());
     defaultController.setStorageAdapter(storageAdapter);
-    defaultController.setCustomAuthenticationManager(crowdAuthenticationManager);
+    defaultController.setCustomAuthenticationManager(crowdAuthenticationAdapter);
 
     // set the real thing
     defaultController.setSCMAdapter(realBitbucketAdapter);
@@ -181,7 +176,7 @@ public class DefaultControllerTest {
 
   @Test
   public void aboutWithoutAuth() throws Exception {
-    Mockito.when(crowdAuthenticationManager.getUserPassword()).thenReturn(null);
+    Mockito.when(crowdAuthenticationAdapter.getUserPassword()).thenReturn(null);
     mockMvc.perform(get("/about")).andExpect(MockMvcResultMatchers.status().is3xxRedirection());
   }
 

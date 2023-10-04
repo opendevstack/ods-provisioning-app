@@ -14,9 +14,16 @@
 
 package org.opendevstack.provision.authentication.filter;
 
-import com.atlassian.crowd.integration.http.HttpAuthenticator;
+import com.atlassian.crowd.exception.ApplicationPermissionException;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.OperationFailedException;
+import com.atlassian.crowd.integration.http.CrowdHttpAuthenticator;
+import com.atlassian.crowd.integration.http.util.CrowdHttpTokenHelper;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationProcessingFilter;
 import com.atlassian.crowd.integration.springsecurity.CrowdSSOAuthenticationToken;
+import com.atlassian.crowd.model.authentication.CookieConfiguration;
+import com.atlassian.crowd.service.client.ClientProperties;
+import com.atlassian.crowd.service.client.CrowdClient;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,9 +38,16 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
 
   private static final Logger logger = LoggerFactory.getLogger(SSOAuthProcessingFilter.class);
 
-  private HttpAuthenticator httpAuthenticator;
+  private CrowdHttpAuthenticator crowdHttpAuthenticator;
 
   private SSOAuthProcessingFilterBasicAuthStrategy basicAuthHandlerStrategy;
+
+  public SSOAuthProcessingFilter(
+      CrowdHttpTokenHelper tokenHelper,
+      CrowdClient crowdClient,
+      ClientProperties clientProperties) {
+    super(tokenHelper, crowdClient, clientProperties);
+  }
 
   /**
    * Method to handle a successful authentication
@@ -52,7 +66,7 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
       FilterChain chain,
       Authentication authResult)
       throws IOException, ServletException {
-    storeTokenIfCrowd(request, response, authResult);
+    storeTokenIfCrowdMethodUsed(request, response, authResult);
     logger.debug("AuthResult {}", authResult.getCredentials().toString());
     super.successfulAuthentication(request, response, chain, authResult);
   }
@@ -62,8 +76,8 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    *
    * @param httpAuthenticator
    */
-  public void setHttpAuthenticator(HttpAuthenticator httpAuthenticator) {
-    this.httpAuthenticator = httpAuthenticator;
+  public void setHttpAuthenticator(CrowdHttpAuthenticator httpAuthenticator) {
+    this.crowdHttpAuthenticator = httpAuthenticator;
     super.setHttpAuthenticator(httpAuthenticator);
   }
 
@@ -75,23 +89,21 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
    * @param response
    * @param authResult
    */
-  boolean storeTokenIfCrowd(
+  boolean storeTokenIfCrowdMethodUsed(
       HttpServletRequest request, HttpServletResponse response, Authentication authResult) {
     if (authResult instanceof CrowdSSOAuthenticationToken && authResult.getCredentials() != null) {
       try {
-        httpAuthenticator.setPrincipalToken(
-            request, response, authResult.getCredentials().toString());
+        super.storeTokenIfCrowd(request, response, authResult);
         return true;
       } catch (Exception e) {
         logger.error("Unable to set Crowd SSO token", e);
-        return false;
       }
     }
     return false;
   }
 
-  public HttpAuthenticator getAuthenticator() {
-    return httpAuthenticator;
+  public CrowdHttpAuthenticator getAuthenticator() {
+    return crowdHttpAuthenticator;
   }
 
   public void setBasicAuthHandlerStrategy(
@@ -110,5 +122,15 @@ public class SSOAuthProcessingFilter extends CrowdSSOAuthenticationProcessingFil
     }
 
     return super.requiresAuthentication(request, response);
+  }
+
+  @Override
+  protected CookieConfiguration getCookieConfiguration()
+      throws OperationFailedException, InvalidAuthenticationException,
+          ApplicationPermissionException {
+    return new CookieConfiguration(
+        clientProperties.getSSOCookieDomainName(),
+        super.getCookieConfiguration().isSecure(),
+        clientProperties.getCookieTokenKey());
   }
 }
