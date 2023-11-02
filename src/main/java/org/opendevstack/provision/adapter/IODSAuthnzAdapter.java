@@ -14,6 +14,9 @@
 
 package org.opendevstack.provision.adapter;
 
+import com.atlassian.crowd.exception.ApplicationPermissionException;
+import com.atlassian.crowd.exception.InvalidAuthenticationException;
+import com.atlassian.crowd.exception.OperationFailedException;
 import org.opendevstack.provision.adapter.exception.IdMgmtException;
 
 /** Interface to wrap all (current) user based identity calls */
@@ -41,6 +44,10 @@ public interface IODSAuthnzAdapter {
 
   /** Get the currently logged' in user's email */
   public String getUserEmail();
+
+  void invalidate(String token)
+      throws InvalidAuthenticationException, OperationFailedException,
+          ApplicationPermissionException;
 
   /**
    * Invalidate the currently logged' in identity

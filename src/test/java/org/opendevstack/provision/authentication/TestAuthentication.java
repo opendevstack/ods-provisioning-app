@@ -1,7 +1,7 @@
 package org.opendevstack.provision.authentication;
 
-import com.atlassian.crowd.integration.soap.SOAPPrincipal;
 import com.atlassian.crowd.integration.springsecurity.user.CrowdUserDetails;
+import com.atlassian.crowd.model.user.UserTemplate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,12 +12,13 @@ public class TestAuthentication implements Authentication {
 
   private String username = "clemens";
   private String credentials;
-  private GrantedAuthority[] authorities;
+  private List<GrantedAuthority> authorities;
   private boolean authenticated;
 
   public TestAuthentication() {}
 
-  public TestAuthentication(String username, String credentials, GrantedAuthority[] authorities) {
+  public TestAuthentication(
+      String username, String credentials, List<GrantedAuthority> authorities) {
     this.username = username;
     this.credentials = credentials;
     this.authorities = authorities;
@@ -29,9 +30,9 @@ public class TestAuthentication implements Authentication {
   }
 
   @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
+  public Collection<GrantedAuthority> getAuthorities() {
     if (authorities != null) {
-      return List.of(authorities);
+      return authorities;
     } else {
       List<GrantedAuthority> auths = new ArrayList<>();
       auths.add(new TestAuthority());
@@ -52,13 +53,12 @@ public class TestAuthentication implements Authentication {
   @Override
   public Object getPrincipal() {
 
-    SOAPPrincipal principal = new SOAPPrincipal();
-    principal.setName(username);
+    UserTemplate principal = new UserTemplate(username);
 
     if (authorities != null) {
       return new CrowdUserDetails(principal, authorities);
     } else {
-      return new CrowdUserDetails(principal, getAuthorities().toArray(new GrantedAuthority[] {}));
+      return new CrowdUserDetails(principal, getAuthorities());
     }
   }
 

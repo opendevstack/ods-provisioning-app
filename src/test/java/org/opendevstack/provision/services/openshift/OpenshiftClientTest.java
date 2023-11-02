@@ -15,7 +15,7 @@ package org.opendevstack.provision.services.openshift;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
