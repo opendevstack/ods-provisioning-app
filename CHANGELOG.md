@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Changed
+
+## [4.2.0] - 2023-11-02
+
+### Changed
 - Change Crowd integration from SOAP to REST ([#740](https://github.com/opendevstack/ods-provisioning-app/issues/740))
 
 ## [4.1] - 2022-11-17
