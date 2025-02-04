@@ -104,7 +104,7 @@ dependencies {
     }
     implementation('org.springframework:spring-beans:5.3.18')
 
-    implementation('io.fabric8:openshift-client:5.12.1') {git
+    implementation('io.fabric8:openshift-client:5.12.1') {
         exclude(group: 'org.slf4j', module: 'slf4j-api')
         exclude(group: 'org.slf4j', module: 'slf4j-log4j12')
     }
