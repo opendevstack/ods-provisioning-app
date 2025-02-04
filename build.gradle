@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.4.1'
+    id 'org.springframework.boot' version '2.5.12'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
     id 'maven-publish'
@@ -99,10 +99,7 @@ dependencies {
     implementation('org.springframework.security:spring-security-oauth2-core')
     implementation('org.springframework.security:spring-security-oauth2-client')
     implementation('org.springframework.security:spring-security-oauth2-jose')
-    implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.2.RELEASE') {
-        exclude(group: 'org.springframework', module: 'spring-beans')
-    }
-    implementation('org.springframework:spring-beans:5.3.18')
+    implementation('org.springframework.security.oauth:spring-security-oauth2:2.5.0.RELEASE')
 
     implementation('io.fabric8:openshift-client:5.12.1') {
         exclude(group: 'org.slf4j', module: 'slf4j-api')
