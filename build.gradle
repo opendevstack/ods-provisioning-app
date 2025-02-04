@@ -83,7 +83,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-mail')
     implementation('org.springframework.boot:spring-boot-starter-security')
     //security framework
-    implementation('org.springframework.boot:spring-boot-stgit pusharter-thymeleaf')
+    implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
     //templating for frontend
     implementation('org.springframework.boot:spring-boot-starter-web')
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
