@@ -1,4 +1,11 @@
-FROM adoptopenjdk/openjdk11:ubi-jre
+FROM registry.access.redhat.com/ubi9/openjdk-11
+
+USER root
+
+RUN microdnf upgrade -y && \
+    microdnf clean all
+
+USER 1001
  
 COPY files/entrypoint.sh /usr/local/bin/
 COPY app.jar app.jar
