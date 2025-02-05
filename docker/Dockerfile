@@ -5,6 +5,9 @@ USER root
 RUN microdnf upgrade -y && \
     microdnf clean all
 
+RUN chown -c 1001:0 $JAVA_HOME/lib/security/cacerts \
+    && chmod -c g+w $JAVA_HOME/lib/security/cacerts
+
 USER 1001
  
 COPY files/entrypoint.sh /usr/local/bin/
@@ -13,8 +16,6 @@ COPY app.jar app.jar
 EXPOSE 8080
 
 ENV CA_CERT none
-
-RUN chmod g+w /opt/java/openjdk/lib/security/cacerts
 
 VOLUME /opt/provision/history
 VOLUME /config
