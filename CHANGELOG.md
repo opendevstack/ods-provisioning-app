@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fix CVE 2022 22965 ([#754](https://github.com/opendevstack/ods-provisioning-app/pull/754))
+- Fix CVE 2022 22965, switch base image to UBI 9 ([#754](https://github.com/opendevstack/ods-provisioning-app/pull/754))
 
 ### Changed
 
