@@ -1,14 +1,4 @@
-FROM registry.access.redhat.com/ubi9/openjdk-11
-
-USER root
-
-RUN microdnf upgrade -y && \
-    microdnf clean all
-
-RUN chown -c 1001:0 $JAVA_HOME/lib/security/cacerts \
-    && chmod -c g+w $JAVA_HOME/lib/security/cacerts
-
-USER 1001
+FROM adoptopenjdk/openjdk11:ubi-jre
  
 COPY files/entrypoint.sh /usr/local/bin/
 COPY app.jar app.jar
@@ -16,6 +6,8 @@ COPY app.jar app.jar
 EXPOSE 8080
 
 ENV CA_CERT none
+
+RUN chmod g+w /opt/java/openjdk/lib/security/cacerts
 
 VOLUME /opt/provision/history
 VOLUME /config
