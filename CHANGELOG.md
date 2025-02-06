@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix CVE 2022 22965 ([#754](https://github.com/opendevstack/ods-provisioning-app/pull/754))
+
 ### Changed
 
 ## [4.2.0] - 2023-11-02

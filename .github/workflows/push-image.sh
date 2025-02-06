@@ -29,6 +29,8 @@ case $GIT_REF in
   	DOCKERTAG="${GIT_REF/refs\/heads\//}" ;;
   refs/tags/v?(+([0-9]).)+([0-9]).*([0-9]) )
     DOCKERTAG="${GIT_REF/refs\/tags\/v/}" ;;
+  refs/tags/v?(+([0-9]).)+([0-9]).*([0-9])-snapshot )
+     DOCKERTAG='snapshot' ;;
   * )
     DOCKERTAG='none' ;;
 esac
