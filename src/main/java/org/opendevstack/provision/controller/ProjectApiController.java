@@ -530,7 +530,7 @@ public class ProjectApiController {
     }
 
     // create auxilaries - for design and for the ocp artifacts
-    String[] auxiliaryRepositories = {"occonfig-artifacts", "design"};
+    String[] auxiliaryRepositories = {}; // formerly {"occonfig-artifacts", "design"};
 
     if (project.getScmvcsUrl() == null) {
       // create the bugtracker project
@@ -539,9 +539,11 @@ public class ProjectApiController {
       Preconditions.checkNotNull(
           project.getScmvcsUrl(), bitbucketAdapter.getClass() + " did not return scmvcs url");
 
-      project.setRepositories(
-          bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(
-              project, auxiliaryRepositories));
+      if (!auxiliaryRepositories.isEmpty()) {
+        project.setRepositories(
+            bitbucketAdapter.createAuxiliaryRepositoriesForODSProject(
+                project, auxiliaryRepositories));
+      }
 
       // provision platform projects
       project = jenkinsPipelineAdapter.createPlatformProjects(project);
