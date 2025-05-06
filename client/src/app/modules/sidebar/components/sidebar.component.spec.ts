@@ -3,29 +3,18 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { SidebarComponent } from './sidebar.component';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { LoadingIndicatorModule } from '../../loading-indicator/loading-indicator.module';
 import { MatListModule } from '@angular/material/list';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
-import { Component, Input } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../../app-form/app-form.module';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-
-@Component({
-  selector: 'app-mat-icon',
-  template: '<span></span>'
-})
-class MockMatIconComponent {
-  @Input() svgIcon: any;
-  @Input() fontSet: any;
-  @Input() fontIcon: any;
-}
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('SidebarComponent', () => {
   let component: SidebarComponent;
@@ -60,7 +49,7 @@ describe('SidebarComponent', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [SidebarComponent],
+        declarations: [SidebarComponent, MatIcon],
         imports: [
           NoopAnimationsModule,
           CommonModule,
@@ -73,20 +62,9 @@ describe('SidebarComponent', () => {
           MatInputModule,
           MatAutocompleteModule,
           MatButtonModule,
-          MatIconModule
+          MatIconTestingModule
         ]
-      })
-        .overrideModule(MatIconModule, {
-          remove: {
-            declarations: [MatIcon],
-            exports: [MatIcon]
-          },
-          add: {
-            declarations: [MockMatIconComponent],
-            exports: [MockMatIconComponent]
-          }
-        })
-        .compileComponents();
+      }).compileComponents();
     })
   );
 
