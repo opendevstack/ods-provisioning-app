@@ -130,15 +130,20 @@ dependencies {
             strictly '3.5.2'
         } // Cannot upgrade to '3.5.24'
         transitive = true
+        exclude group: 'log4j', module: 'log4j'
     }
     implementation('com.atlassian.security:atlassian-security:3.2.14') {
         transitive = true
+        exclude group: 'log4j', module: 'log4j'
     }
     implementation('com.atlassian.security:atlassian-cookie-tools:3.2.14') {
         transitive = true
+        exclude group: 'log4j', module: 'log4j'
     }
     implementation('javax.validation:validation-api:2.0.1.Final')
-    implementation('com.atlassian.crowd:crowd-integration-springsecurity:5.1.3')
+    implementation('com.atlassian.crowd:crowd-integration-springsecurity:5.1.3') {
+        exclude group: 'log4j', module: 'log4j'
+    }
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
     implementation group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.1'
     implementation group: 'xerces', name: 'xercesImpl', version: '2.9.1'
@@ -224,6 +229,8 @@ configurations.all {
             it.useTarget 'com.atlassian.platform:platform:3.5.24'
         }
     }
+    // CVE-2021-4104: Exclude Log4j 1.2 to prevent JMSAppender RCE vulnerability
+    exclude group: 'log4j', module: 'log4j'
 }
 
 // configurations.implementation {
