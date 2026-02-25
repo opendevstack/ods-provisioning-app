@@ -1,4 +1,6 @@
-FROM adoptopenjdk/openjdk11:ubi-jre
+FROM docker.io/library/eclipse-temurin:11-jre-ubi9-minimal
+
+RUN microdnf update -y && microdnf clean all
  
 COPY files/entrypoint.sh /usr/local/bin/
 COPY app.jar app.jar
