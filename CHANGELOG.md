@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Fixed
+
+## [4.4.0] - 2026-02-25
+### Fixed
 - Fix CVE-2021-4104 and change java base image ([#761](https://github.com/opendevstack/ods-provisioning-app/pull/761))
 
 ## [4.3.0] - 2025-03-25
