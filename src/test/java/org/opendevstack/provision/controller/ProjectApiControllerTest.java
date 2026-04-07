@@ -530,7 +530,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateProjectWithProjectExists() throws Exception {
-    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
+    when(jiraAdapter.projectKeyExists(isNotNull())).thenReturn(true);
 
     mockMvc
         .perform(
@@ -543,7 +543,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateProjectWithProjectNotExists() throws Exception {
-    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
+    when(jiraAdapter.projectKeyExists(isNotNull())).thenReturn(false);
 
     mockMvc
         .perform(
@@ -556,7 +556,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateKeyWithKeyExists() throws Exception {
-    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(true);
+    when(jiraAdapter.projectKeyExists(isNotNull())).thenReturn(true);
     mockMvc
         .perform(
             get("/api/v2/project/key/validate")
@@ -568,7 +568,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void validateKeyWithKeyNotExists() throws Exception {
-    when(jiraAdapter.projectKeyExists(isNotNull(String.class))).thenReturn(false);
+    when(jiraAdapter.projectKeyExists(isNotNull())).thenReturn(false);
 
     mockMvc
         .perform(
@@ -581,7 +581,7 @@ public class ProjectApiControllerTest {
 
   @Test
   public void generateKey() throws Exception {
-    when(jiraAdapter.buildProjectKey(isNotNull(String.class))).thenReturn("PROJ");
+    when(jiraAdapter.buildProjectKey(isNotNull())).thenReturn("PROJ");
 
     mockMvc
         .perform(
