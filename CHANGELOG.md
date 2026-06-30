@@ -3,8 +3,10 @@
 ## Unreleased
 
 ### Fixed
-- Fix Vuls (CVE-2023-44487 & CVE-2025-31650), update springboot and tomcat ([#763](https://github.com/opendevstack/ods-provisioning-app/pull/763))
 
+## [4.5.0] - 2026-06-30
+### Fixed
+- Fix Vuls (CVE-2023-44487 & CVE-2025-31650), update springboot and tomcat ([#763](https://github.com/opendevstack/ods-provisioning-app/pull/763))
 
 ## [4.4.0] - 2026-02-25
 ### Fixed
