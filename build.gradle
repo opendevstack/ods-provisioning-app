@@ -19,8 +19,8 @@ buildscript {
 }
 
 plugins {
-    id 'org.springframework.boot' version '2.5.12'
-    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.springframework.boot' version '2.7.18'
+    id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
     id 'maven-publish'
     id 'jacoco'
@@ -32,6 +32,10 @@ plugins {
 group = 'prov'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.11
+
+// Override managed Tomcat version to address CVE-2025-31650 (fixed in 9.0.104)
+// Spring Boot 2.7.x uses Tomcat 9.x; 10.x/11.x require Spring Boot 3.x
+ext['tomcat.version'] = '9.0.104'
 
 repositories {
     if (!no_nexus) {
