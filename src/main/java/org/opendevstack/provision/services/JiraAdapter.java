@@ -229,8 +229,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
 
       addSpecialPermission(project);
 
-      addWebhookProxyUrlToJiraProject(
-          project.getProjectKey(), project.getProjectType(), project.getWebhookProxySecret());
+      addWebhookProxyUrlToJiraProject(project.getProjectKey(), project.getProjectType());
+      addWebhookProxyHmacKeyToJiraProject(project);
 
       return project;
     } catch (IOException eCreationException) {
@@ -259,8 +259,8 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
   }
 
-  public void addWebhookProxyUrlToJiraProject(
-      String projectKey, String projectType, String webhookSecret) throws IOException {
+  public void addWebhookProxyUrlToJiraProject(String projectKey, String projectType)
+      throws IOException {
 
     String addProjectProperty =
         jiraProjectTypePropertyCalculator
@@ -276,12 +276,36 @@ public class JiraAdapter extends BaseServiceAdapter implements IBugtrackerAdapte
     }
 
     logger.info(
-        "Project type is not configured for the setup of webhook proxy url as jira project property [projectKey={}, projectType={}]",
+        "Project type is configured for the setup of webhook proxy url as jira project property [projectKey={}, projectType={}]",
         projectKey,
         projectType);
 
-    webhookProxyJiraPropertyUpdater.addWebhookProxyProperty(
-        this, projectKey, projectType, webhookSecret);
+    webhookProxyJiraPropertyUpdater.addWebhookProxyProperty(this, projectKey, projectType);
+  }
+
+  public void addWebhookProxyHmacKeyToJiraProject(OpenProjectData project) throws IOException {
+    String projectKey = project.getProjectKey();
+    String projectType = project.getProjectType();
+
+    String addProjectProperty =
+        jiraProjectTypePropertyCalculator
+            .readPropertyIfTemplateKeyExistsAndIsEnabledOrReturnDefault(
+                projectType, ADD_WEBHOOK_PROXY_URL_AS_PROJECT_PROPERTY, Boolean.FALSE.toString());
+
+    if (!Boolean.valueOf(addProjectProperty)) {
+      logger.debug(
+          "Project type is not configured for the setup of webhook proxy secret as jira project property [projectKey={}, projectType={}]",
+          projectKey,
+          projectType);
+      return;
+    }
+
+    logger.info(
+        "Project type is configured for the setup of webhook proxy secret as jira project property [projectKey={}, projectType={}]",
+        projectKey,
+        projectType);
+
+    webhookProxyJiraPropertyUpdater.addWebhookSecretProperty(this, project);
   }
 
   public String resolveProjectAdminUser(OpenProjectData project) {

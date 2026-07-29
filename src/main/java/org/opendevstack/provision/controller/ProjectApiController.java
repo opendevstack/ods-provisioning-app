@@ -21,9 +21,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
+import javax.crypto.KeyGenerator;
 import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
@@ -225,6 +227,9 @@ public class ProjectApiController {
       // init webhook secret
       newProject.setWebhookProxySecret(UUID.randomUUID().toString());
 
+      // init webhook secret
+      newProject.setWebhookProxyHmacKey(generateHmacKey());
+
       if (newProject.isBugtrackerSpace()) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
@@ -287,6 +292,21 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
+    }
+  }
+
+  private static String generateHmacKey() {
+    byte[] key = null;
+    try {
+      KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
+      key = generator.generateKey().getEncoded();
+      return Base64.getEncoder().encodeToString(key);
+    } catch (NoSuchAlgorithmException e) {
+      throw new AssertionError(e);
+    } finally {
+      if (key != null) {
+        Arrays.fill(key, (byte) 0);
+      }
     }
   }
 
@@ -406,6 +426,7 @@ public class ProjectApiController {
       updatedProject.setDescription(storedExistingProject.getDescription());
       updatedProject.setProjectName(storedExistingProject.getProjectName());
       updatedProject.setWebhookProxySecret(storedExistingProject.getWebhookProxySecret());
+      updatedProject.setWebhookProxyHmacKey(storedExistingProject.getWebhookProxyHmacKey());
 
       // add the scm url & bugtracker space bool
       updatedProject.setScmvcsUrl(storedExistingProject.getScmvcsUrl());
@@ -907,6 +928,7 @@ public class ProjectApiController {
 
     // Quick fix to pass the webhook proxy secret from project
     deletableComponents.setWebhookProxySecret(project.getWebhookProxySecret());
+    deletableComponents.setWebhookProxyHmacKey(project.getWebhookProxyHmacKey());
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, deletableComponents);

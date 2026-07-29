@@ -19,6 +19,7 @@ import static org.opendevstack.provision.config.Quickstarter.adminjobQuickstarte
 import static org.opendevstack.provision.config.Quickstarter.componentQuickstarter;
 import static org.opendevstack.provision.util.RestClientCallArgumentMatcher.matchesClientCall;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +55,7 @@ import org.springframework.test.context.ActiveProfiles;
 public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
   private static final String PROJECT_KEY = "123key";
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Autowired private JenkinsPipelineAdapter jenkinsPipelineAdapter;
 
@@ -133,6 +135,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData project = new OpenProjectData();
     project.setProjectKey(PROJECT_KEY);
     project.setWebhookProxySecret("secret101");
+    project.setWebhookProxyHmacKey("testHmacKey");
     String odsGitRef = "production";
     Job job = new Job(JOB_1_NAME, JOB_1_REPO, Optional.empty(), Optional.empty(), odsGitRef);
 
@@ -160,7 +163,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void testBuildExecutionUrl() {
 
-    String webhookProxySecret = "secret101";
     String webhookHost = "localhost";
 
     String odsGitRef = "production";
@@ -170,16 +172,13 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     String expectedUrl =
         "https://"
             + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
+            + "/build?jenkinsfile_path="
             + job.getJenkinsfilePath()
             + "&component=ods-qs-"
             + componentId;
 
     String actualUrl =
-        JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
-            job, componentId, webhookProxySecret, webhookHost);
+        JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(job, componentId, webhookHost);
 
     assertEquals(expectedUrl, actualUrl);
   }
@@ -187,7 +186,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void testBuildExecutionUrlAdminCreateProjectJob() {
 
-    String webhookProxySecret = "secret101";
     String webhookHost = "localhost";
 
     String odsGitRef = "production";
@@ -203,9 +201,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     String expectedUrl =
         "https://"
             + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
+            + "/build?jenkinsfile_path="
             + job.getJenkinsfilePath()
             + "&component=ods-corejob-"
             + job.getId();
@@ -213,7 +209,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     String componentId = "be-project-name-with-numbers-123";
     String actualUrl =
         JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
-            job, componentId, job.getId(), webhookProxySecret, webhookHost, false);
+            job, componentId, job.getId(), webhookHost, false);
 
     assertEquals(expectedUrl, actualUrl);
   }
@@ -221,7 +217,6 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
   @Test
   public void testBuildExecutionUrlAdminDeleteProjectJob() {
 
-    String webhookProxySecret = "secret101";
     String webhookHost = "localhost";
 
     String odsGitRef = "production";
@@ -239,16 +234,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     String expectedUrl =
         "https://"
             + webhookHost
-            + "/build?trigger_secret="
-            + webhookProxySecret
-            + "&jenkinsfile_path="
+            + "/build?jenkinsfile_path="
             + job.getJenkinsfilePath()
             + "&component=ods-corejob-"
             + projectId;
 
     String actualUrl =
         JenkinsPipelineAdapter.buildAdminJobExecutionUrl(
-            job, projectId, job.getId(), webhookProxySecret, webhookHost, true);
+            job, projectId, job.getId(), webhookHost, true);
     assertEquals(expectedUrl, actualUrl);
   }
 
@@ -257,7 +250,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
 
     OpenProjectData projectData = createOpenProjectData("key");
 
-    ValueCaptor<Execution> bodyCaptor = new ValueCaptor<>();
+    ValueCaptor<String> bodyCaptor = new ValueCaptor<>();
     mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(bodyCaptor))
         .thenReturn(buildDummyCreateProjectResponse());
 
@@ -266,7 +259,8 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData createdOpenProjectData =
         jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
-    Execution capturedBody = bodyCaptor.getValues().get(0);
+    String bodyString = bodyCaptor.getValues().get(0);
+    Execution capturedBody = MAPPER.readValue(bodyString, Execution.class);
     Assertions.assertEquals("production", capturedBody.getBranch());
     Assertions.assertEquals("ods-core", capturedBody.getRepository());
     List<Option> env = capturedBody.getEnv();
@@ -372,13 +366,14 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     mockJobsInServer(jobs);
 
     CreateProjectResponse response = buildDummyCreateProjectResponse();
-    ValueCaptor<Object> valueHolder = new ValueCaptor<>();
+    ValueCaptor<String> valueHolder = new ValueCaptor<>();
     mockExecute(matchesClientCall().method(HttpMethod.POST).bodyCaptor(valueHolder))
         .thenReturn(response);
 
     jenkinsPipelineAdapter.createPlatformProjects(projectData);
 
-    Execution actualBody = (Execution) valueHolder.getValues().get(0);
+    String bodyString = valueHolder.getValues().get(0);
+    Execution actualBody = MAPPER.readValue(bodyString, Execution.class);
     assertNotNull(actualBody);
     assertEquals(projectData.getProjectAdminUser(), actualBody.getOptionValue("PROJECT_ADMIN"));
     assertEquals(projectData.getProjectKey(), actualBody.getOptionValue("PROJECT_ID"));

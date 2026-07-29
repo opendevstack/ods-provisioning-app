@@ -56,11 +56,9 @@ public class WebhookProxyJiraPropertyUpdaterTest {
       //      URL url = mock(URL.class);
       //      when(url.toString()).thenReturn("http")
 
-      when(webhookProxyUrlFactory.createBuildUrl("empty", "empty"))
-          .thenReturn(new URL("https://ods.lan"));
+      when(webhookProxyUrlFactory.createBuildUrl("empty")).thenReturn(new URL("https://ods.lan"));
 
-      webhookProxyJiraPropertyUpdater.addWebhookProxyProperty(
-          jiraRestService, "empty", "empty", "empty");
+      webhookProxyJiraPropertyUpdater.addWebhookProxyProperty(jiraRestService, "empty", "empty");
 
       fail();
     } catch (IOException e) {
@@ -78,11 +76,10 @@ public class WebhookProxyJiraPropertyUpdaterTest {
 
     URL webhookProxyUrl = new URL("https://ods.lan?secret=" + webhookSecret);
 
-    when(webhookProxyUrlFactory.createBuildUrl(projectKey, webhookSecret))
-        .thenReturn(webhookProxyUrl);
+    when(webhookProxyUrlFactory.createBuildUrl(projectKey)).thenReturn(webhookProxyUrl);
 
     webhookProxyJiraPropertyUpdater.addWebhookProxyProperty(
-        jiraRestService, projectKey, projectType, webhookSecret);
+        jiraRestService, projectKey, projectType);
 
     verify(jiraProjectPropertyUpdater, times(1))
         .setPropertyInJiraProject(

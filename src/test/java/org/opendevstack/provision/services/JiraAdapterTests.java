@@ -183,11 +183,7 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
     assertEquals(templateProject.getProjectName(), createdProjectWithNewTemplate.getProjectName());
     assertEquals("newTemplate", createdProjectWithNewTemplate.getProjectType());
     verify(webhookProxyJiraPropertyUpdater, times(1))
-        .addWebhookProxyProperty(
-            spyAdapter,
-            project.getProjectKey(),
-            project.getProjectType(),
-            project.getWebhookProxySecret());
+        .addWebhookProxyProperty(spyAdapter, project.getProjectKey(), project.getProjectType());
 
     HttpException thrownEx = null;
     try {
@@ -782,7 +778,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     String projectType = "type";
     String projectKey = "projectKey";
-    String secret = "secret";
 
     // case: configured property can be parse to "false"
     when(jiraProjectTypePropertyCalculator
@@ -792,10 +787,10 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 Boolean.FALSE.toString()))
         .thenReturn(Boolean.FALSE.toString());
 
-    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType);
 
     verify(webhookProxyJiraPropertyUpdater, never())
-        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString());
 
     // case: configured property can not be parse to "false"
     when(jiraProjectTypePropertyCalculator
@@ -805,10 +800,10 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 Boolean.FALSE.toString()))
         .thenReturn("can-be-not-parsed-to-boolean");
 
-    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType);
 
     verify(webhookProxyJiraPropertyUpdater, never())
-        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString());
   }
 
   @Test
@@ -817,7 +812,6 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
 
     String projectType = "type";
     String projectKey = "projectKey";
-    String secret = "secret";
 
     // case: configured property can be parse to "false"
     when(jiraProjectTypePropertyCalculator
@@ -827,9 +821,9 @@ public class JiraAdapterTests extends AbstractBaseServiceAdapterTest {
                 Boolean.FALSE.toString()))
         .thenReturn(Boolean.TRUE.toString());
 
-    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType, secret);
+    jiraAdapter.addWebhookProxyUrlToJiraProject(projectKey, projectType);
 
     verify(webhookProxyJiraPropertyUpdater, times(1))
-        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString(), anyString());
+        .addWebhookProxyProperty(any(JiraRestService.class), anyString(), anyString());
   }
 }

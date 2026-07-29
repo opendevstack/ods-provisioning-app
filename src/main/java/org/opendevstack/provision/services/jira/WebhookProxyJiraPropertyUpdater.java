@@ -15,6 +15,7 @@ package org.opendevstack.provision.services.jira;
 
 import java.io.IOException;
 import java.net.URL;
+import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.services.webhookproxy.WebhookProxyUrlFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,15 +34,20 @@ public class WebhookProxyJiraPropertyUpdater {
   public static final String WEBHOOK_PROXY_URL_PAYLOAD_TEMPLATE_CONFIG_KEY_PREFIX =
       "jira.project.template.webhook-proxy-url-payload-template.";
 
+  public static final String WEBHOOK_PROXY_SECRET_ENDPOINT_TEMPLATE_CONFIG_KEY_PREFIX =
+      "jira.project.template.webhook-proxy-secret-endpoint-template.";
+
+  public static final String WEBHOOK_PROXY_SECRET_PAYLOAD_TEMPLATE_CONFIG_KEY_PREFIX =
+      "jira.project.template.webhook-proxy-secret-payload-template.";
+
   @Autowired private JiraProjectPropertyUpdater jiraProjectPropertyUpdater;
 
   @Autowired private WebhookProxyUrlFactory webhookProxyUrlFactory;
 
   public void addWebhookProxyProperty(
-      JiraRestService restService, String projectKey, String projectType, String webhookSecret)
-      throws IOException {
+      JiraRestService restService, String projectKey, String projectType) throws IOException {
 
-    URL webhookProxyUrl = webhookProxyUrlFactory.createBuildUrl(projectKey, webhookSecret);
+    URL webhookProxyUrl = webhookProxyUrlFactory.createBuildUrl(projectKey);
 
     logger.info("Adding webhook proxy property to jira project [projectKey={}]", projectKey);
 
@@ -52,5 +58,21 @@ public class WebhookProxyJiraPropertyUpdater {
         webhookProxyUrl.toString(),
         WEBHOOK_PROXY_URL_ENDPOINT_TEMPLATE_CONFIG_KEY_PREFIX,
         WEBHOOK_PROXY_URL_PAYLOAD_TEMPLATE_CONFIG_KEY_PREFIX);
+  }
+
+  public void addWebhookSecretProperty(JiraRestService restService, OpenProjectData project)
+      throws IOException {
+    String projectKey = project.getProjectKey();
+    String projectType = project.getProjectType();
+
+    logger.info("Adding webhook proxy secret property to jira project [projectKey={}]", projectKey);
+
+    jiraProjectPropertyUpdater.setPropertyInJiraProject(
+        restService,
+        projectKey,
+        projectType,
+        project.getWebhookProxyHmacKey(),
+        WEBHOOK_PROXY_SECRET_ENDPOINT_TEMPLATE_CONFIG_KEY_PREFIX,
+        WEBHOOK_PROXY_SECRET_PAYLOAD_TEMPLATE_CONFIG_KEY_PREFIX);
   }
 }
