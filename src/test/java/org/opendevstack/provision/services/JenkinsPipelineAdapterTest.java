@@ -313,6 +313,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     OpenProjectData projectData = new OpenProjectData();
     projectData.setProjectKey(projectKey);
     projectData.setWebhookProxySecret(UUID.randomUUID().toString());
+    projectData.setWebhookProxyHmacKey("whatever");
 
     Job job1 = new Job();
     job1.setName(JenkinsPipelineAdapter.CREATE_PROJECTS_JOB_ID);
@@ -362,6 +363,7 @@ public class JenkinsPipelineAdapterTest extends AbstractBaseServiceAdapterTest {
     projectData.setProjectUserGroup("ugroup");
     projectData.setProjectReadonlyGroup("rgroup");
     projectData.setWebhookProxySecret(UUID.randomUUID().toString());
+    projectData.setWebhookProxyHmacKey("whatever");
 
     mockJobsInServer(jobs);
 
