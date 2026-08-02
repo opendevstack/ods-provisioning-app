@@ -134,6 +134,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   @Value("${jenkinspipeline.create-project.default-project-groups:''}")
   private String defaultEntitlementGroups;
 
+  @Value("${webhook.allowed.ip.ranges}")
+  private String webhookAllowedIpRanges;
+
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
   }
@@ -254,6 +257,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         "WEBHOOK_HMAC_KEY",
         Base64.getEncoder()
             .encodeToString(project.getWebhookProxyHmacKey().getBytes(StandardCharsets.UTF_8)));
+
+    options.put("WEBHOOK_ALLOWED_IP_RANGES", webhookAllowedIpRanges);
 
     String projectCdUser = generalCdUser;
     String cdUserType = "general";
