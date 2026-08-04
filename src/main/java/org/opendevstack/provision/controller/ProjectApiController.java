@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
@@ -79,6 +80,18 @@ public class ProjectApiController {
   public static final String PROJECT_TEMPLATE_KEYS = "project-template-keys";
 
   private static final String EMPTY_PROJECT_DESCRIPTION = "";
+
+  private static final SecureRandom DEFAULT_RNG;
+
+  static {
+    SecureRandom rng;
+    try {
+      rng = SecureRandom.getInstanceStrong();
+    } catch (NoSuchAlgorithmException ignored) {
+      rng = null;
+    }
+    DEFAULT_RNG = rng;
+  }
 
   private @Autowired IBugtrackerAdapter jiraAdapter;
 
@@ -299,10 +312,13 @@ public class ProjectApiController {
     byte[] key = null;
     try {
       KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
+      if (DEFAULT_RNG != null) {
+        generator.init(DEFAULT_RNG);
+      }
       key = generator.generateKey().getEncoded();
       return Base64.getEncoder().encodeToString(key);
     } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
+      throw new AssertionError(e); // HmacSHA256 is required by the specification
     } finally {
       if (key != null) {
         Arrays.fill(key, (byte) 0);
