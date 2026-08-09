@@ -2,7 +2,7 @@ import { CookieBuilder } from './cookie-builder';
 
 describe('CookieBuilder', () => {
   beforeEach(() => {
-    jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime());
+    spyOn(Date, 'now');
   });
 
   it('should build cookie from string', () => {

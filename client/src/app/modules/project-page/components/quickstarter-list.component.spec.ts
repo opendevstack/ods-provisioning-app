@@ -2,24 +2,14 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { QuickstarterListComponent } from './quickstarter-list.component';
 import { CommonModule } from '@angular/common';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Component, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { MatDialogModule } from '@angular/material/dialog';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { API_ALL_QUICKSTARTERS_URL, API_PROJECT_URL } from '../../../tokens';
-
-@Component({
-  selector: 'app-mat-icon',
-  template: '<span></span>'
-})
-class MockMatIconComponent {
-  @Input() svgIcon: any;
-  @Input() fontSet: any;
-  @Input() fontIcon: any;
-}
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('QuickstarterListComponent', () => {
   let component: QuickstarterListComponent;
@@ -28,24 +18,13 @@ describe('QuickstarterListComponent', () => {
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        imports: [CommonModule, HttpClientTestingModule, MatIconModule, MatTooltipModule, MatExpansionModule, MatDialogModule],
-        declarations: [QuickstarterListComponent],
+        imports: [CommonModule, HttpClientTestingModule, MatIconTestingModule, MatTooltipModule, MatExpansionModule, MatDialogModule],
+        declarations: [QuickstarterListComponent, MatIcon],
         providers: [
           { provide: API_ALL_QUICKSTARTERS_URL, useValue: '/api/mock' },
           { provide: API_PROJECT_URL, useValue: '/api/mock' }
         ]
-      })
-        .overrideModule(MatIconModule, {
-          remove: {
-            declarations: [MatIcon],
-            exports: [MatIcon]
-          },
-          add: {
-            declarations: [MockMatIconComponent],
-            exports: [MockMatIconComponent]
-          }
-        })
-        .compileComponents();
+      }).compileComponents();
     })
   );
 

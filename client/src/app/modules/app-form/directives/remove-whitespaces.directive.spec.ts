@@ -4,7 +4,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { RemoveWhitespacesDirective } from './remove-whitespaces.directive';
 
-/* TODO refactor using spectator */
 describe('RemoveWhitespacesDirective', () => {
   @Component({
     template: `

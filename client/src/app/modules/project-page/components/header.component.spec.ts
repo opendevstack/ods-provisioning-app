@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ProjectHeaderComponent } from './header.component';
 import { ProjectModule } from '../../project/project.module';
 import { LoadingIndicatorModule } from '../../loading-indicator/loading-indicator.module';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
@@ -14,18 +14,8 @@ import { NotificationModule } from '../../notification/notification.module';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AppFormModule } from '../../app-form/app-form.module';
-import { Component, Input } from '@angular/core';
 import { By } from '@angular/platform-browser';
-
-@Component({
-  selector: 'app-mat-icon',
-  template: '<span></span>'
-})
-class MockMatIconComponent {
-  @Input() svgIcon: any;
-  @Input() fontSet: any;
-  @Input() fontIcon: any;
-}
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('ProjectHeaderComponent', () => {
   let component: ProjectHeaderComponent;
@@ -37,7 +27,7 @@ describe('ProjectHeaderComponent', () => {
         imports: [
           ProjectModule,
           LoadingIndicatorModule,
-          MatIconModule,
+          MatIconTestingModule,
           MatFormFieldModule,
           MatInputModule,
           MatCardModule,
@@ -49,19 +39,8 @@ describe('ProjectHeaderComponent', () => {
           ReactiveFormsModule,
           AppFormModule
         ],
-        declarations: [ProjectHeaderComponent]
-      })
-        .overrideModule(MatIconModule, {
-          remove: {
-            declarations: [MatIcon],
-            exports: [MatIcon]
-          },
-          add: {
-            declarations: [MockMatIconComponent],
-            exports: [MockMatIconComponent]
-          }
-        })
-        .compileComponents();
+        declarations: [ProjectHeaderComponent, MatIcon]
+      }).compileComponents();
     })
   );
 
@@ -82,8 +61,8 @@ describe('ProjectHeaderComponent', () => {
       lastExecutionJobs: null,
       physicalLocation: null
     };
-    jest.spyOn(component.activateEditMode, 'emit');
-    jest.spyOn(component.openNotification, 'emit');
+    spyOn(component.activateEditMode, 'emit').and.callThrough();
+    spyOn(component.openNotification, 'emit').and.callThrough();
     fixture.detectChanges();
   });
 
