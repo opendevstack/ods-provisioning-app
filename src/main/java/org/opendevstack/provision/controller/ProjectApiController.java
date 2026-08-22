@@ -539,8 +539,8 @@ public class ProjectApiController {
    */
   @PreAuthorizeAllRoles
   @PutMapping(path = "/{projectKey}/webhookProxyHmacKey")
-  public ResponseEntity<Object> updateHmacKey(@PathVariable("projectKey") String projectKey,
-                                              @RequestBody String webhookProxyHmacKey) {
+  public ResponseEntity<Object> updateHmacKey(
+      @PathVariable("projectKey") String projectKey, @RequestBody String webhookProxyHmacKey) {
 
     if (projectKey == null || projectKey.isBlank()) {
       return ResponseEntity.badRequest().body("Project key is mandatory to call updateHmacKey!");
@@ -551,8 +551,7 @@ public class ProjectApiController {
     try {
       logger.debug("Update Hmac key for project {}", projectKey);
 
-      OpenProjectData storedExistingProject =
-              directStorage.getProject(projectKey);
+      OpenProjectData storedExistingProject = directStorage.getProject(projectKey);
 
       if (storedExistingProject == null) {
         return ResponseEntity.notFound().build();
@@ -575,7 +574,9 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     } catch (IOException | RuntimeException exProvision) {
 
-      String error = format("An error occurred while updating Hmac key for project %s, reason %s",
+      String error =
+          format(
+              "An error occurred while updating Hmac key for project %s, reason %s",
               projectKey, exProvision.getMessage());
       logger.error(error);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
