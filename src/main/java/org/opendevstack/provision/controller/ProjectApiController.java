@@ -532,6 +532,59 @@ public class ProjectApiController {
   }
 
   /**
+   * Update hmac key of a project
+   *
+   * @param updatedProject the project containing the update data
+   * @return the updated project
+   */
+  @PreAuthorizeAllRoles
+  @PutMapping(path = "/{projectKey}/webhookProxyHmacKey")
+  public ResponseEntity<Object> updateHmacKey(@PathVariable("projectKey") String projectKey,
+                                              @RequestBody String webhookProxyHmacKey) {
+
+    if (projectKey == null || projectKey.isBlank()) {
+      return ResponseEntity.badRequest().body("Project key is mandatory to call updateHmacKey!");
+    }
+    projectKey = projectKey.strip();
+    MDC.put(STR_LOGFILE_KEY, projectKey);
+
+    try {
+      logger.debug("Update Hmac key for project {}", projectKey);
+
+      OpenProjectData storedExistingProject =
+              directStorage.getProject(projectKey);
+
+      if (storedExistingProject == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      storedExistingProject.setWebhookProxyHmacKey(webhookProxyHmacKey);
+
+      // store the updated project
+      if (directStorage.updateStoredProject(storedExistingProject)) {
+        logger.debug("Hmac key for project {} successfully updated", projectKey);
+      }
+
+      // notify user via mail of project updates with embedding links
+      mailAdapter.notifyUsersAboutProject(storedExistingProject);
+
+      return ResponseEntity.ok().body(storedExistingProject);
+    } catch (IllegalArgumentException iae) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
+    } catch (MissingCredentialsInfoException ex) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    } catch (IOException | RuntimeException exProvision) {
+
+      String error = format("An error occurred while updating Hmac key for project %s, reason %s",
+              projectKey, exProvision.getMessage());
+      logger.error(error);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    } finally {
+      MDC.remove(STR_LOGFILE_KEY);
+    }
+  }
+
+  /**
    * @param updatedProject
    * @param validators
    * @throws IllegalArgumentException if any validator rule do not accept any quickstarters
