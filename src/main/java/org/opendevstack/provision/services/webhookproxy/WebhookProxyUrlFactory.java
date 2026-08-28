@@ -35,18 +35,14 @@ public class WebhookProxyUrlFactory {
   @Value("${openshift.apps.basedomain}")
   private String projectOpenshiftBaseDomain;
 
-  public URL createBuildUrl(String projectKey, String webhookProxySecret)
-      throws MalformedURLException {
+  public URL createBuildUrl(String projectKey) throws MalformedURLException {
 
     String resolvedUrl =
         String.format(
             WEBHOOK_PROXY_PROTOCOL
                 + "://"
                 + projectOpenshiftJenkinsWebhookProxyNamePattern
-                + BUILD_ENDPOINT
-                + "?"
-                + TRIGGER_SECRET_PARAMETER
-                + "=",
+                + BUILD_ENDPOINT,
             projectKey,
             projectOpenshiftBaseDomain);
 
@@ -54,9 +50,9 @@ public class WebhookProxyUrlFactory {
         "Resolved webhook proxy url based on template [projectKey={}, urlTemplate={}, resolvedUrl={}]!",
         projectKey,
         projectOpenshiftJenkinsWebhookProxyNamePattern,
-        resolvedUrl + "**************");
+        resolvedUrl);
 
     // adding now secret to resolved url to avoid leaking the secret in the log file
-    return new URL(resolvedUrl + webhookProxySecret);
+    return new URL(resolvedUrl);
   }
 }

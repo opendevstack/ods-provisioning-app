@@ -21,9 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
+import javax.crypto.KeyGenerator;
 import org.opendevstack.provision.adapter.*;
 import org.opendevstack.provision.adapter.ISCMAdapter.URL_TYPE;
 import org.opendevstack.provision.adapter.IServiceAdapter.CLEANUP_LEFTOVER_COMPONENTS;
@@ -77,6 +80,18 @@ public class ProjectApiController {
   public static final String PROJECT_TEMPLATE_KEYS = "project-template-keys";
 
   private static final String EMPTY_PROJECT_DESCRIPTION = "";
+
+  private static final SecureRandom DEFAULT_RNG;
+
+  static {
+    SecureRandom rng;
+    try {
+      rng = SecureRandom.getInstanceStrong();
+    } catch (NoSuchAlgorithmException ignored) {
+      rng = null;
+    }
+    DEFAULT_RNG = rng;
+  }
 
   private @Autowired IBugtrackerAdapter jiraAdapter;
 
@@ -225,6 +240,9 @@ public class ProjectApiController {
       // init webhook secret
       newProject.setWebhookProxySecret(UUID.randomUUID().toString());
 
+      // init webhook secret
+      newProject.setWebhookProxyHmacKey(generateHmacKey());
+
       if (newProject.isBugtrackerSpace()) {
         // create the bugtracker project
         newProject = jiraAdapter.createBugtrackerProjectForODSProject(newProject);
@@ -287,6 +305,24 @@ public class ProjectApiController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
       MDC.remove(STR_LOGFILE_KEY);
+    }
+  }
+
+  private static String generateHmacKey() {
+    byte[] key = null;
+    try {
+      KeyGenerator generator = KeyGenerator.getInstance("HmacSHA256");
+      if (DEFAULT_RNG != null) {
+        generator.init(DEFAULT_RNG);
+      }
+      key = generator.generateKey().getEncoded();
+      return Base64.getEncoder().encodeToString(key);
+    } catch (NoSuchAlgorithmException e) {
+      throw new AssertionError(e); // HmacSHA256 is required by the specification
+    } finally {
+      if (key != null) {
+        Arrays.fill(key, (byte) 0);
+      }
     }
   }
 
@@ -406,6 +442,7 @@ public class ProjectApiController {
       updatedProject.setDescription(storedExistingProject.getDescription());
       updatedProject.setProjectName(storedExistingProject.getProjectName());
       updatedProject.setWebhookProxySecret(storedExistingProject.getWebhookProxySecret());
+      updatedProject.setWebhookProxyHmacKey(storedExistingProject.getWebhookProxyHmacKey());
 
       // add the scm url & bugtracker space bool
       updatedProject.setScmvcsUrl(storedExistingProject.getScmvcsUrl());
@@ -487,6 +524,60 @@ public class ProjectApiController {
                       + " - cleanup attempted, but [%s] components are still there!",
                   updatedProject.getProjectKey(), exProvision.getMessage(), cleanupResults);
 
+      logger.error(error);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    } finally {
+      MDC.remove(STR_LOGFILE_KEY);
+    }
+  }
+
+  /**
+   * Update hmac key of a project
+   *
+   * @param updatedProject the project containing the update data
+   * @return the updated project
+   */
+  @PreAuthorizeAllRoles
+  @PutMapping(path = "/{projectKey}/webhookProxyHmacKey")
+  public ResponseEntity<Object> updateHmacKey(
+      @PathVariable("projectKey") String projectKey, @RequestBody String webhookProxyHmacKey) {
+
+    if (projectKey == null || projectKey.isBlank()) {
+      return ResponseEntity.badRequest().body("Project key is mandatory to call updateHmacKey!");
+    }
+    projectKey = projectKey.strip();
+    MDC.put(STR_LOGFILE_KEY, projectKey);
+
+    try {
+      logger.debug("Update Hmac key for project {}", projectKey);
+
+      OpenProjectData storedExistingProject = directStorage.getProject(projectKey);
+
+      if (storedExistingProject == null) {
+        return ResponseEntity.notFound().build();
+      }
+
+      storedExistingProject.setWebhookProxyHmacKey(webhookProxyHmacKey);
+
+      // store the updated project
+      if (directStorage.updateStoredProject(storedExistingProject)) {
+        logger.debug("Hmac key for project {} successfully updated", projectKey);
+      }
+
+      // notify user via mail of project updates with embedding links
+      mailAdapter.notifyUsersAboutProject(storedExistingProject);
+
+      return ResponseEntity.ok().body(storedExistingProject);
+    } catch (IllegalArgumentException iae) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
+    } catch (MissingCredentialsInfoException ex) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    } catch (IOException | RuntimeException exProvision) {
+
+      String error =
+          format(
+              "An error occurred while updating Hmac key for project %s, reason %s",
+              projectKey, exProvision.getMessage());
       logger.error(error);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     } finally {
@@ -907,6 +998,7 @@ public class ProjectApiController {
 
     // Quick fix to pass the webhook proxy secret from project
     deletableComponents.setWebhookProxySecret(project.getWebhookProxySecret());
+    deletableComponents.setWebhookProxyHmacKey(project.getWebhookProxyHmacKey());
 
     Map<CLEANUP_LEFTOVER_COMPONENTS, Integer> leftovers =
         cleanup(LIFECYCLE_STAGE.QUICKSTARTER_PROVISION, deletableComponents);

@@ -54,7 +54,6 @@ import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.JiraServer;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
-import org.opendevstack.provision.model.jenkins.Execution;
 import org.opendevstack.provision.model.jira.LeanJiraProject;
 import org.opendevstack.provision.model.jira.PermissionScheme;
 import org.opendevstack.provision.model.jira.PermissionSchemeResponse;
@@ -529,7 +528,7 @@ public class E2EProjectAPIControllerTest {
                             "ods",
                             "create-projects/Jenkinsfile",
                             "ods-corejob-" + data.getProjectKey().toLowerCase())))
-                .bodyMatches(instanceOf(Execution.class))
+                .bodyMatches(instanceOf(String.class))
                 .method(HttpMethod.POST));
     if (fail) {
       stub.thenThrow(new IOException("Jenkins TestFail"));
@@ -754,11 +753,7 @@ public class E2EProjectAPIControllerTest {
             + "\n to clean: "
             + toClean.getQuickstarters());
 
-    mockExecuteDeleteComponentAdminJob(
-        "testp-cd",
-        "delete-components",
-        prefix,
-        createdProjectIncludingQuickstarters.getWebhookProxySecret());
+    mockExecuteDeleteComponentAdminJob("testp-cd", "delete-components", prefix);
 
     // delete single component (via
     // org.opendevstack.provision.controller.ProjectApiController.deleteComponents)
@@ -840,24 +835,24 @@ public class E2EProjectAPIControllerTest {
         .mockExecute(
             matchesClientCall()
                 .url(containsString(jenkinsJobPath))
-                .bodyMatches(instanceOf(Execution.class))
+                .bodyMatches(instanceOf(String.class))
                 .method(HttpMethod.POST))
         .thenReturn(configuredResponse);
   }
 
-  private void mockExecuteDeleteComponentAdminJob(
-      String namespace, String jobName, String prefix, String secret) throws IOException {
+  private void mockExecuteDeleteComponentAdminJob(String namespace, String jobName, String prefix)
+      throws IOException {
     CreateProjectResponse configuredResponse =
         CreateProjectResponseUtil.buildDummyCreateProjectResponse(namespace, "build-config", 1);
 
     String jenkinsJobPath =
         createJenkinsJobPathForDeleteComponentAdminJob(
-            namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix, secret);
+            namespace, jobName + "/Jenkinsfile", "ods-corejob-" + prefix);
     mockHelper
         .mockExecute(
             matchesClientCall()
                 .url(containsString(jenkinsJobPath))
-                .bodyMatches(instanceOf(Execution.class))
+                .bodyMatches(instanceOf(String.class))
                 .method(HttpMethod.POST))
         .thenReturn(configuredResponse);
   }
@@ -909,11 +904,8 @@ public class E2EProjectAPIControllerTest {
                     containsString(
                         "https://webhook-proxy-testp-cd"
                             + projectOpenshiftBaseDomain
-                            + "/build?trigger_secret="))
-                .url(
-                    containsString(
-                        "&jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
-                .bodyMatches(instanceOf(Execution.class))
+                            + "/build?jenkinsfile_path=be-python-flask/Jenkinsfile&component=ods-qs-be-python"))
+                .bodyMatches(instanceOf(String.class))
                 .method(HttpMethod.POST));
     if (fail) {
       stub.thenThrow(
@@ -1077,20 +1069,18 @@ public class E2EProjectAPIControllerTest {
     return "https://webhook-proxy-"
         + namespace
         + projectOpenshiftBaseDomain
-        + "/build?trigger_secret=secret101&jenkinsfile_path="
+        + "/build?jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;
   }
 
   private String createJenkinsJobPathForDeleteComponentAdminJob(
-      String namespace, String jenkinsfilePath, String component, String secret) {
+      String namespace, String jenkinsfilePath, String component) {
     return "https://webhook-proxy-"
         + namespace
         + projectOpenshiftBaseDomain
-        + "/build?trigger_secret="
-        + secret
-        + "&jenkinsfile_path="
+        + "/build?jenkinsfile_path="
         + jenkinsfilePath
         + "&component="
         + component;

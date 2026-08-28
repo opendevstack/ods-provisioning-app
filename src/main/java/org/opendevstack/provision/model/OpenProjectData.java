@@ -37,6 +37,8 @@ public class OpenProjectData {
   private String projectKey = null;
   /** The secret to call webhook_proxy within the new env. Needed 2 create quickstarters */
   private String webhookProxySecret = null;
+  /** Secure key to calculate the Hmac when triggering the webhook proxy */
+  private String webhookProxyHmacKey = null;
   /** The project specific cd-user */
   private String cdUser = null;
   /**
@@ -304,6 +306,14 @@ public class OpenProjectData {
 
   public void setWebhookProxySecret(String webhookProxySecret) {
     this.webhookProxySecret = webhookProxySecret;
+  }
+
+  public String getWebhookProxyHmacKey() {
+    return webhookProxyHmacKey;
+  }
+
+  public void setWebhookProxyHmacKey(String webhookProxyHmacKey) {
+    this.webhookProxyHmacKey = webhookProxyHmacKey;
   }
 
   public String getCdUser() {
