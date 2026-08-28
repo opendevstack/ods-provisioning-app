@@ -34,11 +34,7 @@ import org.opendevstack.provision.adapter.exception.CreateProjectPreconditionExc
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
 import org.opendevstack.provision.controller.CheckPreconditionFailure;
 import org.opendevstack.provision.model.OpenProjectData;
-import org.opendevstack.provision.model.bitbucket.BitbucketProject;
-import org.opendevstack.provision.model.bitbucket.BitbucketProjectData;
-import org.opendevstack.provision.model.bitbucket.Repository;
-import org.opendevstack.provision.model.bitbucket.RepositoryData;
-import org.opendevstack.provision.model.bitbucket.Webhook;
+import org.opendevstack.provision.model.bitbucket.*;
 import org.opendevstack.provision.properties.ScmGlobalProperties;
 import org.opendevstack.provision.util.GitUrlWrangler;
 import org.opendevstack.provision.util.exception.HttpException;
@@ -80,8 +76,8 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
   @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
   private String projectOpenshiftJenkinsWebhookProxyNamePattern;
 
-  @Value("${openshift.jenkins.trigger.secret}")
-  private String projectOpenshiftJenkinsTriggerSecret;
+  @Value("${openshift.jenkins.trigger.hmac.key}")
+  private String projectOpenshiftJenkinsTriggerHmacKey;
 
   @Value("${bitbucket.default.user.group}")
   private String defaultUserGroup;
@@ -567,16 +563,19 @@ public class BitbucketAdapter extends BaseServiceAdapter implements ISCMAdapter 
             projectOpenshiftJenkinsWebhookProxyNamePattern,
             project.getProjectKey().toLowerCase(),
             projectOpenshiftBaseDomain);
-    String triggerSecret =
-        project.getWebhookProxySecret() != null
-            ? project.getWebhookProxySecret()
-            : projectOpenshiftJenkinsTriggerSecret;
-    String webhookProxyUrl = "https://" + webhookProxyHost + "?trigger_secret=" + triggerSecret;
+    String webhookProxyUrl = "https://" + webhookProxyHost;
     Webhook webhook = new Webhook();
     webhook.setName("Jenkins");
     webhook.setActive(true);
     webhook.setUrl(webhookProxyUrl);
     webhook.setEvents(webhookEvents);
+    Configuration conf = new Configuration();
+    String hmacKey = project.getWebhookProxyHmacKey();
+    if (hmacKey == null) {
+      hmacKey = projectOpenshiftJenkinsTriggerHmacKey;
+    }
+    conf.setSecret(hmacKey);
+    webhook.setConfiguration(conf);
 
     String url =
         String.format(

@@ -40,9 +40,8 @@ public class WebhookProxyUrlFactoryTest {
       throws MalformedURLException {
 
     String projectKey = "key";
-    String secret = "secret";
 
-    URL url = webhookProxyUrlFactory.createBuildUrl(projectKey, secret);
+    URL url = webhookProxyUrlFactory.createBuildUrl(projectKey);
 
     String domain =
         String.format(
@@ -51,6 +50,5 @@ public class WebhookProxyUrlFactoryTest {
     assertEquals(WebhookProxyUrlFactory.WEBHOOK_PROXY_PROTOCOL, url.getProtocol().toString());
     assertEquals(domain, url.getHost());
     assertEquals(WebhookProxyUrlFactory.BUILD_ENDPOINT, url.getPath());
-    assertEquals(WebhookProxyUrlFactory.TRIGGER_SECRET_PARAMETER + "=" + secret, url.getQuery());
   }
 }

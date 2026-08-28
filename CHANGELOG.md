@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Adapt provisioning app to use HMAC with the webhook proxy ([#765](https://github.com/opendevstack/ods-provisioning-app/pull/765))
+
 ### Fixed
 
 ## [4.5.0] - 2026-06-30
