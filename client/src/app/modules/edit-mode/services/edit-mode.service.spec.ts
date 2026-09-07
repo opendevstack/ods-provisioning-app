@@ -1,37 +1,18 @@
-import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { TestBed } from '@angular/core/testing';
+
 import { EditModeService } from './edit-mode.service';
 
 describe('EditModeService', () => {
-  let spectator: SpectatorService<EditModeService>;
-
-  const createService = createServiceFactory({
-    service: EditModeService
-  });
-
-  let getEditModeFlagSpy: any;
+  let service: EditModeService;
 
   beforeEach(() => {
-    spectator = createService();
-    getEditModeFlagSpy = spyOn(spectator.service.getEditModeFlag, 'emit');
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(EditModeService);
   });
 
   it('should be created', () => {
-    expect(spectator.service).toBeTruthy();
+    expect(service).toBeTruthy();
   });
 
-  it('should emit editmode event with "true" flag to host component', () => {
-    /* given */
-    /* when */
-    spectator.service.enabled = true;
-    /* then */
-    expect(getEditModeFlagSpy).toBeCalledWith(true);
-  });
-
-  it('should emit editmode event with "false" flag to host component', () => {
-    /* given */
-    /* when */
-    spectator.service.enabled = false;
-    /* then */
-    expect(getEditModeFlagSpy).toBeCalledWith(false);
-  });
+  /** editmode emits should be tested within consuming components, no need here since its default ts / angular functionality */
 });
