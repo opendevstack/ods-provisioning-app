@@ -64,10 +64,7 @@ public class RestClient {
       Request request = call.getRequest();
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "method={}, url={} ",
-            request.method(),
-            request.url());
+        LOG.debug("method={}, url={} ", request.method(), request.url());
       }
 
       try (Response callResponse = this.client.newCall(request).execute()) {
