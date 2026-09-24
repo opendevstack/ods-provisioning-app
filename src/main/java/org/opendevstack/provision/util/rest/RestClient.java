@@ -75,20 +75,12 @@ public class RestClient {
               "Could not " + request.method() + " " + call.getUrl() + " : " + responseBody);
         }
 
-        if (LOG.isTraceEnabled()) {
-          LOG.trace(
-              "URL: {}, method: {}, response-code: {}, responce-body:\n{}",
-              call.getUrl(),
-              request.method(),
-              callResponse.code(),
-              responseBody);
-        } else {
-          LOG.debug(
-              "URL: {}, method: {}, response-code: {}",
-              call.getUrl(),
-              request.method(),
-              callResponse.code());
-        }
+        LOG.debug(
+            "URL: {}, method: {}, response-code: {}, message: {}",
+            call.getUrl(),
+            request.method(),
+            callResponse.code(),
+            callResponse.message());
         call.setResponseBody(responseBody);
         return call.evaluateResponse();
       }
