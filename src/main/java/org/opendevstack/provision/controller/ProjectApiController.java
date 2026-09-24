@@ -261,8 +261,7 @@ public class ProjectApiController {
               confluenceAdapter.getClass() + " did not return collabSpace url");
         }
 
-        logger.debug(
-            "Updated project with collaboration information");
+        logger.debug("Updated project with collaboration information");
       }
 
       // create the delivery chain, including scm repos, and platform project
