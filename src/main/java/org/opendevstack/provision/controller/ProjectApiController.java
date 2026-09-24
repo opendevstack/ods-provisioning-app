@@ -262,8 +262,7 @@ public class ProjectApiController {
         }
 
         logger.debug(
-            "Updated project with collaboration information:\n {}",
-            new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
+            "Updated project with collaboration information");
       }
 
       // create the delivery chain, including scm repos, and platform project
