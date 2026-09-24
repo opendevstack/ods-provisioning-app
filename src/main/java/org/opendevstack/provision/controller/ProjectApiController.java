@@ -413,13 +413,6 @@ public class ProjectApiController {
 
     logger.debug("Update project {}", updatedProject.getProjectKey());
     try {
-      logger.debug(
-          "Project: {}",
-          new ObjectMapper()
-              .writer()
-              .withDefaultPrettyPrinter()
-              .writeValueAsString(updatedProject));
-
       OpenProjectData storedExistingProject =
           directStorage.getProject(updatedProject.getProjectKey());
 
