@@ -261,9 +261,7 @@ public class ProjectApiController {
               confluenceAdapter.getClass() + " did not return collabSpace url");
         }
 
-        logger.debug(
-            "Updated project with collaboration information:\n {}",
-            new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(newProject));
+        logger.debug("Updated project with collaboration information");
       }
 
       // create the delivery chain, including scm repos, and platform project
@@ -415,13 +413,6 @@ public class ProjectApiController {
 
     logger.debug("Update project {}", updatedProject.getProjectKey());
     try {
-      logger.debug(
-          "Project: {}",
-          new ObjectMapper()
-              .writer()
-              .withDefaultPrettyPrinter()
-              .writeValueAsString(updatedProject));
-
       OpenProjectData storedExistingProject =
           directStorage.getProject(updatedProject.getProjectKey());
 

@@ -209,7 +209,6 @@ public class LocalStorage implements IStorage {
       file.write(json);
       file.close();
       logger.debug("Successfully copied project {} to {}", project.getProjectKey(), fileName);
-      logger.debug("JSON Object: {}", json);
 
       fileName = new File(fileName).getAbsolutePath();
       project.setPhysicalLocation(fileName);
