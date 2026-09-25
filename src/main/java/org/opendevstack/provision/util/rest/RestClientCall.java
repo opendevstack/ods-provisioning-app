@@ -384,7 +384,6 @@ public class RestClientCall {
         .append("method", method)
         .append("isBasicAuth", isBasicAuth)
         .append("preAuthUrl", preAuthUrl)
-        .append("body", body)
         .append("url", url)
         .append("queryParams", queryParams)
         .append("header", header)

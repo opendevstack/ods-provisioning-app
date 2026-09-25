@@ -64,11 +64,7 @@ public class RestClient {
       Request request = call.getRequest();
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug(
-            "method={}, url={} , body={}",
-            request.method(),
-            request.url(),
-            request.body() != null ? bodyToString(request.body()) : "");
+        LOG.debug("method={}, url={}", request.method(), request.url());
       }
 
       try (Response callResponse = this.client.newCall(request).execute()) {
@@ -76,24 +72,15 @@ public class RestClient {
         if (callResponse.code() < 200 || callResponse.code() >= 300) {
           throw new HttpException(
               callResponse.code(),
-              "Could not " + request.method() + " > " + call.getUrl() + " : " + responseBody);
+              "Could not " + request.method() + " " + call.getUrl() + " : " + responseBody);
         }
 
-        if (LOG.isTraceEnabled()) {
-          LOG.trace(
-              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
-              call.getUrl(),
-              request.method(),
-              callResponse.code(),
-              "\n" + responseBody);
-        } else {
-          LOG.debug(
-              "URL: {}, method: {}, response-code: {}, responce-body: {} ",
-              call.getUrl(),
-              request.method(),
-              callResponse.code(),
-              "<body was omitted. Please enable tracing on class in order to see response body>");
-        }
+        LOG.debug(
+            "URL: {}, method: {}, response-code: {}, message: {}",
+            call.getUrl(),
+            request.method(),
+            callResponse.code(),
+            callResponse.message());
         call.setResponseBody(responseBody);
         return call.evaluateResponse();
       }
