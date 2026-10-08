@@ -15,13 +15,21 @@ package org.opendevstack.provision.services;
 
 import static java.util.stream.Collectors.toMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.NotImplementedException;
 import org.opendevstack.provision.adapter.IJobExecutionAdapter;
 import org.opendevstack.provision.config.JenkinsPipelineProperties;
@@ -69,14 +77,16 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   public static final String CREATE_PROJECTS_JOB_ID = JenkinsPipelineProperties.CREATE_PROJECTS;
   public static final String DELETE_PROJECTS_JOB_ID = JenkinsPipelineProperties.DELETE_PROJECTS;
 
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
   @Value("${openshift.jenkins.admin.webhookproxy.host}")
   private String adminWebhookProxyHost;
 
   @Value("${openshift.jenkins.project.webhookproxy.host.pattern}")
   private String projectWebhookProxyHostPattern;
 
-  @Value("${openshift.jenkins.trigger.secret}")
-  private String openshiftJenkinsTriggerSecret;
+  @Value("${openshift.jenkins.trigger.hmac.key}")
+  private String openshiftJenkinsWebhookHmacKey;
 
   @Value("${artifact.group.pattern}")
   private String groupPattern;
@@ -123,6 +133,9 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
   @Value("${jenkinspipeline.create-project.default-project-groups:''}")
   private String defaultEntitlementGroups;
+
+  @Value("${webhook.allowed.ip.ranges}")
+  private String webhookAllowedIpRanges;
 
   public JenkinsPipelineAdapter() {
     super("jenkinspipeline");
@@ -198,11 +211,6 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
         options.put("ODS_IMAGE_TAG", odsImageTag);
         options.put("ODS_GIT_REF", odsGitRef);
 
-        String triggerSecret =
-            project.getWebhookProxySecret() != null
-                ? project.getWebhookProxySecret()
-                : openshiftJenkinsTriggerSecret;
-
         final Job job =
             getQuickstarterJobs().stream()
                 .filter(x -> x.getId().equals(jobId))
@@ -211,7 +219,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                     () ->
                         new RuntimeException(
                             String.format("Cannot find quickstarter with id=%s!", jobId)));
-        executionList.add(prepareAndExecuteJob(job, options, triggerSecret));
+        executionList.add(prepareAndExecuteJob(job, options, project.getWebhookProxyHmacKey()));
       }
     }
     return executionList;
@@ -244,6 +252,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     options.put(
         "PIPELINE_TRIGGER_SECRET",
         Base64.getEncoder().encodeToString(project.getWebhookProxySecret().getBytes()));
+
+    options.put(
+        "WEBHOOK_HMAC_KEY",
+        Base64.getEncoder()
+            .encodeToString(project.getWebhookProxyHmacKey().getBytes(StandardCharsets.UTF_8)));
+
+    options.put("WEBHOOK_ALLOWED_IP_RANGES", webhookAllowedIpRanges);
 
     String projectCdUser = generalCdUser;
     String cdUserType = "general";
@@ -298,7 +313,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
           prepareAndExecuteJob(
               new Job(jenkinsPipelineProperties.getCreateProjectQuickstarter(), odsGitRef),
               options,
-              openshiftJenkinsTriggerSecret);
+              openshiftJenkinsWebhookHmacKey);
 
       // add openshift based links - for jenkins we know the link - hence create the
       // direct
@@ -375,11 +390,13 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   private ExecutionsData prepareAndExecuteJob(
-      final Job job, Map<String, String> options, String webhookProxySecret) throws IOException {
+      final Job job, Map<String, String> options, String webhookProxyHmacKey) throws IOException {
 
     String jobNameOrId = job.getName();
     Preconditions.checkNotNull(jobNameOrId, "Cannot execute Null Job!");
-    Execution execution = buildExecutionObject(job, options, webhookProxySecret);
+    Execution execution = buildExecutionObject(job, options);
+    String json = MAPPER.writeValueAsString(execution);
+    String mac = calculateHmac(webhookProxyHmacKey, json);
 
     try {
       CreateProjectResponse data =
@@ -387,7 +404,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
               .execute(
                   notAuthenticatedCall(HttpVerb.POST)
                       .url(execution.getUrl())
-                      .body(execution)
+                      .header(Collections.singletonMap("X-Hub-Signature", "sha256=" + mac))
+                      .body(json)
                       .returnType(CreateProjectResponse.class));
       logger.info("Webhook proxy returned " + data.toString());
       ExecutionsData executionsData = new ExecutionsData();
@@ -411,8 +429,19 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     }
   }
 
-  private Execution buildExecutionObject(
-      Job job, Map<String, String> options, String webhookProxySecret) {
+  private String calculateHmac(String secret, String data) {
+    try {
+      Mac mac = Mac.getInstance("HmacSHA256");
+      SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+      mac.init(key);
+      byte[] hmac = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+      return Hex.encodeHexString(hmac);
+    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      throw new AssertionError(e);
+    }
+  }
+
+  private Execution buildExecutionObject(Job job, Map<String, String> options) {
 
     String projID = Objects.toString(options.get(PROJECT_ID_KEY));
     Execution execution = new Execution();
@@ -424,8 +453,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       boolean deleteComponentJob = jenkinsPipelineProperties.isDeleteComponentJob(job.getId());
       String webhookProxyHost = computeWebhookProxyHost(job.getId(), projID);
       String url =
-          buildAdminJobExecutionUrl(
-              job, componentId, projID, webhookProxySecret, webhookProxyHost, deleteComponentJob);
+          buildAdminJobExecutionUrl(job, componentId, projID, webhookProxyHost, deleteComponentJob);
       execution.setUrl(url);
       execution.setBranch(job.getBranch());
       execution.setRepository(job.getGitRepoName());
@@ -436,7 +464,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
 
       execution.setUrl(
           JenkinsPipelineAdapter.buildExecutionUrlQuickstarterJob(
-              job, componentId, webhookProxySecret, webhookProxyHost));
+              job, componentId, webhookProxyHost));
       execution.setBranch(job.getBranch());
       execution.setRepository(job.getGitRepoName());
       execution.setProject(bitbucketOdsProject);
@@ -460,24 +488,17 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     }
   }
 
-  private static String buildExecutionBaseUrl(
-      Job job, String webhookProxySecret, String webhookProxyHost) {
-    return "https://"
-        + webhookProxyHost
-        + "/build?trigger_secret="
-        + webhookProxySecret
-        + "&jenkinsfile_path="
-        + job.getJenkinsfilePath();
+  private static String buildExecutionBaseUrl(Job job, String webhookProxyHost) {
+    return "https://" + webhookProxyHost + "/build?jenkinsfile_path=" + job.getJenkinsfilePath();
   }
 
   public static String buildAdminJobExecutionUrl(
       Job job,
       String componentId,
       String projID,
-      String webhookProxySecret,
       String webhookProxyHost,
       boolean deleteComponentJob) {
-    String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
+    String baseUrl = buildExecutionBaseUrl(job, webhookProxyHost);
     String componentName =
         EXECUTION_URL_ADMIN_JOB_COMP_PREFIX + "-" + (deleteComponentJob ? componentId : projID);
     // yes, validating component name before calling jenkins
@@ -488,8 +509,8 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
   }
 
   public static String buildExecutionUrlQuickstarterJob(
-      Job job, String componentId, String webhookProxySecret, String webhookProxyHost) {
-    String baseUrl = buildExecutionBaseUrl(job, webhookProxySecret, webhookProxyHost);
+      Job job, String componentId, String webhookProxyHost) {
+    String baseUrl = buildExecutionBaseUrl(job, webhookProxyHost);
     String componentName = EXECUTION_URL_COMP_PREFIX + "-" + componentId;
     // yes, validating component name before calling jenkins
     validateComponentName(COMPONENT_ID_VALIDATOR_LIST, componentName);
@@ -541,7 +562,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       return runDeleteAdminJobAndSetAsLastExecutionJobToProject(
           deleteProjectAdminJob,
           project.getProjectKey(),
-          openshiftJenkinsTriggerSecret,
+          openshiftJenkinsWebhookHmacKey,
           componentId,
           objectType,
           project);
@@ -562,7 +583,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
                     runDeleteAdminJobAndSetAsLastExecutionJobToProject(
                         jenkinsPipelineProperties.getDeleteComponentsQuickstarter(),
                         project.getProjectKey(),
-                        project.getWebhookProxySecret(), // Note: the secret passed here is the
+                        project.getWebhookProxyHmacKey(), // Note: the secret passed here is the
                         // corresponding to the project CD webhook proxy
                         component,
                         CLEANUP_LEFTOVER_COMPONENTS.QUICKSTARTER,
@@ -584,7 +605,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
       runDeleteAdminJobAndSetAsLastExecutionJobToProject(
           Quickstarter adminQuickstarter,
           String projectKey,
-          String webhookProxySecret,
+          String webhookProxyHmacKey,
           String componentId,
           CLEANUP_LEFTOVER_COMPONENTS objectType,
           OpenProjectData project) {
@@ -594,7 +615,7 @@ public class JenkinsPipelineAdapter extends BaseServiceAdapter implements IJobEx
     try {
 
       logger.debug("Calling job {} for project {}", job.getId(), projectKey);
-      ExecutionsData data = prepareAndExecuteJob(job, options, webhookProxySecret);
+      ExecutionsData data = prepareAndExecuteJob(job, options, webhookProxyHmacKey);
       logger.info("Result of cleanup: {}", data.toString());
 
       if (project.getLastExecutionJobs() == null) {

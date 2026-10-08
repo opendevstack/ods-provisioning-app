@@ -127,6 +127,7 @@ dependencies {
     //easy http calls to atlassian JSON APIs
     implementation('com.squareup.okhttp3:okhttp:4.9.0')
 
+    implementation('commons-codec:commons-codec:1.22.0')
     implementation('commons-io:commons-io:2.11.0')
     implementation('commons-httpclient:commons-httpclient:3.1')
     implementation('com.atlassian.platform:platform') {
