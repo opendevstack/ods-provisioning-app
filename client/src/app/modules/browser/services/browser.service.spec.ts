@@ -20,7 +20,7 @@ describe('BrowserService:', () => {
   describe('handling cookies', () => {
     beforeEach(() => {
       /* when */
-      jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime());
+      spyOn(Date, 'now');
     });
 
     it('should set a secure cookie by name', () => {
