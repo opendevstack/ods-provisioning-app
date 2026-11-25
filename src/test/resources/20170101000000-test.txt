@@ -8,32 +8,5 @@
   
 	"key" : "TEST"
 ,
-  "repositories" : {
-    "odsew-design" : {
-      "clone" : [ {
-        "name" : "http",
-        "href" : "https://bb/scm/odsew/odsew-design.git"
-      }, {
-        "name" : "ssh",
-        "href" : "ssh://git@bb:7999/odsew/odsew-design.git"
-      } ],
-      "self" : [ {
-        "name" : null,
-        "href" : "https://bb/projects/ODSEW/repos/odsew-design/browse"
-      } ]
-    },
-    "odsew-occonfig-artifacts" : {
-      "clone" : [ {
-        "name" : "ssh",
-        "href" : "ssh://git@bb:7999/odsew/odsew-occonfig-artifacts.git"
-      }, {
-        "name" : "http",
-        "href" : "https://bb/scm/odsew/odsew-occonfig-artifacts.git"
-      } ],
-      "self" : [ {
-        "name" : null,
-        "href" : "https://bb/projects/ODSEW/repos/odsew-occonfig-artifacts/browse"
-      } ]
-    }
-  }
+  "repositories" : {}
 }
