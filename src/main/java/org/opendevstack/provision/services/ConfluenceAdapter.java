@@ -286,7 +286,8 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
               UriUtils.encodePathSegment(data.getProjectKey(), StandardCharsets.UTF_8),
               UriUtils.encodePathSegment(group, StandardCharsets.UTF_8));
 
-      logger.debug("Granting {} to group '{}' in space '{}'", operations, group, data.getProjectKey());
+      logger.debug(
+          "Granting {} to group '{}' in space '{}'", operations, group, data.getProjectKey());
 
       getRestClient().execute(httpPut().url(path).body(operations).returnType(String.class));
 
@@ -296,9 +297,9 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
   }
 
   /**
-   * Converts a permission template line ({@code [["VIEWSPACE", ...], "SPACE_GROUP",
-   * "SPACE_NAME"]}) to the operations expected by the Confluence REST API. The space read
-   * permission is put first, since all the other space permissions depend on it.
+   * Converts a permission template line ({@code [["VIEWSPACE", ...], "SPACE_GROUP", "SPACE_NAME"]})
+   * to the operations expected by the Confluence REST API. The space read permission is put first,
+   * since all the other space permissions depend on it.
    */
   public static List<SpacePermissionOperation> toSpacePermissionOperations(String permissionset)
       throws IOException {

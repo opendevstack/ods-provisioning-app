@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Update Confluence API integration to Confluence 10  ([#766](https://github.com/opendevstack/ods-provisioning-app/pull/766))
+
 ### Changed
 
 ### Fixed

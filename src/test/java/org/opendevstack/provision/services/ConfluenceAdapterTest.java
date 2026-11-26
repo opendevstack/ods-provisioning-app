@@ -66,9 +66,6 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
   @Value("${confluence.blueprint.key}")
   private String confluenceBlueprintKey;
 
-  @Value("${global.keyuser.role.name}")
-  private String globalKeyuserRoleName;
-
   @BeforeEach
   public void initTests() {
     when(authnzAdapter.getUserName()).thenReturn(TEST_USER_NAME);
@@ -129,10 +126,11 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
                     op("attachment", "delete"),
                     op("page", "delete"),
                     op("comment", "delete"))));
+    // "keyuserGroup" template filename contains "userGroup", so it resolves to the user group
     verifyExecute(
         matchesClientCall()
             .method(HttpMethod.PUT)
-            .url(grantUrl(project.getProjectKey(), globalKeyuserRoleName))
+            .url(grantUrl(project.getProjectKey(), project.getProjectUserGroup()))
             .bodyEqualTo(
                 List.of(
                     op("space", "read"),
@@ -154,6 +152,7 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
   public void updateSpacePermissionsSkipsPermissionSetsWithoutGroup() throws Exception {
     OpenProjectData project = JiraAdapterTests.getTestProject("name");
     project.setProjectAdminGroup("adminGroup");
+    project.setProjectUserGroup("userGroup");
     project.setProjectReadonlyGroup(null);
 
     mockExecute(matchesClientCall().method(HttpMethod.PUT)).thenReturn("");
@@ -198,15 +197,13 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
                 + " \"SPACE_GROUP\",\"SPACE_NAME\"]");
 
     assertEquals(
-        List.of(op("space", "read"), op("page", "create"), op("blogpost", "delete")),
-        operations);
+        List.of(op("space", "read"), op("page", "create"), op("blogpost", "delete")), operations);
   }
 
   @Test
   public void toSpacePermissionOperationsWithInvalidTemplate() {
     assertThrows(
-        IOException.class,
-        () -> ConfluenceAdapter.toSpacePermissionOperations("[\"VIEWSPACE\"]"));
+        IOException.class, () -> ConfluenceAdapter.toSpacePermissionOperations("[\"VIEWSPACE\"]"));
   }
 
   private String grantUrl(String spaceKey, String group) {
