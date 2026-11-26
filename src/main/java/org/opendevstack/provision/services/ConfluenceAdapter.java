@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -46,6 +47,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.util.UriUtils;
 
 @Service
 @ConditionalOnProperty(
@@ -72,16 +74,14 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
       BASE_PATTERN + CONFLUENCE_API_CREATE_DIALOG_SPACE_BLUEPRINT + "/create-space";
   public static final String CONFLUENCE_API_BLUEPRINT_PATTERN =
       BASE_PATTERN + CONFLUENCE_API_CREATE_DIALOG_SPACE_BLUEPRINT + "/dialog/web-items";
-  public static final String CONFLUENCE_API_ADD_PERMISSIONS_TO_SPACE_PATTERN =
-      BASE_PATTERN + "addPermissionsToSpace";
+  // Confluence 10 removed the SOAP-backed JSON-RPC API (addPermissionsToSpace)
+  public static final String CONFLUENCE_API_GRANT_GROUP_SPACE_PERMISSIONS_PATTERN =
+      BASE_PATTERN + CONFLUENCE_API_SPACE + "/%s/permissions/group/%s/grant";
   public static final String CONFLUENCE_API_JIRA_SERVER_PATTERN =
       BASE_PATTERN + "jiraanywhere/1.0/servers";
 
   public static final String CONFLUENCE_API_SPACE_PATTERN =
       BASE_PATTERN + CONFLUENCE_API_SPACE + "/%s";
-
-  public static final String SPACE_GROUP_KEY = "SPACE_GROUP";
-  public static final String SPACE_NAME_KEY = "SPACE_NAME";
 
   public static final String ADMIN_GROUP = "adminGroup";
   public static final String USER_GROUP = "userGroup";
@@ -90,11 +90,28 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
 
   public static final String USERNAME_PARAM = "username";
 
+  public static final String SPACE_READ_PERMISSION = "VIEWSPACE";
+
+  /** Legacy (JSON-RPC) permission names used in the templates -> REST operation descriptions. */
+  public static final Map<String, SpacePermissionOperation> LEGACY_PERMISSION_MAPPING =
+      Map.ofEntries(
+          Map.entry(SPACE_READ_PERMISSION, new SpacePermissionOperation("space", "read")),
+          Map.entry("SETSPACEPERMISSIONS", new SpacePermissionOperation("space", "administer")),
+          Map.entry("EXPORTSPACE", new SpacePermissionOperation("space", "export")),
+          Map.entry("SETPAGEPERMISSIONS", new SpacePermissionOperation("space", "restrict")),
+          Map.entry("REMOVEOWNCONTENT", new SpacePermissionOperation("space", "delete_own")),
+          Map.entry("REMOVEMAIL", new SpacePermissionOperation("space", "delete_mail")),
+          Map.entry("EDITSPACE", new SpacePermissionOperation("page", "create")),
+          Map.entry("REMOVEPAGE", new SpacePermissionOperation("page", "delete")),
+          Map.entry("EDITBLOG", new SpacePermissionOperation("blogpost", "create")),
+          Map.entry("REMOVEBLOG", new SpacePermissionOperation("blogpost", "delete")),
+          Map.entry("COMMENT", new SpacePermissionOperation("comment", "create")),
+          Map.entry("REMOVECOMMENT", new SpacePermissionOperation("comment", "delete")),
+          Map.entry("CREATEATTACHMENT", new SpacePermissionOperation("attachment", "create")),
+          Map.entry("REMOVEATTACHMENT", new SpacePermissionOperation("attachment", "delete")));
+
   @Value("${confluence.api.path}")
   private String confluenceApiPath;
-
-  @Value("${confluence.json.rpc.api.path}")
-  private String confluenceLegacyApiPath;
 
   @Value("${confluence.uri}")
   private String confluenceUri;
@@ -236,36 +253,77 @@ public class ConfluenceAdapter extends BaseServiceAdapter implements ICollaborat
     for (Resource permissionFile : permissionFiles) {
       String permissionFilename = permissionFile.getFilename();
 
+      String group = null;
+      if (permissionFilename.contains(ADMIN_GROUP)) {
+        group = data.getProjectAdminGroup();
+      } else if (permissionFilename.contains(USER_GROUP)) {
+        group = data.getProjectUserGroup();
+      } else if (permissionFilename.contains(READONLY_GROUP)) {
+        group = data.getProjectReadonlyGroup();
+      } else if (permissionFilename.contains(KEYUSER_GROUP)) {
+        group = globalKeyuserRoleName;
+      }
+
+      if (group == null || group.isEmpty()) {
+        logger.warn("No group defined for permission set '{}', skipping it", permissionFilename);
+        continue;
+      }
+
+      String permissionset;
       try (BufferedReader reader =
           new BufferedReader(new InputStreamReader(permissionFile.getInputStream()))) {
-        String permissionset;
-
         // we know it's a singular pseudo json line
         permissionset = reader.readLine();
-        permissionset = permissionset.replace(SPACE_NAME_KEY, data.getProjectKey());
-
-        if (permissionFilename.contains(ADMIN_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectAdminGroup());
-        } else if (permissionFilename.contains(USER_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectUserGroup());
-        } else if (permissionFilename.contains(READONLY_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, data.getProjectReadonlyGroup());
-        } else if (permissionFilename.contains(KEYUSER_GROUP)) {
-          permissionset = permissionset.replace(SPACE_GROUP_KEY, globalKeyuserRoleName);
-        }
-
-        String path =
-            String.format(
-                CONFLUENCE_API_ADD_PERMISSIONS_TO_SPACE_PATTERN,
-                confluenceUri,
-                confluenceLegacyApiPath);
-
-        getRestClient().execute(httpPost().url(path).body(permissionset).returnType(String.class));
-
-        updatedPermissions++;
       }
+
+      List<SpacePermissionOperation> operations = toSpacePermissionOperations(permissionset);
+
+      String path =
+          String.format(
+              CONFLUENCE_API_GRANT_GROUP_SPACE_PERMISSIONS_PATTERN,
+              confluenceUri,
+              confluenceApiPath,
+              UriUtils.encodePathSegment(data.getProjectKey(), StandardCharsets.UTF_8),
+              UriUtils.encodePathSegment(group, StandardCharsets.UTF_8));
+
+      logger.debug(
+          "Granting {} to group '{}' in space '{}'", operations, group, data.getProjectKey());
+
+      getRestClient().execute(httpPut().url(path).body(operations).returnType(String.class));
+
+      updatedPermissions++;
     }
     return updatedPermissions;
+  }
+
+  /**
+   * Converts a permission template line ({@code [["VIEWSPACE", ...], "SPACE_GROUP", "SPACE_NAME"]})
+   * to the operations expected by the Confluence REST API. The space read permission is put first,
+   * since all the other space permissions depend on it.
+   */
+  public static List<SpacePermissionOperation> toSpacePermissionOperations(String permissionset)
+      throws IOException {
+    JsonNode permissions = new ObjectMapper().readTree(permissionset).path(0);
+    if (!permissions.isArray()) {
+      throw new IOException("Invalid confluence permission template: " + permissionset);
+    }
+
+    Set<SpacePermissionOperation> operations = new LinkedHashSet<>();
+    for (JsonNode permission : permissions) {
+      String legacyPermission = permission.asText().trim();
+      SpacePermissionOperation operation = LEGACY_PERMISSION_MAPPING.get(legacyPermission);
+      if (operation == null) {
+        logger.warn("Unsupported confluence space permission '{}', skipping it", legacyPermission);
+      } else if (SPACE_READ_PERMISSION.equals(legacyPermission)) {
+        Set<SpacePermissionOperation> reordered = new LinkedHashSet<>();
+        reordered.add(operation);
+        reordered.addAll(operations);
+        operations = reordered;
+      } else {
+        operations.add(operation);
+      }
+    }
+    return new ArrayList<>(operations);
   }
 
   public String getAdapterApiUri() {

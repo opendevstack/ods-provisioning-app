@@ -14,8 +14,6 @@
 
 package org.opendevstack.provision.services;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasToString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
@@ -39,6 +37,7 @@ import org.opendevstack.provision.model.OpenProjectData;
 import org.opendevstack.provision.model.confluence.Blueprint;
 import org.opendevstack.provision.model.confluence.Space;
 import org.opendevstack.provision.model.confluence.SpaceData;
+import org.opendevstack.provision.model.confluence.SpacePermissionOperation;
 import org.opendevstack.provision.util.TestDataFileReader;
 import org.opendevstack.provision.util.exception.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,23 +106,114 @@ public class ConfluenceAdapterTest extends AbstractBaseServiceAdapterTest {
     project.setProjectUserGroup("userGroup");
     project.setProjectReadonlyGroup("readGroup");
 
-    mockExecute(matchesClientCall().method(HttpMethod.POST)).thenReturn(String.class);
+    mockExecute(matchesClientCall().method(HttpMethod.PUT)).thenReturn("");
     int permissionSets = confluenceAdapter.updateSpacePermissions(project);
 
-    // 3 permission sets
+    // 3 permission sets (adminGroup, keyuserGroup, readonlyGroup templates)
     verifyExecute(
         matchesClientCall()
-            .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.getProjectAdminGroup()))));
+            .method(HttpMethod.PUT)
+            .url(grantUrl(project.getProjectKey(), project.getProjectAdminGroup()))
+            .bodyEqualTo(
+                List.of(
+                    op("space", "read"),
+                    op("page", "create"),
+                    op("comment", "create"),
+                    op("space", "administer"),
+                    op("space", "export"),
+                    op("space", "restrict"),
+                    op("attachment", "create"),
+                    op("attachment", "delete"),
+                    op("page", "delete"),
+                    op("comment", "delete"))));
+    // "keyuserGroup" template filename contains "userGroup", so it resolves to the user group
     verifyExecute(
         matchesClientCall()
-            .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.getProjectUserGroup()))));
+            .method(HttpMethod.PUT)
+            .url(grantUrl(project.getProjectKey(), project.getProjectUserGroup()))
+            .bodyEqualTo(
+                List.of(
+                    op("space", "read"),
+                    op("page", "create"),
+                    op("comment", "create"),
+                    op("comment", "delete"),
+                    op("space", "restrict"),
+                    op("attachment", "create"))));
     verifyExecute(
         matchesClientCall()
-            .method(HttpMethod.POST)
-            .bodyMatches(hasToString(containsString(project.getProjectReadonlyGroup()))));
+            .method(HttpMethod.PUT)
+            .url(grantUrl(project.getProjectKey(), project.getProjectReadonlyGroup()))
+            .bodyEqualTo(List.of(op("space", "read"), op("comment", "create"))));
+    verifyExecute(matchesClientCall().method(HttpMethod.POST), 0);
     assertEquals(3, permissionSets);
+  }
+
+  @Test
+  public void updateSpacePermissionsSkipsPermissionSetsWithoutGroup() throws Exception {
+    OpenProjectData project = JiraAdapterTests.getTestProject("name");
+    project.setProjectAdminGroup("adminGroup");
+    project.setProjectUserGroup("userGroup");
+    project.setProjectReadonlyGroup(null);
+
+    mockExecute(matchesClientCall().method(HttpMethod.PUT)).thenReturn("");
+    int permissionSets = confluenceAdapter.updateSpacePermissions(project);
+
+    assertEquals(2, permissionSets);
+    verifyExecute(matchesClientCall().method(HttpMethod.PUT), 2);
+  }
+
+  @Test
+  public void updateSpacePermissionsEncodesGroupNameInUrl() throws Exception {
+    OpenProjectData project = JiraAdapterTests.getTestProject("name");
+    project.setProjectAdminGroup("admin group/x");
+    project.setProjectReadonlyGroup("readGroup");
+
+    mockExecute(matchesClientCall().method(HttpMethod.PUT)).thenReturn("");
+    confluenceAdapter.updateSpacePermissions(project);
+
+    verifyExecute(
+        matchesClientCall()
+            .method(HttpMethod.PUT)
+            .url(grantUrl(project.getProjectKey(), "admin%20group%2Fx")));
+  }
+
+  @Test
+  public void updateSpacePermissionsPropagatesRestErrors() throws Exception {
+    OpenProjectData project = JiraAdapterTests.getTestProject("name");
+    project.setProjectAdminGroup("adminGroup");
+    project.setProjectReadonlyGroup("readGroup");
+
+    mockExecute(matchesClientCall().method(HttpMethod.PUT))
+        .thenThrow(new HttpException(404, "group not found"));
+
+    assertThrows(HttpException.class, () -> confluenceAdapter.updateSpacePermissions(project));
+  }
+
+  @Test
+  public void toSpacePermissionOperations() throws Exception {
+    List<SpacePermissionOperation> operations =
+        ConfluenceAdapter.toSpacePermissionOperations(
+            "[[\"EDITSPACE\", \"VIEWSPACE\", \"UNKNOWN\", \"EDITSPACE\", \"REMOVEBLOG\"],"
+                + " \"SPACE_GROUP\",\"SPACE_NAME\"]");
+
+    assertEquals(
+        List.of(op("space", "read"), op("page", "create"), op("blogpost", "delete")), operations);
+  }
+
+  @Test
+  public void toSpacePermissionOperationsWithInvalidTemplate() {
+    assertThrows(
+        IOException.class, () -> ConfluenceAdapter.toSpacePermissionOperations("[\"VIEWSPACE\"]"));
+  }
+
+  private String grantUrl(String spaceKey, String group) {
+    return String.format(
+        "%s/api/space/%s/permissions/group/%s/grant",
+        confluenceAdapter.getAdapterApiUri(), spaceKey, group);
+  }
+
+  private static SpacePermissionOperation op(String targetType, String operationKey) {
+    return new SpacePermissionOperation(targetType, operationKey);
   }
 
   @Test
